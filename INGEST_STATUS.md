@@ -39,7 +39,8 @@ Expected after `python scripts/build_kb.py`:
 - farming spots: 8
 - checkpoints: 10
 - mini medal locations: 20
-- checkpoint obligations: 10
+- checkpoint obligations: 11
+- Mini Medal corroborating evidence rows: 7
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 
@@ -18,6 +19,8 @@ def parse_value(value: str):
         return None
     if lowered in ("true", "false"):
         return lowered == "true"
+    if value.startswith(("[", "{")):
+        return json.loads(value)
     try:
         return int(value)
     except ValueError:
@@ -41,12 +44,25 @@ def set_path(obj: dict, dotted: str, value: str) -> None:
     leaf = parts[-1]
     if leaf not in cur:
         raise KeyError(f"Unknown state field: {dotted}")
-    cur[leaf] = parse_value(value)
+    parsed = parse_value(value)
+    current = cur[leaf]
+    if current is not None:
+        compatible = (
+            isinstance(current, (int, float)) and not isinstance(current, bool)
+            and isinstance(parsed, (int, float)) and not isinstance(parsed, bool)
+        ) or type(current) is type(parsed)
+        if not compatible:
+            raise TypeError(
+                f"Refusing to change type of {dotted} from "
+                f"{type(current).__name__} to {type(parsed).__name__}"
+            )
+    cur[leaf] = parsed
 
 
 def update_state(state_path: Path, dotted: str, value: str) -> None:
     data = json.loads(state_path.read_text(encoding="utf-8"))
     set_path(data, dotted, value)
+    data["last_updated"] = datetime.now(timezone.utc).isoformat()
     state_path.write_text(
         json.dumps(data, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",

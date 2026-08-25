@@ -145,6 +145,17 @@ CREATE TABLE mini_medal_locations (
     verification_status TEXT NOT NULL
 );
 
+CREATE TABLE mini_medal_evidence (
+    evidence_id TEXT PRIMARY KEY,
+    medal_number INTEGER NOT NULL REFERENCES mini_medal_locations(medal_number),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    source_ordinal INTEGER,
+    ordinal_scheme TEXT,
+    notes TEXT,
+    UNIQUE(medal_number, source_id, locator)
+);
+
 CREATE TABLE missables (
     missable_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,

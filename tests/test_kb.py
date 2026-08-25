@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_kb import build_database  # noqa: E402
+from checkpoint_report import load_report  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
 
@@ -36,7 +37,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 20)
-        self.assertEqual(self.counts["checkpoint_obligations"], 10)
+        self.assertEqual(self.counts["checkpoint_obligations"], 11)
+        self.assertEqual(self.counts["mini_medal_evidence"], 7)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -111,6 +113,19 @@ class KnowledgeBaseTests(unittest.TestCase):
         ]
         self.assertEqual(numbers, list(range(1, 21)))
 
+    def test_verified_medals_retain_independent_evidence(self):
+        verified = self.connection.execute(
+            """SELECT medal_number FROM mini_medal_locations
+            WHERE verification_status = 'cross_source_checked'
+            ORDER BY medal_number"""
+        ).fetchall()
+        evidence = self.connection.execute(
+            """SELECT DISTINCT medal_number FROM mini_medal_evidence
+            WHERE source_id = 'rpgsite_walkthrough'
+            ORDER BY medal_number"""
+        ).fetchall()
+        self.assertEqual(verified, evidence)
+
     def test_checkpoint_sequences_are_contiguous(self):
         sequences = [
             row[0]
@@ -145,6 +160,7 @@ class KnowledgeBaseTests(unittest.TestCase):
 
         state = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(state["party"]["members"]["Hero"]["level"], 12)
+        self.assertIsNotNone(state["last_updated"])
 
     def test_player_state_update_rejects_unknown_path(self):
         source = ROOT / "player" / "ryan-save-state.json"
@@ -153,6 +169,35 @@ class KnowledgeBaseTests(unittest.TestCase):
 
         with self.assertRaises(KeyError):
             update_state(state_path, "party.members.Hero.unknown", "12")
+
+    def test_player_state_update_accepts_json_list_and_rejects_type_change(self):
+        source = ROOT / "player" / "ryan-save-state.json"
+        state_path = Path(self.tempdir.name) / "player-state-list.json"
+        state_path.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+        update_state(state_path, "completion.mini_medals_found", "[1, 2]")
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["mini_medals_found"], [1, 2])
+        with self.assertRaises(TypeError):
+            update_state(state_path, "completion.mini_medals_found", "not-a-list")
+
+    def test_checkpoint_report_surfaces_stop_warning_and_medals(self):
+        report = load_report(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_001_prologue",
+        )
+        stops = [row for row in report["obligations"] if row["stop_before_advancing"]]
+        self.assertEqual([row["subject"] for row in stops], ["Pearl's Fish Bits"])
+        self.assertEqual([row["medal_number"] for row in report["medals"]], [6, 7])
+        self.assertFalse(report["player_checkpoint_matches"])
+
+    def test_checkpoint_report_requires_known_checkpoint(self):
+        with self.assertRaises(ValueError):
+            load_report(
+                self.db_path,
+                ROOT / "player" / "ryan-save-state.json",
+                "cp_missing",
+            )
 
 
 if __name__ == "__main__":

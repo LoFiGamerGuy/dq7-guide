@@ -211,6 +211,17 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed.get("checkpoint_obligations", []),
         )
 
+        connection.executemany(
+            """INSERT INTO mini_medal_evidence(
+                evidence_id, medal_number, source_id, locator, source_ordinal,
+                ordinal_scheme, notes
+            ) VALUES (
+                :evidence_id, :medal_number, :source_id, :locator,
+                :source_ordinal, :ordinal_scheme, :notes
+            )""",
+            seed.get("mini_medal_evidence", []),
+        )
+
         for claim in seed["claims"]:
             connection.execute(
                 """INSERT INTO claims(
@@ -273,7 +284,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "sources", "entities", "relationships", "claims", "documents",
             "vocations", "vocation_requirements", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
-            , "mini_medal_locations", "checkpoint_obligations"
+            , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
         ):
             counts[table] = connection.execute(
                 f"SELECT COUNT(*) FROM {table}"
