@@ -131,6 +131,20 @@ CREATE TABLE medal_rewards (
     confidence TEXT NOT NULL
 );
 
+CREATE TABLE mini_medal_locations (
+    medal_number INTEGER PRIMARY KEY CHECK(medal_number BETWEEN 1 AND 100),
+    location TEXT NOT NULL,
+    detail TEXT NOT NULL,
+    time_period TEXT,
+    checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    available_from TEXT,
+    unavailable_after TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
 CREATE TABLE missables (
     missable_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -167,3 +181,19 @@ CREATE TABLE checkpoints (
     coverage_status TEXT NOT NULL
 );
 
+
+CREATE TABLE checkpoint_obligations (
+    obligation_id TEXT PRIMARY KEY,
+    checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    obligation_type TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    action TEXT NOT NULL,
+    required_for_100_percent INTEGER NOT NULL CHECK(required_for_100_percent IN (0, 1)),
+    stop_before_advancing INTEGER NOT NULL CHECK(stop_before_advancing IN (0, 1)),
+    available_from TEXT,
+    unavailable_after TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);

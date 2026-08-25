@@ -219,6 +219,53 @@
     "published_at": null,
     "updated_at": null,
     "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "g8_trophies",
+    "title": "Trophy Guide and Achievements List: How to Get Platinum",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/577925",
+    "source_class": "guide_wiki",
+    "role": "achievement_registry",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25",
+    "notes": "Legacy source ID preserved; refreshed through indexed page result. Full achievement normalization remains pending."
+  },
+  {
+    "source_id": "g8_vocations_start",
+    "title": "Best Starting Vocations",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578280",
+    "source_class": "guide_wiki",
+    "role": "attributed_early_vocation_recommendations",
+    "published_at": null,
+    "updated_at": "2026-02-08",
+    "retrieved_at": "2026-08-25",
+    "notes": "Legacy source ID preserved. Recommendations are editorial and assumption-dependent."
+  },
+  {
+    "source_id": "g8_seeds",
+    "title": "Seed Farming Guide: How to Farm Stat Seeds",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579802",
+    "source_class": "guide_wiki",
+    "role": "seed_effects_and_farming",
+    "published_at": null,
+    "updated_at": "2026-02-23",
+    "retrieved_at": "2026-08-25",
+    "notes": "Legacy source ID preserved; refreshed through indexed page result."
+  },
+  {
+    "source_id": "g8_skills",
+    "title": "Best Skills Tier List",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580276",
+    "source_class": "guide_wiki",
+    "role": "attributed_skill_recommendations",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25",
+    "notes": "Legacy source ID preserved. Tier placements are recommendations, not canonical mechanics."
   }
 ]
-

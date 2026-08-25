@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
+import tempfile
 from pathlib import Path
 
 
@@ -24,7 +26,7 @@ def canonical_key(name: str) -> str:
     )
 
 
-def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
+def _build_database(db_path: Path) -> dict[str, int]:
     db_path = db_path.resolve()
     db_path.parent.mkdir(parents=True, exist_ok=True)
     if db_path.exists():
@@ -93,8 +95,8 @@ def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
                 ),
             )
 
-        for group_number, requirement in enumerate(seed["vocation_requirements"], 1):
-            group_id = f"req_group_{group_number:02d}"
+        for requirement in seed["vocation_requirements"]:
+            group_id = requirement["id"]
             for item_number, prerequisite_id in enumerate(requirement["prerequisites"], 1):
                 requirement_id = f"{group_id}_{item_number:02d}"
                 connection.execute(
@@ -181,6 +183,34 @@ def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
             seed["checkpoints"],
         )
 
+        connection.executemany(
+            """INSERT INTO mini_medal_locations(
+                medal_number, location, detail, time_period, checkpoint_id,
+                available_from, unavailable_after, source_id, locator,
+                confidence, verification_status
+            ) VALUES (
+                :medal_number, :location, :detail, :time_period, :checkpoint_id,
+                :available_from, :unavailable_after, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            seed.get("mini_medal_locations", []),
+        )
+
+        connection.executemany(
+            """INSERT INTO checkpoint_obligations(
+                obligation_id, checkpoint_id, obligation_type, subject, action,
+                required_for_100_percent, stop_before_advancing, available_from,
+                unavailable_after, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :obligation_id, :checkpoint_id, :obligation_type, :subject,
+                :action, :required_for_100_percent, :stop_before_advancing,
+                :available_from, :unavailable_after, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            seed.get("checkpoint_obligations", []),
+        )
+
         for claim in seed["claims"]:
             connection.execute(
                 """INSERT INTO claims(
@@ -243,6 +273,7 @@ def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
             "sources", "entities", "relationships", "claims", "documents",
             "vocations", "vocation_requirements", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
+            , "mini_medal_locations", "checkpoint_obligations"
         ):
             counts[table] = connection.execute(
                 f"SELECT COUNT(*) FROM {table}"
@@ -260,6 +291,31 @@ def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
         connection.close()
 
 
+def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
+    """Build and validate a database, then atomically replace the target."""
+    db_path = db_path.resolve()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{db_path.name}.", suffix=".tmp", dir=db_path.parent
+    )
+    os.close(descriptor)
+    temporary_path = Path(temporary_name)
+    temporary_path.unlink()
+    try:
+        counts = _build_database(temporary_path)
+        with sqlite3.connect(temporary_path) as connection:
+            integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+            foreign_key_errors = connection.execute("PRAGMA foreign_key_check").fetchall()
+        if integrity != "ok":
+            raise RuntimeError(f"SQLite integrity check failed: {integrity}")
+        if foreign_key_errors:
+            raise RuntimeError(f"SQLite foreign-key check failed: {foreign_key_errors}")
+        os.replace(temporary_path, db_path)
+        return counts
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", type=Path, default=DEFAULT_DB, help="Output SQLite path")
@@ -271,4 +327,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

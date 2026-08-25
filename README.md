@@ -23,7 +23,7 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - initial chronological checkpoints through the first major vocation breakpoint;
-- a 20-page source registry;
+- a 24-page source registry;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -39,6 +39,15 @@ python -m unittest discover -s tests -v
 ```
 
 The build creates `data/dq7_reimagined.sqlite`. Generated databases are reproducible from committed seed JSON and the schema.
+
+Update Ryan's state only from a player report:
+
+```powershell
+python scripts/update_state.py party.members.Hero.level 12
+python scripts/update_state.py story.checkpoint_id cp_004_emberdale
+```
+
+The updater targets `player/ryan-save-state.json`, rejects unknown paths, and accepts `--state` for testing or an explicitly selected alternate player file.
 
 ## Key documents
 
@@ -64,9 +73,10 @@ sources/README.md            Copyright-safe source cache policy
 tests/                       Integrity and smoke tests
 ```
 
+Phase 1 chronology is normalized in `mini_medal_locations` and `checkpoint_obligations`; source-specific medal ordering must not be silently merged with the canonical Game8 list numbering.
+
 ## Source strategy
 
 RPG Site is the chronological completion backbone. Game8 is the structured optimization layer. Official or direct in-game evidence should verify disputed mechanics. Editorial recommendations remain attributed recommendations rather than being promoted to universal fact.
 
 Do not mirror full copyrighted guides. Store normalized facts, short excerpts only when needed, original synthesis, and a source URL / locator for every claim.
-

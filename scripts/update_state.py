@@ -1,31 +1,68 @@
 #!/usr/bin/env python3
-import json, sys
+"""Update a value in the canonical player state JSON file."""
+
+from __future__ import annotations
+
+import argparse
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STATE = ROOT / "player" / "player_state.json"
+DEFAULT_STATE = ROOT / "player" / "ryan-save-state.json"
 
-def set_path(obj, dotted, value):
+
+def parse_value(value: str):
+    """Parse common JSON scalar values while preserving ordinary text."""
+    lowered = value.lower()
+    if lowered == "null":
+        return None
+    if lowered in ("true", "false"):
+        return lowered == "true"
+    try:
+        return int(value)
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            return value
+
+
+def set_path(obj: dict, dotted: str, value: str) -> None:
     parts = dotted.split(".")
+    if not all(parts):
+        raise ValueError("State path must contain non-empty dot-separated keys")
     cur = obj
     for p in parts[:-1]:
+        if p not in cur:
+            raise KeyError(f"Unknown state path component: {p}")
+        if not isinstance(cur[p], dict):
+            raise TypeError(f"State path component is not an object: {p}")
         cur = cur[p]
     leaf = parts[-1]
-    # Small convenience conversions
-    if value.lower() == "null": parsed = None
-    elif value.lower() in ("true","false"): parsed = value.lower()=="true"
-    else:
-        try: parsed = int(value)
-        except:
-            try: parsed = float(value)
-            except: parsed = value
-    cur[leaf] = parsed
+    if leaf not in cur:
+        raise KeyError(f"Unknown state field: {dotted}")
+    cur[leaf] = parse_value(value)
+
+
+def update_state(state_path: Path, dotted: str, value: str) -> None:
+    data = json.loads(state_path.read_text(encoding="utf-8"))
+    set_path(data, dotted, value)
+    state_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("path", help="Dot-separated path, e.g. party.members.Hero.level")
+    parser.add_argument("value", nargs="+", help="New scalar value")
+    parser.add_argument("--state", type=Path, default=DEFAULT_STATE, help="Player-state JSON path")
+    args = parser.parse_args()
+
+    update_state(args.state, args.path, " ".join(args.value))
+    print(f"Updated {args.path} in {args.state}")
+
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python scripts/update_state.py party.Hero.level 12")
-        raise SystemExit(2)
-    data = json.loads(STATE.read_text(encoding="utf-8"))
-    set_path(data, sys.argv[1], " ".join(sys.argv[2:]))
-    STATE.write_text(json.dumps(data, indent=2, ensure_ascii=False),encoding="utf-8")
-    print(f"Updated {sys.argv[1]}")
+    main()

@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_kb import build_database  # noqa: E402
 from query_kb import search  # noqa: E402
+from update_state import update_state  # noqa: E402
 
 
 class KnowledgeBaseTests(unittest.TestCase):
@@ -30,10 +31,12 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 20)
+        self.assertEqual(self.counts["sources"], 24)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
+        self.assertEqual(self.counts["mini_medal_locations"], 20)
+        self.assertEqual(self.counts["checkpoint_obligations"], 10)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -73,12 +76,84 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Alltrades Abbey power spike", titles)
         self.assertIn("Vocation prerequisite graph", titles)
 
+    def test_fts_query_handles_empty_and_punctuation(self):
+        self.assertEqual(search(self.db_path, "\"'!?", limit=8), [])
+        rows = search(self.db_path, 'alltrades foo"bar', limit=8)
+        self.assertTrue(rows)
+
+    def test_search_does_not_create_missing_database(self):
+        missing = Path(self.tempdir.name) / "missing.sqlite"
+        with self.assertRaises(FileNotFoundError):
+            search(missing, "alltrades")
+        self.assertFalse(missing.exists())
+
+    def test_phase_one_rows_have_precise_provenance(self):
+        for table in ("mini_medal_locations", "checkpoint_obligations"):
+            rows = self.connection.execute(
+                f"""SELECT source_id, locator FROM {table}
+                WHERE source_id IS NULL OR trim(locator) = ''"""
+            ).fetchall()
+            self.assertEqual(rows, [], table)
+
+    def test_sourced_documents_have_locators(self):
+        rows = self.connection.execute(
+            """SELECT document_id FROM documents
+            WHERE source_id IS NOT NULL AND (locator IS NULL OR trim(locator) = '')"""
+        ).fetchall()
+        self.assertEqual(rows, [])
+
+    def test_ingested_medal_numbers_are_contiguous(self):
+        numbers = [
+            row[0]
+            for row in self.connection.execute(
+                "SELECT medal_number FROM mini_medal_locations ORDER BY medal_number"
+            )
+        ]
+        self.assertEqual(numbers, list(range(1, 21)))
+
+    def test_checkpoint_sequences_are_contiguous(self):
+        sequences = [
+            row[0]
+            for row in self.connection.execute(
+                "SELECT sequence_no FROM checkpoints ORDER BY sequence_no"
+            )
+        ]
+        self.assertEqual(sequences, list(range(1, len(sequences) + 1)))
+
+    def test_vocation_requirement_ids_are_stable(self):
+        groups = {
+            row[0]
+            for row in self.connection.execute(
+                "SELECT DISTINCT group_id FROM vocation_requirements"
+            )
+        }
+        self.assertIn("req_gladiator", groups)
+        self.assertIn("req_hero", groups)
+        self.assertFalse(any(group.startswith("req_group_") for group in groups))
+
     def test_player_state_is_valid_json_and_unknown_by_default(self):
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"))
         self.assertIsNone(state["story"]["checkpoint_id"])
         self.assertEqual(state["source_type"], "player_report")
 
+    def test_player_state_update_targets_explicit_file(self):
+        source = ROOT / "player" / "ryan-save-state.json"
+        state_path = Path(self.tempdir.name) / "player-state.json"
+        state_path.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+        update_state(state_path, "party.members.Hero.level", "12")
+
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["party"]["members"]["Hero"]["level"], 12)
+
+    def test_player_state_update_rejects_unknown_path(self):
+        source = ROOT / "player" / "ryan-save-state.json"
+        state_path = Path(self.tempdir.name) / "player-state-invalid.json"
+        state_path.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+        with self.assertRaises(KeyError):
+            update_state(state_path, "party.members.Hero.unknown", "12")
+
 
 if __name__ == "__main__":
     unittest.main()
-

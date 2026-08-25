@@ -8,13 +8,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 20 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 24 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 10 early checkpoints, partial | Medium | Expand through endgame with atomic obligations |
+| Walkthrough checkpoints | 10 early checkpoints; 10 normalized obligations through Emberdale | Medium/High for ingested obligations | Expand L'Arca through Alltrades with atomic obligations |
 | Mini Medal rewards | 19/19 reward thresholds | High | Ingest all 100 numbered locations and checkpoint gates |
-| Mini Medal locations | 0/100 normalized rows | Not started | Phase 1 priority |
+| Mini Medal locations | 20/100 normalized rows | Mixed: 7 cross-source verified, 13 indexed-source checked | Continue rows 21–45; directly refresh Game8 when accessible |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
 | Heroic Hoarder items | 0 complete normalized rows | Not started | Build full acquisition matrix by category |
 | Lucky Panel | System role and version summary | Medium/High | Ingest every version/rank/chest item and exclusivity |
@@ -30,25 +30,31 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 20
+- sources: 24
 - vocations/entities: 26
 - prerequisite relationships: 27
-- claims: 9
+- claims: 12
 - medal rewards: 19
 - missables: 7
 - farming spots: 8
 - checkpoints: 10
-- searchable documents: 28 (9 curated summaries + 19 reward rows)
+- mini medal locations: 20
+- checkpoint obligations: 10
+- searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.
 
 ## Immediate Phase 1 batch order
 
-1. RPG Site checkpoints from Prologue through Emberdale, with all items, medals, fragments, monsters, and stop conditions.
-2. Mini Medals 1–20, cross-checked between RPG Site chronology and Game8's numbered list.
-3. L'Arca through Alltrades checkpoints.
-4. Mini Medals 21–45 and all Thief's Key backtracking gates.
-5. Resolve the numbering / route differences between sources without overwriting either claim.
+1. Expand the initial Prologue-through-Emberdale obligations to full item, fragment, monster, and stop-condition coverage.
+2. L'Arca through Alltrades checkpoints and obligations.
+3. Mini Medals 21–45 and all Thief's Key backtracking gates.
+4. Add a source-ordinal mapping so RPG Site acquisition order can coexist explicitly with Game8's list numbering.
+5. Directly refresh Game8 medal rows when the page is accessible; rows currently available only through its indexed table remain medium confidence unless independently corroborated.
+
+## Latest completed batch
+
+The 2026-08-25 Phase 1 foundation batch added normalized tables for Mini Medal locations and checkpoint obligations, Game8 list rows 1–20, and ten directly checked RPG Site obligations from the Prologue through Emberdale. Game8's direct page returned HTTP 402 during this batch; uncorroborated rows are therefore marked `search_index_checked` at medium confidence. RPG Site's parenthetical medal ordinals are walkthrough acquisition order, while Game8's 1–100 values are list/album order; they are not treated as interchangeable IDs or as a factual conflict.
 
 ## Open questions requiring evidence
 
