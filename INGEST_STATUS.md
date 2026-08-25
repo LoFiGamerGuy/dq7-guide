@@ -12,7 +12,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 10 early checkpoints; 10 normalized obligations through Emberdale | Medium/High for ingested obligations | Expand L'Arca through Alltrades with atomic obligations |
+| Walkthrough checkpoints | 10 early checkpoints; 24 normalized obligations through Alltrades Present | Medium/High for ingested obligations | Complete remaining item/monster obligations, then expand beyond Alltrades |
 | Mini Medal rewards | 19/19 reward thresholds | High | Ingest all 100 numbered locations and checkpoint gates |
 | Mini Medal locations | 20/100 normalized rows | Mixed: 7 cross-source verified, 13 indexed-source checked | Continue rows 21–45; directly refresh Game8 when accessible |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
@@ -39,7 +39,7 @@ Expected after `python scripts/build_kb.py`:
 - farming spots: 8
 - checkpoints: 10
 - mini medal locations: 20
-- checkpoint obligations: 11
+- checkpoint obligations: 24
 - Mini Medal corroborating evidence rows: 7
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
@@ -55,7 +55,7 @@ Treat these as build assertions, not completion percentages.
 
 ## Latest completed batch
 
-The 2026-08-25 Phase 1 foundation batch added normalized tables for Mini Medal locations and checkpoint obligations, Game8 list rows 1–20, and ten directly checked RPG Site obligations from the Prologue through Emberdale. Game8's direct page returned HTTP 402 during this batch; uncorroborated rows are therefore marked `search_index_checked` at medium confidence. RPG Site's parenthetical medal ordinals are walkthrough acquisition order, while Game8's 1–100 values are list/album order; they are not treated as interchangeable IDs or as a factual conflict.
+The 2026-08-25 Phase 1 batches added normalized tables for Mini Medal locations, independent medal evidence, and checkpoint obligations; Game8 list rows 1–20; and 24 directly checked obligations from the Prologue through Alltrades Present. Game8's direct page returned HTTP 402 during this batch; uncorroborated rows are therefore marked `search_index_checked` at medium confidence. RPG Site's parenthetical medal ordinals are walkthrough acquisition order, while Game8's 1–100 values are list/album order; they are not treated as interchangeable IDs or as a factual conflict.
 
 ## Open questions requiring evidence
 

@@ -37,7 +37,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 20)
-        self.assertEqual(self.counts["checkpoint_obligations"], 11)
+        self.assertEqual(self.counts["checkpoint_obligations"], 24)
         self.assertEqual(self.counts["mini_medal_evidence"], 7)
 
     def test_every_claim_has_registered_source(self):
