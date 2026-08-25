@@ -1,0 +1,79 @@
+{
+  "exp": {
+    "level_cap": 99,
+    "metal_slime_spots": [
+      {
+        "location": "Roamer Encampment Region",
+        "variant": "Metal Slime"
+      },
+      {
+        "location": "Highendreigh Tower",
+        "variant": "Metal Slime"
+      },
+      {
+        "location": "Heavy Metal Hole (Past)",
+        "variant": "Liquid Metal Slime"
+      },
+      {
+        "location": "The Beacon (Past)",
+        "variant": "Liquid Metal Slime"
+      },
+      {
+        "location": "La Bravoure Region (Present)",
+        "variant": "Metal King Slime"
+      },
+      {
+        "location": "Hubble Region (Present)",
+        "variant": "Metal King Slime"
+      },
+      {
+        "location": "Yet Another World",
+        "variant": "Platinum King Jewel"
+      }
+    ],
+    "notes": [
+      "Easy Going can increase EXP and vocation proficiency gain.",
+      "Metal-family enemies appear as extra enemies in battle groups rather than visible overworld targets.",
+      "Ruff's Whistle can accelerate encounter generation."
+    ],
+    "source_ids": [
+      "g8_exp"
+    ]
+  },
+  "seeds": {
+    "best_repeatable_method_pre_postgame": "Klepto Clobber against enemies carrying stealable seeds",
+    "postgame_super_seed_loop": "Repeat The Almighty + four spirits in Yet Another World; battle awards a random Super Seed.",
+    "fixed_seed_values": {
+      "Seed of Life": "+5 HP",
+      "Seed of Magic": "+4 MP",
+      "Seed of Strength": "+2 Strength",
+      "Seed of Deftness": "+1 Deftness",
+      "Seed of Agility": "+2 Agility",
+      "Seed of Resilience": "+4 Resilience",
+      "Seed of Sorcery": "+4 Magical Might",
+      "Seed of Therapeusis": "+2 Magical Mending",
+      "Pretty Betsy": "+5 Charm",
+      "Super Seed of Life": "+20 HP",
+      "Super Seed of Magic": "+20 MP",
+      "Super Seed of Strength": "+20 Strength",
+      "Super Seed of Deftness": "+20 Deftness",
+      "Super Seed of Agility": "+20 Agility",
+      "Super Seed of Resilience": "+20 Resilience",
+      "Super Seed of Sorcery": "+20 Magical Might",
+      "Super Seed of Therapeusis": "+20 Magical Mending",
+      "Super Pretty Betsy": "+20 Charm"
+    },
+    "source_ids": [
+      "g8_seeds"
+    ]
+  },
+  "lucky_panel": {
+    "daily_games": 3,
+    "iterations": 3,
+    "completion_note": "Some equipment is exclusive to Lucky Panel; a 100% item run must account for it.",
+    "early_power_note": "Lucky Panel can yield equipment earlier than normal shop availability.",
+    "source_ids": [
+      "rpg_lucky_panel"
+    ]
+  }
+}

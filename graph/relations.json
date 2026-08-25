@@ -1,0 +1,256 @@
+[
+  {
+    "subject": "Gladiator",
+    "predicate": "requires_mastery",
+    "object": "Warrior",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Gladiator",
+    "predicate": "requires_mastery",
+    "object": "Martial Artist",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Sage",
+    "predicate": "requires_mastery",
+    "object": "Mage",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Sage",
+    "predicate": "requires_mastery",
+    "object": "Priest",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Armamentalist",
+    "predicate": "requires_mastery",
+    "object": "Warrior",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Armamentalist",
+    "predicate": "requires_mastery",
+    "object": "Mage",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Pirate",
+    "predicate": "requires_mastery",
+    "object": "Thief",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Pirate",
+    "predicate": "requires_mastery",
+    "object": "Sailor",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Luminary",
+    "predicate": "requires_mastery",
+    "object": "Dancer",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Luminary",
+    "predicate": "requires_mastery",
+    "object": "Troubadour",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Luminary",
+    "predicate": "requires_mastery",
+    "object": "Jester",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Paladin",
+    "predicate": "requires_mastery",
+    "object": "Martial Artist",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Paladin",
+    "predicate": "requires_mastery",
+    "object": "Priest",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Monster Wrangler",
+    "predicate": "requires_mastery",
+    "object": "Thief",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Monster Wrangler",
+    "predicate": "requires_mastery",
+    "object": "Shepherd",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Champion",
+    "predicate": "requires_mastery",
+    "object": "Gladiator",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Champion",
+    "predicate": "requires_mastery",
+    "object": "Paladin",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Druid",
+    "predicate": "requires_n_from_pool",
+    "object": [
+      "Sage",
+      "Pirate",
+      "Luminary"
+    ],
+    "n": 2,
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Hero",
+    "predicate": "requires_n_from_pool",
+    "object": [
+      "Gladiator",
+      "Sage",
+      "Pirate",
+      "Armamentalist",
+      "Luminary",
+      "Paladin",
+      "Monster Wrangler"
+    ],
+    "n": 3,
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "20 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Magic Shield",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "25 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Seed of Proficiency",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "30 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Canny Cap",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "35 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Glombolero",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "40 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Lucky Pendant",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "45 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Liquid Metal Slime Heart",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "50 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Silver Fragment",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "55 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Miracle Sword",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "60 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Metal King Slime Heart",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "65 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Sage's Stone",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "70 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Extra-Elevating Shoes",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "75 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Mad Cap",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "80 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Sacreder Armor",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "90 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Uber Gringham Whip",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "95 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Metal King Shield",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "100 Mini Medals",
+    "predicate": "unlocks_reward",
+    "object": "Metal King Sword",
+    "source_id": "g8_medals"
+  },
+  {
+    "subject": "Alltrades Abbey",
+    "predicate": "unlocks_system",
+    "object": "Vocations",
+    "source_id": "g8_vocations_all"
+  },
+  {
+    "subject": "Alltrades Abbey (Present)",
+    "predicate": "grants",
+    "object": "Career Sphere",
+    "source_id": "rpg_walkthrough"
+  },
+  {
+    "subject": "Recruit Aishe + story progress",
+    "predicate": "enables_event",
+    "object": "Moonlighting activation at Alltrades Abbey",
+    "source_id": "g8_moonlighting"
+  },
+  {
+    "subject": "Lucky Panel",
+    "predicate": "contains_exclusive_items_for",
+    "object": "Heroic Hoarder",
+    "source_id": "rpg_lucky_panel"
+  },
+  {
+    "subject": "The Almighty + Four Spirits",
+    "predicate": "repeatable_reward",
+    "object": "Random Super Seed",
+    "source_id": "g8_seeds"
+  }
+]

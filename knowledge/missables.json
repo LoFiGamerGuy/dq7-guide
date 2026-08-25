@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Pearl's Fish Bits",
+    "window": "Prologue: after Maribel joins, before arriving at Estard",
+    "type": "optional collector item",
+    "source_id": "g8_missables"
+  },
+  {
+    "name": "Wrecked Specs",
+    "window": "Early Estard/Pilchard sequence",
+    "type": "keep/interaction flag",
+    "source_id": "g8_missables"
+  },
+  {
+    "name": "Wooden Doll choice",
+    "window": "Ballymolloy story sequence",
+    "type": "choice/event",
+    "source_id": "g8_missables"
+  },
+  {
+    "name": "Little Blue Button sidequest",
+    "window": "story-dependent",
+    "type": "sidequest",
+    "source_id": "g8_missables"
+  },
+  {
+    "name": "Return Stone Table in Vogograd",
+    "window": "Vogograd sequence",
+    "type": "sidequest/interaction",
+    "source_id": "g8_missables"
+  },
+  {
+    "name": "Fight Wiggles in Nottagen",
+    "window": "Nottagen sequence",
+    "type": "encounter",
+    "source_id": "g8_missables"
+  },
+  {
+    "name": "Kiefer rejoin decision",
+    "window": "late story event",
+    "type": "choice/event",
+    "source_id": "g8_missables"
+  }
+]

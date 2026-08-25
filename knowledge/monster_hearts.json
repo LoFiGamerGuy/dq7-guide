@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Cyclops Heart",
+    "effect": "Physical critical hits deal 30% more damage",
+    "use": "physical burst",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Clawcerer Heart",
+    "effect": "Critical spells are 50% more effective",
+    "use": "magic burst/crit caster",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Cactiball Heart",
+    "effect": "Reflects physical damage taken",
+    "use": "physical-defense cheese",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Grody Gumdrops Heart",
+    "effect": "Nullifies all attacks once every three turns",
+    "use": "defensive setup",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Zoma Heart",
+    "effect": "Starts battle with a damage-reducing Cloth of Darkness effect",
+    "use": "postgame defense",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Metal Slime Heart",
+    "effect": "Experience earned from battle increased by 20%",
+    "use": "EXP farming",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Gold Golem Heart",
+    "effect": "Gold earned from battle increased by 50%",
+    "use": "gold farming",
+    "source_id": "g8_hearts"
+  },
+  {
+    "name": "Numen Heart",
+    "effect": "Starts battles worked up",
+    "use": "postgame burst/seed farming",
+    "source_id": "g8_hearts"
+  }
+]

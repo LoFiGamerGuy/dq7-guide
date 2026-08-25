@@ -1,0 +1,249 @@
+[
+  {
+    "id": "rpg_walkthrough",
+    "publisher": "RPG Site",
+    "title": "Dragon Quest VII Reimagined Walkthrough: Where to go, all mini medals, tablet fragments, step-by-step guide",
+    "url": "https://www.rpgsite.net/guide/19492-dragon-quest-vii-reimagined-walkthrough-where-to-go-all-mini-medals-tablet-fragments-step-by-step-guide",
+    "retrieved": "2026-08-25",
+    "role": [
+      "completion_route",
+      "walkthrough",
+      "collectibles"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "rpg_items",
+    "publisher": "RPG Site",
+    "title": "Dragon Quest VII Reimagined Item List Guide: Where to find all items for the Heroic Hoarder achievement",
+    "url": "https://www.rpgsite.net/guide/19381-dragon-quest-vii-reimagined-item-lisguide-where-to-find-all-items-for-heroic-hoarder-achievement",
+    "retrieved": "2026-08-25",
+    "role": [
+      "items",
+      "heroic_hoarder"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "rpg_lucky_panel",
+    "publisher": "RPG Site",
+    "title": "Dragon Quest VII Reimagined Lucky Panel Guide",
+    "url": "https://www.rpgsite.net/guide/19493-dragon-quest-vii-reimagined-lucky-panel-guide-how-to-play-all-exclusive-equipment-rewards-available",
+    "retrieved": "2026-08-25",
+    "role": [
+      "lucky_panel",
+      "exclusive_items",
+      "early_power"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_hub",
+    "publisher": "Game8",
+    "title": "Dragon Quest 7 Reimagined Walkthrough & Guides Wiki",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined",
+    "retrieved": "2026-08-25",
+    "role": [
+      "index",
+      "optimization"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_walkthrough",
+    "publisher": "Game8",
+    "title": "100% Walkthrough Guide",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/574821",
+    "retrieved": "2026-08-25",
+    "role": [
+      "walkthrough",
+      "bosses",
+      "story"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_medals",
+    "publisher": "Game8",
+    "title": "All 100 Mini Medal Locations and Rewards",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/575685",
+    "retrieved": "2026-08-25",
+    "role": [
+      "mini_medals",
+      "rewards"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_missables",
+    "publisher": "Game8",
+    "title": "List of Missables and Points of No Return",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/576185",
+    "retrieved": "2026-08-25",
+    "role": [
+      "missables",
+      "completion"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_vocations_all",
+    "publisher": "Game8",
+    "title": "List of All 26 Vocations",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/575496",
+    "retrieved": "2026-08-25",
+    "role": [
+      "vocations",
+      "unlock_graph"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_vocations_start",
+    "publisher": "Game8",
+    "title": "Best Starting Vocations",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578280",
+    "retrieved": "2026-08-25",
+    "role": [
+      "vocations",
+      "early_optimization"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_vocations_character",
+    "publisher": "Game8",
+    "title": "Best Vocations For Each Character",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579161",
+    "retrieved": "2026-08-25",
+    "role": [
+      "vocations",
+      "character_builds"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_party",
+    "publisher": "Game8",
+    "title": "Best Party Builds and Team Compositions",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578481",
+    "retrieved": "2026-08-25",
+    "role": [
+      "party_builds",
+      "endgame",
+      "seed_farming"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_moonlighting",
+    "publisher": "Game8",
+    "title": "Moonlighting Guide: How to Learn Two Vocations",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578015",
+    "retrieved": "2026-08-25",
+    "role": [
+      "vocations",
+      "moonlighting"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_gear",
+    "publisher": "Game8",
+    "title": "Best Weapons and Equipment",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578029",
+    "retrieved": "2026-08-25",
+    "role": [
+      "gear",
+      "power_spikes"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_skills",
+    "publisher": "Game8",
+    "title": "Best Skills Tier List",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580276",
+    "retrieved": "2026-08-25",
+    "role": [
+      "skills",
+      "optimization"
+    ],
+    "priority": "secondary"
+  },
+  {
+    "id": "g8_hearts",
+    "publisher": "Game8",
+    "title": "Best Monster Hearts",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578390",
+    "retrieved": "2026-08-25",
+    "role": [
+      "monster_hearts",
+      "optimization",
+      "farming"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_exp",
+    "publisher": "Game8",
+    "title": "EXP Farming Guide: How to Level Up Fast",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578026",
+    "retrieved": "2026-08-25",
+    "role": [
+      "farming",
+      "exp"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_prof",
+    "publisher": "Game8",
+    "title": "How to Level Up Vocational Proficiency Fast",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578027",
+    "retrieved": "2026-08-25",
+    "role": [
+      "farming",
+      "vocation_proficiency"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_seeds",
+    "publisher": "Game8",
+    "title": "Seed Farming Guide: How to Farm Stat Seeds",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579802",
+    "retrieved": "2026-08-25",
+    "role": [
+      "farming",
+      "stat_seeds",
+      "endgame"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_trophies",
+    "publisher": "Game8",
+    "title": "Trophy Guide and Achievements List: How to Get Platinum",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/577925",
+    "retrieved": "2026-08-25",
+    "role": [
+      "achievements",
+      "completion"
+    ],
+    "priority": "primary"
+  },
+  {
+    "id": "g8_postgame",
+    "publisher": "Game8",
+    "title": "Post-Game Guide: Things to Do After Beating DQ7 Reimagined",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579388",
+    "retrieved": "2026-08-25",
+    "role": [
+      "postgame",
+      "completion",
+      "optimization"
+    ],
+    "priority": "primary"
+  }
+]

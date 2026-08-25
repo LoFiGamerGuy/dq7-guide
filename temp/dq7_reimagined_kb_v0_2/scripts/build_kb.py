@@ -1,0 +1,274 @@
+#!/usr/bin/env python3
+"""Build the reproducible DQ7 Reimagined SQLite knowledge base."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sqlite3
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
+
+
+def load_json(path: Path):
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def canonical_key(name: str) -> str:
+    return "vocation:" + "_".join(
+        "".join(ch.lower() if ch.isalnum() else " " for ch in name).split()
+    )
+
+
+def build_database(db_path: Path = DEFAULT_DB) -> dict[str, int]:
+    db_path = db_path.resolve()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    if db_path.exists():
+        db_path.unlink()
+
+    schema = (ROOT / "data" / "schema.sql").read_text(encoding="utf-8")
+    sources = load_json(ROOT / "data" / "seed" / "sources.json")
+    seed = load_json(ROOT / "data" / "seed" / "seed_data.json")
+
+    connection = sqlite3.connect(db_path)
+    connection.row_factory = sqlite3.Row
+    try:
+        connection.executescript(schema)
+        connection.executemany(
+            """INSERT INTO sources(
+                source_id, title, publisher, url, source_class, role,
+                published_at, updated_at, retrieved_at, status, notes
+            ) VALUES (
+                :source_id, :title, :publisher, :url, :source_class, :role,
+                :published_at, :updated_at, :retrieved_at,
+                COALESCE(:status, 'active'), :notes
+            )""",
+            [
+                {
+                    **item,
+                    "status": item.get("status"),
+                    "notes": item.get("notes"),
+                }
+                for item in sources
+            ],
+        )
+
+        connection.executemany(
+            "INSERT INTO meta(key, value) VALUES (?, ?)",
+            [
+                ("schema_version", "1"),
+                ("package_version", "0.2.0-handoff"),
+                ("build_type", "reconstructed_seed"),
+                ("game", "Dragon Quest VII Reimagined"),
+            ],
+        )
+
+        for vocation in seed["vocations"]:
+            connection.execute(
+                """INSERT INTO entities(
+                    entity_id, entity_type, name, canonical_key, description,
+                    reconstruction_status
+                ) VALUES (?, 'vocation', ?, ?, ?, 'reconstructed_seed')""",
+                (
+                    vocation["id"],
+                    vocation["name"],
+                    canonical_key(vocation["name"]),
+                    f"{vocation['tier'].title()} vocation",
+                ),
+            )
+            connection.execute(
+                """INSERT INTO vocations(
+                    vocation_id, tier, exclusive_character, let_loose, source_id
+                ) VALUES (?, ?, ?, ?, ?)""",
+                (
+                    vocation["id"],
+                    vocation["tier"],
+                    vocation.get("exclusive_character"),
+                    vocation.get("let_loose"),
+                    vocation["source_id"],
+                ),
+            )
+
+        for group_number, requirement in enumerate(seed["vocation_requirements"], 1):
+            group_id = f"req_group_{group_number:02d}"
+            for item_number, prerequisite_id in enumerate(requirement["prerequisites"], 1):
+                requirement_id = f"{group_id}_{item_number:02d}"
+                connection.execute(
+                    """INSERT INTO vocation_requirements(
+                        requirement_id, vocation_id, group_id, rule,
+                        required_count, prerequisite_vocation_id, source_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        requirement_id,
+                        requirement["vocation_id"],
+                        group_id,
+                        requirement["rule"],
+                        requirement["required_count"],
+                        prerequisite_id,
+                        requirement["source_id"],
+                    ),
+                )
+                connection.execute(
+                    """INSERT INTO relationships(
+                        relationship_id, subject_id, predicate, object_id,
+                        qualifier_json, source_id, confidence
+                    ) VALUES (?, ?, 'requires_mastery_of', ?, ?, ?, 'high')""",
+                    (
+                        f"rel_{requirement_id}",
+                        requirement["vocation_id"],
+                        prerequisite_id,
+                        json.dumps(
+                            {
+                                "group_id": group_id,
+                                "rule": requirement["rule"],
+                                "required_count": requirement["required_count"],
+                            },
+                            sort_keys=True,
+                        ),
+                        requirement["source_id"],
+                    ),
+                )
+
+        connection.executemany(
+            """INSERT INTO medal_rewards(threshold, reward, source_id, confidence)
+            VALUES (:threshold, :reward, 'game8_medals', 'high')""",
+            seed["medal_rewards"],
+        )
+
+        connection.executemany(
+            """INSERT INTO missables(
+                missable_id, name, available_from, unavailable_after,
+                consequence, severity, source_id, confidence, verification_status
+            ) VALUES (
+                :id, :name, :available_from, :unavailable_after, :consequence,
+                :severity, 'game8_missables', :confidence, :verification_status
+            )""",
+            seed["missables"],
+        )
+
+        for farm in seed["farming_spots"]:
+            connection.execute(
+                """INSERT INTO farming_spots(
+                    farming_id, target, location, time_period, available_from,
+                    strategy, source_id, confidence
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    farm["id"],
+                    farm["target"],
+                    farm["location"],
+                    farm.get("time_period"),
+                    farm.get("available_from"),
+                    farm.get("strategy"),
+                    farm.get("source_id", "game8_exp_farming"),
+                    "high" if farm["id"] != "farm_super_seeds_almighty" else "medium",
+                ),
+            )
+
+        connection.executemany(
+            """INSERT INTO checkpoints(
+                checkpoint_id, sequence_no, name, time_period, region,
+                entry_condition, safe_exit_condition, source_id, confidence,
+                coverage_status
+            ) VALUES (
+                :id, :sequence_no, :name, :time_period, :region,
+                :entry_condition, :safe_exit_condition, 'rpgsite_walkthrough',
+                'medium', :coverage_status
+            )""",
+            seed["checkpoints"],
+        )
+
+        for claim in seed["claims"]:
+            connection.execute(
+                """INSERT INTO claims(
+                    claim_id, subject_key, predicate, value_json, claim_kind,
+                    scope_json, source_id, locator, confidence,
+                    verification_status, reconstruction_status, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'reconstructed_seed', ?)""",
+                (
+                    claim["id"],
+                    claim["subject_key"],
+                    claim["predicate"],
+                    json.dumps(claim["value"], ensure_ascii=False, sort_keys=True),
+                    claim["claim_kind"],
+                    json.dumps(claim.get("scope", {"game":"DQ7 Reimagined"}), sort_keys=True),
+                    claim["source_id"],
+                    claim.get("locator"),
+                    claim["confidence"],
+                    claim["verification_status"],
+                    claim.get("notes"),
+                ),
+            )
+
+        for document in seed["documents"]:
+            connection.execute(
+                """INSERT INTO documents(
+                    document_id, title, body, domain, checkpoint_key, source_id,
+                    locator, confidence, reconstruction_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'reconstructed_seed')""",
+                (
+                    document["id"],
+                    document["title"],
+                    document["body"],
+                    document["domain"],
+                    document.get("checkpoint_key"),
+                    document.get("source_id"),
+                    document.get("locator"),
+                    document["confidence"],
+                ),
+            )
+
+        # Add searchable domain summaries generated from structured rows.
+        for reward in seed["medal_rewards"]:
+            connection.execute(
+                """INSERT INTO documents(
+                    document_id, title, body, domain, source_id, locator,
+                    confidence, reconstruction_status
+                ) VALUES (?, ?, ?, 'collectibles', 'game8_medals',
+                    'Mini Medal Rewards table', 'high', 'reconstructed_seed')""",
+                (
+                    f"doc_medal_reward_{reward['threshold']:03d}",
+                    f"Mini Medal reward at {reward['threshold']}",
+                    f"Collecting {reward['threshold']} Mini Medals rewards {reward['reward']}.",
+                ),
+            )
+
+        connection.commit()
+
+        counts = {}
+        for table in (
+            "sources", "entities", "relationships", "claims", "documents",
+            "vocations", "vocation_requirements", "medal_rewards", "missables",
+            "farming_spots", "checkpoints", "conflicts"
+        ):
+            counts[table] = connection.execute(
+                f"SELECT COUNT(*) FROM {table}"
+            ).fetchone()[0]
+
+        fts_count = connection.execute(
+            "SELECT COUNT(*) FROM document_fts"
+        ).fetchone()[0]
+        if fts_count != counts["documents"]:
+            raise RuntimeError(
+                f"FTS row count {fts_count} does not match documents {counts['documents']}"
+            )
+        return counts
+    finally:
+        connection.close()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--db", type=Path, default=DEFAULT_DB, help="Output SQLite path")
+    args = parser.parse_args()
+    counts = build_database(args.db)
+    print(f"Built {args.db.resolve()}")
+    print(" ".join(f"{name}={count}" for name, count in counts.items()))
+
+
+if __name__ == "__main__":
+    main()
+

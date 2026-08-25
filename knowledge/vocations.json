@@ -1,0 +1,146 @@
+{
+  "default": [
+    {
+      "name": "Fledgling Fisherman",
+      "exclusive_to": "Hero"
+    },
+    {
+      "name": "Heir Apparent",
+      "exclusive_to": "Kiefer"
+    },
+    {
+      "name": "Mini Mayoress",
+      "exclusive_to": "Maribel"
+    },
+    {
+      "name": "Wolf Boy",
+      "exclusive_to": "Ruff"
+    },
+    {
+      "name": "Destiny's Dancer",
+      "exclusive_to": "Aishe"
+    },
+    {
+      "name": "Chevalier",
+      "exclusive_to": "Sir Mervyn"
+    }
+  ],
+  "beginner": [
+    {
+      "name": "Warrior"
+    },
+    {
+      "name": "Martial Artist"
+    },
+    {
+      "name": "Mage"
+    },
+    {
+      "name": "Priest"
+    },
+    {
+      "name": "Dancer"
+    },
+    {
+      "name": "Thief"
+    },
+    {
+      "name": "Troubadour"
+    },
+    {
+      "name": "Sailor"
+    },
+    {
+      "name": "Shepherd"
+    },
+    {
+      "name": "Jester"
+    }
+  ],
+  "intermediate": [
+    {
+      "name": "Gladiator",
+      "requires": [
+        "Warrior",
+        "Martial Artist"
+      ]
+    },
+    {
+      "name": "Sage",
+      "requires": [
+        "Mage",
+        "Priest"
+      ]
+    },
+    {
+      "name": "Armamentalist",
+      "requires": [
+        "Warrior",
+        "Mage"
+      ]
+    },
+    {
+      "name": "Pirate",
+      "requires": [
+        "Thief",
+        "Sailor"
+      ]
+    },
+    {
+      "name": "Luminary",
+      "requires": [
+        "Dancer",
+        "Troubadour",
+        "Jester"
+      ]
+    },
+    {
+      "name": "Paladin",
+      "requires": [
+        "Martial Artist",
+        "Priest"
+      ]
+    },
+    {
+      "name": "Monster Wrangler",
+      "requires": [
+        "Thief",
+        "Shepherd"
+      ]
+    }
+  ],
+  "advanced": [
+    {
+      "name": "Champion",
+      "requires_all": [
+        "Gladiator",
+        "Paladin"
+      ]
+    },
+    {
+      "name": "Druid",
+      "requires_any_n": 2,
+      "requires_pool": [
+        "Sage",
+        "Pirate",
+        "Luminary"
+      ]
+    },
+    {
+      "name": "Hero",
+      "requires_any_n": 3,
+      "requires_pool": [
+        "Gladiator",
+        "Sage",
+        "Pirate",
+        "Armamentalist",
+        "Luminary",
+        "Paladin",
+        "Monster Wrangler"
+      ]
+    }
+  ],
+  "source_ids": [
+    "g8_vocations_all"
+  ]
+}

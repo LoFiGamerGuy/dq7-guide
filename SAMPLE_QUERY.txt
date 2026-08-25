@@ -1,0 +1,23 @@
+
+RAG hits for: alltrades vocation
+
+1. Alltrades is the first major build inflection
+   Alltrades Abbey is the point where deliberate vocation planning becomes central. Physical routes can start Warrior and Martial Artist toward Gladiator, while Mage plus Priest opens Sage. After the present-day sequence, the Career Sphere lets the party change vocations remotely. Completion routing should also backtrack with the Thief's Key immediately after obtaining it.
+   sources=["rpg_walkthrough", "g8_vocations_all", "g8_vocations_start"]
+
+2. Moonlighting activation
+   Moonlighting unlocks after Aishe joins and enough story progress causes Jacqui to contact the party via Career Sphere. Return to Alltrades Abbey and speak to her. Because Moonlighting progresses two vocation tracks, it should be activated promptly on a min-max run and incorporated into prerequisite planning.
+   sources=["g8_moonlighting"]
+
+3. Advanced vocation dependency graph
+   Champion requires Gladiator and Paladin mastery. Druid requires mastery of any two among Sage, Pirate, and Luminary. Hero requires mastery of any three among Gladiator, Sage, Pirate, Armamentalist, Luminary, Paladin, and Monster Wrangler. This dependency structure should drive early job choices instead of leveling beginner jobs randomly.
+   sources=["g8_vocations_all"]
+
+4. Postgame completion checklist philosophy
+   The postgame completion layer includes mastering vocations, reaching level 99, collecting all 100 Mini Medals, filling monster and equipment collections, obtaining Lucky Panel exclusives, and clearing postgame challenges. The knowledge base should distinguish 'required for an achievement' from 'useful for power' because those goals overlap but are not identical.
+   sources=["g8_postgame", "g8_trophies"]
+
+5. How to use the two-source system
+   Use RPG Site as the chronological completion spine: advance in its order, clear fixed items, Mini Medals, fragments, monsters, and revisit checks before moving on. Use Game8 as the optimization overlay for builds, vocation prerequisites, equipment tiers, farming, hearts, bosses, and achievement cross-checks. When they differ, retain both claims with source provenance and resolve based on the player's exact checkpoint.
+   sources=["rpg_walkthrough", "g8_hub", "g8_walkthrough"]
+

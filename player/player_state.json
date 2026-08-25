@@ -1,0 +1,73 @@
+{
+  "schema_version": "0.1",
+  "game": "Dragon Quest VII Reimagined",
+  "platform": "Steam Deck / Steam",
+  "last_updated": "2026-08-25",
+  "story": {
+    "checkpoint": null,
+    "past_present_region": null,
+    "notes": []
+  },
+  "party": {
+    "Hero": {
+      "level": null,
+      "primary_vocation": null,
+      "moonlight_vocation": null,
+      "mastered_vocations": [],
+      "equipment": {}
+    },
+    "Kiefer": {
+      "level": null,
+      "primary_vocation": null,
+      "moonlight_vocation": null,
+      "mastered_vocations": [],
+      "equipment": {}
+    },
+    "Maribel": {
+      "level": null,
+      "primary_vocation": null,
+      "moonlight_vocation": null,
+      "mastered_vocations": [],
+      "equipment": {}
+    },
+    "Ruff": {
+      "level": null,
+      "primary_vocation": null,
+      "moonlight_vocation": null,
+      "mastered_vocations": [],
+      "equipment": {}
+    },
+    "Aishe": {
+      "level": null,
+      "primary_vocation": null,
+      "moonlight_vocation": null,
+      "mastered_vocations": [],
+      "equipment": {}
+    },
+    "Sir Mervyn": {
+      "level": null,
+      "primary_vocation": null,
+      "moonlight_vocation": null,
+      "mastered_vocations": [],
+      "equipment": {}
+    }
+  },
+  "completion": {
+    "mini_medals": 0,
+    "tablet_fragments_notes": [],
+    "achievements_unlocked": [],
+    "known_missables_completed": [],
+    "heroic_hoarder_categories": {},
+    "monster_book_notes": []
+  },
+  "resources": {
+    "gold": null,
+    "seeds_unspent": {},
+    "notable_items": []
+  },
+  "preferences": {
+    "completionist": true,
+    "optimization_priority": "overpower/maximize team while preserving 100% completion",
+    "spoiler_policy": "optimization-first; reveal mechanics/locations needed to avoid misses and maximize power"
+  }
+}

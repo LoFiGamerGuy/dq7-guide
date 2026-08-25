@@ -1,0 +1,72 @@
+# Dragon Quest VII Reimagined Completionist / Min-Max KB
+
+This repository is a local, provenance-first knowledge base for a completionist and deliberately overpowered playthrough of **Dragon Quest VII Reimagined**. It combines:
+
+- a structured SQLite database for facts and relationships;
+- FTS5 search for RAG-style retrieval;
+- a player-state file kept separate from shared game knowledge;
+- source and conflict records so disagreements are visible;
+- synthesized guidance that can answer “what is strongest and safe to do now?”
+
+## Current status
+
+Version `0.2.0-handoff` is a Codex-ready handoff package reconstructed from the documented inventory of the earlier `v0.1` sandbox build. The original downloadable sandbox files were not exposed to the local Codex task, so this package does **not** claim byte-for-byte recovery. `RECOVERY_MANIFEST.md` lists what was recovered from the prior task and what still needs source-level re-ingestion.
+
+The seed includes:
+
+- all 26 vocation names;
+- complete Beginner → Intermediate and Intermediate → Advanced prerequisites;
+- Moonlighting unlock notes;
+- the seven named missable / choice-sensitive events from the initial pass;
+- all 19 Mini Medal reward thresholds, including the major power spikes;
+- early gear power-spike notes;
+- confirmed Metal Slime farming locations;
+- high-value Monster Heart examples;
+- initial chronological checkpoints through the first major vocation breakpoint;
+- a 20-page source registry;
+- an empty, user-editable player save-state.
+
+Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
+
+## Quick start
+
+Requires Python 3.10+; there are no third-party runtime dependencies.
+
+```powershell
+python scripts/build_kb.py
+python scripts/query_kb.py "alltrades vocation"
+python -m unittest discover -s tests -v
+```
+
+The build creates `data/dq7_reimagined.sqlite`. Generated databases are reproducible from committed seed JSON and the schema.
+
+## Key documents
+
+- `AGENTS.md` — durable instructions for Codex and other coding agents.
+- `HANDOFF.md` — architecture, decisions, current state, and first-session checklist.
+- `INGEST_STATUS.md` — coverage ledger and next concrete targets.
+- `docs/INGESTION_ROADMAP.md` — phased roadmap with acceptance gates.
+- `docs/PROVENANCE_AND_CONFLICT_POLICY.md` — evidence, citation, confidence, and conflict rules.
+- `CODEX_KICKOFF_PROMPT.md` — ready-to-paste prompt for the first local Codex session.
+- `RECOVERY_MANIFEST.md` — exact reconstruction disclosure.
+
+## Repository layout
+
+```text
+data/
+  schema.sql                 SQLite schema and FTS triggers
+  seed/                      Human-reviewable source data
+docs/                        Operating and ingestion policy
+player/ryan-save-state.json  Mutable run state, separate from shared facts
+scripts/build_kb.py          Reproducible database builder
+scripts/query_kb.py          Search and provenance display
+sources/README.md            Copyright-safe source cache policy
+tests/                       Integrity and smoke tests
+```
+
+## Source strategy
+
+RPG Site is the chronological completion backbone. Game8 is the structured optimization layer. Official or direct in-game evidence should verify disputed mechanics. Editorial recommendations remain attributed recommendations rather than being promoted to universal fact.
+
+Do not mirror full copyrighted guides. Store normalized facts, short excerpts only when needed, original synthesis, and a source URL / locator for every claim.
+

@@ -1,0 +1,60 @@
+[
+  {
+    "phase": "early",
+    "character": "Hero",
+    "weapon": "Cautery Sword",
+    "shield": "Magic Shield",
+    "head": "Iron Mask",
+    "armor": "Iron Armour",
+    "power_note": "Magic Shield is a strong early defensive/magic-stat breakpoint; Lucky Panel can accelerate several other slots.",
+    "source_id": "g8_gear"
+  },
+  {
+    "phase": "early",
+    "character": "Maribel",
+    "weapon": "Snooze Stick",
+    "shield": "White Shield",
+    "head": "Fur Hood",
+    "armor": "Princess's Robe",
+    "power_note": "Snooze Stick retains useful battle-item utility around the Alltrades disruption; Lucky Panel is a key early source.",
+    "source_id": "g8_gear"
+  },
+  {
+    "phase": "early",
+    "character": "Ruff",
+    "weapon": "Knuckledusters",
+    "shield": "Silver Platter",
+    "head": "Tin Pot",
+    "armor": "Windcheater",
+    "power_note": "Windcheater at 15 Mini Medals is a notable early farming/defense breakpoint because it improves item drops.",
+    "source_id": "g8_gear"
+  },
+  {
+    "phase": "mid",
+    "character": "Hero",
+    "weapon": "Miracle Sword",
+    "shield": "Dragon Shield",
+    "head": "Steel Helmet",
+    "armor": "Dragon Mail",
+    "power_note": "55 Mini Medals unlock Miracle Sword; fire/ice resistance becomes a major midgame gearing theme.",
+    "source_id": "g8_gear"
+  },
+  {
+    "phase": "late",
+    "character": "Hero",
+    "weapon": "Uber Gringham Whip",
+    "shield": "Silver Shield",
+    "power_note": "90 Mini Medals unlock Uber Gringham Whip; DLC owners have a separate Erdrick equipment path.",
+    "source_id": "g8_gear"
+  },
+  {
+    "phase": "late",
+    "character": "Ruff",
+    "weapon": "Sword of Ruin",
+    "shield": "Ogre Shield",
+    "head": "Seacow Sallet",
+    "armor": "Pallium Regale",
+    "power_note": "Attack-forward late-game setup; Sword of Ruin trades doubled skill MP cost for very high attack.",
+    "source_id": "g8_gear"
+  }
+]

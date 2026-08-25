@@ -1,0 +1,68 @@
+{
+  "unlock": "After recruiting Aishe and progressing, Jacqui contacts the party through the Career Sphere; return to Alltrades Abbey and speak with her.",
+  "recommended_pairs": {
+    "attack_magic": [
+      [
+        "Hero",
+        "Mage"
+      ],
+      [
+        "Martial Artist",
+        "Druid"
+      ],
+      [
+        "Warrior",
+        "Armamentalist"
+      ],
+      [
+        "Champion",
+        "Sage"
+      ]
+    ],
+    "healing_magic": [
+      [
+        "Priest",
+        "Sage"
+      ],
+      [
+        "Druid",
+        "Armamentalist"
+      ]
+    ],
+    "attack_buff": [
+      [
+        "Warrior",
+        "Martial Artist"
+      ],
+      [
+        "Thief",
+        "Sailor"
+      ],
+      [
+        "Pirate",
+        "Champion"
+      ],
+      [
+        "Monster Wrangler",
+        null
+      ]
+    ],
+    "support_defense": [
+      [
+        "Dancer",
+        "Troubadour"
+      ],
+      [
+        "Luminary",
+        "Jester"
+      ],
+      [
+        "Paladin",
+        "Gladiator"
+      ]
+    ]
+  },
+  "source_ids": [
+    "g8_moonlighting"
+  ]
+}

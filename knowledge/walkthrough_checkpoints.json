@@ -1,0 +1,79 @@
+[
+  {
+    "order": 1,
+    "checkpoint": "Pilchard Bay / Estard opening",
+    "completion_focus": [
+      "loot all fixed containers",
+      "start Mini Medal tracking",
+      "keep Wrecked Specs",
+      "check Pearl's Fish Bits missable window"
+    ],
+    "power_focus": [
+      "do not overbuy disposable early gear before checking free items"
+    ],
+    "source_ids": [
+      "rpg_walkthrough",
+      "g8_missables"
+    ]
+  },
+  {
+    "order": 2,
+    "checkpoint": "Ballymolloy",
+    "completion_focus": [
+      "collect early Mini Medals/tablet fragments",
+      "resolve Wooden Doll event carefully"
+    ],
+    "power_focus": [
+      "use fixed treasure before spending gold"
+    ],
+    "source_ids": [
+      "rpg_walkthrough",
+      "g8_missables"
+    ]
+  },
+  {
+    "order": 3,
+    "checkpoint": "Emberdale / L'Arca / Regenstein / Frobisher arc",
+    "completion_focus": [
+      "continue medal + item + monster-book sweeps",
+      "verify each region before leaving"
+    ],
+    "power_focus": [
+      "bank seeds until a deliberate allocation plan is chosen"
+    ],
+    "source_ids": [
+      "rpg_walkthrough",
+      "g8_walkthrough"
+    ]
+  },
+  {
+    "order": 4,
+    "checkpoint": "Allblades Arena / Alltrades Abbey",
+    "completion_focus": [
+      "collect Abbey items after story access opens",
+      "obtain Thief's Key and backtrack its newly-opened chests",
+      "reach Career Sphere in present Alltrades"
+    ],
+    "power_focus": [
+      "begin deliberate vocation routes; Warrior/Martial Artist are strong physical starts; Mage/Priest build toward Sage"
+    ],
+    "source_ids": [
+      "rpg_walkthrough",
+      "g8_vocations_start",
+      "g8_vocations_all"
+    ]
+  },
+  {
+    "order": 5,
+    "checkpoint": "Post-Aishe Moonlighting unlock",
+    "completion_focus": [
+      "return to Alltrades when Jacqui contacts via Career Sphere"
+    ],
+    "power_focus": [
+      "activate Moonlighting immediately; use it to progress two vocation tracks at once"
+    ],
+    "source_ids": [
+      "g8_moonlighting"
+    ]
+  }
+]
