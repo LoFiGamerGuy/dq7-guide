@@ -36,9 +36,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
-        self.assertEqual(self.counts["mini_medal_locations"], 20)
+        self.assertEqual(self.counts["mini_medal_locations"], 45)
         self.assertEqual(self.counts["checkpoint_obligations"], 24)
-        self.assertEqual(self.counts["mini_medal_evidence"], 7)
+        self.assertEqual(self.counts["mini_medal_evidence"], 32)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -111,12 +111,12 @@ class KnowledgeBaseTests(unittest.TestCase):
                 "SELECT medal_number FROM mini_medal_locations ORDER BY medal_number"
             )
         ]
-        self.assertEqual(numbers, list(range(1, 21)))
+        self.assertEqual(numbers, list(range(1, 46)))
 
     def test_verified_medals_retain_independent_evidence(self):
         verified = self.connection.execute(
             """SELECT medal_number FROM mini_medal_locations
-            WHERE verification_status = 'cross_source_checked'
+            WHERE verification_status LIKE 'cross_source_checked%'
             ORDER BY medal_number"""
         ).fetchall()
         evidence = self.connection.execute(

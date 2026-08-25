@@ -12,9 +12,9 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 10 early checkpoints; 24 normalized obligations through Alltrades Present | Medium/High for ingested obligations | Complete remaining item/monster obligations, then expand beyond Alltrades |
+| Walkthrough checkpoints | 14 checkpoints (10 early plus 4 later backtracking outlines); 24 normalized obligations through Alltrades Present | Medium/High for ingested obligations | Complete remaining item/monster obligations and replace later outlines with atomic chronology |
 | Mini Medal rewards | 19/19 reward thresholds | High | Ingest all 100 numbered locations and checkpoint gates |
-| Mini Medal locations | 20/100 normalized rows | Mixed: 7 cross-source verified, 13 indexed-source checked | Continue rows 21–45; directly refresh Game8 when accessible |
+| Mini Medal locations | 45/100 normalized rows | Mixed: 32 cross-source verified, 13 indexed-source checked | Continue rows 46–77; directly refresh Game8 when accessible |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
 | Heroic Hoarder items | 0 complete normalized rows | Not started | Build full acquisition matrix by category |
 | Lucky Panel | System role and version summary | Medium/High | Ingest every version/rank/chest item and exclusivity |
@@ -37,10 +37,10 @@ Expected after `python scripts/build_kb.py`:
 - medal rewards: 19
 - missables: 7
 - farming spots: 8
-- checkpoints: 10
-- mini medal locations: 20
+- checkpoints: 14
+- mini medal locations: 45
 - checkpoint obligations: 24
-- Mini Medal corroborating evidence rows: 7
+- Mini Medal corroborating evidence rows: 32
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.
@@ -49,13 +49,13 @@ Treat these as build assertions, not completion percentages.
 
 1. Expand the initial Prologue-through-Emberdale obligations to full item, fragment, monster, and stop-condition coverage.
 2. L'Arca through Alltrades checkpoints and obligations.
-3. Mini Medals 21–45 and all Thief's Key backtracking gates.
+3. Mini Medals 46–77 and their story/key backtracking gates.
 4. Add a source-ordinal mapping so RPG Site acquisition order can coexist explicitly with Game8's list numbering.
 5. Directly refresh Game8 medal rows when the page is accessible; rows currently available only through its indexed table remain medium confidence unless independently corroborated.
 
 ## Latest completed batch
 
-The 2026-08-25 Phase 1 batches added normalized tables for Mini Medal locations, independent medal evidence, and checkpoint obligations; Game8 list rows 1–20; and 24 directly checked obligations from the Prologue through Alltrades Present. Game8's direct page returned HTTP 402 during this batch; uncorroborated rows are therefore marked `search_index_checked` at medium confidence. RPG Site's parenthetical medal ordinals are walkthrough acquisition order, while Game8's 1–100 values are list/album order; they are not treated as interchangeable IDs or as a factual conflict.
+The 2026-08-25 Phase 1 batches added normalized tables for Mini Medal locations, independent medal evidence, and checkpoint obligations; Game8 list rows 1–45; and 24 directly checked obligations from the Prologue through Alltrades Present. Game8's direct page returned HTTP 402 during this batch; uncorroborated rows are therefore marked `search_index_checked` at medium confidence. RPG Site's parenthetical medal ordinals are walkthrough acquisition order, while Game8's 1–100 values are list/album order; they are not treated as interchangeable IDs or as a factual conflict.
 
 ## Open questions requiring evidence
 
