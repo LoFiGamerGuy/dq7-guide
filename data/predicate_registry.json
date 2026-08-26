@@ -5,6 +5,7 @@
   "precise_location_description": {"comparison": "single"},
   "purchase_price": {"comparison": "single"},
   "total_count": {"comparison": "single"},
+  "treasure_availability": {"comparison": "single"},
   "unlocks_when": {"comparison": "single"},
   "version_count": {"comparison": "single"}
 }

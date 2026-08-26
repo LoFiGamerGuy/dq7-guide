@@ -35,7 +35,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 41)
+        self.assertEqual(self.counts["sources"], 50)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -43,10 +43,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["checkpoint_obligations"], 57)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
-        self.assertEqual(self.counts["items"], 16)
-        self.assertEqual(self.counts["item_acquisition_paths"], 67)
-        self.assertEqual(self.counts["shops"], 19)
-        self.assertEqual(self.counts["lucky_panel_pools"], 10)
+        self.assertEqual(self.counts["items"], 22)
+        self.assertEqual(self.counts["item_acquisition_paths"], 102)
+        self.assertEqual(self.counts["shops"], 30)
+        self.assertEqual(self.counts["lucky_panel_pools"], 11)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -93,6 +93,19 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE item_id = 'item_scale_shield' AND method = 'lucky_panel'"""
         ).fetchone()
         self.assertIsNone(typed_route)
+
+    def test_ice_shield_treasure_conflict_is_visible(self):
+        conflict = self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE claim_a_id LIKE 'claim_ice_shield_%'
+               OR claim_b_id LIKE 'claim_ice_shield_%'"""
+        ).fetchone()
+        self.assertIsNotNone(conflict)
+        self.assertEqual(conflict["status"], "unresolved")
+        _, _, verdict = load_purchase_advice(
+            self.db_path, "Ice Shield", "cp_013_flying_carpet"
+        )
+        self.assertIn("acquisition evidence conflict", verdict)
 
     def test_conflict_detector_opens_stable_fact_conflict(self):
         path = Path(self.tempdir.name) / "conflict.sqlite"
@@ -314,7 +327,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         free_chest = next(row for row in cautery if row["method"] == "chest")
         self.assertEqual(free_chest["timing_status"], "available_now")
-        self.assertTrue(cautery_verdict.startswith("DON'T BUY FOR COMPLETION"))
+        self.assertTrue(cautery_verdict.startswith("UNRESOLVED"))
 
     def test_new_equipment_routes_preserve_free_and_unknown_timing(self):
         _, mask_routes, mask_verdict = load_purchase_advice(
@@ -331,6 +344,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(drops)
         self.assertTrue(all(row["timing_status"] == "unknown_gate" for row in drops))
         self.assertTrue(armour_verdict.startswith("UNRESOLVED"))
+        _, platinum_routes, platinum_verdict = load_purchase_advice(
+            self.db_path, "Platinum Shield", "cp_022_almighty"
+        )
+        basement = next(row for row in platinum_routes if row["method"] == "chest")
+        self.assertEqual((basement["timing_status"], basement["cost_status"]),
+                         ("available_now", "free"))
+        self.assertTrue(platinum_verdict.startswith("DON'T BUY FOR COMPLETION"))
 
     def test_sourced_documents_have_locators(self):
         rows = self.connection.execute(

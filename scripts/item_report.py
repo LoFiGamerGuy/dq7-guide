@@ -66,6 +66,19 @@ def load_purchase_advice(
             "SELECT sequence_no FROM checkpoints WHERE checkpoint_id = ?",
             (checkpoint_id,),
         ).fetchone()
+        route_conflicts = connection.execute(
+            """SELECT DISTINCT a.predicate
+            FROM conflicts c
+            JOIN claims a ON a.claim_id = c.claim_a_id
+            WHERE c.status = 'unresolved'
+              AND a.subject_key = ?
+              AND a.predicate IN (
+                  'acquisition_exclusivity',
+                  'precise_location_description',
+                  'treasure_availability'
+              )""",
+            (item["canonical_key"],),
+        ).fetchall()
     finally:
         connection.close()
     if checkpoint is None:
@@ -98,7 +111,13 @@ def load_purchase_advice(
         else:
             route["cost_status"] = "unknown"
 
-    if any(
+    if route_conflicts:
+        predicates = ", ".join(row["predicate"] for row in route_conflicts)
+        verdict = (
+            "UNRESOLVED — acquisition evidence conflict requires review: "
+            + predicates
+        )
+    elif any(
         row["cost_status"] == "free" and row["timing_status"] == "available_now"
         for row in routes
     ):
