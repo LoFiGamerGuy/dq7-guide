@@ -42,10 +42,11 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 57)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
-        self.assertEqual(self.counts["items"], 13)
-        self.assertEqual(self.counts["item_acquisition_paths"], 46)
-        self.assertEqual(self.counts["shops"], 13)
-        self.assertEqual(self.counts["lucky_panel_pools"], 7)
+        self.assertEqual(self.counts["item_categories"], 6)
+        self.assertEqual(self.counts["items"], 16)
+        self.assertEqual(self.counts["item_acquisition_paths"], 67)
+        self.assertEqual(self.counts["shops"], 19)
+        self.assertEqual(self.counts["lucky_panel_pools"], 10)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -314,6 +315,22 @@ class KnowledgeBaseTests(unittest.TestCase):
         free_chest = next(row for row in cautery if row["method"] == "chest")
         self.assertEqual(free_chest["timing_status"], "available_now")
         self.assertTrue(cautery_verdict.startswith("DON'T BUY FOR COMPLETION"))
+
+    def test_new_equipment_routes_preserve_free_and_unknown_timing(self):
+        _, mask_routes, mask_verdict = load_purchase_advice(
+            self.db_path, "Iron Mask", "cp_009_alltrades"
+        )
+        closet = next(row for row in mask_routes if row["method"] == "other")
+        self.assertEqual((closet["timing_status"], closet["cost_status"]),
+                         ("available_now", "free"))
+        self.assertTrue(mask_verdict.startswith("DON'T BUY FOR COMPLETION"))
+        _, armour_routes, armour_verdict = load_purchase_advice(
+            self.db_path, "Iron Armour", "cp_009_alltrades"
+        )
+        drops = [row for row in armour_routes if row["method"] == "drop"]
+        self.assertTrue(drops)
+        self.assertTrue(all(row["timing_status"] == "unknown_gate" for row in drops))
+        self.assertTrue(armour_verdict.startswith("UNRESOLVED"))
 
     def test_sourced_documents_have_locators(self):
         rows = self.connection.execute(

@@ -16,8 +16,8 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
-| Heroic Hoarder items | 13 normalized items / 46 acquisition paths | High for ingested routes; incomplete overall | Expand by category and require a route or explicit gap for every item |
-| Lucky Panel | 7 normalized pools / 17 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
+| Heroic Hoarder items | 16 normalized items / 67 acquisition paths | High for ingested routes; incomplete overall | Expand by category and require a route or explicit gap for every item |
+| Lucky Panel | 10 normalized pools / 26 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | Representative early recommendations | Medium | Full stats, usability, acquisition, earliest checkpoint |
 | Farming | 7 Metal spots + postgame seed strategy | Medium/High | Add rates/rewards only when sourced; add gold/proficiency/heart farms |
 | Monster Hearts | Representative high-value roles | Medium | Complete registry, effects, and acquisition |
@@ -41,10 +41,10 @@ Expected after `python scripts/build_kb.py`:
 - mini medal locations: 100
 - checkpoint obligations: 57
 - Mini Medal corroborating evidence rows: 86
-- Heroic Hoarder items: 13
-- item acquisition paths: 46
-- shops / inventory rows: 13 / 17
-- Lucky Panel pools / reward rows: 7 / 17
+- Heroic Hoarder items: 16
+- item acquisition paths: 67
+- shops / inventory rows: 19 / 24
+- Lucky Panel pools / reward rows: 10 / 26
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.
@@ -61,7 +61,7 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The 2026-08-25 Phase 2 batches established typed item, shop, and Lucky Panel acquisition routes for 13 Heroic Hoarder items, including seven early shields. Checkpoint-aware advice now distinguishes verified free routes from paid routes and unknown costs. The Scale Shield's unranked Lucky Panel assertion is an explicit evidence gap rather than a fabricated route. Source disagreements for Iron Shield pricing, Elevating Shoes exclusivity, and the Cautery Sword chest location remain explicit alongside the existing Medal 78 conflict.
+The 2026-08-25 Phase 2 batches established typed item, shop, and Lucky Panel acquisition routes for 16 Heroic Hoarder items, including seven early shields plus Iron Mask, Iron Armour, and Snooze Stick. Checkpoint-aware advice distinguishes verified free routes from paid routes, unknown costs, and unknown monster chronology. The Scale Shield's unranked Lucky Panel assertion is an explicit evidence gap rather than a fabricated route. Source disagreements for Iron Shield pricing, Elevating Shoes exclusivity, and the Cautery Sword chest location remain explicit alongside the existing Medal 78 conflict.
 
 Phase 1 completed all 100 normalized Mini Medal locations, 86 independent RPG Site evidence rows, a 33-checkpoint spine through postgame, and 45 directly checked obligations. RPG Site's parenthetical medal ordinals remain source-specific walkthrough order and are never treated as canonical album IDs.
 
