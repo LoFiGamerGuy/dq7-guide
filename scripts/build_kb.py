@@ -280,17 +280,37 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             """INSERT INTO checkpoint_obligations(
                 obligation_id, checkpoint_id, obligation_type, subject, action,
-                required_for_100_percent, stop_before_advancing, available_from,
+                display_order, required_for_100_percent, stop_before_advancing, available_from,
                 unavailable_after, source_id, locator, confidence,
                 verification_status
             ) VALUES (
                 :obligation_id, :checkpoint_id, :obligation_type, :subject,
-                :action, :required_for_100_percent, :stop_before_advancing,
+                :action, :display_order, :required_for_100_percent, :stop_before_advancing,
                 :available_from, :unavailable_after, :source_id, :locator,
                 :confidence, :verification_status
             )""",
-            seed.get("checkpoint_obligations", []),
+            [
+                {**row, "display_order": row.get("display_order")}
+                for row in seed.get("checkpoint_obligations", [])
+            ],
         )
+
+        invalid_early_obligation_order = connection.execute(
+            """SELECT o.obligation_id
+            FROM checkpoint_obligations o JOIN checkpoints c USING(checkpoint_id)
+            WHERE c.sequence_no BETWEEN 1 AND 9
+              AND (o.display_order IS NULL OR o.display_order <= 0)
+            UNION ALL
+            SELECT min(o.obligation_id)
+            FROM checkpoint_obligations o JOIN checkpoints c USING(checkpoint_id)
+            WHERE c.sequence_no BETWEEN 1 AND 9
+            GROUP BY o.checkpoint_id, o.display_order
+            HAVING count(*) > 1"""
+        ).fetchall()
+        if invalid_early_obligation_order:
+            raise ValueError(
+                "Every cp001-cp009 obligation requires a unique positive display_order"
+            )
 
         connection.executemany(
             """INSERT INTO mini_medal_evidence(

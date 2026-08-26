@@ -20,7 +20,12 @@ from build_kb import (  # noqa: E402
 )
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
-from early_walkthrough import load_walkthrough, print_walkthrough  # noqa: E402
+from early_walkthrough import (  # noqa: E402
+    classify_medal_tracking,
+    load_walkthrough,
+    print_walkthrough,
+    resolve_checkpoint_range,
+)
 from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
 from query_kb import search  # noqa: E402
@@ -42,13 +47,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 62)
+        self.assertEqual(self.counts["sources"], 66)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 84)
-        self.assertEqual(self.counts["checkpoint_advice"], 12)
+        self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 30)
@@ -507,14 +512,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         alltrades = report["blocks"][-1]
         alltrades_subjects = [row["subject"] for row in alltrades["now"]]
         self.assertEqual(
-            alltrades_subjects[:3],
+            alltrades_subjects,
             [
                 "Alltrades route Blue Fragments",
+                "Proficient Paneller and Platinum Paneller",
+                "Lucky Panel Version 1 Cottontail Costume and Elevating Shoes",
+                "Pilgrim's Perdition through Dungeon of Descent finite pickups",
+                "Alltrades Key and Tunnel to the Abbey fixed loot",
+                "Allblades Arena vocation access and fixed pickups",
                 "Restored Alltrades Abbey pickups",
                 "Thief's Key and immediate backtracking",
             ],
         )
-        self.assertIn("Alltrades Key and Tunnel to the Abbey fixed loot", alltrades_subjects)
         self.assertIn(6, [row["medal_number"] for row in alltrades["medals_backtrack"]])
         self.assertNotIn(7, [row["medal_number"] for row in alltrades["medals_backtrack"]])
         self.assertTrue(alltrades["guidance"])
@@ -559,6 +568,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         terse = io.StringIO()
         with redirect_stdout(terse):
             print_walkthrough(report)
+        self.assertIn("medal tracking unknown", terse.getvalue())
         self.assertNotIn("Source:", terse.getvalue())
         self.assertNotIn("Medals NOW:", terse.getvalue())
         self.assertIn("Medals LATER:", terse.getvalue())
@@ -617,6 +627,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Source:", sourced.getvalue())
         self.assertIn("Test locator", sourced.getvalue())
 
+    def test_threshold_advice_remains_conditional_when_medals_unknown(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_007_frobisher",
+            "cp_007_frobisher",
+        )
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_walkthrough(report)
+        self.assertIn("If you have 15 medals", output.getvalue())
+
     def test_checkpoint_advice_requires_object_applicability(self):
         normalized = normalize_checkpoint_advice([
             {"advice_id": "ok", "applicability": {"difficulty": "normal"}}
@@ -629,6 +651,70 @@ class KnowledgeBaseTests(unittest.TestCase):
             normalize_checkpoint_advice([
                 {"advice_id": "bad", "applicability": ["normal"]}
             ])
+
+    def test_alltrades_boss_and_vocation_advice_is_chronological(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_009_alltrades",
+            "cp_009_alltrades",
+        )
+        advice = report["blocks"][0]["advice"]
+        bosses = [row["subject"] for row in advice if row["advice_type"] == "boss"]
+        self.assertEqual(
+            bosses,
+            [
+                "Arena 1: Numpton's Numpties",
+                "Arena 2: Bronson and the Bristles",
+                "Arena 3: Hans and the Hands",
+                "Arena 4: Nava's Knaves",
+                "Cardinal Sin",
+            ],
+        )
+        self.assertEqual(
+            len([row for row in advice if row["advice_type"] == "vocation"]), 2
+        )
+
+    def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):
+        self.assertEqual(classify_medal_tracking(None, set()), ("unknown", None))
+        partial, partial_warning = classify_medal_tracking(None, {1})
+        self.assertEqual(partial, "partial")
+        self.assertIn("unknown", partial_warning)
+        inconsistent, warning = classify_medal_tracking(2, {1})
+        self.assertEqual(inconsistent, "inconsistent")
+        self.assertIn("disagrees", warning)
+        self.assertEqual(classify_medal_tracking(1, {1}), ("known", None))
+
+    def test_walkthrough_cli_defaults_to_saved_checkpoint_or_cp001(self):
+        default_state = ROOT / "player" / "ryan-save-state.json"
+        self.assertEqual(
+            resolve_checkpoint_range(default_state, None, None, None),
+            ("cp_001_prologue", "cp_001_prologue"),
+        )
+        state_path = Path(self.tempdir.name) / "walkthrough-checkpoint-state.json"
+        state = json.loads(default_state.read_text())
+        state["story"]["checkpoint_id"] = "cp_004_emberdale"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        self.assertEqual(
+            resolve_checkpoint_range(state_path, None, None, None),
+            ("cp_004_emberdale", "cp_004_emberdale"),
+        )
+        self.assertEqual(
+            resolve_checkpoint_range(state_path, "cp_005_larca", None, None),
+            ("cp_005_larca", "cp_005_larca"),
+        )
+        self.assertEqual(
+            resolve_checkpoint_range(
+                state_path, None, "cp_001_prologue", "cp_009_alltrades"
+            ),
+            ("cp_001_prologue", "cp_009_alltrades"),
+        )
+        with self.assertRaises(ValueError):
+            resolve_checkpoint_range(
+                state_path, "cp_005_larca", "cp_001_prologue", "cp_009_alltrades"
+            )
+        with self.assertRaises(ValueError):
+            resolve_checkpoint_range(state_path, None, "cp_001_prologue", None)
 
 
 if __name__ == "__main__":

@@ -202,6 +202,7 @@ CREATE TABLE checkpoint_obligations (
     obligation_type TEXT NOT NULL,
     subject TEXT NOT NULL,
     action TEXT NOT NULL,
+    display_order INTEGER CHECK(display_order IS NULL OR display_order > 0),
     required_for_100_percent INTEGER NOT NULL CHECK(required_for_100_percent IN (0, 1)),
     stop_before_advancing INTEGER NOT NULL CHECK(stop_before_advancing IN (0, 1)),
     available_from TEXT,

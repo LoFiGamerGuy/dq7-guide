@@ -16,6 +16,44 @@ DEFAULT_FROM = "cp_001_prologue"
 DEFAULT_THROUGH = "cp_009_alltrades"
 
 
+def resolve_checkpoint_range(
+    state_path: Path,
+    checkpoint: str | None,
+    from_checkpoint: str | None,
+    through_checkpoint: str | None,
+) -> tuple[str, str]:
+    if checkpoint and (from_checkpoint or through_checkpoint):
+        raise ValueError("--checkpoint cannot be combined with --from or --through")
+    if bool(from_checkpoint) != bool(through_checkpoint):
+        raise ValueError("--from and --through must be supplied together")
+    if checkpoint:
+        return checkpoint, checkpoint
+    if from_checkpoint:
+        return from_checkpoint, through_checkpoint  # type: ignore[return-value]
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    saved = state.get("story", {}).get("checkpoint_id")
+    selected = saved or DEFAULT_FROM
+    return selected, selected
+
+
+def classify_medal_tracking(
+    medal_count: int | None, found_numbers: set[int]
+) -> tuple[str, str | None]:
+    if medal_count is None and not found_numbers:
+        return "unknown", None
+    if medal_count is None:
+        return (
+            "partial",
+            "Medal count is unknown; listed medal IDs are treated only as confirmed finds.",
+        )
+    if medal_count != len(found_numbers):
+        return (
+            "inconsistent",
+            f"Medal count ({medal_count}) disagrees with recorded medal IDs ({len(found_numbers)}).",
+        )
+    return "known", None
+
+
 def _checkpoint(connection: sqlite3.Connection, checkpoint_id: str) -> sqlite3.Row:
     row = connection.execute(
         "SELECT * FROM checkpoints WHERE checkpoint_id = ?", (checkpoint_id,)
@@ -35,11 +73,19 @@ def load_walkthrough(
         raise FileNotFoundError(f"Database not found: {db_path}")
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = state.get("completion", {}).get("mini_medals_found", [])
+    medal_count = state.get("completion", {}).get("mini_medal_count")
     if not isinstance(found, list) or any(
         not isinstance(number, int) or isinstance(number, bool) for number in found
     ):
         raise ValueError("completion.mini_medals_found must be a list of integers")
     found_numbers = set(found)
+    if medal_count is not None and (
+        not isinstance(medal_count, int) or isinstance(medal_count, bool) or medal_count < 0
+    ):
+        raise ValueError("completion.mini_medal_count must be a non-negative integer or null")
+    medal_tracking_status, medal_tracking_warning = classify_medal_tracking(
+        medal_count, found_numbers
+    )
 
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
@@ -61,7 +107,7 @@ def load_walkthrough(
                 FROM checkpoint_obligations o JOIN sources s USING(source_id)
                 WHERE o.checkpoint_id = ?
                 ORDER BY o.stop_before_advancing DESC,
-                         o.rowid""",
+                         o.display_order, o.obligation_id""",
                 (checkpoint["checkpoint_id"],),
             ).fetchall()
             medals = connection.execute(
@@ -126,6 +172,9 @@ def load_walkthrough(
         return {
             "blocks": blocks,
             "collected_medal_count": len(found_numbers),
+            "mini_medal_count": medal_count,
+            "medal_tracking_status": medal_tracking_status,
+            "medal_tracking_warning": medal_tracking_warning,
             "player_checkpoint": state.get("story", {}).get("checkpoint_id"),
         }
     finally:
@@ -150,7 +199,15 @@ def _print_medals(label: str, rows: list[dict], include_sources: bool) -> None:
 
 
 def print_walkthrough(report: dict, include_sources: bool = False) -> None:
-    print(f"Early checklist (already collected medals hidden: {report['collected_medal_count']})")
+    if report["medal_tracking_status"] == "known":
+        medal_note = f"medals tracked: {report['mini_medal_count']}"
+    elif report["medal_tracking_status"] == "unknown":
+        medal_note = "medal tracking unknown"
+    else:
+        medal_note = f"confirmed medal IDs hidden: {report['collected_medal_count']}"
+    print(f"Early checklist ({medal_note})")
+    if report["medal_tracking_warning"]:
+        print(f"Medal tracking warning: {report['medal_tracking_warning']}")
     if report["player_checkpoint"]:
         print(f"Player-state checkpoint: {report['player_checkpoint']}")
     for block in report["blocks"]:
@@ -202,10 +259,16 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
             rows = advice_by_type[advice_type]
             if not rows:
                 continue
-            summaries = "; ".join(
-                f"{row['subject']} — {row['advice_text']}"
-                f"{goal_markers[row['recommendation_goal']]}" for row in rows
-            )
+            summaries = []
+            for row in rows:
+                applicability = json.loads(row["applicability_json"])
+                required_medals = applicability.get("requires", {}).get("mini_medals")
+                condition = f"If you have {required_medals} medals, " if required_medals else ""
+                summaries.append(
+                    f"{row['subject']} — {condition}{row['advice_text']}"
+                    f"{goal_markers[row['recommendation_goal']]}"
+                )
+            summaries = "; ".join(summaries)
             print(f"{labels[advice_type]}: {summaries}")
             if include_sources:
                 for row in rows:
@@ -221,8 +284,9 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--from", dest="from_checkpoint", default=DEFAULT_FROM)
-    parser.add_argument("--through", dest="through_checkpoint", default=DEFAULT_THROUGH)
+    parser.add_argument("--checkpoint", help="Show one checkpoint")
+    parser.add_argument("--from", dest="from_checkpoint")
+    parser.add_argument("--through", dest="through_checkpoint")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
     parser.add_argument(
@@ -230,9 +294,12 @@ def main() -> None:
     )
     args = parser.parse_args()
     try:
+        start, end = resolve_checkpoint_range(
+            args.state, args.checkpoint, args.from_checkpoint, args.through_checkpoint
+        )
         print_walkthrough(
             load_walkthrough(
-                args.db, args.state, args.from_checkpoint, args.through_checkpoint
+                args.db, args.state, start, end
             ),
             include_sources=args.sources,
         )
