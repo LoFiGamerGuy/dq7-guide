@@ -35,17 +35,17 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 31)
+        self.assertEqual(self.counts["sources"], 41)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 57)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
-        self.assertEqual(self.counts["items"], 6)
-        self.assertEqual(self.counts["item_acquisition_paths"], 11)
-        self.assertEqual(self.counts["shops"], 1)
-        self.assertEqual(self.counts["lucky_panel_pools"], 6)
+        self.assertEqual(self.counts["items"], 13)
+        self.assertEqual(self.counts["item_acquisition_paths"], 46)
+        self.assertEqual(self.counts["shops"], 13)
+        self.assertEqual(self.counts["lucky_panel_pools"], 7)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -72,6 +72,26 @@ class KnowledgeBaseTests(unittest.TestCase):
                OR claim_a_id LIKE 'claim_cautery_sword_%'"""
         ).fetchall()
         self.assertEqual(len(pairs), 2)
+
+    def test_iron_shield_conflict_and_scale_shield_gap_are_visible(self):
+        conflict = self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE claim_a_id LIKE 'claim_iron_shield_%'
+               OR claim_b_id LIKE 'claim_iron_shield_%'"""
+        ).fetchone()
+        self.assertIsNotNone(conflict)
+        self.assertEqual(conflict["status"], "unresolved")
+        scale_claim = self.connection.execute(
+            """SELECT value_json FROM claims
+            WHERE claim_id = 'claim_scale_shield_game8_lucky_panel_unspecified'"""
+        ).fetchone()
+        self.assertIsNotNone(scale_claim)
+        self.assertEqual(json.loads(scale_claim["value_json"])["rank"], "unknown")
+        typed_route = self.connection.execute(
+            """SELECT 1 FROM item_acquisition_paths
+            WHERE item_id = 'item_scale_shield' AND method = 'lucky_panel'"""
+        ).fetchone()
+        self.assertIsNone(typed_route)
 
     def test_conflict_detector_opens_stable_fact_conflict(self):
         path = Path(self.tempdir.name) / "conflict.sqlite"

@@ -23,7 +23,7 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - initial chronological checkpoints through the first major vocation breakpoint;
-- a 31-page source registry;
+- a 41-page source registry;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.

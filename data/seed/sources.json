@@ -344,5 +344,35 @@
     "published_at": null,
     "updated_at": null,
     "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_pot_lid", "title": "Pot Lid", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581047", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_leather_shield", "title": "Leather Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581046", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_scale_shield", "title": "Scale Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581045", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_kitty_shield", "title": "Kitty Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581044", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_bronze_shield", "title": "Bronze Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581043", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_iron_shield", "title": "Iron Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581042", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_silver_platter", "title": "Silver Platter", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581041", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_larca_map", "title": "L'Arca Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579403", "source_class": "guide_wiki", "role": "shop_inventory_detail", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_alltrades_map", "title": "Alltrades Abbey Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582458", "source_class": "guide_wiki", "role": "shop_inventory_detail", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_frobisher_map", "title": "Frobisher Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581658", "source_class": "guide_wiki", "role": "shop_inventory_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-25"
   }
 ]
