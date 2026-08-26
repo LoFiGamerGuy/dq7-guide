@@ -27,6 +27,7 @@
   "completion": {
     "mini_medals_found": [],
     "mini_medal_count": null,
+    "obligations_completed": [],
     "tablet_fragments": [],
     "achievements_unlocked": [],
     "monster_entries": [],
@@ -43,4 +44,3 @@
     "Which unique or finite items have already been obtained?"
   ]
 }
-

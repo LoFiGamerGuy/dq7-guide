@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+"""Record explicit player-reported checkpoint, medal, and checklist progress."""
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+import sqlite3
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
+DEFAULT_STATE = ROOT / "player" / "ryan-save-state.json"
+
+
+def _load_state(state_path: Path) -> dict:
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    completed = state.get("completion", {}).get("obligations_completed")
+    if not isinstance(completed, list) or any(not isinstance(value, str) for value in completed):
+        raise ValueError("completion.obligations_completed must be a list of strings")
+    return state
+
+
+def _save_state(state_path: Path, state: dict) -> None:
+    state["last_updated"] = datetime.now(timezone.utc).isoformat()
+    state_path.write_text(
+        json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+
+
+def _connect(db_path: Path) -> sqlite3.Connection:
+    if not db_path.exists():
+        raise FileNotFoundError(f"Database not found: {db_path}")
+    connection = sqlite3.connect(db_path)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def _checkpoint_exists(connection: sqlite3.Connection, checkpoint_id: str) -> bool:
+    return connection.execute(
+        "SELECT 1 FROM checkpoints WHERE checkpoint_id = ?", (checkpoint_id,)
+    ).fetchone() is not None
+
+
+def _obligation_for_step(
+    connection: sqlite3.Connection, checkpoint_id: str, display_order: int
+) -> str:
+    row = connection.execute(
+        """SELECT obligation_id FROM checkpoint_obligations
+        WHERE checkpoint_id = ? AND display_order = ?""",
+        (checkpoint_id, display_order),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"Unknown checklist step: {checkpoint_id} {display_order}")
+    return row["obligation_id"]
+
+
+def update_progress(
+    state_path: Path,
+    db_path: Path,
+    command: str,
+    values: list[str],
+) -> str:
+    state = _load_state(state_path)
+    with _connect(db_path) as connection:
+        if command == "checkpoint":
+            checkpoint_id = values[0]
+            if not _checkpoint_exists(connection, checkpoint_id):
+                raise ValueError(f"Unknown checkpoint: {checkpoint_id}")
+            state["story"]["checkpoint_id"] = checkpoint_id
+            message = f"Checkpoint set to {checkpoint_id}."
+        elif command == "medal-found":
+            numbers = [int(value) for value in values]
+            known = {
+                row[0] for row in connection.execute(
+                    "SELECT medal_number FROM mini_medal_locations"
+                )
+            }
+            invalid = [number for number in numbers if number not in known]
+            if invalid:
+                raise ValueError(f"Unknown Mini Medal number(s): {invalid}")
+            current = state["completion"]["mini_medals_found"]
+            if not isinstance(current, list) or any(
+                not isinstance(number, int) or isinstance(number, bool) for number in current
+            ):
+                raise ValueError("completion.mini_medals_found must be a list of integers")
+            state["completion"]["mini_medals_found"] = sorted(set(current) | set(numbers))
+            message = f"Recorded Mini Medal number(s): {', '.join(map(str, numbers))}."
+        elif command == "medal-count":
+            count = int(values[0])
+            if count < 0:
+                raise ValueError("Mini Medal count must be non-negative")
+            state["completion"]["mini_medal_count"] = count
+            message = f"Mini Medal count set to {count}."
+        elif command in ("done", "undo"):
+            checkpoint_id, order_text = values
+            if not _checkpoint_exists(connection, checkpoint_id):
+                raise ValueError(f"Unknown checkpoint: {checkpoint_id}")
+            obligation_id = _obligation_for_step(connection, checkpoint_id, int(order_text))
+            completed = set(state["completion"]["obligations_completed"])
+            if command == "done":
+                completed.add(obligation_id)
+                message = f"Completed {checkpoint_id} step {order_text}."
+            else:
+                completed.discard(obligation_id)
+                message = f"Reopened {checkpoint_id} step {order_text}."
+            state["completion"]["obligations_completed"] = sorted(completed)
+        else:
+            raise ValueError(f"Unknown progress command: {command}")
+    _save_state(state_path, state)
+    return message
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--db", type=Path, default=DEFAULT_DB)
+    parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    checkpoint = subparsers.add_parser("checkpoint")
+    checkpoint.add_argument("values", nargs=1)
+    medal_found = subparsers.add_parser("medal-found")
+    medal_found.add_argument("values", nargs="+")
+    medal_count = subparsers.add_parser("medal-count")
+    medal_count.add_argument("values", nargs=1)
+    for name in ("done", "undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs=2, metavar=("CHECKPOINT", "STEP"))
+    args = parser.parse_args()
+    try:
+        print(update_progress(args.state, args.db, args.command, args.values))
+    except (FileNotFoundError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        raise SystemExit(str(error)) from error
+
+
+if __name__ == "__main__":
+    main()

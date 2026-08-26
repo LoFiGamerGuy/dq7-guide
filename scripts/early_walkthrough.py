@@ -79,6 +79,10 @@ def load_walkthrough(
     ):
         raise ValueError("completion.mini_medals_found must be a list of integers")
     found_numbers = set(found)
+    completed = state.get("completion", {}).get("obligations_completed", [])
+    if not isinstance(completed, list) or any(not isinstance(value, str) for value in completed):
+        raise ValueError("completion.obligations_completed must be a list of strings")
+    completed_ids = set(completed)
     if medal_count is not None and (
         not isinstance(medal_count, int) or isinstance(medal_count, bool) or medal_count < 0
     ):
@@ -99,6 +103,14 @@ def load_walkthrough(
             WHERE sequence_no BETWEEN ? AND ? ORDER BY sequence_no""",
             (start["sequence_no"], end["sequence_no"]),
         ).fetchall()
+        known_completed_ids = {
+            row[0] for row in connection.execute(
+                """SELECT obligation_id FROM checkpoint_obligations
+                WHERE obligation_id IN (SELECT value FROM json_each(?))""",
+                (json.dumps(sorted(completed_ids)),),
+            )
+        }
+        unknown_completed_ids = sorted(completed_ids - known_completed_ids)
         blocks = []
         for checkpoint in checkpoints:
             sequence_no = checkpoint["sequence_no"]
@@ -146,11 +158,37 @@ def load_walkthrough(
                     a.display_order""",
                 (checkpoint["checkpoint_id"],),
             ).fetchall()
+            conflicts = connection.execute(
+                """SELECT f.conflict_id, ca.subject_key, ca.predicate,
+                    ca.locator AS claim_a_locator,
+                    sa.title AS claim_a_source_title, sa.url AS claim_a_source_url,
+                    cb.locator AS claim_b_locator,
+                    sb.title AS claim_b_source_title, sb.url AS claim_b_source_url
+                FROM conflicts f
+                JOIN claims ca ON ca.claim_id = f.claim_a_id
+                JOIN claims cb ON cb.claim_id = f.claim_b_id
+                JOIN sources sa ON sa.source_id = ca.source_id
+                JOIN sources sb ON sb.source_id = cb.source_id
+                WHERE f.status = 'unresolved'
+                  AND (
+                    json_extract(ca.scope_json, '$.checkpoint_from') = ?
+                    OR json_extract(ca.scope_json, '$.checkpoint_to') = ?
+                  )
+                ORDER BY ca.subject_key, ca.predicate, f.conflict_id""",
+                (checkpoint["checkpoint_id"], checkpoint["checkpoint_id"]),
+            ).fetchall()
+            stop_rows = [dict(row) for row in obligations if row["stop_before_advancing"]]
+            now_rows = [dict(row) for row in obligations if not row["stop_before_advancing"]]
             blocks.append(
                 {
                     "checkpoint": dict(checkpoint),
-                    "stops": [dict(row) for row in obligations if row["stop_before_advancing"]],
-                    "now": [dict(row) for row in obligations if not row["stop_before_advancing"]],
+                    "recorded_stop_count": len(stop_rows),
+                    "recorded_now_count": len(now_rows),
+                    "stops": [row for row in stop_rows if row["obligation_id"] not in completed_ids],
+                    "now": [row for row in now_rows if row["obligation_id"] not in completed_ids],
+                    "completed_hidden_count": sum(
+                        row["obligation_id"] in completed_ids for row in stop_rows + now_rows
+                    ),
                     "medals_now": [
                         dict(row) for row in medals
                         if row["location_sequence"] == sequence_no
@@ -167,6 +205,7 @@ def load_walkthrough(
                     ],
                     "guidance": [dict(row) for row in guidance],
                     "advice": [dict(row) for row in advice],
+                    "conflicts": [dict(row) for row in conflicts],
                 }
             )
         return {
@@ -176,6 +215,10 @@ def load_walkthrough(
             "medal_tracking_status": medal_tracking_status,
             "medal_tracking_warning": medal_tracking_warning,
             "player_checkpoint": state.get("story", {}).get("checkpoint_id"),
+            "unknown_completed_ids": unknown_completed_ids,
+            "completed_hidden_count": sum(
+                block["completed_hidden_count"] for block in blocks
+            ),
         }
     finally:
         connection.close()
@@ -198,6 +241,58 @@ def _print_medals(label: str, rows: list[dict], include_sources: bool) -> None:
             print(f"  Source: {_source(row)}")
 
 
+def _print_advice(block: dict, include_sources: bool) -> None:
+    advice_by_type = {
+        advice_type: [
+            row for row in block["advice"] if row["advice_type"] == advice_type
+        ]
+        for advice_type in ("gear", "boss", "grind", "vocation")
+    }
+    labels = {
+        "gear": "Gear", "boss": "Boss", "grind": "Grind (optional)",
+        "vocation": "Vocations",
+    }
+    goal_markers = {"completion_safe": " (safe)", "immediate_power": " (power)", "both": ""}
+    for advice_type in ("gear", "boss", "grind", "vocation"):
+        rows = advice_by_type[advice_type]
+        if not rows:
+            continue
+        summaries = []
+        for row in rows:
+            applicability = json.loads(row["applicability_json"])
+            required_medals = applicability.get("requires", {}).get("mini_medals")
+            condition = f"If you have {required_medals} medals, " if required_medals else ""
+            summaries.append(
+                f"{row['subject']} — {condition}{row['advice_text']}"
+                f"{goal_markers[row['recommendation_goal']]}"
+            )
+        print(f"{labels[advice_type]}: {'; '.join(summaries)}")
+        if include_sources:
+            for row in rows:
+                print(f"  Source: {_source(row)}")
+    core_missing = [name for name in ("gear", "boss", "grind") if not advice_by_type[name]]
+    if len(core_missing) == 3:
+        print("Advice: gear, boss, and grind guidance not normalized.")
+    elif core_missing:
+        print(f"Advice gap: {' and '.join(core_missing)} not normalized.")
+
+
+def _print_conflicts(block: dict, include_sources: bool) -> None:
+    for row in block["conflicts"]:
+        subject = row["subject_key"].split(":", 1)[-1].replace("_", " ").title()
+        predicate = row["predicate"].replace("_", " ")
+        print(f"CONFLICT: {subject} — {predicate} disputed")
+        if include_sources:
+            print(
+                f"  Source A: {row['claim_a_source_title']} — "
+                f"{row['claim_a_source_url']} ({row['claim_a_locator'] or 'locator unavailable'})"
+            )
+            print(
+                f"  Source B: {row['claim_b_source_title']} — "
+                f"{row['claim_b_source_url']} ({row['claim_b_locator'] or 'locator unavailable'})"
+            )
+
+
 def print_walkthrough(report: dict, include_sources: bool = False) -> None:
     if report["medal_tracking_status"] == "known":
         medal_note = f"medals tracked: {report['mini_medal_count']}"
@@ -205,9 +300,17 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
         medal_note = "medal tracking unknown"
     else:
         medal_note = f"confirmed medal IDs hidden: {report['collected_medal_count']}"
-    print(f"Early checklist ({medal_note})")
+    print(
+        f"Early checklist (completed checks hidden: {report['completed_hidden_count']}; "
+        f"{medal_note})"
+    )
     if report["medal_tracking_warning"]:
         print(f"Medal tracking warning: {report['medal_tracking_warning']}")
+    if report["unknown_completed_ids"]:
+        print(
+            "Progress warning: unknown completed obligation ID(s): "
+            + ", ".join(report["unknown_completed_ids"])
+        )
     if report["player_checkpoint"]:
         print(f"Player-state checkpoint: {report['player_checkpoint']}")
     for block in report["blocks"]:
@@ -215,21 +318,28 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
         complete = checkpoint["coverage_status"] == "complete"
         print(f"\n{checkpoint['checkpoint_id']} — {checkpoint['name']} [{checkpoint['coverage_status']}]")
         print("STOP:")
-        if not block["stops"]:
+        if not block["stops"] and block["recorded_stop_count"]:
+            print("- All recorded warnings cleared.")
+        elif not block["stops"]:
             print("- No verified STOP recorded; incomplete coverage is not proof that none exists.")
         for row in block["stops"]:
-            print(f"- {row['action']}")
+            print(f"- [step {row['display_order']}] {row['action']}")
             if row["unavailable_after"]:
                 print(f"  Deadline: {row['unavailable_after']}")
             if include_sources:
                 print(f"  Source: {_source(row)}")
 
+        _print_conflicts(block, include_sources)
+        _print_advice(block, include_sources)
+
         print("NOW:")
-        if not block["now"]:
+        if not block["now"] and block["recorded_now_count"]:
+            print("- All recorded actions complete.")
+        elif not block["now"]:
             print("- No normalized actions; this is a coverage gap.")
-        for number, row in enumerate(block["now"], 1):
+        for row in block["now"]:
             marker = "required" if row["required_for_100_percent"] else "optional"
-            print(f"{number}. [{marker}] {row['action']}")
+            print(f"{row['display_order']}. [{marker}] {row['action']}")
             if include_sources:
                 print(f"   Source: {_source(row)}")
 
@@ -244,42 +354,13 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
         else:
             print("Medals: none recorded for this checkpoint.")
 
-        advice_by_type = {
-            advice_type: [
-                row for row in block["advice"] if row["advice_type"] == advice_type
-            ]
-            for advice_type in ("gear", "boss", "grind", "vocation")
-        }
-        labels = {
-            "gear": "Gear", "boss": "Boss", "grind": "Grind (optional)",
-            "vocation": "Vocations",
-        }
-        goal_markers = {"completion_safe": " (safe)", "immediate_power": " (power)", "both": ""}
-        for advice_type in ("gear", "boss", "grind", "vocation"):
-            rows = advice_by_type[advice_type]
-            if not rows:
-                continue
-            summaries = []
-            for row in rows:
-                applicability = json.loads(row["applicability_json"])
-                required_medals = applicability.get("requires", {}).get("mini_medals")
-                condition = f"If you have {required_medals} medals, " if required_medals else ""
-                summaries.append(
-                    f"{row['subject']} — {condition}{row['advice_text']}"
-                    f"{goal_markers[row['recommendation_goal']]}"
-                )
-            summaries = "; ".join(summaries)
-            print(f"{labels[advice_type]}: {summaries}")
-            if include_sources:
-                for row in rows:
-                    print(f"  Source: {_source(row)}")
-        core_missing = [name for name in ("gear", "boss", "grind") if not advice_by_type[name]]
-        if len(core_missing) == 3:
-            print("Advice: gear, boss, and grind guidance not normalized.")
-        elif core_missing:
-            print(f"Advice gap: {' and '.join(core_missing)} not normalized.")
         qualifier = "" if complete else " (partial audit; not a guarantee)"
         print(f"Recorded safe condition{qualifier}: {checkpoint['safe_exit_condition']}")
+        if block["stops"] or block["now"]:
+            print(
+                "Mark complete: python scripts/player_progress.py done "
+                f"{checkpoint['checkpoint_id']} <step>"
+            )
 
 
 def main() -> None:

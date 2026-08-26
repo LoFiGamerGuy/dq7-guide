@@ -12,7 +12,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 84 normalized obligations; cp001–cp009 playable checklist expanded | Medium/High for early slice; later checkpoints remain partial | Complete remaining early boss/gear/grind guidance, then resume later atomic obligations |
+| Walkthrough checkpoints | 33 checkpoints; 85 obligations; cp001–cp009 playable and progress-aware | High for early safety spine; later checkpoints remain partial | Resume later atomic obligations while keeping early reports current |
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
@@ -39,7 +39,7 @@ Expected after `python scripts/build_kb.py`:
 - farming spots: 8
 - checkpoints: 33
 - mini medal locations: 100
-- checkpoint obligations: 84
+- checkpoint obligations: 85
 - ready-for-play checkpoint advice: 20
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 30
@@ -62,7 +62,7 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The 2026-08-26 early-game vertical slice adds 27 atomic obligations and 20 attributed gear, boss, grind, and vocation recommendations through the Alltrades unlock. Every early obligation has explicit chronological order. Normal CLI use shows one saved checkpoint (or cp001 when unknown), medal tracking preserves unknown state, and threshold advice remains conditional. Unsupported advice remains an explicit gap; no levels or grind rates were invented.
+The 2026-08-26 early-game vertical slice has 54 explicitly ordered obligations and 20 attributed recommendations through Alltrades. It supports explicit completed-check tracking, checkpoint-focused output, honest medal state, conditional threshold advice, operational STOP warnings, and checkpoint-scoped conflict alerts. Unsupported advice remains an explicit gap; no levels or grind rates were invented.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

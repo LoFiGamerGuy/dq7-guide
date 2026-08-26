@@ -58,6 +58,15 @@ python scripts/update_state.py story.checkpoint_id cp_004_emberdale
 
 The updater targets `player/ryan-save-state.json`, rejects unknown paths, and accepts `--state` for testing or an explicitly selected alternate player file.
 
+Record play progress without inferring earlier completion:
+
+```powershell
+python scripts/player_progress.py checkpoint cp_004_emberdale
+python scripts/player_progress.py done cp_004_emberdale 3
+python scripts/player_progress.py medal-found 10 11
+python scripts/player_progress.py medal-count 12
+```
+
 ## Key documents
 
 - `AGENTS.md` — durable instructions for Codex and other coding agents.

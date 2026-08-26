@@ -28,6 +28,7 @@ from early_walkthrough import (  # noqa: E402
 )
 from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
+from player_progress import update_progress  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
 
@@ -52,7 +53,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
-        self.assertEqual(self.counts["checkpoint_obligations"], 84)
+        self.assertEqual(self.counts["checkpoint_obligations"], 85)
         self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -674,6 +675,21 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             len([row for row in advice if row["advice_type"] == "vocation"]), 2
         )
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_walkthrough(report)
+        rendered = output.getvalue()
+        self.assertLess(rendered.index("Boss:"), rendered.index("NOW:"))
+        self.assertLess(rendered.index("Vocations:"), rendered.index("NOW:"))
+        self.assertIn("CONFLICT: Cautery Sword — precise location description disputed", rendered)
+        self.assertIn("CONFLICT: Iron Shield — purchase price disputed", rendered)
+        self.assertNotIn("Source A:", rendered)
+        sourced = io.StringIO()
+        with redirect_stdout(sourced):
+            print_walkthrough(report, include_sources=True)
+        self.assertIn("Source A:", sourced.getvalue())
+        self.assertIn("Source B:", sourced.getvalue())
+        self.assertIn("https://", sourced.getvalue())
 
     def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):
         self.assertEqual(classify_medal_tracking(None, set()), ("unknown", None))
@@ -715,6 +731,81 @@ class KnowledgeBaseTests(unittest.TestCase):
             )
         with self.assertRaises(ValueError):
             resolve_checkpoint_range(state_path, None, "cp_001_prologue", None)
+
+    def test_player_progress_records_only_explicit_changes(self):
+        state_path = Path(self.tempdir.name) / "explicit-progress.json"
+        source = ROOT / "player" / "ryan-save-state.json"
+        state_path.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+        update_progress(state_path, self.db_path, "checkpoint", ["cp_004_emberdale"])
+        state = json.loads(state_path.read_text())
+        self.assertEqual(state["story"]["checkpoint_id"], "cp_004_emberdale")
+        self.assertEqual(state["completion"]["obligations_completed"], [])
+
+        update_progress(state_path, self.db_path, "medal-found", ["1", "2", "1"])
+        state = json.loads(state_path.read_text())
+        self.assertEqual(state["completion"]["mini_medals_found"], [1, 2])
+        self.assertIsNone(state["completion"]["mini_medal_count"])
+        update_progress(state_path, self.db_path, "medal-count", ["5"])
+        state = json.loads(state_path.read_text())
+        self.assertEqual(state["completion"]["mini_medal_count"], 5)
+        self.assertEqual(state["completion"]["mini_medals_found"], [1, 2])
+
+    def test_player_progress_done_is_stable_idempotent_and_reversible(self):
+        state_path = Path(self.tempdir.name) / "explicit-done.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(state_path, self.db_path, "done", ["cp_001_prologue", "1"])
+        update_progress(state_path, self.db_path, "done", ["cp_001_prologue", "1"])
+        state = json.loads(state_path.read_text())
+        self.assertEqual(
+            state["completion"]["obligations_completed"],
+            ["obl_prologue_initial_finite_sweep"],
+        )
+        report = load_walkthrough(
+            self.db_path, state_path, "cp_001_prologue", "cp_001_prologue"
+        )
+        self.assertEqual([row["display_order"] for row in report["blocks"][0]["now"]], [2])
+        update_progress(state_path, self.db_path, "undo", ["cp_001_prologue", "1"])
+        state = json.loads(state_path.read_text())
+        self.assertEqual(state["completion"]["obligations_completed"], [])
+
+    def test_player_progress_rejects_invalid_input_without_writing(self):
+        state_path = Path(self.tempdir.name) / "explicit-invalid.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        original = state_path.read_text(encoding="utf-8")
+        for command, values in (
+            ("checkpoint", ["cp_missing"]),
+            ("medal-found", ["101"]),
+            ("medal-count", ["-1"]),
+            ("done", ["cp_001_prologue", "99"]),
+        ):
+            with self.assertRaises(ValueError):
+                update_progress(state_path, self.db_path, command, values)
+            self.assertEqual(state_path.read_text(encoding="utf-8"), original)
+
+    def test_walkthrough_distinguishes_cleared_stops_and_unknown_ids(self):
+        state_path = Path(self.tempdir.name) / "explicit-stop.json"
+        state = json.loads(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8")
+        )
+        state["completion"]["obligations_completed"] = [
+            "obl_prologue_fish_bits", "obsolete_obligation"
+        ]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_walkthrough(
+            self.db_path, state_path, "cp_001_prologue", "cp_001_prologue"
+        )
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_walkthrough(report)
+        self.assertIn("All recorded warnings cleared", output.getvalue())
+        self.assertIn("obsolete_obligation", output.getvalue())
+        self.assertIn("completed checks hidden: 1", output.getvalue())
 
 
 if __name__ == "__main__":
