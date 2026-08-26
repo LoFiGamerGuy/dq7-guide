@@ -425,5 +425,17 @@
   },
   {
     "source_id": "game8_shield_of_shame", "title": "Shield of Shame", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581028", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_boss_glowering_inferno", "title": "How to Beat Glowering Inferno", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578171", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-17", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_boss_hackrobat", "title": "How to Beat Hackrobat", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578183", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-12", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_boss_slaughtomaton", "title": "How to Beat Slaughtomaton", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578206", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-17", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_boss_cardinal_sin", "title": "How to Beat Cardinal Sin", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578395", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-12", "retrieved_at": "2026-08-26"
   }
 ]

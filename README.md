@@ -7,6 +7,7 @@ This repository is a local, provenance-first knowledge base for a completionist 
 - a player-state file kept separate from shared game knowledge;
 - source and conflict records so disagreements are visible;
 - synthesized guidance that can answer “what is strongest and safe to do now?”
+- a terse Prologue-through-Alltrades checklist with attributed gear and boss advice;
 
 ## Current status
 

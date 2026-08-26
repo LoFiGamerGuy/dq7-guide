@@ -212,6 +212,25 @@ CREATE TABLE checkpoint_obligations (
     verification_status TEXT NOT NULL
 );
 
+CREATE TABLE checkpoint_advice (
+    advice_id TEXT PRIMARY KEY,
+    checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    advice_type TEXT NOT NULL CHECK(advice_type IN ('gear', 'boss', 'grind', 'vocation')),
+    subject TEXT NOT NULL CHECK(length(trim(subject)) > 0),
+    advice_text TEXT NOT NULL CHECK(length(trim(advice_text)) > 0),
+    recommendation_goal TEXT NOT NULL CHECK(
+        recommendation_goal IN ('completion_safe', 'immediate_power', 'both')
+    ),
+    display_order INTEGER NOT NULL CHECK(display_order >= 0),
+    applicability_json TEXT NOT NULL DEFAULT '{}',
+    ready_for_play INTEGER NOT NULL CHECK(ready_for_play IN (0, 1)),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(checkpoint_id, advice_type, display_order)
+);
+
 
 CREATE TABLE item_categories (
     category_id TEXT PRIMARY KEY,

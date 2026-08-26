@@ -90,6 +90,16 @@ def load_walkthrough(
                 ORDER BY d.domain, d.document_id""",
                 (checkpoint["checkpoint_id"],),
             ).fetchall()
+            advice = connection.execute(
+                """SELECT a.*, s.title AS source_title, s.url AS source_url
+                FROM checkpoint_advice a JOIN sources s USING(source_id)
+                WHERE a.checkpoint_id = ? AND a.ready_for_play = 1
+                ORDER BY CASE a.advice_type
+                    WHEN 'gear' THEN 1 WHEN 'boss' THEN 2
+                    WHEN 'grind' THEN 3 WHEN 'vocation' THEN 4 END,
+                    a.display_order""",
+                (checkpoint["checkpoint_id"],),
+            ).fetchall()
             blocks.append(
                 {
                     "checkpoint": dict(checkpoint),
@@ -110,6 +120,7 @@ def load_walkthrough(
                         and row["available_sequence"] > sequence_no
                     ],
                     "guidance": [dict(row) for row in guidance],
+                    "advice": [dict(row) for row in advice],
                 }
             )
         return {
@@ -176,15 +187,34 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
         else:
             print("Medals: none recorded for this checkpoint.")
 
-        if block["guidance"]:
-            titles = "; ".join(row["title"] for row in block["guidance"])
-            print(f"Guidance: attributed checkpoint notes available: {titles}.")
+        advice_by_type = {
+            advice_type: [
+                row for row in block["advice"] if row["advice_type"] == advice_type
+            ]
+            for advice_type in ("gear", "boss", "grind", "vocation")
+        }
+        labels = {
+            "gear": "Gear", "boss": "Boss", "grind": "Grind (optional)",
+            "vocation": "Vocations",
+        }
+        goal_markers = {"completion_safe": " (safe)", "immediate_power": " (power)", "both": ""}
+        for advice_type in ("gear", "boss", "grind", "vocation"):
+            rows = advice_by_type[advice_type]
+            if not rows:
+                continue
+            summaries = "; ".join(
+                f"{row['subject']} — {row['advice_text']}"
+                f"{goal_markers[row['recommendation_goal']]}" for row in rows
+            )
+            print(f"{labels[advice_type]}: {summaries}")
             if include_sources:
-                for row in block["guidance"]:
+                for row in rows:
                     print(f"  Source: {_source(row)}")
-        else:
-            print("Guidance: no normalized checkpoint-specific gear/vocation recommendation yet.")
-        print("Optional grind: no checkpoint-resolved grind ceiling is normalized; do not overgrind for completion.")
+        core_missing = [name for name in ("gear", "boss", "grind") if not advice_by_type[name]]
+        if len(core_missing) == 3:
+            print("Advice: gear, boss, and grind guidance not normalized.")
+        elif core_missing:
+            print(f"Advice gap: {' and '.join(core_missing)} not normalized.")
         qualifier = "" if complete else " (partial audit; not a guarantee)"
         print(f"Recorded safe condition{qualifier}: {checkpoint['safe_exit_condition']}")
 

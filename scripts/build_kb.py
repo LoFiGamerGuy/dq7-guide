@@ -32,6 +32,24 @@ def normalize_identifier(value: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", value).strip().lower().split())
 
 
+def normalize_checkpoint_advice(rows: list[dict]) -> list[dict]:
+    """Serialize structured applicability without accepting opaque non-objects."""
+    normalized = []
+    for advice in rows:
+        applicability = advice.get("applicability", {})
+        if not isinstance(applicability, dict):
+            raise ValueError(
+                f"checkpoint advice applicability must be an object: {advice.get('advice_id')}"
+            )
+        normalized.append(
+            {
+                **advice,
+                "applicability_json": json.dumps(applicability, sort_keys=True),
+            }
+        )
+    return normalized
+
+
 def detect_conflicts(
     connection: sqlite3.Connection,
     predicate_registry: dict | None = None,
@@ -285,6 +303,22 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed.get("mini_medal_evidence", []),
         )
 
+        advice_rows = normalize_checkpoint_advice(seed.get("checkpoint_advice", []))
+        connection.executemany(
+            """INSERT INTO checkpoint_advice(
+                advice_id, checkpoint_id, advice_type, subject, advice_text,
+                recommendation_goal, display_order, applicability_json,
+                ready_for_play, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :advice_id, :checkpoint_id, :advice_type, :subject,
+                :advice_text, :recommendation_goal, :display_order,
+                :applicability_json, :ready_for_play, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            advice_rows,
+        )
+
         connection.executemany(
             """INSERT INTO item_categories(category_id, name, heroic_hoarder_order)
             VALUES (:category_id, :name, :heroic_hoarder_order)""",
@@ -496,6 +530,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "vocations", "vocation_requirements", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
+            , "checkpoint_advice"
             , "item_categories", "items", "item_acquisition_paths", "shops"
             , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
         ):

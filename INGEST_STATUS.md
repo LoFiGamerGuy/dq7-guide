@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 58 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 62 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
@@ -18,8 +18,8 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
 | Heroic Hoarder items | 30 normalized items / 117 acquisition paths | High for ingested routes; incomplete overall | Expand by category and require a route or explicit gap for every item |
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
-| Equipment | Representative early recommendations | Medium | Full stats, usability, acquisition, earliest checkpoint |
-| Farming | 7 Metal spots + postgame seed strategy | Medium/High | Add rates/rewards only when sourced; add gold/proficiency/heart farms |
+| Equipment | 12 ready-for-play checkpoint advice rows across cp004–cp009 | Medium/High, attributed | Expand only with checkpoint-valid acquisition and character usability |
+| Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
 | Monster Hearts | Representative high-value roles | Medium | Complete registry, effects, and acquisition |
 | Achievements | Architecture only | Not started | Full achievement dependency graph |
 | Tablets / fragments | Architecture only | Not started | Complete numbered/color acquisition and use graph |
@@ -30,7 +30,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 58
+- sources: 62
 - vocations/entities: 26
 - prerequisite relationships: 27
 - claims: 26
@@ -40,6 +40,7 @@ Expected after `python scripts/build_kb.py`:
 - checkpoints: 33
 - mini medal locations: 100
 - checkpoint obligations: 84
+- ready-for-play checkpoint advice: 12
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 30
 - item acquisition paths: 117
@@ -61,7 +62,7 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The 2026-08-26 early-game vertical slice adds 27 atomic obligations through the Alltrades vocation unlock, including the previously empty Regenstein route. `early_walkthrough.py` now produces a terse ordered checklist, separates medals into NOW/BACKTRACK/LATER, hides collected medals from player state, and keeps sources optional. All nine early checkpoints remain explicitly partial rather than falsely complete.
+The 2026-08-26 early-game vertical slice adds 27 atomic obligations and 12 attributed gear, boss, and optional-grind recommendations through the Alltrades vocation unlock. `early_walkthrough.py` produces a terse ordered checklist, separates medals into NOW/BACKTRACK/LATER, hides collected medals from player state, and keeps sources optional. Unsupported early advice remains an explicit gap; no levels or grind rates were invented.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

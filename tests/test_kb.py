@@ -13,7 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from build_kb import build_database, detect_conflicts  # noqa: E402
+from build_kb import (  # noqa: E402
+    build_database,
+    detect_conflicts,
+    normalize_checkpoint_advice,
+)
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
 from early_walkthrough import load_walkthrough, print_walkthrough  # noqa: E402
@@ -38,12 +42,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 58)
+        self.assertEqual(self.counts["sources"], 62)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 84)
+        self.assertEqual(self.counts["checkpoint_advice"], 12)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 30)
@@ -563,6 +568,67 @@ class KnowledgeBaseTests(unittest.TestCase):
             print_walkthrough(report, include_sources=True)
         self.assertIn("Source:", sourced.getvalue())
         self.assertIn("https://game8.co/", sourced.getvalue())
+
+    def test_checkpoint_advice_filters_orders_and_renders_goals(self):
+        advice_db = Path(self.tempdir.name) / "walkthrough-advice.sqlite"
+        build_database(advice_db)
+        with sqlite3.connect(advice_db) as connection:
+            rows = [
+                ("advice_test_boss", "boss", "Test Boss", "Guard, then strike.",
+                 "completion_safe", 91, 1),
+                ("advice_test_gear", "gear", "Hero", "Equip the test sword.",
+                 "immediate_power", 91, 1),
+                ("advice_test_hidden", "grind", "Slimes", "Unverified loop.",
+                 "both", 91, 0),
+            ]
+            connection.executemany(
+                """INSERT INTO checkpoint_advice(
+                    advice_id, checkpoint_id, advice_type, subject, advice_text,
+                    recommendation_goal, display_order, applicability_json,
+                    ready_for_play, source_id, locator, confidence,
+                    verification_status
+                ) VALUES (?, 'cp_009_alltrades', ?, ?, ?, ?, ?, '{}', ?,
+                    'game8_best_equipment', 'Test locator', 'high', 'source_checked')""",
+                rows,
+            )
+        report = load_walkthrough(
+            advice_db,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_009_alltrades",
+            "cp_009_alltrades",
+        )
+        advice = report["blocks"][0]["advice"]
+        fixture_advice = [
+            row for row in advice if row["advice_id"].startswith("advice_test_")
+        ]
+        self.assertEqual(
+            [row["advice_type"] for row in fixture_advice], ["gear", "boss"]
+        )
+        terse = io.StringIO()
+        with redirect_stdout(terse):
+            print_walkthrough(report)
+        self.assertIn("Hero — Equip the test sword. (power)", terse.getvalue())
+        self.assertIn("Test Boss — Guard, then strike. (safe)", terse.getvalue())
+        self.assertNotIn("Unverified loop", terse.getvalue())
+        self.assertNotIn("Source:", terse.getvalue())
+        sourced = io.StringIO()
+        with redirect_stdout(sourced):
+            print_walkthrough(report, include_sources=True)
+        self.assertIn("Source:", sourced.getvalue())
+        self.assertIn("Test locator", sourced.getvalue())
+
+    def test_checkpoint_advice_requires_object_applicability(self):
+        normalized = normalize_checkpoint_advice([
+            {"advice_id": "ok", "applicability": {"difficulty": "normal"}}
+        ])
+        self.assertEqual(
+            json.loads(normalized[0]["applicability_json"]),
+            {"difficulty": "normal"},
+        )
+        with self.assertRaises(ValueError):
+            normalize_checkpoint_advice([
+                {"advice_id": "bad", "applicability": ["normal"]}
+            ])
 
 
 if __name__ == "__main__":
