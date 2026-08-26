@@ -401,5 +401,29 @@
   },
   {
     "source_id": "game8_mount_gora_map", "title": "Mount Gora Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579913", "source_class": "guide_wiki", "role": "location_and_treasure_detail", "published_at": null, "updated_at": "2026-02-24", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_tempest_shield", "title": "Tempest Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581035", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_power_shield", "title": "Power Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581034", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_metal_slime_shield", "title": "Metal Slime Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581033", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_silver_shield", "title": "Silver Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581032", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_flame_shield", "title": "Flame Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581031", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_liquid_metal_shield", "title": "Liquid Metal Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581030", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_aeras_shield", "title": "Aeras Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581029", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_shield_of_shame", "title": "Shield of Shame", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581028", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
   }
 ]

@@ -35,7 +35,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 50)
+        self.assertEqual(self.counts["sources"], 58)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -43,10 +43,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["checkpoint_obligations"], 57)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
-        self.assertEqual(self.counts["items"], 22)
-        self.assertEqual(self.counts["item_acquisition_paths"], 102)
-        self.assertEqual(self.counts["shops"], 30)
-        self.assertEqual(self.counts["lucky_panel_pools"], 11)
+        self.assertEqual(self.counts["items"], 30)
+        self.assertEqual(self.counts["item_acquisition_paths"], 117)
+        self.assertEqual(self.counts["shops"], 32)
+        self.assertEqual(self.counts["lucky_panel_pools"], 12)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -104,6 +104,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(conflict["status"], "unresolved")
         _, _, verdict = load_purchase_advice(
             self.db_path, "Ice Shield", "cp_013_flying_carpet"
+        )
+        self.assertIn("acquisition evidence conflict", verdict)
+
+    def test_tempest_shield_location_conflict_is_visible(self):
+        conflict = self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE claim_a_id LIKE 'claim_tempest_shield_%'
+               OR claim_b_id LIKE 'claim_tempest_shield_%'"""
+        ).fetchone()
+        self.assertIsNotNone(conflict)
+        _, _, verdict = load_purchase_advice(
+            self.db_path, "Tempest Shield", "cp_025_wind_spirit"
         )
         self.assertIn("acquisition evidence conflict", verdict)
 
@@ -351,6 +363,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual((basement["timing_status"], basement["cost_status"]),
                          ("available_now", "free"))
         self.assertTrue(platinum_verdict.startswith("DON'T BUY FOR COMPLETION"))
+        _, aeras_routes, aeras_verdict = load_purchase_advice(
+            self.db_path, "Aeras Shield", "cp_028_cathedral_of_blight"
+        )
+        reward = next(row for row in aeras_routes if row["method"] == "reward")
+        self.assertEqual((reward["timing_status"], reward["cost_status"]),
+                         ("available_now", "free"))
+        self.assertTrue(aeras_verdict.startswith("DON'T BUY FOR COMPLETION"))
 
     def test_sourced_documents_have_locators(self):
         rows = self.connection.execute(
