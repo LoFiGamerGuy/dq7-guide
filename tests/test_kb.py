@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_kb import build_database, detect_conflicts  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
+from conflict_report import load_conflicts  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
 
@@ -36,9 +37,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
-        self.assertEqual(self.counts["mini_medal_locations"], 77)
-        self.assertEqual(self.counts["checkpoint_obligations"], 36)
-        self.assertEqual(self.counts["mini_medal_evidence"], 63)
+        self.assertEqual(self.counts["mini_medal_locations"], 100)
+        self.assertEqual(self.counts["checkpoint_obligations"], 45)
+        self.assertEqual(self.counts["mini_medal_evidence"], 86)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -47,6 +48,16 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE s.source_id IS NULL"""
         ).fetchall()
         self.assertEqual(orphans, [])
+
+    def test_seeded_source_disagreement_is_visible(self):
+        row = self.connection.execute(
+            """SELECT c.status, c.detection_method
+            FROM conflicts c
+            WHERE c.claim_a_id = 'claim_medal_078_game8_floor'
+              AND c.claim_b_id = 'claim_medal_078_rpgsite_floor'"""
+        ).fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(tuple(row), ("unresolved", "automatic_exact_scope"))
 
     def test_conflict_detector_opens_stable_fact_conflict(self):
         path = Path(self.tempdir.name) / "conflict.sqlite"
@@ -121,6 +132,34 @@ class KnowledgeBaseTests(unittest.TestCase):
         finally:
             connection.close()
 
+    def test_conflict_report_returns_full_provenance(self):
+        path = Path(self.tempdir.name) / "conflict-report.sqlite"
+        build_database(path)
+        connection = sqlite3.connect(path)
+        connection.row_factory = sqlite3.Row
+        try:
+            for claim_id, value, source_id in (
+                ("report_a", "1", "game8_hub"),
+                ("report_b", "2", "rpgsite_walkthrough"),
+            ):
+                connection.execute(
+                    """INSERT INTO claims(
+                        claim_id, subject_key, predicate, value_json, claim_kind,
+                        scope_json, source_id, locator, confidence,
+                        verification_status, reconstruction_status
+                    ) VALUES (?, 'test:report', 'total_count', ?, 'fact', '{}',
+                        ?, 'test locator', 'low', 'test_only', 'native')""",
+                    (claim_id, value, source_id),
+                )
+            detect_conflicts(connection)
+            connection.commit()
+        finally:
+            connection.close()
+        rows = load_conflicts(path)
+        row = next(item for item in rows if item["claim_a_id"] == "report_a")
+        self.assertEqual(row["source_title_a"], "Dragon Quest 7 Reimagined Walkthrough & Guides Wiki")
+        self.assertIn("rpgsite.net", row["source_url_b"])
+
     def test_vocation_relationships_are_valid(self):
         invalid = self.connection.execute(
             """SELECT r.relationship_id FROM relationships r
@@ -184,7 +223,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 "SELECT medal_number FROM mini_medal_locations ORDER BY medal_number"
             )
         ]
-        self.assertEqual(numbers, list(range(1, 78)))
+        self.assertEqual(numbers, list(range(1, 101)))
 
     def test_verified_medals_retain_independent_evidence(self):
         verified = self.connection.execute(

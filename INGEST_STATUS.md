@@ -12,9 +12,9 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 25 checkpoints through Wind Spirit; 36 normalized obligations through the Almighty lockout | Medium/High for ingested obligations | Fill remaining atomic obligations and continue through postgame |
-| Mini Medal rewards | 19/19 reward thresholds | High | Ingest all 100 numbered locations and checkpoint gates |
-| Mini Medal locations | 77/100 normalized rows | Mixed: 63 cross-source verified, 14 indexed-source checked | Complete rows 78–100; directly refresh Game8 when accessible |
+| Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 45 normalized obligations | Medium/High for ingested obligations | Fill remaining atomic item/monster/achievement obligations |
+| Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
+| Mini Medal locations | 100/100 normalized rows | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and retain the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
 | Heroic Hoarder items | 0 complete normalized rows | Not started | Build full acquisition matrix by category |
 | Lucky Panel | System role and version summary | Medium/High | Ingest every version/rank/chest item and exclusivity |
@@ -24,7 +24,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Achievements | Architecture only | Not started | Full achievement dependency graph |
 | Tablets / fragments | Architecture only | Not started | Complete numbered/color acquisition and use graph |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active for registered single-valued factual predicates; 0 current conflicts | Conservative coverage | Add wildcard scope-overlap review and predicate comparators as domains expand |
+| Conflicts | Automatic exact-scope detection active; 1 unresolved source conflict (Mini Medal 78 precise floor/area) | Conservative coverage | Resolve with direct in-game evidence; add wildcard scope-overlap review as domains expand |
 
 ## Database seed counts
 
@@ -33,14 +33,14 @@ Expected after `python scripts/build_kb.py`:
 - sources: 24
 - vocations/entities: 26
 - prerequisite relationships: 27
-- claims: 12
+- claims: 14
 - medal rewards: 19
 - missables: 7
 - farming spots: 8
-- checkpoints: 25
-- mini medal locations: 77
-- checkpoint obligations: 36
-- Mini Medal corroborating evidence rows: 63
+- checkpoints: 33
+- mini medal locations: 100
+- checkpoint obligations: 45
+- Mini Medal corroborating evidence rows: 86
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.
@@ -49,13 +49,13 @@ Treat these as build assertions, not completion percentages.
 
 1. Expand the initial Prologue-through-Emberdale obligations to full item, fragment, monster, and stop-condition coverage.
 2. L'Arca through Alltrades checkpoints and obligations.
-3. Mini Medals 78–100 and their story/key/postgame gates.
-4. Add a source-ordinal mapping so RPG Site acquisition order can coexist explicitly with Game8's list numbering.
+3. Complete the remaining item, monster, fragment, and achievement obligations within the 33-checkpoint spine.
+4. Continue the existing source-ordinal mapping for every independently corroborated medal.
 5. Directly refresh Game8 medal rows when the page is accessible; rows currently available only through its indexed table remain medium confidence unless independently corroborated.
 
 ## Latest completed batch
 
-The 2026-08-25 Phase 1 batches added normalized tables for Mini Medal locations, independent medal evidence, and checkpoint obligations; Game8 list rows 1–77; and 24 directly checked obligations from the Prologue through Alltrades Present. Game8's direct page returned HTTP 402 during this batch; uncorroborated rows are therefore marked at medium confidence. RPG Site corroborates 63 normalized locations, while row 74 remains Game8-only; RPG Site's parenthetical medal ordinals are walkthrough acquisition order and are never treated as interchangeable IDs.
+The 2026-08-25 Phase 1 batches completed all 100 normalized Mini Medal locations, 86 independent RPG Site evidence rows, a 33-checkpoint spine through postgame, and 45 directly checked obligations. Game8's direct page returned HTTP 402 during these batches; uncorroborated rows remain medium confidence. Medal 78 has an explicit unresolved floor/area conflict between sources rather than a silently blended locator. RPG Site's parenthetical medal ordinals remain source-specific walkthrough order and are never treated as canonical album IDs.
 
 ## Open questions requiring evidence
 
