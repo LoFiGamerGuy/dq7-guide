@@ -1,6 +1,6 @@
 # Ingestion status
 
-Status date: 2026-08-25  
+Status date: 2026-08-26
 Package: `0.3.0-phase1`  
 Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
@@ -12,7 +12,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 57 normalized obligations | Medium/High for ingested obligations | Fill remaining atomic item/monster/achievement obligations and checkpoint locators |
+| Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 84 normalized obligations; cp001–cp009 playable checklist expanded | Medium/High for early slice; later checkpoints remain partial | Complete remaining early boss/gear/grind guidance, then resume later atomic obligations |
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
@@ -39,7 +39,7 @@ Expected after `python scripts/build_kb.py`:
 - farming spots: 8
 - checkpoints: 33
 - mini medal locations: 100
-- checkpoint obligations: 57
+- checkpoint obligations: 84
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 30
 - item acquisition paths: 117
@@ -61,7 +61,9 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The 2026-08-25 Phase 2 batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Checkpoint-aware advice distinguishes verified free routes from paid routes, unknown costs, and unknown monster chronology. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
+The 2026-08-26 early-game vertical slice adds 27 atomic obligations through the Alltrades vocation unlock, including the previously empty Regenstein route. `early_walkthrough.py` now produces a terse ordered checklist, separates medals into NOW/BACKTRACK/LATER, hides collected medals from player state, and keeps sources optional. All nine early checkpoints remain explicitly partial rather than falsely complete.
+
+The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 
 Phase 1 completed all 100 normalized Mini Medal locations, 86 independent RPG Site evidence rows, a 33-checkpoint spine through postgame, and 45 directly checked obligations. RPG Site's parenthetical medal ordinals remain source-specific walkthrough order and are never treated as canonical album IDs.
 

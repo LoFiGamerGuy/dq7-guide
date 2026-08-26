@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import io
 import sqlite3
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 
@@ -14,6 +16,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from build_kb import build_database, detect_conflicts  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
+from early_walkthrough import load_walkthrough, print_walkthrough  # noqa: E402
 from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
 from query_kb import search  # noqa: E402
@@ -40,7 +43,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
-        self.assertEqual(self.counts["checkpoint_obligations"], 57)
+        self.assertEqual(self.counts["checkpoint_obligations"], 84)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 30)
@@ -480,6 +483,86 @@ class KnowledgeBaseTests(unittest.TestCase):
                 ROOT / "player" / "ryan-save-state.json",
                 "cp_missing",
             )
+
+    def test_early_walkthrough_orders_range_and_classifies_medals(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+        )
+        self.assertEqual(
+            [row["checkpoint"]["sequence_no"] for row in report["blocks"]],
+            list(range(1, 10)),
+        )
+        prologue = report["blocks"][0]
+        self.assertEqual([row["subject"] for row in prologue["stops"]], ["Pearl's Fish Bits"])
+        self.assertEqual(prologue["medals_now"], [])
+        self.assertEqual(
+            [row["medal_number"] for row in prologue["medals_later"]], [6, 7]
+        )
+        alltrades = report["blocks"][-1]
+        alltrades_subjects = [row["subject"] for row in alltrades["now"]]
+        self.assertEqual(
+            alltrades_subjects[:3],
+            [
+                "Alltrades route Blue Fragments",
+                "Restored Alltrades Abbey pickups",
+                "Thief's Key and immediate backtracking",
+            ],
+        )
+        self.assertIn("Alltrades Key and Tunnel to the Abbey fixed loot", alltrades_subjects)
+        self.assertIn(6, [row["medal_number"] for row in alltrades["medals_backtrack"]])
+        self.assertNotIn(7, [row["medal_number"] for row in alltrades["medals_backtrack"]])
+        self.assertTrue(alltrades["guidance"])
+
+    def test_early_walkthrough_hides_collected_medals(self):
+        state_path = Path(self.tempdir.name) / "walkthrough-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["mini_medals_found"] = [6]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_walkthrough(self.db_path, state_path)
+        all_medals = [
+            row["medal_number"]
+            for block in report["blocks"]
+            for bucket in ("medals_now", "medals_backtrack", "medals_later")
+            for row in block[bucket]
+        ]
+        self.assertNotIn(6, all_medals)
+        self.assertEqual(report["collected_medal_count"], 1)
+
+    def test_early_walkthrough_rejects_bad_ranges_and_state(self):
+        state_path = ROOT / "player" / "ryan-save-state.json"
+        with self.assertRaises(ValueError):
+            load_walkthrough(
+                self.db_path, state_path, "cp_009_alltrades", "cp_001_prologue"
+            )
+        with self.assertRaises(ValueError):
+            load_walkthrough(self.db_path, state_path, "cp_missing", "cp_009_alltrades")
+        bad_state_path = Path(self.tempdir.name) / "walkthrough-bad-state.json"
+        state = json.loads(state_path.read_text())
+        state["completion"]["mini_medals_found"] = "unknown"
+        bad_state_path.write_text(json.dumps(state), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            load_walkthrough(self.db_path, bad_state_path)
+
+    def test_early_walkthrough_sources_are_opt_in(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_001_prologue",
+            "cp_001_prologue",
+        )
+        terse = io.StringIO()
+        with redirect_stdout(terse):
+            print_walkthrough(report)
+        self.assertNotIn("Source:", terse.getvalue())
+        self.assertNotIn("Medals NOW:", terse.getvalue())
+        self.assertIn("Medals LATER:", terse.getvalue())
+
+        sourced = io.StringIO()
+        with redirect_stdout(sourced):
+            print_walkthrough(report, include_sources=True)
+        self.assertIn("Source:", sourced.getvalue())
+        self.assertIn("https://game8.co/", sourced.getvalue())
 
 
 if __name__ == "__main__":
