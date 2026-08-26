@@ -1,5 +1,6 @@
 {
   "effect": {"comparison": "single"},
+  "acquisition_exclusivity": {"comparison": "single"},
   "fixed_increase_values": {"comparison": "single"},
   "precise_location_description": {"comparison": "single"},
   "total_count": {"comparison": "single"},

@@ -222,7 +222,7 @@ CREATE TABLE item_categories (
 CREATE TABLE items (
     item_id TEXT PRIMARY KEY,
     category_id TEXT NOT NULL REFERENCES item_categories(category_id),
-    name TEXT NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
     canonical_key TEXT NOT NULL UNIQUE,
     heroic_hoarder_ordinal INTEGER,
     heroic_hoarder_required INTEGER NOT NULL CHECK(heroic_hoarder_required IN (0, 1)),

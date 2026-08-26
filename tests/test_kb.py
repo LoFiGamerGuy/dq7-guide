@@ -15,7 +15,7 @@ from build_kb import build_database, detect_conflicts  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
 from medal_report import medals_available_through  # noqa: E402
-from item_report import load_item_routes  # noqa: E402
+from item_report import load_item_routes, load_purchase_advice  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
 
@@ -35,17 +35,17 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 24)
+        self.assertEqual(self.counts["sources"], 31)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 57)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
-        self.assertEqual(self.counts["items"], 2)
-        self.assertEqual(self.counts["item_acquisition_paths"], 3)
+        self.assertEqual(self.counts["items"], 6)
+        self.assertEqual(self.counts["item_acquisition_paths"], 11)
         self.assertEqual(self.counts["shops"], 1)
-        self.assertEqual(self.counts["lucky_panel_pools"], 2)
+        self.assertEqual(self.counts["lucky_panel_pools"], 6)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -64,6 +64,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertIsNotNone(row)
         self.assertEqual(tuple(row), ("unresolved", "automatic_exact_scope"))
+
+    def test_phase_two_source_disagreements_are_visible(self):
+        pairs = self.connection.execute(
+            """SELECT claim_a_id, claim_b_id FROM conflicts
+            WHERE claim_a_id LIKE 'claim_elevating_shoes_%'
+               OR claim_a_id LIKE 'claim_cautery_sword_%'"""
+        ).fetchall()
+        self.assertEqual(len(pairs), 2)
 
     def test_conflict_detector_opens_stable_fact_conflict(self):
         path = Path(self.tempdir.name) / "conflict.sqlite"
@@ -235,6 +243,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(bad_shop, [])
         self.assertEqual(bad_panel, [])
+        missing_shop = self.connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            LEFT JOIN shop_inventory si USING(acquisition_id)
+            WHERE a.method = 'shop' AND si.acquisition_id IS NULL"""
+        ).fetchall()
+        missing_panel = self.connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            LEFT JOIN lucky_panel_rewards lr USING(acquisition_id)
+            WHERE a.method = 'lucky_panel' AND lr.acquisition_id IS NULL"""
+        ).fetchall()
+        self.assertEqual(missing_shop, [])
+        self.assertEqual(missing_panel, [])
 
     def test_route_level_supply_does_not_create_item_exclusivity(self):
         rows = self.connection.execute(
@@ -256,6 +276,24 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(costume["name"], "Cottontail Costume")
         self.assertEqual(len(costume_routes), 2)
         self.assertTrue(all(row["method"] == "lucky_panel" for row in costume_routes))
+
+    def test_purchase_advice_preserves_unknown_and_free_routes(self):
+        _, crackers, cracker_verdict = load_purchase_advice(
+            self.db_path, "Pilchard Crackers", "cp_001_prologue"
+        )
+        self.assertEqual(crackers[0]["cost_status"], "paid")
+        self.assertTrue(cracker_verdict.startswith("NO VERIFIED FREE ROUTE"))
+        _, costume, costume_verdict = load_purchase_advice(
+            self.db_path, "Cottontail Costume", "cp_001_prologue"
+        )
+        self.assertTrue(all(row["cost_status"] == "unknown" for row in costume))
+        self.assertTrue(costume_verdict.startswith("UNRESOLVED"))
+        _, cautery, cautery_verdict = load_purchase_advice(
+            self.db_path, "Cautery Sword", "cp_009_alltrades"
+        )
+        free_chest = next(row for row in cautery if row["method"] == "chest")
+        self.assertEqual(free_chest["timing_status"], "available_now")
+        self.assertTrue(cautery_verdict.startswith("DON'T BUY FOR COMPLETION"))
 
     def test_sourced_documents_have_locators(self):
         rows = self.connection.execute(

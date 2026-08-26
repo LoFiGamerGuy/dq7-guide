@@ -267,5 +267,82 @@
     "updated_at": null,
     "retrieved_at": "2026-08-25",
     "notes": "Legacy source ID preserved. Tier placements are recommendations, not canonical mechanics."
+  },
+  {
+    "source_id": "game8_cottontail_costume",
+    "title": "Cottontail Costume",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581136",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_elevating_shoes",
+    "title": "Elevating Shoes",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581163",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_saw_blade",
+    "title": "Saw Blade",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580666",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_cautery_sword",
+    "title": "Cautery Sword",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580668",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_iron_mask",
+    "title": "Iron Mask",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581072",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_iron_armour",
+    "title": "Iron Armour",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581125",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
+  },
+  {
+    "source_id": "game8_snooze_stick",
+    "title": "Snooze Stick",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580634",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
   }
 ]

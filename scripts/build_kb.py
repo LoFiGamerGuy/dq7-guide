@@ -381,7 +381,54 @@ def _build_database(db_path: Path) -> dict[str, int]:
             JOIN item_acquisition_paths a USING(acquisition_id)
             WHERE a.method != 'lucky_panel'"""
         ).fetchall()
-        if invalid_shop_details or invalid_panel_details:
+        missing_shop_details = connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            LEFT JOIN shop_inventory si USING(acquisition_id)
+            WHERE a.method = 'shop' AND si.acquisition_id IS NULL"""
+        ).fetchall()
+        missing_panel_details = connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            LEFT JOIN lucky_panel_rewards lr USING(acquisition_id)
+            WHERE a.method = 'lucky_panel' AND lr.acquisition_id IS NULL"""
+        ).fetchall()
+        inconsistent_shop_routes = connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            JOIN shop_inventory si USING(acquisition_id)
+            JOIN shops sh USING(shop_id)
+            WHERE a.time_period != sh.time_period
+               OR a.available_from_checkpoint_id IS NOT sh.available_from_checkpoint_id
+               OR a.unavailable_after_checkpoint_id IS NOT sh.unavailable_after_checkpoint_id"""
+        ).fetchall()
+        inconsistent_panel_routes = connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            JOIN lucky_panel_rewards lr USING(acquisition_id)
+            JOIN lucky_panel_pools lp USING(pool_id)
+            WHERE a.time_period != lp.time_period
+               OR a.available_from_checkpoint_id IS NOT lp.available_from_checkpoint_id
+               OR a.unavailable_after_checkpoint_id IS NOT lp.unavailable_after_checkpoint_id"""
+        ).fetchall()
+        contradictory_costs = connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            LEFT JOIN shop_inventory si USING(acquisition_id)
+            LEFT JOIN lucky_panel_rewards lr USING(acquisition_id)
+            LEFT JOIN lucky_panel_pools lp USING(pool_id)
+            WHERE (a.is_free = 1 AND (si.price > 0 OR lp.entry_cost > 0))
+               OR (a.is_free = 0 AND (si.price = 0 OR lp.entry_cost = 0))
+               OR (lp.entry_cost > 0 AND lp.currency IS NULL)"""
+        ).fetchall()
+        reversed_windows = connection.execute(
+            """SELECT a.acquisition_id FROM item_acquisition_paths a
+            JOIN checkpoints available
+              ON available.checkpoint_id = a.available_from_checkpoint_id
+            JOIN checkpoints unavailable
+              ON unavailable.checkpoint_id = a.unavailable_after_checkpoint_id
+            WHERE available.sequence_no > unavailable.sequence_no"""
+        ).fetchall()
+        if any((
+            invalid_shop_details, invalid_panel_details, missing_shop_details,
+            missing_panel_details, inconsistent_shop_routes,
+            inconsistent_panel_routes, contradictory_costs, reversed_windows,
+        )):
             raise ValueError("Typed acquisition detail does not match its parent method")
 
         for claim in seed["claims"]:
