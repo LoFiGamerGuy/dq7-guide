@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Print a conservative, ordered early-game completion checklist."""
+"""Print a conservative chronological completion walkthrough."""
 
 from __future__ import annotations
 
@@ -103,6 +103,17 @@ def load_walkthrough(
             WHERE sequence_no BETWEEN ? AND ? ORDER BY sequence_no""",
             (start["sequence_no"], end["sequence_no"]),
         ).fetchall()
+        unordered = connection.execute(
+            """SELECT DISTINCT o.checkpoint_id
+            FROM checkpoint_obligations o JOIN checkpoints c USING(checkpoint_id)
+            WHERE c.sequence_no BETWEEN ? AND ? AND o.display_order IS NULL
+            ORDER BY c.sequence_no LIMIT 1""",
+            (start["sequence_no"], end["sequence_no"]),
+        ).fetchone()
+        if unordered is not None:
+            raise ValueError(
+                f"Checkpoint checklist is not ordered yet: {unordered['checkpoint_id']}"
+            )
         known_completed_ids = {
             row[0] for row in connection.execute(
                 """SELECT obligation_id FROM checkpoint_obligations
@@ -301,7 +312,7 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
     else:
         medal_note = f"confirmed medal IDs hidden: {report['collected_medal_count']}"
     print(
-        f"Early checklist (completed checks hidden: {report['completed_hidden_count']}; "
+        f"Chronological walkthrough (completed checks hidden: {report['completed_hidden_count']}; "
         f"{medal_note})"
     )
     if report["medal_tracking_warning"]:

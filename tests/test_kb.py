@@ -25,12 +25,14 @@ from early_walkthrough import (  # noqa: E402
     load_walkthrough,
     print_walkthrough,
     resolve_checkpoint_range,
+    main as early_walkthrough_main,
 )
 from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
 from player_progress import update_progress  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
+from walkthrough import main as walkthrough_main  # noqa: E402
 
 
 class KnowledgeBaseTests(unittest.TestCase):
@@ -53,7 +55,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
-        self.assertEqual(self.counts["checkpoint_obligations"], 85)
+        self.assertEqual(self.counts["checkpoint_obligations"], 118)
         self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -543,6 +545,76 @@ class KnowledgeBaseTests(unittest.TestCase):
         ]
         self.assertNotIn(6, all_medals)
         self.assertEqual(report["collected_medal_count"], 1)
+
+    def test_walkthrough_generalizes_through_cp014(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_010_alltrades_present",
+            "cp_014_sir_mervyn",
+        )
+        self.assertEqual(
+            [block["checkpoint"]["sequence_no"] for block in report["blocks"]],
+            [10, 11, 12, 13, 14],
+        )
+        for block in report["blocks"]:
+            orders = [row["display_order"] for row in block["stops"] + block["now"]]
+            self.assertTrue(all(isinstance(order, int) and order > 0 for order in orders))
+            self.assertEqual(len(orders), len(set(orders)))
+
+        flying_carpet = report["blocks"][3]
+        self.assertIn(
+            5, [row["medal_number"] for row in flying_carpet["medals_backtrack"]]
+        )
+        self.assertNotIn(
+            3, [row["medal_number"] for row in flying_carpet["medals_backtrack"]]
+        )
+
+        roamer_return = report["blocks"][2]
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_walkthrough({**report, "blocks": [roamer_return]})
+        self.assertIn("seed_partial", output.getvalue())
+        self.assertIn("partial audit; not a guarantee", output.getvalue())
+        self.assertIn("guidance not normalized", output.getvalue())
+
+    def test_walkthrough_wrapper_preserves_legacy_entry_point(self):
+        self.assertIs(walkthrough_main, early_walkthrough_main)
+
+    def test_walkthrough_rejects_requested_unordered_checkpoint(self):
+        unordered_db = Path(self.tempdir.name) / "unordered-walkthrough.sqlite"
+        build_database(unordered_db)
+        with sqlite3.connect(unordered_db) as connection:
+            connection.execute(
+                """UPDATE checkpoint_obligations SET display_order = NULL
+                WHERE checkpoint_id = 'cp_010_alltrades_present'"""
+            )
+        with self.assertRaisesRegex(ValueError, "not ordered yet"):
+            load_walkthrough(
+                unordered_db,
+                ROOT / "player" / "ryan-save-state.json",
+                "cp_010_alltrades_present",
+                "cp_010_alltrades_present",
+            )
+
+    def test_cp010_progress_uses_stable_order(self):
+        state_path = Path(self.tempdir.name) / "cp010-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(
+            state_path, self.db_path, "done", ["cp_010_alltrades_present", "1"]
+        )
+        report = load_walkthrough(
+            self.db_path,
+            state_path,
+            "cp_010_alltrades_present",
+            "cp_010_alltrades_present",
+        )
+        remaining = [row["display_order"] for row in report["blocks"][0]["now"]]
+        self.assertNotIn(1, remaining)
+        self.assertTrue(all(order > 1 for order in remaining))
 
     def test_early_walkthrough_rejects_bad_ranges_and_state(self):
         state_path = ROOT / "player" / "ryan-save-state.json"

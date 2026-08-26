@@ -37,9 +37,9 @@ Requires Python 3.10+; there are no third-party runtime dependencies.
 python scripts/build_kb.py
 python scripts/query_kb.py "alltrades vocation"
 python scripts/checkpoint_report.py --checkpoint cp_004_emberdale
-python scripts/early_walkthrough.py
-python scripts/early_walkthrough.py --checkpoint cp_004_emberdale
-python scripts/early_walkthrough.py --from cp_001_prologue --through cp_009_alltrades --sources
+python scripts/walkthrough.py
+python scripts/walkthrough.py --checkpoint cp_004_emberdale
+python scripts/walkthrough.py --from cp_010_alltrades_present --through cp_014_sir_mervyn --sources
 python scripts/medal_report.py --through cp_009_alltrades
 python scripts/item_report.py "Pilchard Crackers"
 python scripts/item_report.py "Cautery Sword" --at-checkpoint cp_009_alltrades
