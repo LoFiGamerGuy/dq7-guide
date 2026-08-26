@@ -12,7 +12,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 45 normalized obligations | Medium/High for ingested obligations | Fill remaining atomic item/monster/achievement obligations |
+| Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 57 normalized obligations | Medium/High for ingested obligations | Fill remaining atomic item/monster/achievement obligations and checkpoint locators |
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
@@ -39,7 +39,7 @@ Expected after `python scripts/build_kb.py`:
 - farming spots: 8
 - checkpoints: 33
 - mini medal locations: 100
-- checkpoint obligations: 45
+- checkpoint obligations: 57
 - Mini Medal corroborating evidence rows: 86
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
