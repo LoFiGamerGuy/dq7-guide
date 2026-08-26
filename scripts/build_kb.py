@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
-WALKTHROUGH_ORDERED_THROUGH_SEQUENCE = 14
+WALKTHROUGH_ORDERED_THROUGH_SEQUENCE = 29
 
 
 def load_json(path: Path):
@@ -314,8 +314,9 @@ def _build_database(db_path: Path) -> dict[str, int]:
         ).fetchall()
         if invalid_early_obligation_order:
             raise ValueError(
-                "Every obligation through checkpoint sequence 14 requires a unique "
-                "positive display_order"
+                "Every obligation through checkpoint sequence "
+                f"{WALKTHROUGH_ORDERED_THROUGH_SEQUENCE} requires a unique positive "
+                "display_order"
             )
 
         connection.executemany(

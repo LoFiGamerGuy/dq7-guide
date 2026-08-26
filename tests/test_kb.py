@@ -55,7 +55,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
-        self.assertEqual(self.counts["checkpoint_obligations"], 118)
+        self.assertEqual(self.counts["checkpoint_obligations"], 195)
         self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -546,16 +546,16 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertNotIn(6, all_medals)
         self.assertEqual(report["collected_medal_count"], 1)
 
-    def test_walkthrough_generalizes_through_cp014(self):
+    def test_walkthrough_generalizes_through_cp029(self):
         report = load_walkthrough(
             self.db_path,
             ROOT / "player" / "ryan-save-state.json",
             "cp_010_alltrades_present",
-            "cp_014_sir_mervyn",
+            "cp_029_ending_victory_lap",
         )
         self.assertEqual(
             [block["checkpoint"]["sequence_no"] for block in report["blocks"]],
-            [10, 11, 12, 13, 14],
+            list(range(10, 30)),
         )
         for block in report["blocks"]:
             orders = [row["display_order"] for row in block["stops"] + block["now"]]

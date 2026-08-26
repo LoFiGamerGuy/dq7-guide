@@ -40,6 +40,7 @@ python scripts/checkpoint_report.py --checkpoint cp_004_emberdale
 python scripts/walkthrough.py
 python scripts/walkthrough.py --checkpoint cp_004_emberdale
 python scripts/walkthrough.py --from cp_010_alltrades_present --through cp_014_sir_mervyn --sources
+python scripts/walkthrough.py --from cp_015_greenthumb --through cp_029_ending_victory_lap
 python scripts/medal_report.py --through cp_009_alltrades
 python scripts/item_report.py "Pilchard Crackers"
 python scripts/item_report.py "Cautery Sword" --at-checkpoint cp_009_alltrades
