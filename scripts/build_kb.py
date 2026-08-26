@@ -239,14 +239,24 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             """INSERT INTO mini_medal_locations(
                 medal_number, location, detail, time_period, checkpoint_id,
+                available_checkpoint_id,
                 available_from, unavailable_after, source_id, locator,
                 confidence, verification_status
             ) VALUES (
                 :medal_number, :location, :detail, :time_period, :checkpoint_id,
+                :available_checkpoint_id,
                 :available_from, :unavailable_after, :source_id, :locator,
                 :confidence, :verification_status
             )""",
-            seed.get("mini_medal_locations", []),
+            [
+                {
+                    **item,
+                    "available_checkpoint_id": item.get(
+                        "available_checkpoint_id", item["checkpoint_id"]
+                    ),
+                }
+                for item in seed.get("mini_medal_locations", [])
+            ],
         )
 
         connection.executemany(

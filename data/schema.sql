@@ -139,6 +139,7 @@ CREATE TABLE mini_medal_locations (
     detail TEXT NOT NULL,
     time_period TEXT,
     checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    available_checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
     available_from TEXT,
     unavailable_after TEXT,
     source_id TEXT NOT NULL REFERENCES sources(source_id),

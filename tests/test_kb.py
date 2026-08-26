@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from build_kb import build_database, detect_conflicts  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
+from medal_report import medals_available_through  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
 
@@ -224,6 +225,14 @@ class KnowledgeBaseTests(unittest.TestCase):
             )
         ]
         self.assertEqual(numbers, list(range(1, 101)))
+
+    def test_medal_report_respects_later_key_gates(self):
+        rows = medals_available_through(self.db_path, "cp_009_alltrades")
+        numbers = {row["medal_number"] for row in rows}
+        self.assertIn(6, numbers)
+        self.assertNotIn(3, numbers)
+        self.assertNotIn(5, numbers)
+        self.assertNotIn(7, numbers)
 
     def test_verified_medals_retain_independent_evidence(self):
         verified = self.connection.execute(

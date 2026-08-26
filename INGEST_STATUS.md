@@ -14,7 +14,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
 | Walkthrough checkpoints | 33 checkpoints through postgame cleanup; 45 normalized obligations | Medium/High for ingested obligations | Fill remaining atomic item/monster/achievement obligations |
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
-| Mini Medal locations | 100/100 normalized rows | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and retain the medal 78 locator conflict |
+| Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
 | Heroic Hoarder items | 0 complete normalized rows | Not started | Build full acquisition matrix by category |
 | Lucky Panel | System role and version summary | Medium/High | Ingest every version/rank/chest item and exclusivity |
@@ -52,6 +52,8 @@ Treat these as build assertions, not completion percentages.
 3. Complete the remaining item, monster, fragment, and achievement obligations within the 33-checkpoint spine.
 4. Continue the existing source-ordinal mapping for every independently corroborated medal.
 5. Directly refresh Game8 medal rows when the page is accessible; rows currently available only through its indexed table remain medium confidence unless independently corroborated.
+
+The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
 
