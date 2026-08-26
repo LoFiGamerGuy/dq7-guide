@@ -211,3 +211,99 @@ CREATE TABLE checkpoint_obligations (
     confidence TEXT NOT NULL,
     verification_status TEXT NOT NULL
 );
+
+
+CREATE TABLE item_categories (
+    category_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    heroic_hoarder_order INTEGER NOT NULL UNIQUE
+);
+
+CREATE TABLE items (
+    item_id TEXT PRIMARY KEY,
+    category_id TEXT NOT NULL REFERENCES item_categories(category_id),
+    name TEXT NOT NULL,
+    canonical_key TEXT NOT NULL UNIQUE,
+    heroic_hoarder_ordinal INTEGER,
+    heroic_hoarder_required INTEGER NOT NULL CHECK(heroic_hoarder_required IN (0, 1)),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(category_id, heroic_hoarder_ordinal)
+);
+
+CREATE TABLE item_acquisition_paths (
+    acquisition_id TEXT PRIMARY KEY,
+    item_id TEXT NOT NULL REFERENCES items(item_id),
+    method TEXT NOT NULL CHECK(method IN (
+        'shop', 'chest', 'drop', 'reward', 'lucky_panel', 'arena',
+        'medal_exchange', 'story', 'dlc', 'steal', 'other'
+    )),
+    route_label TEXT NOT NULL,
+    location_text TEXT,
+    time_period TEXT CHECK(time_period IN ('Past', 'Present', 'Both', 'Unknown') OR time_period IS NULL),
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    unavailable_after_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    prerequisite_json TEXT NOT NULL DEFAULT '{}',
+    quantity INTEGER CHECK(quantity IS NULL OR quantity > 0),
+    supply_type TEXT NOT NULL CHECK(supply_type IN ('finite', 'renewable', 'unknown')),
+    finite_total INTEGER CHECK(
+        finite_total IS NULL OR (supply_type = 'finite' AND finite_total > 0)
+    ),
+    is_free INTEGER CHECK(is_free IN (0, 1) OR is_free IS NULL),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
+CREATE INDEX acquisition_by_item
+    ON item_acquisition_paths(item_id, available_from_checkpoint_id, method);
+
+CREATE TABLE shops (
+    shop_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    location TEXT NOT NULL,
+    time_period TEXT NOT NULL CHECK(time_period IN ('Past', 'Present', 'Both', 'Unknown')),
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    unavailable_after_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
+CREATE TABLE shop_inventory (
+    acquisition_id TEXT PRIMARY KEY REFERENCES item_acquisition_paths(acquisition_id),
+    shop_id TEXT NOT NULL REFERENCES shops(shop_id),
+    price INTEGER NOT NULL CHECK(price >= 0),
+    currency TEXT NOT NULL DEFAULT 'gold',
+    stock_limit INTEGER CHECK(stock_limit IS NULL OR stock_limit > 0)
+);
+
+CREATE TABLE lucky_panel_pools (
+    pool_id TEXT PRIMARY KEY,
+    venue TEXT NOT NULL,
+    game_version TEXT NOT NULL,
+    panel_rank TEXT NOT NULL,
+    chest_tier TEXT NOT NULL,
+    time_period TEXT NOT NULL CHECK(time_period IN ('Past', 'Present', 'Both', 'Unknown')),
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    unavailable_after_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    entry_cost INTEGER CHECK(entry_cost IS NULL OR entry_cost >= 0),
+    currency TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(venue, game_version, panel_rank, chest_tier, time_period)
+);
+
+CREATE TABLE lucky_panel_rewards (
+    acquisition_id TEXT PRIMARY KEY REFERENCES item_acquisition_paths(acquisition_id),
+    pool_id TEXT NOT NULL REFERENCES lucky_panel_pools(pool_id),
+    reward_quantity INTEGER NOT NULL DEFAULT 1 CHECK(reward_quantity > 0),
+    slot_count INTEGER CHECK(slot_count IS NULL OR slot_count > 0),
+    probability_text TEXT
+);

@@ -16,8 +16,8 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
-| Heroic Hoarder items | 0 complete normalized rows | Not started | Build full acquisition matrix by category |
-| Lucky Panel | System role and version summary | Medium/High | Ingest every version/rank/chest item and exclusivity |
+| Heroic Hoarder items | 2 normalized items / 3 acquisition paths | High for first fixture batch | Expand by category and require a route or explicit gap for every item |
+| Lucky Panel | 2 normalized pools / 2 reward paths plus system summary | High for normalized rows | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | Representative early recommendations | Medium | Full stats, usability, acquisition, earliest checkpoint |
 | Farming | 7 Metal spots + postgame seed strategy | Medium/High | Add rates/rewards only when sourced; add gold/proficiency/heart farms |
 | Monster Hearts | Representative high-value roles | Medium | Complete registry, effects, and acquisition |
@@ -41,6 +41,10 @@ Expected after `python scripts/build_kb.py`:
 - mini medal locations: 100
 - checkpoint obligations: 57
 - Mini Medal corroborating evidence rows: 86
+- Heroic Hoarder items: 2
+- item acquisition paths: 3
+- shops / inventory rows: 1 / 1
+- Lucky Panel pools / reward rows: 2 / 2
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.

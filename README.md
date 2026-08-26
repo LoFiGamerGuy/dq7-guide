@@ -37,6 +37,7 @@ python scripts/build_kb.py
 python scripts/query_kb.py "alltrades vocation"
 python scripts/checkpoint_report.py --checkpoint cp_004_emberdale
 python scripts/medal_report.py --through cp_009_alltrades
+python scripts/item_report.py "Pilchard Crackers"
 python scripts/conflict_report.py
 python -m unittest discover -s tests -v
 ```

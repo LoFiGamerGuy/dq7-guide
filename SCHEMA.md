@@ -33,3 +33,11 @@ RPG Site's parenthetical medal numbers represent walkthrough acquisition order. 
 ## Conflict detection
 
 The builder automatically opens stable, canonically ordered conflicts when factual claims have the same normalized subject, registered single-valued predicate, and exact normalized scope but different JSON values. `data/predicate_registry.json` prevents routes, sets, and unclassified predicates from being compared as if only one value were legal. Recommendations and strategies are never auto-conflicted.
+
+## Phase 2 acquisition matrix
+
+- `items` and `item_categories` represent the Heroic Hoarder registry.
+- `item_acquisition_paths` stores alternative shop, chest, drop, reward, Lucky Panel, arena, medal, story, DLC, or stealing routes.
+- `shops` / `shop_inventory` and `lucky_panel_pools` / `lucky_panel_rewards` add typed route details.
+
+Finite versus renewable is a property of an acquisition route, not a global property of the item. Item-wide exclusivity remains a sourced claim so disagreements are conflict-detectable.

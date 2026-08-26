@@ -15,6 +15,7 @@ from build_kb import build_database, detect_conflicts  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
 from medal_report import medals_available_through  # noqa: E402
+from item_report import load_item_routes  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
 
@@ -41,6 +42,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 57)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
+        self.assertEqual(self.counts["items"], 2)
+        self.assertEqual(self.counts["item_acquisition_paths"], 3)
+        self.assertEqual(self.counts["shops"], 1)
+        self.assertEqual(self.counts["lucky_panel_pools"], 2)
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -209,6 +214,48 @@ class KnowledgeBaseTests(unittest.TestCase):
                 WHERE source_id IS NULL OR trim(locator) = ''"""
             ).fetchall()
             self.assertEqual(rows, [], table)
+
+    def test_phase_two_rows_have_precise_provenance(self):
+        for table in ("items", "item_acquisition_paths", "shops", "lucky_panel_pools"):
+            rows = self.connection.execute(
+                f"SELECT rowid FROM {table} WHERE source_id IS NULL OR trim(locator) = ''"
+            ).fetchall()
+            self.assertEqual(rows, [], table)
+
+    def test_typed_acquisition_details_match_parent_method(self):
+        bad_shop = self.connection.execute(
+            """SELECT si.acquisition_id FROM shop_inventory si
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            WHERE a.method != 'shop'"""
+        ).fetchall()
+        bad_panel = self.connection.execute(
+            """SELECT lr.acquisition_id FROM lucky_panel_rewards lr
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            WHERE a.method != 'lucky_panel'"""
+        ).fetchall()
+        self.assertEqual(bad_shop, [])
+        self.assertEqual(bad_panel, [])
+
+    def test_route_level_supply_does_not_create_item_exclusivity(self):
+        rows = self.connection.execute(
+            """SELECT method, supply_type FROM item_acquisition_paths
+            WHERE item_id = 'item_cottontail_costume'
+            ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual([tuple(row) for row in rows], [
+            ("lucky_panel", "renewable"), ("lucky_panel", "renewable")
+        ])
+
+    def test_item_report_includes_shop_price_and_alternate_panel_routes(self):
+        crackers, cracker_routes = load_item_routes(self.db_path, "Pilchard Crackers")
+        self.assertEqual(crackers["heroic_hoarder_required"], 1)
+        self.assertEqual(cracker_routes[0]["price"], 5)
+        costume, costume_routes = load_item_routes(
+            self.db_path, "item_cottontail_costume"
+        )
+        self.assertEqual(costume["name"], "Cottontail Costume")
+        self.assertEqual(len(costume_routes), 2)
+        self.assertTrue(all(row["method"] == "lucky_panel" for row in costume_routes))
 
     def test_sourced_documents_have_locators(self):
         rows = self.connection.execute(

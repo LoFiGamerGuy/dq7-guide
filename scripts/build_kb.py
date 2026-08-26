@@ -285,6 +285,105 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed.get("mini_medal_evidence", []),
         )
 
+        connection.executemany(
+            """INSERT INTO item_categories(category_id, name, heroic_hoarder_order)
+            VALUES (:category_id, :name, :heroic_hoarder_order)""",
+            seed.get("item_categories", []),
+        )
+        connection.executemany(
+            """INSERT INTO items(
+                item_id, category_id, name, canonical_key,
+                heroic_hoarder_ordinal, heroic_hoarder_required, source_id,
+                locator, confidence, verification_status
+            ) VALUES (
+                :item_id, :category_id, :name, :canonical_key,
+                :heroic_hoarder_ordinal, :heroic_hoarder_required, :source_id,
+                :locator, :confidence, :verification_status
+            )""",
+            seed.get("items", []),
+        )
+        connection.executemany(
+            """INSERT INTO shops(
+                shop_id, name, location, time_period,
+                available_from_checkpoint_id, unavailable_after_checkpoint_id,
+                source_id, locator, confidence, verification_status
+            ) VALUES (
+                :shop_id, :name, :location, :time_period,
+                :available_from_checkpoint_id, :unavailable_after_checkpoint_id,
+                :source_id, :locator, :confidence, :verification_status
+            )""",
+            seed.get("shops", []),
+        )
+        connection.executemany(
+            """INSERT INTO lucky_panel_pools(
+                pool_id, venue, game_version, panel_rank, chest_tier,
+                time_period, available_from_checkpoint_id,
+                unavailable_after_checkpoint_id, entry_cost, currency,
+                source_id, locator, confidence, verification_status
+            ) VALUES (
+                :pool_id, :venue, :game_version, :panel_rank, :chest_tier,
+                :time_period, :available_from_checkpoint_id,
+                :unavailable_after_checkpoint_id, :entry_cost, :currency,
+                :source_id, :locator, :confidence, :verification_status
+            )""",
+            seed.get("lucky_panel_pools", []),
+        )
+        connection.executemany(
+            """INSERT INTO item_acquisition_paths(
+                acquisition_id, item_id, method, route_label, location_text,
+                time_period, available_from_checkpoint_id,
+                unavailable_after_checkpoint_id, prerequisite_json, quantity,
+                supply_type, finite_total, is_free, source_id, locator,
+                confidence, verification_status
+            ) VALUES (
+                :acquisition_id, :item_id, :method, :route_label,
+                :location_text, :time_period, :available_from_checkpoint_id,
+                :unavailable_after_checkpoint_id, :prerequisite_json, :quantity,
+                :supply_type, :finite_total, :is_free, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            [
+                {
+                    **item,
+                    "prerequisite_json": json.dumps(
+                        item.get("prerequisites", {}), sort_keys=True
+                    ),
+                }
+                for item in seed.get("item_acquisition_paths", [])
+            ],
+        )
+        connection.executemany(
+            """INSERT INTO shop_inventory(
+                acquisition_id, shop_id, price, currency, stock_limit
+            ) VALUES (
+                :acquisition_id, :shop_id, :price, :currency, :stock_limit
+            )""",
+            seed.get("shop_inventory", []),
+        )
+        connection.executemany(
+            """INSERT INTO lucky_panel_rewards(
+                acquisition_id, pool_id, reward_quantity, slot_count,
+                probability_text
+            ) VALUES (
+                :acquisition_id, :pool_id, :reward_quantity, :slot_count,
+                :probability_text
+            )""",
+            seed.get("lucky_panel_rewards", []),
+        )
+
+        invalid_shop_details = connection.execute(
+            """SELECT si.acquisition_id FROM shop_inventory si
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            WHERE a.method != 'shop'"""
+        ).fetchall()
+        invalid_panel_details = connection.execute(
+            """SELECT lr.acquisition_id FROM lucky_panel_rewards lr
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            WHERE a.method != 'lucky_panel'"""
+        ).fetchall()
+        if invalid_shop_details or invalid_panel_details:
+            raise ValueError("Typed acquisition detail does not match its parent method")
+
         for claim in seed["claims"]:
             connection.execute(
                 """INSERT INTO claims(
@@ -350,6 +449,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "vocations", "vocation_requirements", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
+            , "item_categories", "items", "item_acquisition_paths", "shops"
+            , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
         ):
             counts[table] = connection.execute(
                 f"SELECT COUNT(*) FROM {table}"

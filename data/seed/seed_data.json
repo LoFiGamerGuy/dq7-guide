@@ -200,6 +200,33 @@
     {"obligation_id":"obl_hubble_present_fragments","checkpoint_id":"cp_017_hubble_present","obligation_type":"tablet_fragment","subject":"Hubble Present Grey and Green Fragments","action":"Collect the Grand Conjuratorium hidden-room Grey Fragment and Euphonia's Green Fragment at Hubble Castle.","required_for_100_percent":1,"stop_before_advancing":0,"available_from":"Hubble Present route","unavailable_after":null,"source_id":"rpgsite_walkthrough","locator":"Making a Promise to Maribel > Grand Conjuratorium hidden room; Hubble Castle Present, Euphonia","confidence":"high","verification_status":"source_checked"},
     {"obligation_id":"obl_menacing_monster_completion","checkpoint_id":"cp_003_ballymolloy","obligation_type":"achievement","subject":"Menacing Monster completion","action":"Defeat each Menacing Monster when encountered and retain its unique drop; all are needed for achievement coverage, but no checkpoint despawn boundary is asserted here.","required_for_100_percent":1,"stop_before_advancing":0,"available_from":"First Vicious Hammerhood encounter","unavailable_after":null,"source_id":"rpgsite_walkthrough","locator":"Ballymolloy World Map Past > Vicious Hammerhood note; Monster Note","confidence":"high","verification_status":"source_checked_no_lockout_claim"}
   ],
+  "item_categories": [
+    {"category_id":"itemcat_usable_items","name":"Usable Items","heroic_hoarder_order":1},
+    {"category_id":"itemcat_armour","name":"Armour","heroic_hoarder_order":2}
+  ],
+  "items": [
+    {"item_id":"item_pilchard_crackers","category_id":"itemcat_usable_items","name":"Pilchard Crackers","canonical_key":"item:pilchard_crackers","heroic_hoarder_ordinal":null,"heroic_hoarder_required":1,"source_id":"rpgsite_heroic_hoarder","locator":"Usable Items > Pilchard Crackers","confidence":"high","verification_status":"source_checked"},
+    {"item_id":"item_cottontail_costume","category_id":"itemcat_armour","name":"Cottontail Costume","canonical_key":"item:cottontail_costume","heroic_hoarder_ordinal":null,"heroic_hoarder_required":1,"source_id":"rpgsite_heroic_hoarder","locator":"Torso > Cottontail Costume","confidence":"high","verification_status":"source_checked"}
+  ],
+  "shops": [
+    {"shop_id":"shop_pilchard_bay_item_present","name":"Pilchard Bay Item Shop","location":"Pilchard Bay","time_period":"Present","available_from_checkpoint_id":"cp_001_prologue","unavailable_after_checkpoint_id":null,"source_id":"rpgsite_heroic_hoarder","locator":"Usable Items > Pilchard Crackers purchase note","confidence":"high","verification_status":"source_checked"}
+  ],
+  "lucky_panel_pools": [
+    {"pool_id":"lp_pilgrims_rest_v1_rank_2_standard","venue":"Pilgrim's Rest","game_version":"1","panel_rank":"2","chest_tier":"standard","time_period":"Past","available_from_checkpoint_id":"cp_009_alltrades","unavailable_after_checkpoint_id":null,"entry_cost":null,"currency":null,"source_id":"rpgsite_lucky_panel","locator":"Version 1 - Past > Rank 2","confidence":"high","verification_status":"source_checked"},
+    {"pool_id":"lp_pilgrims_rest_v2_rank_1_standard","venue":"Pilgrim's Rest","game_version":"2","panel_rank":"1","chest_tier":"standard","time_period":"Present","available_from_checkpoint_id":"cp_010_alltrades_present","unavailable_after_checkpoint_id":null,"entry_cost":null,"currency":null,"source_id":"rpgsite_lucky_panel","locator":"Version 2 - Present > Rank 1","confidence":"high","verification_status":"source_checked"}
+  ],
+  "item_acquisition_paths": [
+    {"acquisition_id":"acq_pilchard_crackers_shop_pilchard_present","item_id":"item_pilchard_crackers","method":"shop","route_label":"Pilchard Bay Item Shop purchase","location_text":"Pilchard Bay Item Shop","time_period":"Present","available_from_checkpoint_id":"cp_001_prologue","unavailable_after_checkpoint_id":null,"prerequisites":{},"quantity":1,"supply_type":"renewable","finite_total":null,"is_free":0,"source_id":"rpgsite_heroic_hoarder","locator":"Usable Items > Pilchard Crackers","confidence":"high","verification_status":"source_checked"},
+    {"acquisition_id":"acq_cottontail_costume_lucky_panel_v1_rank2","item_id":"item_cottontail_costume","method":"lucky_panel","route_label":"Lucky Panel Version 1 Rank 2","location_text":"Pilgrim's Rest well","time_period":"Past","available_from_checkpoint_id":"cp_009_alltrades","unavailable_after_checkpoint_id":null,"prerequisites":{"panel_version":1,"rank":2},"quantity":1,"supply_type":"renewable","finite_total":null,"is_free":null,"source_id":"rpgsite_lucky_panel","locator":"Version 1 - Past > Rank 2","confidence":"high","verification_status":"source_checked"},
+    {"acquisition_id":"acq_cottontail_costume_lucky_panel_v2_rank1","item_id":"item_cottontail_costume","method":"lucky_panel","route_label":"Lucky Panel Version 2 Rank 1","location_text":"Pilgrim's Rest well","time_period":"Present","available_from_checkpoint_id":"cp_010_alltrades_present","unavailable_after_checkpoint_id":null,"prerequisites":{"panel_version":2,"rank":1},"quantity":1,"supply_type":"renewable","finite_total":null,"is_free":null,"source_id":"rpgsite_lucky_panel","locator":"Version 2 - Present > Rank 1","confidence":"high","verification_status":"source_checked"}
+  ],
+  "shop_inventory": [
+    {"acquisition_id":"acq_pilchard_crackers_shop_pilchard_present","shop_id":"shop_pilchard_bay_item_present","price":5,"currency":"gold","stock_limit":null}
+  ],
+  "lucky_panel_rewards": [
+    {"acquisition_id":"acq_cottontail_costume_lucky_panel_v1_rank2","pool_id":"lp_pilgrims_rest_v1_rank_2_standard","reward_quantity":1,"slot_count":null,"probability_text":null},
+    {"acquisition_id":"acq_cottontail_costume_lucky_panel_v2_rank1","pool_id":"lp_pilgrims_rest_v2_rank_1_standard","reward_quantity":1,"slot_count":null,"probability_text":null}
+  ],
   "mini_medal_evidence": [
     {"evidence_id":"medal_001_rpgsite_order_001","medal_number":1,"source_id":"rpgsite_walkthrough","locator":"Prologue - Pilchard Bay and Estard Castle > Estard Castle King's Bedroom drawers","source_ordinal":1,"ordinal_scheme":"walkthrough_acquisition_order","notes":"RPG Site ordinal is route order, not Game8 list number."},
     {"evidence_id":"medal_002_rpgsite_order_004","medal_number":2,"source_id":"rpgsite_walkthrough","locator":"Ballymolloy and Estard (Present) > Estard Castle west raft barrels","source_ordinal":4,"ordinal_scheme":"walkthrough_acquisition_order","notes":"RPG Site ordinal is route order, not Game8 list number."},
