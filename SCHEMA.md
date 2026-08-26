@@ -29,3 +29,7 @@ achievement progress, item-collection notes, seed inventory, notable items, and 
 - `mini_medal_evidence` preserves independent source locators and source-specific ordinals used to corroborate a normalized medal location.
 
 RPG Site's parenthetical medal numbers represent walkthrough acquisition order. They must be preserved as source-specific chronology rather than written into `mini_medal_locations.medal_number`.
+
+## Conflict detection
+
+The builder automatically opens stable, canonically ordered conflicts when factual claims have the same normalized subject, registered single-valued predicate, and exact normalized scope but different JSON values. `data/predicate_registry.json` prevents routes, sets, and unclassified predicates from being compared as if only one value were legal. Recommendations and strategies are never auto-conflicted.

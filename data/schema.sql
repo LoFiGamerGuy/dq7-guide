@@ -64,6 +64,8 @@ CREATE TABLE conflicts (
     status TEXT NOT NULL,
     resolution_claim_id TEXT REFERENCES claims(claim_id),
     rationale TEXT,
+    detection_method TEXT NOT NULL DEFAULT 'manual',
+    CHECK(claim_a_id < claim_b_id),
     UNIQUE(claim_a_id, claim_b_id)
 );
 

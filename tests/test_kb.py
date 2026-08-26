@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from build_kb import build_database  # noqa: E402
+from build_kb import build_database, detect_conflicts  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
@@ -47,6 +47,79 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE s.source_id IS NULL"""
         ).fetchall()
         self.assertEqual(orphans, [])
+
+    def test_conflict_detector_opens_stable_fact_conflict(self):
+        path = Path(self.tempdir.name) / "conflict.sqlite"
+        build_database(path)
+        connection = sqlite3.connect(path)
+        connection.row_factory = sqlite3.Row
+        try:
+            values = (
+                ("test_fact_a", '{"answer": 1}'),
+                ("test_fact_b", '{"answer": 2}'),
+            )
+            for claim_id, value in values:
+                connection.execute(
+                    """INSERT INTO claims(
+                        claim_id, subject_key, predicate, value_json, claim_kind,
+                        scope_json, source_id, locator, confidence,
+                        verification_status, reconstruction_status
+                    ) VALUES (?, 'test:subject', 'version_count', ?, 'fact',
+                        '{"game":"DQ7 Reimagined"}', 'game8_hub', 'test row',
+                        'low', 'test_only', 'native')""",
+                    (claim_id, value),
+                )
+            self.assertEqual(detect_conflicts(connection), 1)
+            self.assertEqual(detect_conflicts(connection), 0)
+            row = connection.execute(
+                """SELECT claim_a_id, claim_b_id, status, detection_method
+                FROM conflicts WHERE claim_a_id = 'test_fact_a'"""
+            ).fetchone()
+            self.assertEqual(tuple(row), (
+                "test_fact_a", "test_fact_b", "unresolved", "automatic_exact_scope"
+            ))
+        finally:
+            connection.close()
+
+    def test_conflict_detector_ignores_recommendations(self):
+        path = Path(self.tempdir.name) / "recommendations.sqlite"
+        build_database(path)
+        connection = sqlite3.connect(path)
+        connection.row_factory = sqlite3.Row
+        try:
+            for claim_id, value in (("rec_a", '"A"'), ("rec_b", '"B"')):
+                connection.execute(
+                    """INSERT INTO claims(
+                        claim_id, subject_key, predicate, value_json, claim_kind,
+                        scope_json, source_id, locator, confidence,
+                        verification_status, reconstruction_status
+                    ) VALUES (?, 'test:build', 'best', ?, 'recommendation',
+                        '{}', 'game8_hub', 'test row', 'low', 'test_only', 'native')""",
+                    (claim_id, value),
+                )
+            self.assertEqual(detect_conflicts(connection), 0)
+        finally:
+            connection.close()
+
+    def test_conflict_detector_ignores_unregistered_predicate(self):
+        path = Path(self.tempdir.name) / "unregistered-conflict.sqlite"
+        build_database(path)
+        connection = sqlite3.connect(path)
+        connection.row_factory = sqlite3.Row
+        try:
+            for claim_id, value in (("route_a", '"chest"'), ("route_b", '"drop"')):
+                connection.execute(
+                    """INSERT INTO claims(
+                        claim_id, subject_key, predicate, value_json, claim_kind,
+                        scope_json, source_id, locator, confidence,
+                        verification_status, reconstruction_status
+                    ) VALUES (?, 'item:test', 'obtained_from', ?, 'fact', '{}',
+                        'game8_hub', 'test row', 'low', 'test_only', 'native')""",
+                    (claim_id, value),
+                )
+            self.assertEqual(detect_conflicts(connection), 0)
+        finally:
+            connection.close()
 
     def test_vocation_relationships_are_valid(self):
         invalid = self.connection.execute(

@@ -10,7 +10,7 @@ This repository is a local, provenance-first knowledge base for a completionist 
 
 ## Current status
 
-Version `0.2.0-handoff` is a Codex-ready handoff package reconstructed from the documented inventory of the earlier `v0.1` sandbox build. The original downloadable sandbox files were not exposed to the local Codex task, so this package does **not** claim byte-for-byte recovery. `RECOVERY_MANIFEST.md` lists what was recovered from the prior task and what still needs source-level re-ingestion.
+Version `0.3.0-phase1` extends the reconstructed handoff with normalized chronology, automatic conflict detection for registered single-valued predicates, and checkpoint reporting. The original downloadable sandbox files were not exposed to the local Codex task, so this package does **not** claim byte-for-byte recovery. `RECOVERY_MANIFEST.md` lists what was recovered from the prior task and what still needs source-level re-ingestion.
 
 The seed includes:
 

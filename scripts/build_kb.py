@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sqlite3
 import tempfile
+import unicodedata
 from pathlib import Path
 
 
@@ -24,6 +26,57 @@ def canonical_key(name: str) -> str:
     return "vocation:" + "_".join(
         "".join(ch.lower() if ch.isalnum() else " " for ch in name).split()
     )
+
+
+def normalize_identifier(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).strip().lower().split())
+
+
+def detect_conflicts(
+    connection: sqlite3.Connection,
+    predicate_registry: dict | None = None,
+) -> int:
+    """Open stable conflicts for incompatible factual claims in identical scope."""
+    if predicate_registry is None:
+        predicate_registry = load_json(ROOT / "data" / "predicate_registry.json")
+    rows = connection.execute(
+        """SELECT claim_id, subject_key, predicate, scope_json, value_json
+        FROM claims
+        WHERE claim_kind = 'fact'
+        ORDER BY subject_key, predicate, scope_json, claim_id"""
+    ).fetchall()
+    groups: dict[tuple[str, str, str], list[sqlite3.Row]] = {}
+    for row in rows:
+        predicate = normalize_identifier(row["predicate"]).replace("-", "_").replace(" ", "_")
+        if predicate_registry.get(predicate, {}).get("comparison") != "single":
+            continue
+        normalized_scope = json.dumps(json.loads(row["scope_json"]), sort_keys=True)
+        key = (normalize_identifier(row["subject_key"]), predicate, normalized_scope)
+        groups.setdefault(key, []).append(row)
+
+    inserted = 0
+    for (subject, predicate, scope), claims in groups.items():
+        conflict_key = f"{subject}|{predicate}|{scope}"
+        for index, first in enumerate(claims):
+            for second in claims[index + 1:]:
+                if json.loads(first["value_json"]) == json.loads(second["value_json"]):
+                    continue
+                claim_a, claim_b = sorted((first["claim_id"], second["claim_id"]))
+                digest = hashlib.sha256(
+                    f"{conflict_key}|{claim_a}|{claim_b}".encode("utf-8")
+                ).hexdigest()[:16]
+                cursor = connection.execute(
+                    """INSERT OR IGNORE INTO conflicts(
+                        conflict_id, conflict_key, claim_a_id, claim_b_id,
+                        status, rationale, detection_method
+                    ) VALUES (?, ?, ?, ?, 'unresolved', ?, 'automatic_exact_scope')""",
+                    (
+                        f"conflict_{digest}", conflict_key, claim_a, claim_b,
+                        "Differing factual values share the same normalized subject, predicate, and scope.",
+                    ),
+                )
+                inserted += cursor.rowcount
+    return inserted
 
 
 def _build_database(db_path: Path) -> dict[str, int]:
@@ -62,8 +115,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             "INSERT INTO meta(key, value) VALUES (?, ?)",
             [
-                ("schema_version", "1"),
-                ("package_version", "0.2.0-handoff"),
+                ("schema_version", "2"),
+                ("package_version", "0.3.0-phase1"),
                 ("build_type", "reconstructed_seed"),
                 ("game", "Dragon Quest VII Reimagined"),
             ],
@@ -243,6 +296,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     claim.get("notes"),
                 ),
             )
+
+        detect_conflicts(connection)
 
         for document in seed["documents"]:
             connection.execute(

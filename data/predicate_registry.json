@@ -1,0 +1,7 @@
+{
+  "effect": {"comparison": "single"},
+  "fixed_increase_values": {"comparison": "single"},
+  "total_count": {"comparison": "single"},
+  "unlocks_when": {"comparison": "single"},
+  "version_count": {"comparison": "single"}
+}

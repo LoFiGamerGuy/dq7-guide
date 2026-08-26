@@ -1,7 +1,7 @@
 # Ingestion status
 
 Status date: 2026-08-25  
-Package: `0.2.0-handoff`  
+Package: `0.3.0-phase1`  
 Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 ## Current coverage
@@ -24,7 +24,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Achievements | Architecture only | Not started | Full achievement dependency graph |
 | Tablets / fragments | Architecture only | Not started | Complete numbered/color acquisition and use graph |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Schema ready; 0 seeded conflicts | Not evaluated comprehensively | Run subject/predicate/scope comparison during each batch |
+| Conflicts | Automatic exact-scope detection active for registered single-valued factual predicates; 0 current conflicts | Conservative coverage | Add wildcard scope-overlap review and predicate comparators as domains expand |
 
 ## Database seed counts
 
