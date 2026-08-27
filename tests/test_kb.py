@@ -52,19 +52,20 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 115)
+        self.assertEqual(self.counts["sources"], 118)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 28)
+        self.assertEqual(self.counts["checkpoint_advice"], 35)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
-        self.assertEqual(self.counts["item_acquisition_paths"], 443)
+        self.assertEqual(self.counts["item_aliases"], 1)
+        self.assertEqual(self.counts["item_acquisition_paths"], 444)
         self.assertEqual(self.counts["shops"], 47)
-        self.assertEqual(self.counts["shop_inventory"], 114)
+        self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 13)
         self.assertEqual(self.counts["lucky_panel_rewards"], 78)
         self.assertEqual(self.counts["stone_tablets"], 20)
@@ -192,7 +193,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE a.item_id IS NULL
               AND i.verification_status NOT LIKE 'source_checked_route_gap%'"""
         ).fetchall()
-        self.assertEqual(gaps, 1)
+        self.assertEqual(gaps, 0)
         self.assertEqual(unexplained_gaps, [])
 
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
@@ -201,8 +202,21 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         self.assertEqual(report["total"], 353)
         self.assertEqual(report["obtained_count"], 0)
-        self.assertEqual(report["routed_count"], 352)
-        self.assertEqual(len(report["items"]), 1)
+        self.assertEqual(report["routed_count"], 353)
+        self.assertEqual(len(report["items"]), 0)
+
+    def test_item_alias_resolves_without_discarding_name_conflict(self):
+        item, routes = load_item_routes(self.db_path, "Stella Fan")
+        self.assertEqual(item["name"], "Stellar Fan")
+        self.assertTrue(any(route["method"] == "shop" for route in routes))
+        conflict = self.connection.execute(
+            """SELECT 1 FROM conflicts c
+            JOIN claims a ON a.claim_id = c.claim_a_id
+            WHERE c.status = 'unresolved'
+              AND a.subject_key = 'item:stella_fan'
+              AND a.predicate = 'item_display_name'"""
+        ).fetchone()
+        self.assertIsNotNone(conflict)
 
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
@@ -229,7 +243,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*), MIN(source_ordinal), MAX(source_ordinal),
                 SUM(rampaging), SUM(english_name IS NOT NULL) FROM monsters"""
         ).fetchone()
-        self.assertEqual(tuple(monster_stats), (333, 1, 333, 35, 289))
+        self.assertEqual(tuple(monster_stats), (333, 1, 333, 35, 333))
         take_no_prisoners = self.connection.execute(
             """SELECT target_type, target_key, required_count
             FROM achievement_requirements
@@ -1160,6 +1174,25 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("All recorded warnings cleared", output.getvalue())
         self.assertIn("obsolete_obligation", output.getvalue())
         self.assertIn("completed checks hidden: 1", output.getvalue())
+
+    def test_compact_walkthrough_hides_boilerplate_but_keeps_actions_and_safety(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_003_ballymolloy",
+            "cp_003_ballymolloy",
+        )
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_walkthrough(report, compact=True)
+        rendered = output.getvalue()
+        self.assertNotIn("Chronological walkthrough", rendered)
+        self.assertNotIn("No verified STOP recorded", rendered)
+        self.assertNotIn("Mark complete:", rendered)
+        self.assertNotIn("[complete]", rendered)
+        self.assertNotIn("Advice gap:", rendered)
+        self.assertIn("NOW:", rendered)
+        self.assertIn("SAFE:", rendered)
 
 
 if __name__ == "__main__":

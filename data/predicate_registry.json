@@ -4,6 +4,7 @@
   "fixed_increase_values": {"comparison": "single"},
   "precise_location_description": {"comparison": "single"},
   "purchase_price": {"comparison": "single"},
+  "item_display_name": {"comparison": "single"},
   "total_count": {"comparison": "single"},
   "treasure_availability": {"comparison": "single"},
   "unlocks_when": {"comparison": "single"},

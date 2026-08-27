@@ -21,8 +21,12 @@ def load_item_routes(db_path: Path, item_query: str) -> tuple[dict, list[dict]]:
         item = connection.execute(
             """SELECT i.*, c.name AS category_name FROM items i
             JOIN item_categories c USING(category_id)
-            WHERE i.item_id = ? OR lower(i.name) = lower(?)""",
-            (item_query, item_query),
+            WHERE i.item_id = ? OR lower(i.name) = lower(?)
+               OR EXISTS (
+                   SELECT 1 FROM item_aliases ia
+                   WHERE ia.item_id = i.item_id AND lower(ia.alias) = lower(?)
+               )""",
+            (item_query, item_query, item_query),
         ).fetchone()
         if item is None:
             raise ValueError(f"Unknown item: {item_query}")

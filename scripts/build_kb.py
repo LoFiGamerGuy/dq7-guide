@@ -417,6 +417,16 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             seed.get("items", []),
         )
+        connection.executemany(
+            """INSERT INTO item_aliases(
+                alias_id, item_id, alias, scope, source_id, locator,
+                confidence, verification_status
+            ) VALUES (
+                :alias_id, :item_id, :alias, :scope, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            seed.get("item_aliases", []),
+        )
 
         connection.executemany(
             """INSERT INTO achievement_requirements(
@@ -700,7 +710,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             , "monsters"
             , "vicious_targets", "vicious_encounters"
             , "stone_tablets", "tablet_fragments"
-            , "item_categories", "items", "item_acquisition_paths", "shops"
+            , "item_categories", "items", "item_aliases", "item_acquisition_paths", "shops"
             , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
         ):
             counts[table] = connection.execute(

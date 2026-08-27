@@ -252,7 +252,7 @@ def _print_medals(label: str, rows: list[dict], include_sources: bool) -> None:
             print(f"  Source: {_source(row)}")
 
 
-def _print_advice(block: dict, include_sources: bool) -> None:
+def _print_advice(block: dict, include_sources: bool, show_gaps: bool = True) -> None:
     advice_by_type = {
         advice_type: [
             row for row in block["advice"] if row["advice_type"] == advice_type
@@ -282,6 +282,8 @@ def _print_advice(block: dict, include_sources: bool) -> None:
             for row in rows:
                 print(f"  Source: {_source(row)}")
     core_missing = [name for name in ("gear", "boss", "grind") if not advice_by_type[name]]
+    if not show_gaps:
+        return
     if len(core_missing) == 3:
         print("Advice: gear, boss, and grind guidance not normalized.")
     elif core_missing:
@@ -304,17 +306,20 @@ def _print_conflicts(block: dict, include_sources: bool) -> None:
             )
 
 
-def print_walkthrough(report: dict, include_sources: bool = False) -> None:
+def print_walkthrough(
+    report: dict, include_sources: bool = False, compact: bool = False
+) -> None:
     if report["medal_tracking_status"] == "known":
         medal_note = f"medals tracked: {report['mini_medal_count']}"
     elif report["medal_tracking_status"] == "unknown":
         medal_note = "medal tracking unknown"
     else:
         medal_note = f"confirmed medal IDs hidden: {report['collected_medal_count']}"
-    print(
-        f"Chronological walkthrough (completed checks hidden: {report['completed_hidden_count']}; "
-        f"{medal_note})"
-    )
+    if not compact:
+        print(
+            f"Chronological walkthrough (completed checks hidden: {report['completed_hidden_count']}; "
+            f"{medal_note})"
+        )
     if report["medal_tracking_warning"]:
         print(f"Medal tracking warning: {report['medal_tracking_warning']}")
     if report["unknown_completed_ids"]:
@@ -327,11 +332,13 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
     for block in report["blocks"]:
         checkpoint = block["checkpoint"]
         complete = checkpoint["coverage_status"] == "complete"
-        print(f"\n{checkpoint['checkpoint_id']} — {checkpoint['name']} [{checkpoint['coverage_status']}]")
-        print("STOP:")
-        if not block["stops"] and block["recorded_stop_count"]:
+        status = "" if compact else f" [{checkpoint['coverage_status']}]"
+        print(f"\n{checkpoint['checkpoint_id']} — {checkpoint['name']}{status}")
+        if block["stops"] or not compact:
+            print("STOP:")
+        if not compact and not block["stops"] and block["recorded_stop_count"]:
             print("- All recorded warnings cleared.")
-        elif not block["stops"]:
+        elif not compact and not block["stops"]:
             print("- No verified STOP recorded; incomplete coverage is not proof that none exists.")
         for row in block["stops"]:
             print(f"- [step {row['display_order']}] {row['action']}")
@@ -341,12 +348,13 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
                 print(f"  Source: {_source(row)}")
 
         _print_conflicts(block, include_sources)
-        _print_advice(block, include_sources)
+        _print_advice(block, include_sources, show_gaps=not compact)
 
-        print("NOW:")
-        if not block["now"] and block["recorded_now_count"]:
+        if block["now"] or not compact:
+            print("NOW:")
+        if not compact and not block["now"] and block["recorded_now_count"]:
             print("- All recorded actions complete.")
-        elif not block["now"]:
+        elif not compact and not block["now"]:
             print("- No normalized actions; this is a coverage gap.")
         for row in block["now"]:
             marker = "required" if row["required_for_100_percent"] else "optional"
@@ -362,12 +370,15 @@ def print_walkthrough(report: dict, include_sources: bool = False) -> None:
         if any(rows for _, rows in medal_buckets):
             for label, rows in medal_buckets:
                 _print_medals(label, rows, include_sources)
-        else:
+        elif not compact:
             print("Medals: none recorded for this checkpoint.")
 
         qualifier = "" if complete else " (partial audit; not a guarantee)"
-        print(f"Recorded safe condition{qualifier}: {checkpoint['safe_exit_condition']}")
-        if block["stops"] or block["now"]:
+        if compact:
+            print(f"SAFE: {checkpoint['safe_exit_condition']}")
+        else:
+            print(f"Recorded safe condition{qualifier}: {checkpoint['safe_exit_condition']}")
+        if not compact and (block["stops"] or block["now"]):
             print(
                 "Mark complete: python scripts/player_progress.py done "
                 f"{checkpoint['checkpoint_id']} <step>"
@@ -384,6 +395,9 @@ def main() -> None:
     parser.add_argument(
         "--sources", action="store_true", help="Show a source citation for each sourced line"
     )
+    parser.add_argument(
+        "--compact", action="store_true", help="Hide progress and coverage boilerplate"
+    )
     args = parser.parse_args()
     try:
         start, end = resolve_checkpoint_range(
@@ -394,6 +408,7 @@ def main() -> None:
                 args.db, args.state, start, end
             ),
             include_sources=args.sources,
+            compact=args.compact,
         )
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as error:
         raise SystemExit(str(error)) from error

@@ -380,6 +380,18 @@ CREATE TABLE items (
     UNIQUE(category_id, heroic_hoarder_ordinal)
 );
 
+CREATE TABLE item_aliases (
+    alias_id TEXT PRIMARY KEY,
+    item_id TEXT NOT NULL REFERENCES items(item_id),
+    alias TEXT NOT NULL COLLATE NOCASE,
+    scope TEXT NOT NULL CHECK(length(trim(scope)) > 0),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(alias, scope)
+);
+
 CREATE TABLE item_acquisition_paths (
     acquisition_id TEXT PRIMARY KEY,
     item_id TEXT NOT NULL REFERENCES items(item_id),

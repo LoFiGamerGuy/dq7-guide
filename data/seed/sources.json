@@ -1274,5 +1274,41 @@
     "updated_at": null,
     "retrieved_at": "2026-08-27",
     "notes": "Exactly 333 English/Japanese pairs. Only exact unique joins are used; duplicate and visibly defective associations remain unresolved."
+  },
+  {
+    "source_id": "game8_stellar_fan",
+    "title": "How to Get Stellar Fan and Stats",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580587",
+    "source_class": "guide_wiki",
+    "role": "item_name_and_acquisition_route",
+    "published_at": null,
+    "updated_at": "2026-02-27",
+    "retrieved_at": "2026-08-27",
+    "notes": "Uses Stellar Fan; RPG Site's Heroic Hoarder registry uses Stella Fan for the same ordinal. The disagreement is retained as claims and an alias."
+  },
+  {
+    "source_id": "dqwiki_dq7r_bestiary",
+    "title": "Dragon Quest VII bestiary — Reimagined version",
+    "publisher": "Dragon Quest Wiki",
+    "url": "https://dragonquest.fandom.com/wiki/Dragon_Quest_VII_bestiary",
+    "source_class": "community_wiki",
+    "role": "english_monster_compendium_sequence_crosscheck",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27",
+    "notes": "Reimagined tables preserve English compendium sequence. Used only where established neighboring ordinals make the match exact."
+  },
+  {
+    "source_id": "community_dq7r_data_sheet",
+    "title": "Dragon Quest VII Reimagined Spreadsheet — Bestiary",
+    "publisher": "Exentryk and community contributors",
+    "url": "https://docs.google.com/spreadsheets/d/1tVpsI6zPviBESjZCYZoPWoTT-TIM88tedf6tB_T4kFk/edit",
+    "source_class": "community_data_extract",
+    "role": "localized_monster_name_and_stat_crosscheck",
+    "published_at": "2026-02-19",
+    "updated_at": null,
+    "retrieved_at": "2026-08-27",
+    "notes": "Current-version localized names and stats; only unique exact tuples are used, excluding test and duplicate rows."
   }
 ]
