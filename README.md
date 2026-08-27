@@ -20,7 +20,7 @@ The seed includes:
 - Moonlighting unlock notes;
 - the seven named missable / choice-sensitive events from the initial pass;
 - all 61 achievements with explicit player tracking;
-- complete Shield and Head identity registries for Heroic Hoarder;
+- the complete 353-item, six-category Heroic Hoarder identity registry;
 - all 19 Mini Medal reward thresholds, including the major power spikes;
 - early gear power-spike notes;
 - confirmed Metal Slime farming locations;

@@ -16,7 +16,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
-| Heroic Hoarder items | 64/354 normalized items / 137 acquisition paths; Shields and Head complete | High for ingested routes; incomplete overall | Add the remaining 290 identities and preserve unsupported routes as explicit gaps |
+| Heroic Hoarder items | 353/353 identities / 272 acquisition paths; all six categories complete | High for identities and explicit routes; 172 route gaps remain | Resolve route gaps without inferring unspecified stores or rewards |
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | 20 ready-for-play gear, boss, grind, and vocation advice rows across cp003–cp009 | Medium/High, attributed | Expand only with checkpoint-valid acquisition and character usability |
 | Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
@@ -43,8 +43,8 @@ Expected after `python scripts/build_kb.py`:
 - achievements / aliases: 61 / 1
 - ready-for-play checkpoint advice: 20
 - Mini Medal corroborating evidence rows: 86
-- Heroic Hoarder items: 64
-- item acquisition paths: 137
+- Heroic Hoarder items: 353
+- item acquisition paths: 272
 - shops / inventory rows: 32 / 46
 - Lucky Panel pools / reward rows: 12 / 43
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
@@ -74,6 +74,8 @@ The postgame expansion adds 27 obligations and completes explicit ordering throu
 The achievement-ledger batch adds all 61 achievements with stable IDs, story/checkpoint scope, trophy grades, hidden flags, provenance, and an explicit player-progress/reporting workflow. The Steam `Field Day` versus cross-platform `A Questrian` name is retained as an alias instead of silently merged. Counter and collection dependencies remain the next normalization layer.
 
 The first Heroic Hoarder registry expansion completes all 24 Shields and 33 Head items. It adds 34 identities and 20 supported routes; 15 Head entries deliberately retain `source_checked_route_gap` rather than receiving invented acquisition data.
+
+The full identity expansion completes the evidence-backed 353-item Heroic Hoarder list: 110 Weapons, 69 Armour, 74 Accessories, 24 Shields, 33 Head items, and 43 Usable Items. There are 272 supported acquisition paths across 181 items; the other 172 identities retain explicit route gaps. The earlier 354 estimate was corrected from the source category totals rather than padded with an invented item.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

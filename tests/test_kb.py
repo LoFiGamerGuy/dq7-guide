@@ -60,8 +60,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
-        self.assertEqual(self.counts["items"], 64)
-        self.assertEqual(self.counts["item_acquisition_paths"], 137)
+        self.assertEqual(self.counts["items"], 353)
+        self.assertEqual(self.counts["item_acquisition_paths"], 272)
         self.assertEqual(self.counts["shops"], 32)
         self.assertEqual(self.counts["lucky_panel_pools"], 12)
         self.assertEqual(self.counts["achievements"], 61)
@@ -135,22 +135,38 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(orphans, [])
 
-    def test_shield_and_head_hoarder_categories_are_complete(self):
+    def test_all_hoarder_category_identities_are_complete(self):
         counts = dict(
             self.connection.execute(
                 """SELECT c.name, COUNT(*) FROM items i
                 JOIN item_categories c USING(category_id)
-                WHERE c.name IN ('Shields', 'Head') GROUP BY c.name"""
+                GROUP BY c.name"""
             ).fetchall()
         )
-        self.assertEqual(counts, {"Head": 33, "Shields": 24})
-        unsupported = self.connection.execute(
+        self.assertEqual(
+            counts,
+            {
+                "Accessories": 74,
+                "Armour": 69,
+                "Head": 33,
+                "Shields": 24,
+                "Usable Items": 43,
+                "Weapons": 110,
+            },
+        )
+        gaps = self.connection.execute(
             """SELECT COUNT(*) FROM items i
             LEFT JOIN item_acquisition_paths a USING(item_id)
-            WHERE i.category_id = 'itemcat_head' AND a.item_id IS NULL
-              AND i.verification_status = 'source_checked_route_gap'"""
+            WHERE a.item_id IS NULL"""
         ).fetchone()[0]
-        self.assertEqual(unsupported, 15)
+        unexplained_gaps = self.connection.execute(
+            """SELECT item_id FROM items i
+            LEFT JOIN item_acquisition_paths a USING(item_id)
+            WHERE a.item_id IS NULL
+              AND i.verification_status NOT LIKE 'source_checked_route_gap%'"""
+        ).fetchall()
+        self.assertEqual(gaps, 172)
+        self.assertEqual(unexplained_gaps, [])
 
     def test_seeded_source_disagreement_is_visible(self):
         row = self.connection.execute(
