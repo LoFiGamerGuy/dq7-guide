@@ -126,6 +126,32 @@ CREATE TABLE vocation_requirements (
     source_id TEXT NOT NULL REFERENCES sources(source_id)
 );
 
+CREATE TABLE vocation_rank_skills (
+    vocation_skill_id TEXT PRIMARY KEY,
+    vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),
+    proficiency_rank INTEGER NOT NULL CHECK(proficiency_rank BETWEEN 1 AND 8),
+    skill_name TEXT NOT NULL,
+    skill_description TEXT NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL,
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(vocation_id, proficiency_rank, skill_name)
+);
+
+CREATE TABLE vocation_perks (
+    vocation_perk_id TEXT PRIMARY KEY,
+    vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),
+    perk_type TEXT NOT NULL CHECK(perk_type IN ('let_loose', 'passive', 'other')),
+    perk_name TEXT NOT NULL,
+    perk_description TEXT NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL,
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(vocation_id, perk_type, perk_name)
+);
+
 CREATE TABLE medal_rewards (
     threshold INTEGER PRIMARY KEY,
     reward TEXT NOT NULL,
@@ -334,6 +360,37 @@ CREATE TABLE monsters (
 );
 
 CREATE INDEX monsters_by_family ON monsters(family, source_ordinal);
+
+CREATE TABLE monster_encounters (
+    encounter_id TEXT PRIMARY KEY,
+    monster_id TEXT NOT NULL REFERENCES monsters(monster_id),
+    location_text TEXT NOT NULL CHECK(length(trim(location_text)) > 0),
+    time_period TEXT NOT NULL CHECK(time_period IN ('Past', 'Present', 'Unknown')),
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    unavailable_after_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(monster_id, location_text, time_period)
+);
+
+CREATE INDEX monster_encounters_by_gate
+    ON monster_encounters(available_from_checkpoint_id, monster_id);
+
+CREATE TABLE monster_drops (
+    drop_id TEXT PRIMARY KEY,
+    monster_id TEXT NOT NULL REFERENCES monsters(monster_id),
+    item_name TEXT NOT NULL CHECK(length(trim(item_name)) > 0),
+    drop_rate_text TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(monster_id, item_name)
+);
+
+CREATE INDEX monster_drops_by_monster ON monster_drops(monster_id);
 
 CREATE TABLE stone_tablets (
     tablet_id TEXT PRIMARY KEY, color TEXT NOT NULL, destination_name TEXT NOT NULL,

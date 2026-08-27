@@ -186,6 +186,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         requirement["source_id"],
                     ),
                 )
+
                 connection.execute(
                     """INSERT INTO relationships(
                         relationship_id, subject_id, predicate, object_id,
@@ -206,6 +207,23 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         requirement["source_id"],
                     ),
                 )
+
+        connection.executemany(
+            """INSERT INTO vocation_rank_skills(
+                vocation_skill_id,vocation_id,proficiency_rank,skill_name,
+                skill_description,source_id,locator,confidence,verification_status
+            ) VALUES (:vocation_skill_id,:vocation_id,:proficiency_rank,:skill_name,
+                :skill_description,:source_id,:locator,:confidence,:verification_status)""",
+            seed.get("vocation_rank_skills", []),
+        )
+        connection.executemany(
+            """INSERT INTO vocation_perks(
+                vocation_perk_id,vocation_id,perk_type,perk_name,perk_description,
+                source_id,locator,confidence,verification_status
+            ) VALUES (:vocation_perk_id,:vocation_id,:perk_type,:perk_name,:perk_description,
+                :source_id,:locator,:confidence,:verification_status)""",
+            seed.get("vocation_perks", []),
+        )
 
         connection.executemany(
             """INSERT INTO medal_rewards(threshold, reward, source_id, confidence)
@@ -457,6 +475,29 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
+            """INSERT INTO monster_encounters(
+                encounter_id, monster_id, location_text, time_period,
+                available_from_checkpoint_id, unavailable_after_checkpoint_id,
+                source_id, locator, confidence, verification_status
+            ) VALUES (
+                :encounter_id, :monster_id, :location_text, :time_period,
+                :available_from_checkpoint_id, :unavailable_after_checkpoint_id,
+                :source_id, :locator, :confidence, :verification_status
+            )""",
+            seed.get("monster_encounters", []),
+        )
+        connection.executemany(
+            """INSERT INTO monster_drops(
+                drop_id, monster_id, item_name, drop_rate_text, source_id,
+                locator, confidence, verification_status
+            ) VALUES (
+                :drop_id, :monster_id, :item_name, :drop_rate_text, :source_id,
+                :locator, :confidence, :verification_status
+            )""",
+            seed.get("monster_drops", []),
+        )
+
+        connection.executemany(
             """INSERT INTO vicious_targets(
                 vicious_target_id, name, source_id, locator, confidence,
                 verification_status
@@ -702,12 +743,12 @@ def _build_database(db_path: Path) -> dict[str, int]:
         counts = {}
         for table in (
             "sources", "entities", "relationships", "claims", "documents",
-            "vocations", "vocation_requirements", "medal_rewards", "missables",
+            "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"
             , "achievement_requirements"
-            , "monsters"
+            , "monsters", "monster_encounters", "monster_drops"
             , "vicious_targets", "vicious_encounters"
             , "stone_tablets", "tablet_fragments"
             , "item_categories", "items", "item_aliases", "item_acquisition_paths", "shops"

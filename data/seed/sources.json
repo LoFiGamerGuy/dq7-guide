@@ -1310,5 +1310,31 @@
     "updated_at": null,
     "retrieved_at": "2026-08-27",
     "notes": "Current-version localized names and stats; only unique exact tuples are used, excluding test and duplicate rows."
-  }
+  },
+  {
+    "source_id": "game8_vocation_martial_artist",
+    "title": "Martial Artist Vocation Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578246",
+    "source_class": "guide_wiki",
+    "role": "vocation_rank_skill_and_perk_table",
+    "published_at": null,
+    "updated_at": "2026-02-05",
+    "retrieved_at": "2026-08-27"
+  },
+  {"source_id":"game8_monster_slime","title":"Slime Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582944","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_woebergine","title":"Woebergine Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582943","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_nightcrawler","title":"Nightcrawler Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582942","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_lips","title":"Lips Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582941","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_tongue_fu_fighter","title":"Tongue Fu Fighter Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582940","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_mouseflap","title":"Mouseflap Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582939","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_cactiball","title":"Cactiball Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582938","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_meowgician","title":"Meowgician Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582937","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_wet_kisser","title":"Wet Kisser Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582936","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_barracuda","title":"Barracuda Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582935","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_shell_slime","title":"Shell Slime Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582934","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_toady","title":"Toady Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582933","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_cyclown","title":"Cyclown Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582932","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_hammerhood","title":"Hammerhood Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582931","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_bodkin_archer","title":"Bodkin Archer Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582930","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"}
 ]

@@ -52,13 +52,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 118)
+        self.assertEqual(self.counts["sources"], 134)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 35)
+        self.assertEqual(self.counts["checkpoint_advice"], 45)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
@@ -260,6 +260,25 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             tuple(vanquisher), ("vicious_registry", "defeat_count", 10)
         )
+
+    def test_early_monster_encounters_and_drops_are_checkpoint_scoped(self):
+        counts = self.connection.execute(
+            "SELECT (SELECT COUNT(*) FROM monster_encounters), "
+            "(SELECT COUNT(*) FROM monster_drops)"
+        ).fetchone()
+        self.assertEqual(tuple(counts), (24, 12))
+        early = self.connection.execute(
+            """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
+                SUM(source_id NOT LIKE 'game8_monster_%')
+            FROM monster_encounters"""
+        ).fetchone()
+        self.assertEqual(tuple(early), (15, "cp_003_ballymolloy", 0))
+        cactiball_drops = {
+            row[0] for row in self.connection.execute(
+                "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
+            )
+        }
+        self.assertEqual(cactiball_drops, {"Medicinal Herb", "Thorn Whip"})
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
         state_path = Path(self.tempdir.name) / "tablet-progress.json"
@@ -1193,6 +1212,22 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertNotIn("Advice gap:", rendered)
         self.assertIn("NOW:", rendered)
         self.assertIn("SAFE:", rendered)
+
+    def test_martial_artist_rank_progression_is_complete_and_sourced(self):
+        rows = self.connection.execute(
+            """SELECT proficiency_rank, skill_name, locator
+            FROM vocation_rank_skills WHERE vocation_id='vocation_martial_artist'
+            ORDER BY proficiency_rank"""
+        ).fetchall()
+        self.assertEqual([row[0] for row in rows], list(range(1, 9)))
+        self.assertEqual(rows[0][1], "Clap Trap")
+        self.assertEqual(rows[-1][1], "Knuckle Sandwich")
+        self.assertTrue(all("★" in row[2] for row in rows))
+        perk = self.connection.execute(
+            """SELECT perk_name FROM vocation_perks
+            WHERE vocation_id='vocation_martial_artist' AND perk_type='let_loose'"""
+        ).fetchone()
+        self.assertEqual(perk[0], "Critical Stance")
 
 
 if __name__ == "__main__":

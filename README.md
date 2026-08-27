@@ -26,10 +26,12 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 118-page source registry;
+- a 134-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
+- checkpoint-gated encounters and verified drops for the first 15 monsters;
+- the first complete vocation rank/perk slice (Martial Artist);
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -60,6 +62,23 @@ python -m unittest discover -s tests -v
 ```
 
 The build creates `data/dq7_reimagined.sqlite`. Generated databases are reproducible from committed seed JSON and the schema.
+
+## Play alongside the guide
+
+Show only the current checkpoint's essential warnings and actions:
+
+```powershell
+python scripts/walkthrough.py --compact
+```
+
+After identifying your current checkpoint, save it once; subsequent compact runs open there automatically:
+
+```powershell
+python scripts/player_progress.py checkpoint cp_003_ballymolloy
+python scripts/player_progress.py done cp_003_ballymolloy 1
+```
+
+Use the exact step number printed by the walkthrough. The guide hides completed steps without inferring any unreported progress.
 
 Update Ryan's state only from a player report:
 
