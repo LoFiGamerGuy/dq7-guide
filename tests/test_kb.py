@@ -34,6 +34,7 @@ from monster_report import load_monster_report, print_monster_report  # noqa: E4
 from hoarder_report import load_hoarder_report  # noqa: E402
 from player_progress import update_progress  # noqa: E402
 from query_kb import search  # noqa: E402
+from vocation_report import load_vocation_details, print_vocation_details  # noqa: E402
 from update_state import update_state  # noqa: E402
 from walkthrough import main as walkthrough_main  # noqa: E402
 
@@ -53,13 +54,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 174)
+        self.assertEqual(self.counts["sources"], 197)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 52)
+        self.assertEqual(self.counts["checkpoint_advice"], 58)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
@@ -267,19 +268,47 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (73, 42))
+        self.assertEqual(tuple(counts), (100, 58))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (43, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (59, "cp_003_ballymolloy", 0))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
             )
         }
         self.assertEqual(cactiball_drops, {"Medicinal Herb", "Thorn Whip"})
+
+    def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
+        checkpoints = dict(
+            self.connection.execute(
+                """SELECT available_from_checkpoint_id, COUNT(*)
+                FROM monster_encounters
+                WHERE available_from_checkpoint_id IN (
+                    'cp_011_la_bravoure', 'cp_013_flying_carpet',
+                    'cp_014_sir_mervyn'
+                ) GROUP BY available_from_checkpoint_id"""
+            ).fetchall()
+        )
+        self.assertEqual(
+            checkpoints,
+            {
+                "cp_011_la_bravoure": 10,
+                "cp_013_flying_carpet": 14,
+                "cp_014_sir_mervyn": 3,
+            },
+        )
+        self.assertEqual(
+            self.connection.execute(
+                """SELECT COUNT(*) FROM monster_encounters
+                WHERE source_id='game8_monster_drag_racer'
+                  AND location_text='Aeolus Vale Region'"""
+            ).fetchone()[0],
+            0,
+        )
 
     def test_monster_report_resolves_name_id_and_ordinal(self):
         by_name = load_monster_report(self.db_path, "Cactiball")
@@ -1245,6 +1274,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(perk[0], "Critical Stance")
 
+    def test_vocation_detail_report_shows_multi_skill_ranks_and_perk(self):
+        report = load_vocation_details(self.db_path, "Mage")
+        self.assertEqual(report["vocation"]["vocation_id"], "vocation_mage")
+        rank_one = [row["skill_name"] for row in report["skills"] if row["proficiency_rank"] == 1]
+        self.assertEqual(rank_one, ["Frizz", "Snooze"])
+        self.assertEqual(len(report["perks"]), 1)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_vocation_details(report)
+        self.assertIn("1★ Frizz", output.getvalue())
+        self.assertIn("Let Loose:", output.getvalue())
+
     def test_all_beginner_vocation_skill_tables_are_complete_and_sourced(self):
         beginner_ids = [
             row[0] for row in self.connection.execute(
@@ -1275,6 +1316,39 @@ class KnowledgeBaseTests(unittest.TestCase):
             ORDER BY skill_name"""
         ).fetchall()
         self.assertEqual([row[0] for row in same_rank], ["Frizz", "Snooze"])
+
+    def test_all_intermediate_vocation_skill_tables_are_complete_and_sourced(self):
+        intermediate_ids = [
+            row[0] for row in self.connection.execute(
+                "SELECT vocation_id FROM vocations WHERE tier='intermediate'"
+            )
+        ]
+        self.assertEqual(len(intermediate_ids), 7)
+        for vocation_id in intermediate_ids:
+            rows = self.connection.execute(
+                """SELECT proficiency_rank, locator, source_id
+                FROM vocation_rank_skills WHERE vocation_id=?""",
+                (vocation_id,),
+            ).fetchall()
+            self.assertEqual(sorted({row[0] for row in rows}), list(range(1, 9)))
+            self.assertTrue(all("★" in row[1] for row in rows))
+            self.assertTrue(all(row[2].startswith("game8_vocation_") for row in rows))
+            perk = self.connection.execute(
+                """SELECT locator FROM vocation_perks
+                WHERE vocation_id=? AND perk_type='let_loose'""",
+                (vocation_id,),
+            ).fetchone()
+            self.assertIsNotNone(perk)
+            self.assertIn("Overview > Type and Loose Ability", perk[0])
+
+        same_rank = self.connection.execute(
+            """SELECT skill_name FROM vocation_rank_skills
+            WHERE vocation_id='vocation_sage' AND proficiency_rank=1
+            ORDER BY skill_name"""
+        ).fetchall()
+        self.assertEqual(
+            [row[0] for row in same_rank], ["Insulate", "Midheal", "Squelch"]
+        )
 
 
 if __name__ == "__main__":
