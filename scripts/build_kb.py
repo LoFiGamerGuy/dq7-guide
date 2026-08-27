@@ -112,6 +112,27 @@ def _build_database(db_path: Path) -> dict[str, int]:
     connection.row_factory = sqlite3.Row
     try:
         connection.executescript(schema)
+        vocation_rank_skills = list(seed.get("vocation_rank_skills", []))
+        for table in seed.get("vocation_skill_tables", []):
+            vocation_slug = table["vocation_id"].removeprefix("vocation_")
+            for proficiency_rank, skill_names in table["ranks"]:
+                for skill_name in skill_names:
+                    skill_slug = canonical_key(skill_name).removeprefix("vocation:")
+                    vocation_rank_skills.append({
+                        "vocation_skill_id": f"vskill_{vocation_slug}_{proficiency_rank:02d}_{skill_slug}",
+                        "vocation_id": table["vocation_id"],
+                        "proficiency_rank": proficiency_rank,
+                        "skill_name": skill_name,
+                        "skill_description": "Learned at the sourced proficiency rank.",
+                        "source_id": table["source_id"],
+                        "locator": (
+                            f"{table['name']} Skill List > All Skills and Required "
+                            f"Proficiency > {proficiency_rank}★ {skill_name}"
+                        ),
+                        "confidence": "high",
+                        "verification_status": "source_checked",
+                    })
+
         connection.executemany(
             """INSERT INTO sources(
                 source_id, title, publisher, url, source_class, role,
@@ -214,7 +235,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 skill_description,source_id,locator,confidence,verification_status
             ) VALUES (:vocation_skill_id,:vocation_id,:proficiency_rank,:skill_name,
                 :skill_description,:source_id,:locator,:confidence,:verification_status)""",
-            seed.get("vocation_rank_skills", []),
+            vocation_rank_skills,
         )
         connection.executemany(
             """INSERT INTO vocation_perks(

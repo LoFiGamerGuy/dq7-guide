@@ -26,12 +26,12 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 134-page source registry;
+- a 174-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- checkpoint-gated encounters and verified drops for the first 15 monsters;
-- the first complete vocation rank/perk slice (Martial Artist);
+- checkpoint-gated encounters for 43 early monsters and 42 verified drops;
+- all rank skills and Let Loose perks for all 10 beginner vocations;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -57,6 +57,8 @@ python scripts/hoarder_report.py --gaps
 python scripts/achievement_report.py
 python scripts/achievement_report.py --all --sources
 python scripts/vocation_report.py
+python scripts/monster_report.py "Cactiball"
+python scripts/monster_report.py 9 --sources
 python scripts/conflict_report.py
 python -m unittest discover -s tests -v
 ```
