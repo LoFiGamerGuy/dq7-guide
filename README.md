@@ -26,7 +26,7 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 67-page source registry;
+- a 72-page source registry;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -47,6 +47,7 @@ python scripts/walkthrough.py --from cp_030_postgame_another_world --through cp_
 python scripts/medal_report.py --through cp_009_alltrades
 python scripts/item_report.py "Pilchard Crackers"
 python scripts/item_report.py "Cautery Sword" --at-checkpoint cp_009_alltrades
+python scripts/hoarder_report.py --gaps
 python scripts/achievement_report.py
 python scripts/achievement_report.py --all --sources
 python scripts/conflict_report.py
@@ -72,6 +73,7 @@ python scripts/player_progress.py done cp_004_emberdale 3
 python scripts/player_progress.py medal-found 10 11
 python scripts/player_progress.py medal-count 12
 python scripts/player_progress.py achievement-unlocked ach_into_the_unknown
+python scripts/player_progress.py item-obtained item_pilchard_crackers
 ```
 
 ## Key documents

@@ -25,6 +25,9 @@ def _load_state(state_path: Path) -> dict:
         not isinstance(value, str) for value in achievements
     ):
         raise ValueError("completion.achievements_unlocked must be a list of strings")
+    items = state.get("completion", {}).get("items_obtained")
+    if not isinstance(items, list) or any(not isinstance(value, str) for value in items):
+        raise ValueError("completion.items_obtained must be a list of strings")
     return state
 
 
@@ -129,6 +132,19 @@ def update_progress(
                 unlocked.difference_update(values)
                 message = f"Reopened achievement(s): {', '.join(values)}."
             state["completion"]["achievements_unlocked"] = sorted(unlocked)
+        elif command in ("item-obtained", "item-undo"):
+            known = {row[0] for row in connection.execute("SELECT item_id FROM items")}
+            invalid = sorted(set(values) - known)
+            if invalid:
+                raise ValueError(f"Unknown item ID(s): {invalid}")
+            obtained = set(state["completion"]["items_obtained"])
+            if command == "item-obtained":
+                obtained.update(values)
+                message = f"Recorded item(s): {', '.join(values)}."
+            else:
+                obtained.difference_update(values)
+                message = f"Reopened item(s): {', '.join(values)}."
+            state["completion"]["items_obtained"] = sorted(obtained)
         else:
             raise ValueError(f"Unknown progress command: {command}")
     _save_state(state_path, state)
@@ -152,6 +168,9 @@ def main() -> None:
     for name in ("achievement-unlocked", "achievement-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="ACHIEVEMENT_ID")
+    for name in ("item-obtained", "item-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="ITEM_ID")
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))

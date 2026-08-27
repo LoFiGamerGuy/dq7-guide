@@ -397,6 +397,35 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             seed.get("items", []),
         )
+
+        connection.executemany(
+            """INSERT INTO achievement_requirements(
+                requirement_id, achievement_id, target_type, target_key,
+                required_count, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :requirement_id, :achievement_id, :target_type, :target_key,
+                :required_count, :source_id, :locator, :confidence,
+                :verification_status
+            )""",
+            seed.get("achievement_requirements", []),
+        )
+
+        unresolved_typed_requirements = connection.execute(
+            """SELECT requirement_id FROM achievement_requirements
+            WHERE target_type = 'checkpoint_obligation'
+              AND target_key NOT IN (SELECT obligation_id FROM checkpoint_obligations)
+            UNION ALL
+            SELECT requirement_id FROM achievement_requirements
+            WHERE target_type = 'item_registry'
+              AND target_key NOT IN ('heroic_hoarder_required')
+              AND target_key NOT IN (SELECT item_id FROM items)"""
+        ).fetchall()
+        if unresolved_typed_requirements:
+            raise ValueError(
+                "Typed achievement requirement targets must resolve: "
+                + ", ".join(row[0] for row in unresolved_typed_requirements)
+            )
         connection.executemany(
             """INSERT INTO shops(
                 shop_id, name, location, time_period,
@@ -592,6 +621,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"
+            , "achievement_requirements"
             , "item_categories", "items", "item_acquisition_paths", "shops"
             , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
         ):

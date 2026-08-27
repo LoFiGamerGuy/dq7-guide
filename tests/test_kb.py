@@ -30,6 +30,7 @@ from early_walkthrough import (  # noqa: E402
 )
 from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
+from hoarder_report import load_hoarder_report  # noqa: E402
 from player_progress import update_progress  # noqa: E402
 from query_kb import search  # noqa: E402
 from update_state import update_state  # noqa: E402
@@ -51,7 +52,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 67)
+        self.assertEqual(self.counts["sources"], 72)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -61,11 +62,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
-        self.assertEqual(self.counts["item_acquisition_paths"], 272)
-        self.assertEqual(self.counts["shops"], 32)
+        self.assertEqual(self.counts["item_acquisition_paths"], 368)
+        self.assertEqual(self.counts["shops"], 45)
+        self.assertEqual(self.counts["shop_inventory"], 82)
         self.assertEqual(self.counts["lucky_panel_pools"], 12)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 75)
         self.assertEqual(self.counts["achievements"], 61)
         self.assertEqual(self.counts["achievement_aliases"], 1)
+        self.assertEqual(self.counts["achievement_requirements"], 29)
 
     def test_achievement_registry_is_complete_and_checkpoint_scoped(self):
         counts = dict(
@@ -84,6 +88,24 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE alias_id = 'ach_alias_field_day_a_questrian'"""
         ).fetchone()
         self.assertEqual(tuple(alias), ("ach_field_day", "A Questrian"))
+
+    def test_achievement_requirements_cover_every_non_story_achievement(self):
+        missing = self.connection.execute(
+            """SELECT a.achievement_id FROM achievements a
+            LEFT JOIN achievement_requirements r USING(achievement_id)
+            WHERE a.category != 'story' AND r.requirement_id IS NULL"""
+        ).fetchall()
+        self.assertEqual(missing, [])
+        unresolved = self.connection.execute(
+            """SELECT COUNT(*) FROM achievement_requirements
+            WHERE target_type = 'unresolved_registry'"""
+        ).fetchone()[0]
+        self.assertEqual(unresolved, 3)
+        hoarder = self.connection.execute(
+            """SELECT required_count FROM achievement_requirements
+            WHERE achievement_id = 'ach_heroic_hoarder'"""
+        ).fetchone()[0]
+        self.assertEqual(hoarder, 353)
 
     def test_achievement_report_uses_only_explicit_player_progress(self):
         report = load_achievement_report(
@@ -165,8 +187,49 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE a.item_id IS NULL
               AND i.verification_status NOT LIKE 'source_checked_route_gap%'"""
         ).fetchall()
-        self.assertEqual(gaps, 172)
+        self.assertEqual(gaps, 76)
         self.assertEqual(unexplained_gaps, [])
+
+    def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
+        report = load_hoarder_report(
+            self.db_path, ROOT / "player" / "ryan-save-state.json", gaps_only=True
+        )
+        self.assertEqual(report["total"], 353)
+        self.assertEqual(report["obtained_count"], 0)
+        self.assertEqual(report["routed_count"], 277)
+        self.assertEqual(len(report["items"]), 76)
+
+        state_path = Path(self.tempdir.name) / "hoarder-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["items_obtained"] = [
+            "item_pilchard_crackers", "unknown_item"
+        ]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_hoarder_report(self.db_path, state_path)
+        self.assertEqual(report["obtained_count"], 1)
+        self.assertEqual(report["unknown_state_ids"], ["unknown_item"])
+        self.assertNotIn(
+            "item_pilchard_crackers", {row["item_id"] for row in report["items"]}
+        )
+
+    def test_player_progress_records_and_reopens_hoarder_items(self):
+        state_path = Path(self.tempdir.name) / "hoarder-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(
+            state_path, self.db_path, "item-obtained", ["item_pilchard_crackers"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            state["completion"]["items_obtained"], ["item_pilchard_crackers"]
+        )
+        update_progress(
+            state_path, self.db_path, "item-undo", ["item_pilchard_crackers"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["items_obtained"], [])
 
     def test_seeded_source_disagreement_is_visible(self):
         row = self.connection.execute(

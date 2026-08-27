@@ -26,8 +26,10 @@ def load_achievement_report(
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
-            """SELECT a.*, s.title AS source_title, s.url AS source_url
+            """SELECT a.*, r.target_type, r.target_key, r.required_count,
+                s.title AS source_title, s.url AS source_url
             FROM achievements a JOIN sources s USING(source_id)
+            LEFT JOIN achievement_requirements r USING(achievement_id)
             ORDER BY CASE a.grade
                 WHEN 'bronze' THEN 1 WHEN 'silver' THEN 2
                 WHEN 'gold' THEN 3 ELSE 4 END,
@@ -39,6 +41,22 @@ def load_achievement_report(
         for row in rows:
             item = dict(row)
             item["unlocked"] = item["achievement_id"] in unlocked
+            progress = None
+            completion = state.get("completion", {})
+            if item["target_type"] == "mini_medal_registry":
+                progress = completion.get("mini_medal_count")
+                if progress is None:
+                    found = completion.get("mini_medals_found", [])
+                    progress = len(found) if isinstance(found, list) else None
+            elif item["target_type"] == "item_registry":
+                found = completion.get("items_obtained", [])
+                progress = len(found) if isinstance(found, list) else None
+            elif item["target_type"] == "checkpoint_obligation":
+                done = completion.get("obligations_completed", [])
+                progress = int(item["target_key"] in done) if isinstance(done, list) else None
+            elif item["target_type"] == "achievement_registry":
+                progress = len(set(unlocked) & known)
+            item["progress"] = progress
             if include_unlocked or not item["unlocked"]:
                 result_rows.append(item)
     return {
@@ -56,7 +74,11 @@ def print_achievement_report(report: dict, sources: bool = False) -> None:
     for row in report["achievements"]:
         mark = "DONE" if row["unlocked"] else "TODO"
         gate = row["completion_checkpoint_id"] or row["earliest_checkpoint_id"] or "unknown gate"
-        print(f"- [{mark}] {row['name']} — {row['description']} ({gate})")
+        progress = ""
+        if row["required_count"] is not None:
+            current = "?" if row["progress"] is None else row["progress"]
+            progress = f" [{current}/{row['required_count']}]"
+        print(f"- [{mark}] {row['name']}{progress} — {row['description']} ({gate})")
         if sources:
             print(f"  Source: {row['source_title']} — {row['source_url']} — {row['locator']}")
 

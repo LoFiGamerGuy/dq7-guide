@@ -261,8 +261,28 @@ CREATE TABLE achievement_aliases (
     UNIQUE(alias, platform_scope)
 );
 
+CREATE TABLE achievement_requirements (
+    requirement_id TEXT PRIMARY KEY,
+    achievement_id TEXT NOT NULL REFERENCES achievements(achievement_id),
+    target_type TEXT NOT NULL CHECK(target_type IN (
+        'action_counter', 'mini_medal_registry', 'item_registry',
+        'checkpoint_obligation', 'vocation_tier', 'achievement_registry',
+        'unresolved_registry'
+    )),
+    target_key TEXT NOT NULL CHECK(length(trim(target_key)) > 0),
+    required_count INTEGER NOT NULL CHECK(required_count > 0),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(achievement_id, target_type, target_key)
+);
+
 CREATE INDEX achievements_by_checkpoint
     ON achievements(earliest_checkpoint_id, completion_checkpoint_id);
+
+CREATE INDEX achievement_requirements_by_achievement
+    ON achievement_requirements(achievement_id, target_type);
 
 
 CREATE TABLE item_categories (

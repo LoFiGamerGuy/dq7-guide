@@ -451,6 +451,21 @@
     "source_id": "game8_alltrades_walkthrough", "title": "Alltrades Abbey Walkthrough Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578339", "source_class": "guide_wiki", "role": "area_walkthrough_boss_and_vocation_strategy", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-26"
   },
   {
+    "source_id": "game8_pilchard_bay_map", "title": "Pilchard Bay Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578466", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_estard_castle_map", "title": "Estard Castle Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579142", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_ballymolloy_map", "title": "Ballymolloy Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578184", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_pilgrims_rest_map", "title": "Pilgrim's Rest Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582225", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+  },
+  {
+    "source_id": "game8_pilgrims_perdition_map", "title": "Pilgrim's Perdition Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582520", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+  },
+  {
     "source_id": "steam_achievements", "title": "DRAGON QUEST VII Reimagined Global Achievements", "publisher": "Valve / Steam", "url": "https://steamcommunity.com/stats/2499860/achievements", "source_class": "official", "role": "platform_achievement_registry", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-26", "notes": "Direct Steam platform registry. Secret descriptions are hidden; Game8 supplies their unlock descriptions."
   }
 ]
