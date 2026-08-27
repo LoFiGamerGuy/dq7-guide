@@ -267,7 +267,7 @@ CREATE TABLE achievement_requirements (
     target_type TEXT NOT NULL CHECK(target_type IN (
         'action_counter', 'mini_medal_registry', 'item_registry',
         'checkpoint_obligation', 'vocation_tier', 'achievement_registry',
-        'unresolved_registry'
+        'unresolved_registry', 'stone_tablet_registry'
     )),
     target_key TEXT NOT NULL CHECK(length(trim(target_key)) > 0),
     required_count INTEGER NOT NULL CHECK(required_count > 0),
@@ -283,6 +283,30 @@ CREATE INDEX achievements_by_checkpoint
 
 CREATE INDEX achievement_requirements_by_achievement
     ON achievement_requirements(achievement_id, target_type);
+
+CREATE TABLE stone_tablets (
+    tablet_id TEXT PRIMARY KEY, color TEXT NOT NULL, destination_name TEXT NOT NULL,
+    required_fragment_count INTEGER NOT NULL CHECK(required_fragment_count > 0),
+    available_from_checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    completion_checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0), confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL, UNIQUE(color, destination_name)
+);
+
+CREATE TABLE tablet_fragments (
+    fragment_id TEXT PRIMARY KEY,
+    source_ordinal INTEGER NOT NULL UNIQUE CHECK(source_ordinal BETWEEN 1 AND 71),
+    color TEXT NOT NULL, tablet_id TEXT NOT NULL REFERENCES stone_tablets(tablet_id),
+    location TEXT NOT NULL, time_period TEXT NOT NULL CHECK(time_period IN ('Past', 'Present')),
+    detail TEXT NOT NULL CHECK(length(trim(detail)) > 0),
+    available_from_checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    unavailable_after_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0), confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+CREATE INDEX tablet_fragments_by_tablet ON tablet_fragments(tablet_id, source_ordinal);
 
 
 CREATE TABLE item_categories (

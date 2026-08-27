@@ -35,6 +35,17 @@ def load_achievement_report(
                 WHEN 'gold' THEN 3 ELSE 4 END,
                 a.category, a.name"""
         ).fetchall()
+        tablet_rows = connection.execute(
+            "SELECT tablet_id, fragment_id FROM tablet_fragments ORDER BY tablet_id"
+        ).fetchall()
+        found_fragments = set(state.get("completion", {}).get("tablet_fragments", []))
+        tablet_fragments: dict[str, set[str]] = {}
+        for tablet_id, fragment_id in tablet_rows:
+            tablet_fragments.setdefault(tablet_id, set()).add(fragment_id)
+        assembled_tablets = sum(
+            fragments.issubset(found_fragments)
+            for fragments in tablet_fragments.values()
+        )
         known = {row["achievement_id"] for row in rows}
         unknown = sorted(set(unlocked) - known)
         result_rows = []
@@ -56,6 +67,8 @@ def load_achievement_report(
                 progress = int(item["target_key"] in done) if isinstance(done, list) else None
             elif item["target_type"] == "achievement_registry":
                 progress = len(set(unlocked) & known)
+            elif item["target_type"] == "stone_tablet_registry":
+                progress = assembled_tablets
             item["progress"] = progress
             if include_unlocked or not item["unlocked"]:
                 result_rows.append(item)

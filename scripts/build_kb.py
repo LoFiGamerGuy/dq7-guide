@@ -386,6 +386,26 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed.get("item_categories", []),
         )
         connection.executemany(
+            """INSERT INTO stone_tablets(tablet_id,color,destination_name,required_fragment_count,
+            available_from_checkpoint_id,completion_checkpoint_id,source_id,locator,confidence,verification_status)
+            VALUES (:tablet_id,:color,:destination_name,:required_fragment_count,:available_from_checkpoint_id,
+            :completion_checkpoint_id,:source_id,:locator,:confidence,:verification_status)""",
+            seed.get("stone_tablets", []),
+        )
+        connection.executemany(
+            """INSERT INTO tablet_fragments(fragment_id,source_ordinal,color,tablet_id,location,time_period,detail,
+            available_from_checkpoint_id,unavailable_after_checkpoint_id,source_id,locator,confidence,verification_status)
+            VALUES (:fragment_id,:source_ordinal,:color,:tablet_id,:location,:time_period,:detail,
+            :available_from_checkpoint_id,:unavailable_after_checkpoint_id,:source_id,:locator,:confidence,:verification_status)""",
+            seed.get("tablet_fragments", []),
+        )
+        mismatched_tablets = connection.execute(
+            """SELECT t.tablet_id FROM stone_tablets t LEFT JOIN tablet_fragments f ON f.tablet_id=t.tablet_id
+            GROUP BY t.tablet_id HAVING COUNT(f.fragment_id)<>t.required_fragment_count"""
+        ).fetchall()
+        if mismatched_tablets:
+            raise ValueError("Tablet fragment counts do not match: " + ", ".join(r[0] for r in mismatched_tablets))
+        connection.executemany(
             """INSERT INTO items(
                 item_id, category_id, name, canonical_key,
                 heroic_hoarder_ordinal, heroic_hoarder_required, source_id,
@@ -419,7 +439,11 @@ def _build_database(db_path: Path) -> dict[str, int]:
             SELECT requirement_id FROM achievement_requirements
             WHERE target_type = 'item_registry'
               AND target_key NOT IN ('heroic_hoarder_required')
-              AND target_key NOT IN (SELECT item_id FROM items)"""
+              AND target_key NOT IN (SELECT item_id FROM items)
+            UNION ALL
+            SELECT requirement_id FROM achievement_requirements
+            WHERE target_type='stone_tablet_registry'
+              AND (target_key<>'all' OR required_count<>(SELECT COUNT(*) FROM stone_tablets))"""
         ).fetchall()
         if unresolved_typed_requirements:
             raise ValueError(
@@ -622,6 +646,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"
             , "achievement_requirements"
+            , "stone_tablets", "tablet_fragments"
             , "item_categories", "items", "item_acquisition_paths", "shops"
             , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
         ):

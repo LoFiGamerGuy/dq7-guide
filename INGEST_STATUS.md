@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 72 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 73 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
@@ -16,13 +16,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
-| Heroic Hoarder items | 353/353 identities / 368 acquisition paths; all six categories complete | High for identities and explicit routes; 76 route gaps remain | Resolve remaining gaps without inferring unspecified stores or rewards |
+| Heroic Hoarder items | 353/353 identities / 405 acquisition paths; all six categories complete | High for identities and explicit routes; 39 route gaps remain | Resolve remaining gaps without inferring unspecified stores or rewards |
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | 20 ready-for-play gear, boss, grind, and vocation advice rows across cp003–cp009 | Medium/High, attributed | Expand only with checkpoint-valid acquisition and character usability |
 | Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
 | Monster Hearts | Representative high-value roles | Medium | Complete registry, effects, and acquisition |
-| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and counters; 3 dependency registries unresolved | Complete tablet, monster, and all-vocation dependency registries |
-| Tablets / fragments | Architecture only | Not started | Complete numbered/color acquisition and use graph |
+| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and counters; 2 dependency registries unresolved | Complete monster and all-vocation dependency registries |
+| Tablets / fragments | 20/20 tablets and 71/71 numbered fragments | High; current-version source checked | Add explicit player update/report workflow |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 6 unresolved source conflicts | Conservative coverage | Resolve the five prior conflicts plus Tempest Shield location with direct in-game evidence |
 
@@ -30,7 +30,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 72
+- sources: 73
 - vocations/entities: 26
 - prerequisite relationships: 27
 - claims: 26
@@ -42,10 +42,11 @@ Expected after `python scripts/build_kb.py`:
 - checkpoint obligations: 222
 - achievements / aliases: 61 / 1
 - achievement requirements: 29
+- stone tablets / fragments: 20 / 71
 - ready-for-play checkpoint advice: 20
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 353
-- item acquisition paths: 368
+- item acquisition paths: 405
 - shops / inventory rows: 45 / 82
 - Lucky Panel pools / reward rows: 12 / 75
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
@@ -79,6 +80,8 @@ The first Heroic Hoarder registry expansion completes all 24 Shields and 33 Head
 The full identity expansion completes the evidence-backed 353-item Heroic Hoarder list: 110 Weapons, 69 Armour, 74 Accessories, 24 Shields, 33 Head items, and 43 Usable Items. There are 272 supported acquisition paths across 181 items; the other 172 identities retain explicit route gaps. The earlier 354 estimate was corrected from the source category totals rather than padded with an invented item.
 
 The route-resolution batch adds 96 supported paths, reducing Heroic Hoarder route gaps from 172 to 76. It adds precise early shop prices and checkpoint gates plus typed Lucky Panel details, without silently resolving the `Stella`/`Stellar Fan` name discrepancy or the unsupported Wizard's Staff purchase. The achievement layer now links all 29 non-story achievements to measurable counters, checkpoint obligations, the 353-item registry, or an explicit unresolved registry.
+
+The tablet and route batch adds all 20 tablets and 71 current-version fragments with numbered provenance and checkpoint gates, resolving the No Stone Left Unturned dependency. A further 37 item routes reduce Heroic Hoarder gaps from 76 to 39 while keeping the Wizard/Wizard's and Stella/Stellar naming discrepancies explicit.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

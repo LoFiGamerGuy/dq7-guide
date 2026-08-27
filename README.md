@@ -26,7 +26,8 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 72-page source registry;
+- a 73-page source registry;
+- all 20 tablets and 71 tablet fragments;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -74,6 +75,7 @@ python scripts/player_progress.py medal-found 10 11
 python scripts/player_progress.py medal-count 12
 python scripts/player_progress.py achievement-unlocked ach_into_the_unknown
 python scripts/player_progress.py item-obtained item_pilchard_crackers
+python scripts/player_progress.py tablet-found tablet_fragment_001
 ```
 
 ## Key documents

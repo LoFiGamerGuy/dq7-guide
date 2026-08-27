@@ -28,6 +28,11 @@ def _load_state(state_path: Path) -> dict:
     items = state.get("completion", {}).get("items_obtained")
     if not isinstance(items, list) or any(not isinstance(value, str) for value in items):
         raise ValueError("completion.items_obtained must be a list of strings")
+    fragments = state.get("completion", {}).get("tablet_fragments")
+    if not isinstance(fragments, list) or any(
+        not isinstance(value, str) for value in fragments
+    ):
+        raise ValueError("completion.tablet_fragments must be a list of strings")
     return state
 
 
@@ -145,6 +150,23 @@ def update_progress(
                 obtained.difference_update(values)
                 message = f"Reopened item(s): {', '.join(values)}."
             state["completion"]["items_obtained"] = sorted(obtained)
+        elif command in ("tablet-found", "tablet-undo"):
+            known = {
+                row[0] for row in connection.execute(
+                    "SELECT fragment_id FROM tablet_fragments"
+                )
+            }
+            invalid = sorted(set(values) - known)
+            if invalid:
+                raise ValueError(f"Unknown tablet fragment ID(s): {invalid}")
+            found = set(state["completion"]["tablet_fragments"])
+            if command == "tablet-found":
+                found.update(values)
+                message = f"Recorded tablet fragment(s): {', '.join(values)}."
+            else:
+                found.difference_update(values)
+                message = f"Reopened tablet fragment(s): {', '.join(values)}."
+            state["completion"]["tablet_fragments"] = sorted(found)
         else:
             raise ValueError(f"Unknown progress command: {command}")
     _save_state(state_path, state)
@@ -171,6 +193,9 @@ def main() -> None:
     for name in ("item-obtained", "item-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="ITEM_ID")
+    for name in ("tablet-found", "tablet-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="FRAGMENT_ID")
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))

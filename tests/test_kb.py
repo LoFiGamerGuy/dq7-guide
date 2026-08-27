@@ -52,7 +52,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 72)
+        self.assertEqual(self.counts["sources"], 73)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -62,11 +62,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
-        self.assertEqual(self.counts["item_acquisition_paths"], 368)
+        self.assertEqual(self.counts["item_acquisition_paths"], 405)
         self.assertEqual(self.counts["shops"], 45)
         self.assertEqual(self.counts["shop_inventory"], 82)
         self.assertEqual(self.counts["lucky_panel_pools"], 12)
         self.assertEqual(self.counts["lucky_panel_rewards"], 75)
+        self.assertEqual(self.counts["stone_tablets"], 20)
+        self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["achievements"], 61)
         self.assertEqual(self.counts["achievement_aliases"], 1)
         self.assertEqual(self.counts["achievement_requirements"], 29)
@@ -100,7 +102,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM achievement_requirements
             WHERE target_type = 'unresolved_registry'"""
         ).fetchone()[0]
-        self.assertEqual(unresolved, 3)
+        self.assertEqual(unresolved, 2)
         hoarder = self.connection.execute(
             """SELECT required_count FROM achievement_requirements
             WHERE achievement_id = 'ach_heroic_hoarder'"""
@@ -187,7 +189,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE a.item_id IS NULL
               AND i.verification_status NOT LIKE 'source_checked_route_gap%'"""
         ).fetchall()
-        self.assertEqual(gaps, 76)
+        self.assertEqual(gaps, 39)
         self.assertEqual(unexplained_gaps, [])
 
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
@@ -196,8 +198,47 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         self.assertEqual(report["total"], 353)
         self.assertEqual(report["obtained_count"], 0)
-        self.assertEqual(report["routed_count"], 277)
-        self.assertEqual(len(report["items"]), 76)
+        self.assertEqual(report["routed_count"], 314)
+        self.assertEqual(len(report["items"]), 39)
+
+    def test_tablet_registry_is_complete_and_resolves_achievement(self):
+        totals = self.connection.execute(
+            """SELECT COUNT(*), SUM(required_fragment_count) FROM stone_tablets"""
+        ).fetchone()
+        self.assertEqual(tuple(totals), (20, 71))
+        ordinals = [
+            row[0] for row in self.connection.execute(
+                "SELECT source_ordinal FROM tablet_fragments ORDER BY source_ordinal"
+            )
+        ]
+        self.assertEqual(ordinals, list(range(1, 72)))
+        requirement = self.connection.execute(
+            """SELECT target_type, target_key, required_count
+            FROM achievement_requirements
+            WHERE achievement_id = 'ach_no_stone_left_unturned'"""
+        ).fetchone()
+        self.assertEqual(
+            tuple(requirement), ("stone_tablet_registry", "all", 20)
+        )
+
+    def test_player_progress_tracks_tablet_fragment_ids(self):
+        state_path = Path(self.tempdir.name) / "tablet-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(
+            state_path, self.db_path, "tablet-found", ["tablet_fragment_001"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            state["completion"]["tablet_fragments"], ["tablet_fragment_001"]
+        )
+        update_progress(
+            state_path, self.db_path, "tablet-undo", ["tablet_fragment_001"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["tablet_fragments"], [])
 
         state_path = Path(self.tempdir.name) / "hoarder-state.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
