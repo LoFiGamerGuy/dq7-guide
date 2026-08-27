@@ -18,6 +18,7 @@ from build_kb import (  # noqa: E402
     detect_conflicts,
     normalize_checkpoint_advice,
 )
+from achievement_report import load_achievement_report  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
 from early_walkthrough import (  # noqa: E402
@@ -50,7 +51,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 66)
+        self.assertEqual(self.counts["sources"], 67)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -59,10 +60,72 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
-        self.assertEqual(self.counts["items"], 30)
-        self.assertEqual(self.counts["item_acquisition_paths"], 117)
+        self.assertEqual(self.counts["items"], 64)
+        self.assertEqual(self.counts["item_acquisition_paths"], 137)
         self.assertEqual(self.counts["shops"], 32)
         self.assertEqual(self.counts["lucky_panel_pools"], 12)
+        self.assertEqual(self.counts["achievements"], 61)
+        self.assertEqual(self.counts["achievement_aliases"], 1)
+
+    def test_achievement_registry_is_complete_and_checkpoint_scoped(self):
+        counts = dict(
+            self.connection.execute(
+                "SELECT category, COUNT(*) FROM achievements GROUP BY category"
+            ).fetchall()
+        )
+        self.assertEqual(counts, {"actionable": 28, "meta": 1, "story": 32})
+        invalid = self.connection.execute(
+            """SELECT achievement_id FROM achievements
+            WHERE length(trim(locator)) = 0 OR source_id IS NULL"""
+        ).fetchall()
+        self.assertEqual(invalid, [])
+        alias = self.connection.execute(
+            """SELECT achievement_id, alias FROM achievement_aliases
+            WHERE alias_id = 'ach_alias_field_day_a_questrian'"""
+        ).fetchone()
+        self.assertEqual(tuple(alias), ("ach_field_day", "A Questrian"))
+
+    def test_achievement_report_uses_only_explicit_player_progress(self):
+        report = load_achievement_report(
+            self.db_path, ROOT / "player" / "ryan-save-state.json"
+        )
+        self.assertEqual(report["total"], 61)
+        self.assertEqual(report["unlocked_count"], 0)
+        self.assertEqual(len(report["achievements"]), 61)
+
+        state_path = Path(self.tempdir.name) / "achievement-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["achievements_unlocked"] = [
+            "ach_into_the_unknown", "unknown_legacy_name"
+        ]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_achievement_report(self.db_path, state_path)
+        self.assertEqual(report["unlocked_count"], 1)
+        self.assertEqual(report["unknown_state_ids"], ["unknown_legacy_name"])
+        self.assertEqual(len(report["achievements"]), 60)
+
+    def test_player_progress_records_and_reopens_achievements(self):
+        state_path = Path(self.tempdir.name) / "achievement-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(
+            state_path, self.db_path, "achievement-unlocked", ["ach_into_the_unknown"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            state["completion"]["achievements_unlocked"], ["ach_into_the_unknown"]
+        )
+        update_progress(
+            state_path, self.db_path, "achievement-undo", ["ach_into_the_unknown"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["achievements_unlocked"], [])
+        with self.assertRaisesRegex(ValueError, "Unknown achievement"):
+            update_progress(
+                state_path, self.db_path, "achievement-unlocked", ["ach_not_real"]
+            )
 
     def test_every_claim_has_registered_source(self):
         orphans = self.connection.execute(
@@ -71,6 +134,23 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE s.source_id IS NULL"""
         ).fetchall()
         self.assertEqual(orphans, [])
+
+    def test_shield_and_head_hoarder_categories_are_complete(self):
+        counts = dict(
+            self.connection.execute(
+                """SELECT c.name, COUNT(*) FROM items i
+                JOIN item_categories c USING(category_id)
+                WHERE c.name IN ('Shields', 'Head') GROUP BY c.name"""
+            ).fetchall()
+        )
+        self.assertEqual(counts, {"Head": 33, "Shields": 24})
+        unsupported = self.connection.execute(
+            """SELECT COUNT(*) FROM items i
+            LEFT JOIN item_acquisition_paths a USING(item_id)
+            WHERE i.category_id = 'itemcat_head' AND a.item_id IS NULL
+              AND i.verification_status = 'source_checked_route_gap'"""
+        ).fetchone()[0]
+        self.assertEqual(unsupported, 15)
 
     def test_seeded_source_disagreement_is_visible(self):
         row = self.connection.execute(

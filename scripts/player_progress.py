@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record explicit player-reported checkpoint, medal, and checklist progress."""
+"""Record explicit player-reported checkpoint, medal, checklist, and achievement progress."""
 
 from __future__ import annotations
 
@@ -20,6 +20,11 @@ def _load_state(state_path: Path) -> dict:
     completed = state.get("completion", {}).get("obligations_completed")
     if not isinstance(completed, list) or any(not isinstance(value, str) for value in completed):
         raise ValueError("completion.obligations_completed must be a list of strings")
+    achievements = state.get("completion", {}).get("achievements_unlocked")
+    if not isinstance(achievements, list) or any(
+        not isinstance(value, str) for value in achievements
+    ):
+        raise ValueError("completion.achievements_unlocked must be a list of strings")
     return state
 
 
@@ -107,6 +112,23 @@ def update_progress(
                 completed.discard(obligation_id)
                 message = f"Reopened {checkpoint_id} step {order_text}."
             state["completion"]["obligations_completed"] = sorted(completed)
+        elif command in ("achievement-unlocked", "achievement-undo"):
+            known = {
+                row[0] for row in connection.execute(
+                    "SELECT achievement_id FROM achievements"
+                )
+            }
+            invalid = sorted(set(values) - known)
+            if invalid:
+                raise ValueError(f"Unknown achievement ID(s): {invalid}")
+            unlocked = set(state["completion"]["achievements_unlocked"])
+            if command == "achievement-unlocked":
+                unlocked.update(values)
+                message = f"Recorded achievement(s): {', '.join(values)}."
+            else:
+                unlocked.difference_update(values)
+                message = f"Reopened achievement(s): {', '.join(values)}."
+            state["completion"]["achievements_unlocked"] = sorted(unlocked)
         else:
             raise ValueError(f"Unknown progress command: {command}")
     _save_state(state_path, state)
@@ -127,6 +149,9 @@ def main() -> None:
     for name in ("done", "undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs=2, metavar=("CHECKPOINT", "STEP"))
+    for name in ("achievement-unlocked", "achievement-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="ACHIEVEMENT_ID")
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))

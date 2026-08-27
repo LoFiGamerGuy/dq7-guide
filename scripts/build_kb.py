@@ -134,7 +134,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             "INSERT INTO meta(key, value) VALUES (?, ?)",
             [
-                ("schema_version", "2"),
+                ("schema_version", "3"),
                 ("package_version", "0.3.0-phase1"),
                 ("build_type", "reconstructed_seed"),
                 ("game", "Dragon Quest VII Reimagined"),
@@ -347,6 +347,40 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
+            """INSERT INTO achievements(
+                achievement_id, name, description, category, hidden, grade,
+                platform_scope, earliest_checkpoint_id,
+                completion_checkpoint_id, missable, source_id, locator,
+                confidence, verification_status
+            ) VALUES (
+                :achievement_id, :name, :description, :category, :hidden,
+                :grade, :platform_scope, :earliest_checkpoint_id,
+                :completion_checkpoint_id, :missable, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            seed.get("achievements", []),
+        )
+        connection.executemany(
+            """INSERT INTO achievement_aliases(
+                alias_id, achievement_id, alias, platform_scope, source_id,
+                locator, confidence, verification_status
+            ) VALUES (
+                :alias_id, :achievement_id, :alias, :platform_scope,
+                :source_id, :locator, :confidence, :verification_status
+            )""",
+            seed.get("achievement_aliases", []),
+        )
+
+        invalid_achievement_windows = connection.execute(
+            """SELECT a.achievement_id FROM achievements a
+            JOIN checkpoints first ON first.checkpoint_id = a.earliest_checkpoint_id
+            JOIN checkpoints done ON done.checkpoint_id = a.completion_checkpoint_id
+            WHERE done.sequence_no < first.sequence_no"""
+        ).fetchall()
+        if invalid_achievement_windows:
+            raise ValueError("Achievement completion checkpoint precedes availability")
+
+        connection.executemany(
             """INSERT INTO item_categories(category_id, name, heroic_hoarder_order)
             VALUES (:category_id, :name, :heroic_hoarder_order)""",
             seed.get("item_categories", []),
@@ -557,7 +591,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "vocations", "vocation_requirements", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
-            , "checkpoint_advice"
+            , "checkpoint_advice", "achievements", "achievement_aliases"
             , "item_categories", "items", "item_acquisition_paths", "shops"
             , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
         ):

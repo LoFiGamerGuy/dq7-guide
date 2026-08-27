@@ -232,6 +232,38 @@ CREATE TABLE checkpoint_advice (
     UNIQUE(checkpoint_id, advice_type, display_order)
 );
 
+CREATE TABLE achievements (
+    achievement_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    description TEXT NOT NULL CHECK(length(trim(description)) > 0),
+    category TEXT NOT NULL CHECK(category IN ('story', 'actionable', 'meta')),
+    hidden INTEGER NOT NULL CHECK(hidden IN (0, 1)),
+    grade TEXT NOT NULL CHECK(grade IN ('bronze', 'silver', 'gold', 'platinum')),
+    platform_scope TEXT NOT NULL CHECK(length(trim(platform_scope)) > 0),
+    earliest_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    completion_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    missable INTEGER NOT NULL CHECK(missable IN (0, 1)),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
+CREATE TABLE achievement_aliases (
+    alias_id TEXT PRIMARY KEY,
+    achievement_id TEXT NOT NULL REFERENCES achievements(achievement_id),
+    alias TEXT NOT NULL COLLATE NOCASE,
+    platform_scope TEXT NOT NULL CHECK(length(trim(platform_scope)) > 0),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(alias, platform_scope)
+);
+
+CREATE INDEX achievements_by_checkpoint
+    ON achievements(earliest_checkpoint_id, completion_checkpoint_id);
+
 
 CREATE TABLE item_categories (
     category_id TEXT PRIMARY KEY,

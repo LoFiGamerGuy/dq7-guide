@@ -19,12 +19,14 @@ The seed includes:
 - complete Beginner → Intermediate and Intermediate → Advanced prerequisites;
 - Moonlighting unlock notes;
 - the seven named missable / choice-sensitive events from the initial pass;
+- all 61 achievements with explicit player tracking;
+- complete Shield and Head identity registries for Heroic Hoarder;
 - all 19 Mini Medal reward thresholds, including the major power spikes;
 - early gear power-spike notes;
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 66-page source registry;
+- a 67-page source registry;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -45,6 +47,8 @@ python scripts/walkthrough.py --from cp_030_postgame_another_world --through cp_
 python scripts/medal_report.py --through cp_009_alltrades
 python scripts/item_report.py "Pilchard Crackers"
 python scripts/item_report.py "Cautery Sword" --at-checkpoint cp_009_alltrades
+python scripts/achievement_report.py
+python scripts/achievement_report.py --all --sources
 python scripts/conflict_report.py
 python -m unittest discover -s tests -v
 ```
@@ -67,6 +71,7 @@ python scripts/player_progress.py checkpoint cp_004_emberdale
 python scripts/player_progress.py done cp_004_emberdale 3
 python scripts/player_progress.py medal-found 10 11
 python scripts/player_progress.py medal-count 12
+python scripts/player_progress.py achievement-unlocked ach_into_the_unknown
 ```
 
 ## Key documents
