@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 76 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 115 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names | High | Ingest all ranks, skills, stats, perks, and Let Loose data |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
@@ -16,14 +16,14 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
-| Heroic Hoarder items | 353/353 identities / 405 acquisition paths; all six categories complete | High for identities and explicit routes; 39 route gaps remain | Resolve remaining gaps without inferring unspecified stores or rewards |
+| Heroic Hoarder items | 353/353 identities / 443 acquisition paths; all six categories complete | High for identities and explicit routes; only Stella/Stellar Fan remains | Adjudicate the final spelling conflict with direct evidence |
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | 20 ready-for-play gear, boss, grind, and vocation advice rows across cp003–cp009 | Medium/High, attributed | Expand only with checkpoint-valid acquisition and character usability |
 | Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
 | Monster Hearts | Representative high-value roles | Medium | Complete registry, effects, and acquisition |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinal rows; 10 Vicious species / 11 encounters | High for ordinal registry; English alignment incomplete | Verify English names for all ordinals and add encounter gates |
+| Monster List / Vicious | 333/333 ordinals; 289 verified English names; 10 Vicious species / 11 encounters | High for ordinals and mapped names; 44 English forms unresolved | Verify remaining boss/special English forms |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 6 unresolved source conflicts | Conservative coverage | Resolve the five prior conflicts plus Tempest Shield location with direct in-game evidence |
 
@@ -31,7 +31,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 76
+- sources: 115
 - vocations/entities: 26
 - prerequisite relationships: 27
 - claims: 26
@@ -46,12 +46,12 @@ Expected after `python scripts/build_kb.py`:
 - stone tablets / fragments: 20 / 71
 - monsters: 333
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 20
+- ready-for-play checkpoint advice: 28
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 353
-- item acquisition paths: 405
-- shops / inventory rows: 45 / 82
-- Lucky Panel pools / reward rows: 12 / 75
+- item acquisition paths: 443
+- shops / inventory rows: 47 / 114
+- Lucky Panel pools / reward rows: 13 / 78
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.
@@ -87,6 +87,8 @@ The route-resolution batch adds 96 supported paths, reducing Heroic Hoarder rout
 The tablet and route batch adds all 20 tablets and 71 current-version fragments with numbered provenance and checkpoint gates, resolving the No Stone Left Unturned dependency. A further 37 item routes reduce Heroic Hoarder gaps from 76 to 39 while keeping the Wizard/Wizard's and Stella/Stellar naming discrepancies explicit.
 
 The monster and vocation batch adds all 333 Monster List ordinals, 10 distinct Vicious species across 11 encounters, and party-wide mastery aggregation for all 26 vocations. Take No Prisoners, Vanquisher of the Vicious, and Master of All now have structured dependencies and explicit progress commands. English monster names remain unset where ordinal alignment is not proven.
+
+The English-name, item-route, and optimization batch maps 289/333 Monster List ordinals to source-verified English names, reduces Heroic Hoarder to one explicit Stella/Stellar Fan naming conflict, and adds eight checkpoint-valid gear, vocation, Heart, and farming recommendations across cp010–cp019.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

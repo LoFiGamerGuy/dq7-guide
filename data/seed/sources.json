@@ -1,9 +1,14 @@
 [
   {
-    "source_id": "game8_tablet_fragments", "title": "List of All 71 Tablet Fragment Locations",
-    "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578014",
-    "source_class": "guide_wiki", "role": "tablet_fragment_and_destination_registry",
-    "published_at": null, "updated_at": "2026-02-11", "retrieved_at": "2026-08-27"
+    "source_id": "game8_tablet_fragments",
+    "title": "List of All 71 Tablet Fragment Locations",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578014",
+    "source_class": "guide_wiki",
+    "role": "tablet_fragment_and_destination_registry",
+    "published_at": null,
+    "updated_at": "2026-02-11",
+    "retrieved_at": "2026-08-27"
   },
   {
     "source_id": "rpgsite_walkthrough",
@@ -352,127 +357,456 @@
     "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_pot_lid", "title": "Pot Lid", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581047", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_pot_lid",
+    "title": "Pot Lid",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581047",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_leather_shield", "title": "Leather Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581046", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_leather_shield",
+    "title": "Leather Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581046",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_scale_shield", "title": "Scale Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581045", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_scale_shield",
+    "title": "Scale Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581045",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_kitty_shield", "title": "Kitty Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581044", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_kitty_shield",
+    "title": "Kitty Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581044",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_bronze_shield", "title": "Bronze Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581043", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_bronze_shield",
+    "title": "Bronze Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581043",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_iron_shield", "title": "Iron Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581042", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_iron_shield",
+    "title": "Iron Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581042",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_silver_platter", "title": "Silver Platter", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581041", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_silver_platter",
+    "title": "Silver Platter",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581041",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_larca_map", "title": "L'Arca Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579403", "source_class": "guide_wiki", "role": "shop_inventory_detail", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-25"
+    "source_id": "game8_larca_map",
+    "title": "L'Arca Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579403",
+    "source_class": "guide_wiki",
+    "role": "shop_inventory_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_alltrades_map", "title": "Alltrades Abbey Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582458", "source_class": "guide_wiki", "role": "shop_inventory_detail", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-25"
+    "source_id": "game8_alltrades_map",
+    "title": "Alltrades Abbey Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582458",
+    "source_class": "guide_wiki",
+    "role": "shop_inventory_detail",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_frobisher_map", "title": "Frobisher Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581658", "source_class": "guide_wiki", "role": "shop_inventory_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-25"
+    "source_id": "game8_frobisher_map",
+    "title": "Frobisher Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581658",
+    "source_class": "guide_wiki",
+    "role": "shop_inventory_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_white_shield", "title": "White Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581025", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_white_shield",
+    "title": "White Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581025",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_ogre_shield", "title": "Ogre Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581024", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_ogre_shield",
+    "title": "Ogre Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581024",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_bottlenose_buckler", "title": "Bottlenose Buckler", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581039", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_bottlenose_buckler",
+    "title": "Bottlenose Buckler",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581039",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_platinum_shield", "title": "Platinum Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581038", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_platinum_shield",
+    "title": "Platinum Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581038",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_ice_shield", "title": "Ice Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581037", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_ice_shield",
+    "title": "Ice Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581037",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_dragon_shield", "title": "Dragon Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581036", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_dragon_shield",
+    "title": "Dragon Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581036",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_la_bravoure_map", "title": "La Bravoure Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582205", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-25"
+    "source_id": "game8_la_bravoure_map",
+    "title": "La Bravoure Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582205",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_wetlock_map", "title": "Wetlock Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/583485", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-25"
+    "source_id": "game8_wetlock_map",
+    "title": "Wetlock Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/583485",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_mount_gora_map", "title": "Mount Gora Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579913", "source_class": "guide_wiki", "role": "location_and_treasure_detail", "published_at": null, "updated_at": "2026-02-24", "retrieved_at": "2026-08-25"
+    "source_id": "game8_mount_gora_map",
+    "title": "Mount Gora Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579913",
+    "source_class": "guide_wiki",
+    "role": "location_and_treasure_detail",
+    "published_at": null,
+    "updated_at": "2026-02-24",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_tempest_shield", "title": "Tempest Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581035", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_tempest_shield",
+    "title": "Tempest Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581035",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_power_shield", "title": "Power Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581034", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_power_shield",
+    "title": "Power Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581034",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_metal_slime_shield", "title": "Metal Slime Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581033", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_metal_slime_shield",
+    "title": "Metal Slime Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581033",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_silver_shield", "title": "Silver Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581032", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_silver_shield",
+    "title": "Silver Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581032",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_flame_shield", "title": "Flame Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581031", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_flame_shield",
+    "title": "Flame Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581031",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_liquid_metal_shield", "title": "Liquid Metal Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581030", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_liquid_metal_shield",
+    "title": "Liquid Metal Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581030",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_aeras_shield", "title": "Aeras Shield", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581029", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_aeras_shield",
+    "title": "Aeras Shield",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581029",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_shield_of_shame", "title": "Shield of Shame", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581028", "source_class": "guide_wiki", "role": "item_acquisition_detail", "published_at": null, "updated_at": "2026-02-19", "retrieved_at": "2026-08-25"
+    "source_id": "game8_shield_of_shame",
+    "title": "Shield of Shame",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581028",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_detail",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-25"
   },
   {
-    "source_id": "game8_boss_glowering_inferno", "title": "How to Beat Glowering Inferno", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578171", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-17", "retrieved_at": "2026-08-26"
+    "source_id": "game8_boss_glowering_inferno",
+    "title": "How to Beat Glowering Inferno",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578171",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-17",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_boss_hackrobat", "title": "How to Beat Hackrobat", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578183", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-12", "retrieved_at": "2026-08-26"
+    "source_id": "game8_boss_hackrobat",
+    "title": "How to Beat Hackrobat",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578183",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-12",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_boss_slaughtomaton", "title": "How to Beat Slaughtomaton", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578206", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-17", "retrieved_at": "2026-08-26"
+    "source_id": "game8_boss_slaughtomaton",
+    "title": "How to Beat Slaughtomaton",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578206",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-17",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_boss_cardinal_sin", "title": "How to Beat Cardinal Sin", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578395", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-12", "retrieved_at": "2026-08-26"
+    "source_id": "game8_boss_cardinal_sin",
+    "title": "How to Beat Cardinal Sin",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578395",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-12",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_ballymolloy_walkthrough", "title": "Ballymolloy Walkthrough Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/575240", "source_class": "guide_wiki", "role": "area_walkthrough_and_boss_strategy", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-26"
+    "source_id": "game8_ballymolloy_walkthrough",
+    "title": "Ballymolloy Walkthrough Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/575240",
+    "source_class": "guide_wiki",
+    "role": "area_walkthrough_and_boss_strategy",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_boss_guardians_roamers", "title": "How to Beat the Guardians of the Roamers", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579603", "source_class": "guide_wiki", "role": "boss_strategy", "published_at": null, "updated_at": "2026-02-12", "retrieved_at": "2026-08-26"
+    "source_id": "game8_boss_guardians_roamers",
+    "title": "How to Beat the Guardians of the Roamers",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579603",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-12",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_allblades_arena", "title": "Allblades Arena Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579626", "source_class": "guide_wiki", "role": "arena_boss_strategy", "published_at": null, "updated_at": "2026-02-25", "retrieved_at": "2026-08-26"
+    "source_id": "game8_allblades_arena",
+    "title": "Allblades Arena Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579626",
+    "source_class": "guide_wiki",
+    "role": "arena_boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-25",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_alltrades_walkthrough", "title": "Alltrades Abbey Walkthrough Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578339", "source_class": "guide_wiki", "role": "area_walkthrough_boss_and_vocation_strategy", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-26"
+    "source_id": "game8_alltrades_walkthrough",
+    "title": "Alltrades Abbey Walkthrough Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578339",
+    "source_class": "guide_wiki",
+    "role": "area_walkthrough_boss_and_vocation_strategy",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_pilchard_bay_map", "title": "Pilchard Bay Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578466", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+    "source_id": "game8_pilchard_bay_map",
+    "title": "Pilchard Bay Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578466",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_estard_castle_map", "title": "Estard Castle Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579142", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+    "source_id": "game8_estard_castle_map",
+    "title": "Estard Castle Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579142",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_ballymolloy_map", "title": "Ballymolloy Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578184", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+    "source_id": "game8_ballymolloy_map",
+    "title": "Ballymolloy Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578184",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_pilgrims_rest_map", "title": "Pilgrim's Rest Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582225", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+    "source_id": "game8_pilgrims_rest_map",
+    "title": "Pilgrim's Rest Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582225",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "game8_pilgrims_perdition_map", "title": "Pilgrim's Perdition Map and Location Guide", "publisher": "Game8", "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582520", "source_class": "guide_wiki", "role": "location_and_shop_detail", "published_at": null, "updated_at": "2026-03-04", "retrieved_at": "2026-08-26"
+    "source_id": "game8_pilgrims_perdition_map",
+    "title": "Pilgrim's Perdition Map and Location Guide",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582520",
+    "source_class": "guide_wiki",
+    "role": "location_and_shop_detail",
+    "published_at": null,
+    "updated_at": "2026-03-04",
+    "retrieved_at": "2026-08-26"
   },
   {
-    "source_id": "steam_achievements", "title": "DRAGON QUEST VII Reimagined Global Achievements", "publisher": "Valve / Steam", "url": "https://steamcommunity.com/stats/2499860/achievements", "source_class": "official", "role": "platform_achievement_registry", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-26", "notes": "Direct Steam platform registry. Secret descriptions are hidden; Game8 supplies their unlock descriptions."
+    "source_id": "steam_achievements",
+    "title": "DRAGON QUEST VII Reimagined Global Achievements",
+    "publisher": "Valve / Steam",
+    "url": "https://steamcommunity.com/stats/2499860/achievements",
+    "source_class": "official",
+    "role": "platform_achievement_registry",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-26",
+    "notes": "Direct Steam platform registry. Secret descriptions are hidden; Game8 supplies their unlock descriptions."
   },
   {
     "source_id": "trueachievements_master_of_all",
@@ -509,5 +843,436 @@
     "updated_at": null,
     "retrieved_at": "2026-08-27",
     "notes": "Complete 333-row Japanese in-game monster-list transcription. English aliases remain unset unless independently matched to an exact ordinal."
+  },
+  {
+    "source_id": "game8_globular_pistotron",
+    "title": "How to Get Globular Pistotron",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582323",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_leather_armour",
+    "title": "How to Get Leather Armour",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581147",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_dancers_costume",
+    "title": "How to Get Dancer's Costume",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581135",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_magic_vestment",
+    "title": "How to Get Magic Vestment",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581133",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_lucky_panel",
+    "title": "How to Get Lucky Panel rewards",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578174",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_legerdemantle",
+    "title": "How to Get Legerdemantle",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581126",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_magical_skirt",
+    "title": "How to Get Magical Skirt",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581124",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_party_dress",
+    "title": "How to Get Party Dress",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581121",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_silver_cuirass",
+    "title": "How to Get Silver Cuirass",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581116",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_spangled_dress",
+    "title": "How to Get Spangled Dress",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581115",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_flowing_dress",
+    "title": "How to Get Flowing Dress",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581114",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_angels_robe",
+    "title": "How to Get Angel's Robe",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581113",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_heavy_armour",
+    "title": "How to Get Heavy Armour",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581106",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_dragon_mail",
+    "title": "How to Get Dragon Mail",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581104",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_platinum_mail",
+    "title": "How to Get Platinum Mail",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581099",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_flame_armour",
+    "title": "How to Get Flame Armour",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581098",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_dancers_mail",
+    "title": "How to Get Dancer's Mail",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581090",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_faerie_foil",
+    "title": "How to Get Faerie Foil",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580667",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_dream_blade",
+    "title": "How to Get Dream Blade",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580662",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_platinum_sword",
+    "title": "How to Get Platinum Sword",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580659",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_sir_mervyns_sword",
+    "title": "How to Get Sir Mervyn's Sword",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580658",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_zombiesbane",
+    "title": "How to Get Zombiesbane",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580657",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_godaeas_sword",
+    "title": "How to Get Godaeas Sword",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580652",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_metal_slime_sword",
+    "title": "How to Get Metal Slime Sword",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580651",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_blizzard_blade",
+    "title": "How to Get Blizzard Blade",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580649",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_bastard_sword",
+    "title": "How to Get Bastard Sword",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580648",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_beast_claws",
+    "title": "How to Get Beast Claws",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580578",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_monster_slashers",
+    "title": "How to Get Monster Slashers",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580577",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_flametang_boomerang",
+    "title": "How to Get Flametang Boomerang",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580574",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_chain_whip",
+    "title": "How to Get Chain Whip",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580599",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_dragontail_whip",
+    "title": "How to Get Dragontail Whip",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580597",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_spiked_steel_whip",
+    "title": "How to Get Spiked Steel Whip",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580596",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_pixie_pole",
+    "title": "How to Get Pixie Pole",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580633",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_staff_divine_wrath",
+    "title": "How to Get Staff of Divine Wrath",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580626",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_sages_staff",
+    "title": "How to Get Sage's Staff",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580623",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_war_hammer",
+    "title": "How to Get War Hammer",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/580603",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_silver_tiara",
+    "title": "How to Get Silver Tiara",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581050",
+    "source_class": "guide_wiki",
+    "role": "item_acquisition_route",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27"
+  },
+  {
+    "source_id": "game8_monsters_all",
+    "title": "List of All Enemies and Monsters",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/577310",
+    "source_class": "guide_wiki",
+    "role": "english_monster_order_registry",
+    "published_at": null,
+    "updated_at": "2026-02-25",
+    "retrieved_at": "2026-08-27",
+    "notes": "English table contains 207 ordinary entries in compendium order followed by the 35 Rampaging entries corresponding to ordinals 299-333."
+  },
+  {
+    "source_id": "woodus_dq7r_monsters",
+    "title": "Dragon Quest VII Reimagined - Monsters",
+    "publisher": "Dragon's Den / Woodus.com",
+    "url": "https://www.woodus.com/den/games/dq7reimage/monsters.php",
+    "source_class": "community_database",
+    "role": "english_japanese_monster_name_crosswalk",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27",
+    "notes": "Exactly 333 English/Japanese pairs. Only exact unique joins are used; duplicate and visibly defective associations remain unresolved."
   }
 ]

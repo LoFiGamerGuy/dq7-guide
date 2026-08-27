@@ -52,21 +52,21 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 76)
+        self.assertEqual(self.counts["sources"], 115)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 20)
+        self.assertEqual(self.counts["checkpoint_advice"], 28)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
-        self.assertEqual(self.counts["item_acquisition_paths"], 405)
-        self.assertEqual(self.counts["shops"], 45)
-        self.assertEqual(self.counts["shop_inventory"], 82)
-        self.assertEqual(self.counts["lucky_panel_pools"], 12)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 75)
+        self.assertEqual(self.counts["item_acquisition_paths"], 443)
+        self.assertEqual(self.counts["shops"], 47)
+        self.assertEqual(self.counts["shop_inventory"], 114)
+        self.assertEqual(self.counts["lucky_panel_pools"], 13)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 78)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -192,7 +192,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE a.item_id IS NULL
               AND i.verification_status NOT LIKE 'source_checked_route_gap%'"""
         ).fetchall()
-        self.assertEqual(gaps, 39)
+        self.assertEqual(gaps, 1)
         self.assertEqual(unexplained_gaps, [])
 
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
@@ -201,8 +201,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         self.assertEqual(report["total"], 353)
         self.assertEqual(report["obtained_count"], 0)
-        self.assertEqual(report["routed_count"], 314)
-        self.assertEqual(len(report["items"]), 39)
+        self.assertEqual(report["routed_count"], 352)
+        self.assertEqual(len(report["items"]), 1)
 
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
@@ -229,7 +229,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*), MIN(source_ordinal), MAX(source_ordinal),
                 SUM(rampaging), SUM(english_name IS NOT NULL) FROM monsters"""
         ).fetchone()
-        self.assertEqual(tuple(monster_stats), (333, 1, 333, 35, 0))
+        self.assertEqual(tuple(monster_stats), (333, 1, 333, 35, 289))
         take_no_prisoners = self.connection.execute(
             """SELECT target_type, target_key, required_count
             FROM achievement_requirements
