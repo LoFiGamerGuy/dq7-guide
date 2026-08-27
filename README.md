@@ -23,8 +23,8 @@ The seed includes:
 - early gear power-spike notes;
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
-- initial chronological checkpoints through the first major vocation breakpoint;
-- a 58-page source registry;
+- ordered chronological checkpoints through the final postgame cleanup;
+- a 66-page source registry;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -41,6 +41,7 @@ python scripts/walkthrough.py
 python scripts/walkthrough.py --checkpoint cp_004_emberdale
 python scripts/walkthrough.py --from cp_010_alltrades_present --through cp_014_sir_mervyn --sources
 python scripts/walkthrough.py --from cp_015_greenthumb --through cp_029_ending_victory_lap
+python scripts/walkthrough.py --from cp_030_postgame_another_world --through cp_033_arena_achievement_cleanup
 python scripts/medal_report.py --through cp_009_alltrades
 python scripts/item_report.py "Pilchard Crackers"
 python scripts/item_report.py "Cautery Sword" --at-checkpoint cp_009_alltrades

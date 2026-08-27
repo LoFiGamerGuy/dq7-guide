@@ -55,7 +55,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
-        self.assertEqual(self.counts["checkpoint_obligations"], 195)
+        self.assertEqual(self.counts["checkpoint_obligations"], 222)
         self.assertEqual(self.counts["checkpoint_advice"], 20)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -546,16 +546,16 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertNotIn(6, all_medals)
         self.assertEqual(report["collected_medal_count"], 1)
 
-    def test_walkthrough_generalizes_through_cp029(self):
+    def test_walkthrough_generalizes_through_cp033(self):
         report = load_walkthrough(
             self.db_path,
             ROOT / "player" / "ryan-save-state.json",
             "cp_010_alltrades_present",
-            "cp_029_ending_victory_lap",
+            "cp_033_arena_achievement_cleanup",
         )
         self.assertEqual(
             [block["checkpoint"]["sequence_no"] for block in report["blocks"]],
-            list(range(10, 30)),
+            list(range(10, 34)),
         )
         for block in report["blocks"]:
             orders = [row["display_order"] for row in block["stops"] + block["now"]]
@@ -577,6 +577,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("seed_partial", output.getvalue())
         self.assertIn("partial audit; not a guarantee", output.getvalue())
         self.assertIn("guidance not normalized", output.getvalue())
+
+    def test_postgame_walkthrough_tracks_all_final_medals_and_no_fake_stops(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_030_postgame_another_world",
+            "cp_033_arena_achievement_cleanup",
+        )
+        self.assertEqual(
+            [block["checkpoint"]["sequence_no"] for block in report["blocks"]],
+            [30, 31, 32, 33],
+        )
+        self.assertTrue(all(not block["stops"] for block in report["blocks"]))
+        medal_numbers = {
+            row["medal_number"]
+            for block in report["blocks"]
+            for bucket in ("medals_now", "medals_backtrack", "medals_later")
+            for row in block[bucket]
+        }
+        self.assertTrue(set(range(95, 101)).issubset(medal_numbers))
+        self.assertEqual(len(report["blocks"][2]["now"]), 11)
+        self.assertEqual(len(report["blocks"][3]["now"]), 8)
 
     def test_walkthrough_wrapper_preserves_legacy_entry_point(self):
         self.assertIs(walkthrough_main, early_walkthrough_main)

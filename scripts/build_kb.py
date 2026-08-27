@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
-WALKTHROUGH_ORDERED_THROUGH_SEQUENCE = 29
+WALKTHROUGH_ORDERED_THROUGH_SEQUENCE = 33
 
 
 def load_json(path: Path):
