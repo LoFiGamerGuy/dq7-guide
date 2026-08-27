@@ -26,8 +26,9 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 73-page source registry;
+- a 76-page source registry;
 - all 20 tablets and 71 tablet fragments;
+- all 333 Monster List ordinals and all 10 Vicious species;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -51,6 +52,7 @@ python scripts/item_report.py "Cautery Sword" --at-checkpoint cp_009_alltrades
 python scripts/hoarder_report.py --gaps
 python scripts/achievement_report.py
 python scripts/achievement_report.py --all --sources
+python scripts/vocation_report.py
 python scripts/conflict_report.py
 python -m unittest discover -s tests -v
 ```
@@ -76,6 +78,8 @@ python scripts/player_progress.py medal-count 12
 python scripts/player_progress.py achievement-unlocked ach_into_the_unknown
 python scripts/player_progress.py item-obtained item_pilchard_crackers
 python scripts/player_progress.py tablet-found tablet_fragment_001
+python scripts/player_progress.py vocation-mastered Hero vocation_warrior
+python scripts/player_progress.py monster-defeated monster_001
 ```
 
 ## Key documents

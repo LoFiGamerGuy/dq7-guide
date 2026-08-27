@@ -261,13 +261,37 @@ CREATE TABLE achievement_aliases (
     UNIQUE(alias, platform_scope)
 );
 
+CREATE TABLE vicious_targets (
+    vicious_target_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
+CREATE TABLE vicious_encounters (
+    vicious_encounter_id TEXT PRIMARY KEY,
+    vicious_target_id TEXT NOT NULL REFERENCES vicious_targets(vicious_target_id),
+    obligation_id TEXT NOT NULL UNIQUE REFERENCES checkpoint_obligations(obligation_id),
+    checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    encounter_size INTEGER NOT NULL CHECK(encounter_size > 0),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
+CREATE INDEX vicious_encounters_by_target
+    ON vicious_encounters(vicious_target_id, checkpoint_id);
+
 CREATE TABLE achievement_requirements (
     requirement_id TEXT PRIMARY KEY,
     achievement_id TEXT NOT NULL REFERENCES achievements(achievement_id),
     target_type TEXT NOT NULL CHECK(target_type IN (
         'action_counter', 'mini_medal_registry', 'item_registry',
-        'checkpoint_obligation', 'vocation_tier', 'achievement_registry',
-        'unresolved_registry', 'stone_tablet_registry'
+        'checkpoint_obligation', 'vocation_tier', 'vocation_registry', 'achievement_registry',
+        'unresolved_registry', 'stone_tablet_registry', 'vicious_registry', 'monster_registry'
     )),
     target_key TEXT NOT NULL CHECK(length(trim(target_key)) > 0),
     required_count INTEGER NOT NULL CHECK(required_count > 0),
@@ -283,6 +307,33 @@ CREATE INDEX achievements_by_checkpoint
 
 CREATE INDEX achievement_requirements_by_achievement
     ON achievement_requirements(achievement_id, target_type);
+
+CREATE TABLE monsters (
+    monster_id TEXT PRIMARY KEY,
+    source_ordinal INTEGER NOT NULL UNIQUE CHECK(source_ordinal BETWEEN 1 AND 333),
+    source_display_name TEXT NOT NULL CHECK(length(trim(source_display_name)) > 0),
+    english_name TEXT,
+    family TEXT NOT NULL CHECK(family IN (
+        'slime', 'beast', 'undead', 'bird', 'material', 'machine',
+        'demon', 'elemental', 'dragon', 'humanoid', 'nature', 'unknown'
+    )),
+    level INTEGER NOT NULL CHECK(level > 0),
+    hp INTEGER NOT NULL CHECK(hp > 0),
+    strength INTEGER NOT NULL CHECK(strength >= 0),
+    defence INTEGER NOT NULL CHECK(defence >= 0),
+    experience INTEGER NOT NULL CHECK(experience >= 0),
+    vocation_experience INTEGER NOT NULL CHECK(vocation_experience >= 0),
+    gold INTEGER NOT NULL CHECK(gold >= 0),
+    rampaging INTEGER NOT NULL CHECK(rampaging IN (0, 1)),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    CHECK(english_name IS NULL OR length(trim(english_name)) > 0),
+    CHECK(rampaging = CASE WHEN source_ordinal >= 299 THEN 1 ELSE 0 END)
+);
+
+CREATE INDEX monsters_by_family ON monsters(family, source_ordinal);
 
 CREATE TABLE stone_tablets (
     tablet_id TEXT PRIMARY KEY, color TEXT NOT NULL, destination_name TEXT NOT NULL,

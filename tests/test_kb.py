@@ -52,7 +52,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 73)
+        self.assertEqual(self.counts["sources"], 76)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -69,6 +69,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["lucky_panel_rewards"], 75)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
+        self.assertEqual(self.counts["monsters"], 333)
+        self.assertEqual(self.counts["vicious_targets"], 10)
+        self.assertEqual(self.counts["vicious_encounters"], 11)
         self.assertEqual(self.counts["achievements"], 61)
         self.assertEqual(self.counts["achievement_aliases"], 1)
         self.assertEqual(self.counts["achievement_requirements"], 29)
@@ -102,7 +105,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM achievement_requirements
             WHERE target_type = 'unresolved_registry'"""
         ).fetchone()[0]
-        self.assertEqual(unresolved, 2)
+        self.assertEqual(unresolved, 0)
         hoarder = self.connection.execute(
             """SELECT required_count FROM achievement_requirements
             WHERE achievement_id = 'ach_heroic_hoarder'"""
@@ -221,6 +224,29 @@ class KnowledgeBaseTests(unittest.TestCase):
             tuple(requirement), ("stone_tablet_registry", "all", 20)
         )
 
+    def test_monster_and_vicious_registries_resolve_achievement_targets(self):
+        monster_stats = self.connection.execute(
+            """SELECT COUNT(*), MIN(source_ordinal), MAX(source_ordinal),
+                SUM(rampaging), SUM(english_name IS NOT NULL) FROM monsters"""
+        ).fetchone()
+        self.assertEqual(tuple(monster_stats), (333, 1, 333, 35, 0))
+        take_no_prisoners = self.connection.execute(
+            """SELECT target_type, target_key, required_count
+            FROM achievement_requirements
+            WHERE achievement_id = 'ach_take_no_prisoners'"""
+        ).fetchone()
+        self.assertEqual(
+            tuple(take_no_prisoners), ("monster_registry", "all", 333)
+        )
+        vanquisher = self.connection.execute(
+            """SELECT target_type, target_key, required_count
+            FROM achievement_requirements
+            WHERE achievement_id = 'ach_vanquisher_of_the_vicious'"""
+        ).fetchone()
+        self.assertEqual(
+            tuple(vanquisher), ("vicious_registry", "defeat_count", 10)
+        )
+
     def test_player_progress_tracks_tablet_fragment_ids(self):
         state_path = Path(self.tempdir.name) / "tablet-progress.json"
         state_path.write_text(
@@ -239,6 +265,40 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         state = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(state["completion"]["tablet_fragments"], [])
+
+    def test_player_progress_tracks_party_wide_vocation_mastery(self):
+        state_path = Path(self.tempdir.name) / "vocation-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(
+            state_path, self.db_path, "vocation-mastered", ["Hero", "vocation_warrior"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertIs(state["party"]["members"]["Hero"]["vocation_mastery"]["vocation_warrior"], True)
+        update_progress(
+            state_path, self.db_path, "vocation-undo", ["Hero", "vocation_warrior"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertNotIn(
+            "vocation_warrior", state["party"]["members"]["Hero"]["vocation_mastery"]
+        )
+
+    def test_player_progress_tracks_monster_ordinals(self):
+        state_path = Path(self.tempdir.name) / "monster-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(
+            state_path, self.db_path, "monster-defeated", ["monster_001"]
+        )
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["monster_entries"], ["monster_001"])
+        update_progress(state_path, self.db_path, "monster-undo", ["monster_001"])
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["monster_entries"], [])
 
         state_path = Path(self.tempdir.name) / "hoarder-state.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())

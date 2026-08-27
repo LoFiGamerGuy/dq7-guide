@@ -431,6 +431,44 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed.get("achievement_requirements", []),
         )
 
+        connection.executemany(
+            """INSERT INTO monsters(
+                monster_id, source_ordinal, source_display_name, english_name,
+                family, level, hp, strength, defence, experience,
+                vocation_experience, gold, rampaging, source_id, locator,
+                confidence, verification_status
+            ) VALUES (
+                :monster_id, :source_ordinal, :source_display_name, :english_name,
+                :family, :level, :hp, :strength, :defence, :experience,
+                :vocation_experience, :gold, :rampaging, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            seed.get("monsters", []),
+        )
+
+        connection.executemany(
+            """INSERT INTO vicious_targets(
+                vicious_target_id, name, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :vicious_target_id, :name, :source_id, :locator, :confidence,
+                :verification_status
+            )""",
+            seed.get("vicious_targets", []),
+        )
+        connection.executemany(
+            """INSERT INTO vicious_encounters(
+                vicious_encounter_id, vicious_target_id, obligation_id,
+                checkpoint_id, encounter_size, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :vicious_encounter_id, :vicious_target_id, :obligation_id,
+                :checkpoint_id, :encounter_size, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            seed.get("vicious_encounters", []),
+        )
+
         unresolved_typed_requirements = connection.execute(
             """SELECT requirement_id FROM achievement_requirements
             WHERE target_type = 'checkpoint_obligation'
@@ -443,7 +481,20 @@ def _build_database(db_path: Path) -> dict[str, int]:
             UNION ALL
             SELECT requirement_id FROM achievement_requirements
             WHERE target_type='stone_tablet_registry'
-              AND (target_key<>'all' OR required_count<>(SELECT COUNT(*) FROM stone_tablets))"""
+              AND (target_key<>'all' OR required_count<>(SELECT COUNT(*) FROM stone_tablets))
+            UNION ALL
+            SELECT requirement_id FROM achievement_requirements
+            WHERE target_type='vocation_registry'
+              AND (target_key<>'all' OR required_count<>(SELECT COUNT(*) FROM vocations))
+            UNION ALL
+            SELECT requirement_id FROM achievement_requirements
+            WHERE target_type='vicious_registry'
+              AND (target_key<>'defeat_count'
+                   OR required_count > (SELECT COALESCE(SUM(encounter_size), 0) FROM vicious_encounters))
+            UNION ALL
+            SELECT requirement_id FROM achievement_requirements
+            WHERE target_type='monster_registry'
+              AND (target_key<>'all' OR required_count<>(SELECT COUNT(*) FROM monsters))"""
         ).fetchall()
         if unresolved_typed_requirements:
             raise ValueError(
@@ -646,6 +697,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"
             , "achievement_requirements"
+            , "monsters"
+            , "vicious_targets", "vicious_encounters"
             , "stone_tablets", "tablet_fragments"
             , "item_categories", "items", "item_acquisition_paths", "shops"
             , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"

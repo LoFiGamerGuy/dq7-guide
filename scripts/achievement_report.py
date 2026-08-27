@@ -46,7 +46,29 @@ def load_achievement_report(
             fragments.issubset(found_fragments)
             for fragments in tablet_fragments.values()
         )
+        vicious_rows = connection.execute(
+            "SELECT obligation_id, encounter_size FROM vicious_encounters"
+        ).fetchall()
+        completed_obligations = set(
+            state.get("completion", {}).get("obligations_completed", [])
+        )
+        vicious_defeats = sum(
+            encounter_size
+            for obligation_id, encounter_size in vicious_rows
+            if obligation_id in completed_obligations
+        )
         known = {row["achievement_id"] for row in rows}
+        vocation_rows = connection.execute(
+            "SELECT vocation_id, tier FROM vocations"
+        ).fetchall()
+        vocation_tiers = {row["vocation_id"]: row["tier"] for row in vocation_rows}
+        mastered_vocations = {
+            vocation_id
+            for member in state.get("party", {}).get("members", {}).values()
+            if isinstance(member, dict)
+            for vocation_id, mastered in member.get("vocation_mastery", {}).items()
+            if mastered is True and vocation_id in vocation_tiers
+        }
         unknown = sorted(set(unlocked) - known)
         result_rows = []
         for row in rows:
@@ -69,6 +91,19 @@ def load_achievement_report(
                 progress = len(set(unlocked) & known)
             elif item["target_type"] == "stone_tablet_registry":
                 progress = assembled_tablets
+            elif item["target_type"] == "monster_registry":
+                entries = completion.get("monster_entries", [])
+                progress = len(entries) if isinstance(entries, list) else None
+            elif item["target_type"] == "vicious_registry":
+                progress = vicious_defeats
+            elif item["target_type"] == "vocation_registry":
+                progress = len(mastered_vocations)
+            elif item["target_type"] == "vocation_tier":
+                tier = item["target_key"].removesuffix("_masteries")
+                progress = sum(
+                    vocation_tiers[vocation_id] == tier
+                    for vocation_id in mastered_vocations
+                )
             item["progress"] = progress
             if include_unlocked or not item["unlocked"]:
                 result_rows.append(item)

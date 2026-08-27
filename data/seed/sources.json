@@ -473,5 +473,41 @@
   },
   {
     "source_id": "steam_achievements", "title": "DRAGON QUEST VII Reimagined Global Achievements", "publisher": "Valve / Steam", "url": "https://steamcommunity.com/stats/2499860/achievements", "source_class": "official", "role": "platform_achievement_registry", "published_at": null, "updated_at": null, "retrieved_at": "2026-08-26", "notes": "Direct Steam platform registry. Secret descriptions are hidden; Game8 supplies their unlock descriptions."
+  },
+  {
+    "source_id": "trueachievements_master_of_all",
+    "title": "Master of All achievement in DRAGON QUEST VII Reimagined",
+    "publisher": "TrueAchievements",
+    "url": "https://www.trueachievements.com/a617588/master-of-all-achievement",
+    "source_class": "community_guide",
+    "role": "achievement_requirement_detail",
+    "published_at": "2026-04-11",
+    "updated_at": null,
+    "retrieved_at": "2026-08-27",
+    "notes": "Achievement-specific guide explicitly states that mastery may be distributed across the party, with each vocation mastered by at least one character."
+  },
+  {
+    "source_id": "gamefaqs_master_of_all_thread",
+    "title": "Trophy list? - Dragon Quest VII Reimagined",
+    "publisher": "GameFAQs",
+    "url": "https://gamefaqs.gamespot.com/boards/559391-dragon-quest-vii-reimagined/81103976?page=3",
+    "source_class": "community_forum",
+    "role": "achievement_requirement_cross_check",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-27",
+    "notes": "Player report confirms the achievement unlocked with vocation mastery distributed across multiple characters rather than concentrated on one character."
+  },
+  {
+    "source_id": "hyperwiki_monsters",
+    "title": "Dragon Quest VII Reimagined Monster List",
+    "publisher": "hyperWiki",
+    "url": "https://hyperwiki.jp/dq7r/monster/",
+    "source_class": "guide_wiki",
+    "role": "monster_ordinal_registry_and_stats",
+    "published_at": "2026-02-15",
+    "updated_at": null,
+    "retrieved_at": "2026-08-27",
+    "notes": "Complete 333-row Japanese in-game monster-list transcription. English aliases remain unset unless independently matched to an exact ordinal."
   }
 ]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record explicit player-reported checkpoint, medal, checklist, and achievement progress."""
+"""Record explicit player-reported completion progress."""
 
 from __future__ import annotations
 
@@ -33,6 +33,23 @@ def _load_state(state_path: Path) -> dict:
         not isinstance(value, str) for value in fragments
     ):
         raise ValueError("completion.tablet_fragments must be a list of strings")
+    monsters = state.get("completion", {}).get("monster_entries")
+    if not isinstance(monsters, list) or any(
+        not isinstance(value, str) for value in monsters
+    ):
+        raise ValueError("completion.monster_entries must be a list of strings")
+    members = state.get("party", {}).get("members")
+    if not isinstance(members, dict):
+        raise ValueError("party.members must be an object")
+    for character, member in members.items():
+        mastery = member.get("vocation_mastery") if isinstance(member, dict) else None
+        if not isinstance(mastery, dict) or any(
+            not isinstance(vocation_id, str) or value is not True
+            for vocation_id, value in mastery.items()
+        ):
+            raise ValueError(
+                f"party.members.{character}.vocation_mastery must map vocation IDs to true"
+            )
     return state
 
 
@@ -167,6 +184,49 @@ def update_progress(
                 found.difference_update(values)
                 message = f"Reopened tablet fragment(s): {', '.join(values)}."
             state["completion"]["tablet_fragments"] = sorted(found)
+        elif command in ("vocation-mastered", "vocation-undo"):
+            character, *vocation_ids = values
+            members = state["party"]["members"]
+            if not vocation_ids:
+                raise ValueError("At least one vocation ID is required")
+            if character not in members:
+                raise ValueError(f"Unknown party member: {character}")
+            known = {
+                row["vocation_id"]: row["exclusive_character"]
+                for row in connection.execute(
+                    "SELECT vocation_id, exclusive_character FROM vocations"
+                )
+            }
+            invalid = sorted(set(vocation_ids) - set(known))
+            if invalid:
+                raise ValueError(f"Unknown vocation ID(s): {invalid}")
+            ineligible = sorted(
+                vocation_id for vocation_id in vocation_ids
+                if known[vocation_id] not in (None, character)
+            )
+            if ineligible:
+                raise ValueError(f"Vocation(s) unavailable to {character}: {ineligible}")
+            mastery = members[character]["vocation_mastery"]
+            if command == "vocation-mastered":
+                mastery.update({vocation_id: True for vocation_id in vocation_ids})
+                message = f"Recorded {character} mastery: {', '.join(vocation_ids)}."
+            else:
+                for vocation_id in vocation_ids:
+                    mastery.pop(vocation_id, None)
+                message = f"Reopened {character} mastery: {', '.join(vocation_ids)}."
+        elif command in ("monster-defeated", "monster-undo"):
+            known = {row[0] for row in connection.execute("SELECT monster_id FROM monsters")}
+            invalid = sorted(set(values) - known)
+            if invalid:
+                raise ValueError(f"Unknown monster ID(s): {invalid}")
+            entries = set(state["completion"]["monster_entries"])
+            if command == "monster-defeated":
+                entries.update(values)
+                message = f"Recorded monster(s): {', '.join(values)}."
+            else:
+                entries.difference_update(values)
+                message = f"Reopened monster(s): {', '.join(values)}."
+            state["completion"]["monster_entries"] = sorted(entries)
         else:
             raise ValueError(f"Unknown progress command: {command}")
     _save_state(state_path, state)
@@ -196,6 +256,12 @@ def main() -> None:
     for name in ("tablet-found", "tablet-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="FRAGMENT_ID")
+    for name in ("vocation-mastered", "vocation-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="CHARACTER_OR_VOCATION_ID")
+    for name in ("monster-defeated", "monster-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="MONSTER_ID")
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))
