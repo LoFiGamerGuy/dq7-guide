@@ -40,10 +40,21 @@ def load_vocation_details(db_path: Path, query: str) -> dict:
             WHERE vp.vocation_id = ? ORDER BY vp.perk_type, vp.perk_name""",
             (vocation["vocation_id"],),
         ).fetchall()
+        requirements = connection.execute(
+            """SELECT vr.*, e.name AS prerequisite_name,
+                s.title AS source_title, s.url AS source_url
+            FROM vocation_requirements vr
+            JOIN entities e ON e.entity_id = vr.prerequisite_vocation_id
+            JOIN sources s USING(source_id)
+            WHERE vr.vocation_id = ?
+            ORDER BY vr.group_id, e.name""",
+            (vocation["vocation_id"],),
+        ).fetchall()
         return {
             "vocation": dict(vocation),
             "skills": [dict(row) for row in skills],
             "perks": [dict(row) for row in perks],
+            "requirements": [dict(row) for row in requirements],
         }
     finally:
         connection.close()
@@ -52,6 +63,19 @@ def load_vocation_details(db_path: Path, query: str) -> dict:
 def print_vocation_details(report: dict, include_sources: bool = False) -> None:
     vocation = report["vocation"]
     print(f"{vocation['name']} ({vocation['tier']})")
+    if report["requirements"]:
+        groups: dict[str, list[dict]] = {}
+        for row in report["requirements"]:
+            groups.setdefault(row["group_id"], []).append(row)
+        for rows in groups.values():
+            rule = rows[0]["rule"]
+            names = ", ".join(row["prerequisite_name"] for row in rows)
+            if rule == "all_of":
+                print(f"Unlock: master all — {names}")
+            else:
+                print(f"Unlock: master any {rows[0]['required_count']} — {names}")
+            if include_sources:
+                print(f"  Source: {rows[0]['source_title']} — {rows[0]['source_url']}")
     if report["skills"]:
         for row in report["skills"]:
             print(f"{row['proficiency_rank']}★ {row['skill_name']} — {row['skill_description']}")
