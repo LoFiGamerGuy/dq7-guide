@@ -27,6 +27,10 @@ The schema deliberately separates:
 - `documents` / `document_fts` for retrieval passages;
 - domain tables for vocations, medal rewards, missables, farming spots, and checkpoints.
 
+The browser exposes first-class item, vocation, monster, medal, tablet, and achievement registries alongside the walkthrough. Reads are state-aware and paginated; supported writes reuse the validated player-progress layer. Checkpoint selection is explicit, and the responsive UI includes keyboard focus, high-contrast support, loading/retry states, and a default hide-completed mode.
+
+Current reproducible headline counts are 287 sources, 353 items with 488 acquisition paths, 333 monsters with 219 checkpoint-gated encounters and 132 verified drops, 100 Mini Medals, 71 tablet fragments, 61 achievements, and 26 complete vocation skill/perk ladders. `INGEST_STATUS.md` remains the authoritative detailed ledger.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.

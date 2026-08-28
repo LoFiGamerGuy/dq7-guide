@@ -42,6 +42,12 @@ class GuideServerTests(unittest.TestCase):
         with urlopen(self.base + path) as response:
             return response.status, json.load(response)
 
+    def patch_json(self, path, payload):
+        request = Request(self.base + path, data=json.dumps(payload).encode(),
+                          headers={"Content-Type": "application/json"}, method="PATCH")
+        with urlopen(request) as response:
+            return response.status, json.load(response)
+
     def test_health_checkpoints_dashboard_and_static_assets(self):
         self.assertEqual(self.get_json("/api/health"), (200, {"status": "ok"}))
         status, checkpoints = self.get_json("/api/checkpoints")
@@ -110,6 +116,41 @@ class GuideServerTests(unittest.TestCase):
                 self.assertEqual(response.status, 200)
         saved = json.loads(self.state.read_text())
         self.assertNotIn(action["id"], saved["completion"]["obligations_completed"])
+
+    def test_state_aware_search_pagination_and_resource_patch_mappings(self):
+        _, items = self.get_json("/api/items?q=shield&limit=2&offset=0")
+        self.assertLessEqual(len(items["items"]), 2)
+        self.assertTrue(all("obtained" in row for row in items["items"]))
+        item_id = items["items"][0]["item_id"]
+        for completed in (True, False):
+            self.assertEqual(self.patch_json("/api/items/" + item_id,
+                                             {"completed": completed})[0], 200)
+
+        _, tablets = self.get_json("/api/tablets")
+        fragment_id = tablets["fragments"][0]["fragment_id"]
+        for completed in (True, False):
+            self.patch_json("/api/tablets/" + fragment_id, {"completed": completed})
+
+        _, achievements = self.get_json("/api/achievements?limit=1")
+        achievement_id = achievements["achievements"][0]["achievement_id"]
+        self.assertIn("unlocked", achievements["achievements"][0])
+        for completed in (True, False):
+            self.patch_json("/api/achievements/" + achievement_id,
+                            {"completed": completed})
+
+        _, vocations = self.get_json("/api/vocations?q=Warrior&limit=1")
+        vocation_id = vocations["vocations"][0]["vocation_id"]
+        self.assertIn("mastered_by", vocations["vocations"][0])
+        for completed in (True, False):
+            self.patch_json("/api/vocations/" + vocation_id,
+                            {"character": "Hero", "completed": completed})
+
+        self.patch_json("/api/checkpoints/cp_002_estard_shrine", {"selected": True})
+        saved = json.loads(self.state.read_text())
+        self.assertEqual(saved["story"]["checkpoint_id"], "cp_002_estard_shrine")
+        self.assertNotIn(item_id, saved["completion"]["items_obtained"])
+        self.assertNotIn(fragment_id, saved["completion"]["tablet_fragments"])
+        self.assertNotIn(achievement_id, saved["completion"]["achievements_unlocked"])
 
 
 if __name__ == "__main__":

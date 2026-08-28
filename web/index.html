@@ -23,6 +23,12 @@
       <a href="#dashboard" data-view="dashboard" aria-current="page">Dashboard</a>
       <a href="#walkthrough" data-view="walkthrough">Walkthrough</a>
       <a href="#progress" data-view="progress">Progress</a>
+      <a href="#items" data-domain="items">Items</a>
+      <a href="#vocations" data-domain="vocations">Vocations</a>
+      <a href="#monsters" data-domain="monsters">Monsters</a>
+      <a href="#medals" data-domain="medals">Medals</a>
+      <a href="#tablets" data-domain="tablets">Tablets</a>
+      <a href="#achievements" data-domain="achievements">Achievements</a>
       <a href="#sources" data-view="sources">Sources</a>
     </nav>
 
@@ -45,12 +51,12 @@
       <section id="walkthrough" class="view" aria-labelledby="walkthroughTitle" hidden>
         <div class="section-heading">
           <div><p class="eyebrow">Compact mode</p><h2 id="walkthroughTitle">Walkthrough</h2></div>
-          <label class="select-label">Checkpoint <select id="checkpointSelect"></select></label>
+          <div class="checkpoint-picker"><label class="select-label">Checkpoint <select id="checkpointSelect"></select></label><button id="setCheckpointButton" class="secondary" type="button">Set current</button></div>
         </div>
         <div id="checkpointMeta" class="checkpoint-meta"></div>
         <div id="checkpointStop" class="stop-banner" role="alert" hidden></div>
         <div class="walk-grid">
-          <article class="panel span-two"><div class="panel-heading"><h3>Actions</h3><span id="actionCount" class="muted"></span></div><div id="actions"></div></article>
+          <article class="panel span-two"><div class="panel-heading"><h3>Actions</h3><div class="action-tools"><span id="actionCount" class="muted"></span><label><input id="hideCompleted" type="checkbox" checked> Hide done</label></div></div><div id="actions"></div></article>
           <article class="panel"><div class="panel-heading"><h3>Advice</h3></div><div id="advice"></div></article>
           <article class="panel"><div class="panel-heading"><h3>Mini Medals</h3></div><div id="medals"></div></article>
           <article class="panel"><div class="panel-heading"><h3>Monsters</h3></div><div id="monsters"></div></article>
@@ -68,6 +74,18 @@
         <div class="section-heading"><div><p class="eyebrow">Evidence and uncertainty</p><h2 id="sourcesTitle">Sources & conflicts</h2></div></div>
         <article class="panel"><h3>Unresolved conflicts</h3><div id="conflicts"></div></article>
         <article class="panel"><h3>Checkpoint sources</h3><div id="sourceList"></div></article>
+      </section>
+
+      <section id="catalog" class="view" aria-labelledby="catalogTitle" hidden>
+        <div class="section-heading catalog-heading">
+          <div><p id="catalogEyebrow" class="eyebrow">Knowledge registry</p><h2 id="catalogTitle">Items</h2></div>
+          <label class="search-label">Search <input id="catalogSearch" type="search" autocomplete="off" placeholder="Name or location"></label>
+        </div>
+        <div id="catalogFilters" class="filter-row" role="group" aria-label="Catalog filters"></div>
+        <div class="catalog-layout">
+          <div><p id="catalogCount" class="muted"></p><div id="catalogList" class="catalog-grid"></div></div>
+          <aside id="catalogDetail" class="panel detail-panel" aria-live="polite"><p class="empty">Choose an entry for details.</p></aside>
+        </div>
       </section>
     </main>
   </div>

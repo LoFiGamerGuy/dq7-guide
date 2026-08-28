@@ -1,6 +1,6 @@
 # Ingestion status
 
-Status date: 2026-08-27
+Status date: 2026-08-28
 Package: `0.3.0-phase1`  
 Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
@@ -16,7 +16,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
-| Heroic Hoarder items | 353/353 identities / 444 acquisition paths; all items have routes | High for identities and explicit routes; Stella/Stellar spelling conflict remains visible | Expand alternate free routes and finite-supply evidence |
+| Heroic Hoarder items | 353/353 identities / 488 acquisition paths; all items have routes; 44 direct monster-drop alternatives normalized for 19 items previously represented only by Lucky Panel routes | High for identities and explicit routes; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and finite-supply evidence |
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
 | Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
@@ -53,7 +53,7 @@ Expected after `python scripts/build_kb.py`:
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 353
-- item aliases / acquisition paths: 1 / 444
+- item aliases / acquisition paths: 1 / 488
 - shops / inventory rows: 47 / 115
 - Lucky Panel pools / reward rows: 13 / 78
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
@@ -113,6 +113,10 @@ The seventh combat-engine batch adds direct tactics for five midgame bosses, 33 
 The eighth combat-engine batch extends qualitative modifiers to all non-default vocations, adds six later/postgame boss tactics, adds five Vicious/postgame monster pages, and lets progress commands accept Monster List ordinals or unambiguous English names.
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
+
+The current monster expansion has 219 checkpoint-gated encounter routes across 125 of 333 monsters and 132 verified drop rows across 115 monsters. The latest direct-page additions cover Emperor Slime in Frobisher Region and Hidden Pyramid, plus its Goddess Ring drop; unsupported special encounters remain unset.
+
+The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

@@ -1,22 +1,47 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [] };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", requests: 0 };
+const domains = {
+  items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
+  vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
+  monsters: { title: "Monsters", singular: "monster", progressKind: "monster", filters: ["all","defeated","open"] },
+  medals: { title: "Mini Medals", singular: "medal", progressKind: "medal", filters: ["all","found","open"] },
+  tablets: { title: "Tablets", singular: "tablet", progressKind: "tablet", filters: ["all","tablet","fragment","found","open"] },
+  achievements: { title: "Achievements", singular: "achievement", progressKind: "achievement", filters: ["all","story","completion","combat","unlocked","open"] }
+};
 const $ = (selector) => document.querySelector(selector);
 const empty = () => document.importNode($("#emptyTemplate").content, true);
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 async function api(path, options = {}) {
-  const response = await fetch(`/api${path}`, { headers: { "Content-Type": "application/json" }, ...options });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return response.status === 204 ? null : response.json();
+  state.requests += 1; $("#main").setAttribute("aria-busy", "true");
+  try {
+    const response = await fetch(`/api${path}`, { headers: { "Content-Type": "application/json" }, ...options });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    return response.status === 204 ? null : response.json();
+  } finally {
+    state.requests -= 1; if (!state.requests) $("#main").removeAttribute("aria-busy");
+  }
 }
 
-function setStatus(message = "") { $("#status").textContent = message; }
+function setStatus(message = "") { const target = $("#status"); target.classList.remove("error"); target.textContent = message; }
+function setCurrentRoute(predicate) {
+  document.querySelectorAll("[data-view],[data-domain]").forEach(link => { if (predicate(link)) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current"); });
+}
 function showView(name) {
+  state.domain = null;
   document.querySelectorAll(".view").forEach(view => { view.hidden = view.id !== name; });
-  document.querySelectorAll("[data-view]").forEach(link => link.setAttribute("aria-current", link.dataset.view === name ? "page" : "false"));
+  setCurrentRoute(link => link.dataset.view === name);
   $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false");
   if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
+}
+function showDomain(name) {
+  state.domain = name; state.filter = "all"; state.selectedEntry = null;
+  document.querySelectorAll(".view").forEach(view => { view.hidden = view.id !== "catalog"; });
+  setCurrentRoute(link => link.dataset.domain === name);
+  $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false");
+  history.replaceState(null, "", `#${name}`); $("#catalogSearch").value = "";
+  loadDomain(name).catch(handleError);
 }
 
 function renderCards(target, cards) {
@@ -25,11 +50,12 @@ function renderCards(target, cards) {
 function renderStop(target, warnings = []) {
   target.hidden = !warnings.length; target.textContent = warnings.join(" ");
 }
-function renderChecks(target, actions = []) {
+function renderChecks(target, actions = [], hideCompleted = false) {
   target.replaceChildren();
-  if (!actions.length) return target.append(empty());
-  actions.forEach(action => {
-    const label = document.createElement("label"); label.className = "check-row";
+  const visible = hideCompleted ? actions.filter(action => !action.completed) : actions;
+  if (!visible.length) return target.append(empty());
+  visible.forEach(action => {
+    const label = document.createElement("label"); label.className = `check-row${action.completed ? " completed" : ""}`;
     label.innerHTML = `<input type="checkbox" ${action.completed ? "checked" : ""} data-action-id="${escapeHtml(action.id)}"><span class="check-text"><strong>${escapeHtml(action.title || action.subject)}</strong><br>${escapeHtml(action.action || "")}</span>`;
     target.append(label);
   });
@@ -51,10 +77,10 @@ function renderCheckpoint() {
   const c = state.checkpoint || {};
   $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
   renderStop($("#checkpointStop"), c.stop_warnings || []);
-  renderChecks($("#actions"), c.actions || []);
+  renderChecks($("#actions"), c.actions || [], $("#hideCompleted").checked);
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"); advice.innerHTML = (c.advice || []).map(a => `<div class="advice-item"><span class="tag goal-${escapeHtml(a.goal)}">${escapeHtml(a.type)}</span><strong>${escapeHtml(a.subject)}</strong><p>${escapeHtml(a.text)}</p></div>`).join(""); if (!advice.children.length) advice.append(empty());
-  const medals = $("#medals"); medals.innerHTML = (c.medals || []).map(m => `<label class="check-row"><input type="checkbox" data-medal="${m.number}" ${m.found ? "checked" : ""}><span class="check-text"><strong>#${m.number} ${escapeHtml(m.location)}</strong><br>${escapeHtml(m.detail)}</span></label>`).join(""); if (!medals.children.length) medals.append(empty());
+  const medals = $("#medals"); medals.innerHTML = (c.medals || []).map(m => `<label class="check-row${m.found ? " completed" : ""}"><input type="checkbox" data-medal="${m.number}" ${m.found ? "checked disabled" : ""}><span class="check-text"><strong>#${m.number} ${escapeHtml(m.location)}</strong><br>${escapeHtml(m.detail)}</span></label>`).join(""); if (!medals.children.length) medals.append(empty());
   const monsters = $("#monsters"); monsters.innerHTML = (c.monsters || []).map(m => `<label class="check-row"><input type="checkbox" data-monster-id="${escapeHtml(m.id)}" ${m.defeated ? "checked" : ""}><span class="check-text"><strong>${escapeHtml(m.name || `Monster #${m.ordinal}`)}</strong><br>${escapeHtml(m.location || "")}${m.drop ? ` · ${escapeHtml(m.drop)}` : ""}</span></label>`).join(""); if (!monsters.children.length) monsters.append(empty());
   $("#safeCondition").textContent = c.safe_condition || "Not yet verified.";
   renderSources(c.sources || []);
@@ -70,6 +96,64 @@ function renderSources(sources = state.checkpoint?.sources || []) {
   const conflicts = $("#conflicts"); conflicts.innerHTML = state.conflicts.map(c => `<div class="conflict-item"><strong>${escapeHtml(c.subject)}</strong><p>${escapeHtml(c.summary)}</p><span class="tag">${escapeHtml(c.status || "unresolved")}</span></div>`).join(""); if (!conflicts.children.length) conflicts.append(empty());
 }
 
+function entryName(entry) { return entry.name || entry.title || (entry.number ? `Mini Medal #${entry.number}` : entry.id); }
+function entryCategory(entry) { return String(entry.category || entry.type || entry.rank_group || "uncategorized").toLowerCase(); }
+function entrySubtitle(entry) { return entry.summary || entry.location || entry.description || entry.requirement || entry.checkpoint || ""; }
+function matchesFilter(entry) {
+  if (state.filter === "all") return true;
+  if (["found", "unlocked", "defeated"].includes(state.filter)) return entry.completed === true;
+  if (state.filter === "open") return entry.completed !== true;
+  return entryCategory(entry) === state.filter;
+}
+function renderCatalog() {
+  const config = domains[state.domain], rows = state.catalogs[state.domain] || [];
+  $("#catalogTitle").textContent = config.title; document.title = `${config.title} · DQ7 Run Guide`;
+  $("#catalogFilters").innerHTML = config.filters.map(value => `<button class="filter-button" type="button" data-filter="${escapeHtml(value)}" aria-pressed="${state.filter === value}">${escapeHtml(value)}</button>`).join("");
+  const term = $("#catalogSearch").value.trim().toLowerCase();
+  const visible = rows.filter(row => matchesFilter(row) && (!term || JSON.stringify(row).toLowerCase().includes(term)));
+  $("#catalogCount").textContent = `${visible.length} of ${rows.length}`;
+  const list = $("#catalogList"); list.innerHTML = visible.map(row => `<button class="catalog-card" type="button" data-entry-id="${escapeHtml(row.id)}" aria-current="${state.selectedEntry?.id === row.id}"><strong>${escapeHtml(entryName(row))}</strong><span class="tag">${escapeHtml(entryCategory(row))}</span><span class="muted">${escapeHtml(entrySubtitle(row))}</span></button>`).join(""); if (!visible.length) list.append(empty());
+  renderDetail();
+}
+function renderDetail() {
+  const target = $("#catalogDetail"), entry = state.selectedEntry, config = domains[state.domain];
+  if (!entry) { target.innerHTML = '<p class="empty">Choose an entry for details.</p>'; return; }
+  const omitted = new Set(["id","name","title","completed","source","sources","url"]);
+  const fields = Object.entries(entry).filter(([key,value]) => !omitted.has(key) && value !== null && value !== "" && typeof value !== "object").slice(0, 10);
+  const source = entry.source || entry.sources?.[0];
+  const progressKind = entry.progress_kind === null || (state.domain === "tablets" && entryCategory(entry) === "tablet") || (state.domain === "medals" && entry.completed) ? null : (entry.progress_kind || config.progressKind);
+  target.innerHTML = `<p class="eyebrow">${escapeHtml(config.singular)}</p><h3>${escapeHtml(entryName(entry))}</h3><dl>${fields.map(([k,v]) => `<dt>${escapeHtml(k.replaceAll("_"," "))}</dt><dd>${escapeHtml(v)}</dd>`).join("")}</dl>${source ? `<p><a href="${escapeHtml(source.url || entry.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(source.title || "Source")}</a><br><span class="muted">${escapeHtml(source.locator || "")}</span></p>` : ""}${progressKind ? `<label class="progress-toggle"><input type="checkbox" data-catalog-progress="${progressKind}" data-progress-id="${escapeHtml(entry.id)}" ${entry.completed ? "checked" : ""}> Explicitly mark ${config.singular} complete</label>` : `<p class="muted">This entry needs its dedicated player workflow; generic updates are disabled.</p>`}`;
+}
+async function loadDomain(name) {
+  setStatus(`Loading ${domains[name].title.toLowerCase()}…`);
+  if (!state.catalogs[name]) state.catalogs[name] = await loadCatalog(name);
+  renderCatalog(); setStatus("");
+}
+
+function normalizeEntry(name, row) {
+  const entry = { ...row };
+  if (name === "items") Object.assign(entry, { id: row.item_id, completed: row.obtained });
+  if (name === "vocations") Object.assign(entry, { id: row.vocation_id, category: row.exclusive_character ? "character-exclusive" : row.tier, completed: null });
+  if (name === "monsters") Object.assign(entry, { id: row.monster_id, name: row.english_name || `Monster #${row.source_ordinal}`, ordinal: row.source_ordinal, completed: row.defeated });
+  if (name === "medals") Object.assign(entry, { id: row.medal_number, number: row.medal_number, name: `Mini Medal #${row.medal_number}`, category: row.found ? "found" : "open", checkpoint: row.available_checkpoint_id || row.checkpoint_id, completed: row.found });
+  if (name === "tablets") Object.assign(entry, { id: row.fragment_id, name: `${row.tablet_name}: ${row.fragment_id}`, category: row.found ? "found" : "fragment", checkpoint: row.checkpoint_id, completed: row.found, progress_kind: "tablet" });
+  if (name === "achievements") Object.assign(entry, { id: row.achievement_id, title: row.name, completed: row.unlocked });
+  return entry;
+}
+async function loadCatalog(name) {
+  const keys = { items: "items", vocations: "vocations", monsters: "monsters", medals: "medals", tablets: "fragments", achievements: "achievements" };
+  const paged = ["items", "vocations", "monsters", "achievements"].includes(name);
+  let rows = [], offset = 0;
+  do {
+    const payload = await api(`/${name}${paged ? `?limit=200&offset=${offset}` : ""}`);
+    const batch = payload[keys[name]] || [];
+    rows.push(...batch);
+    if (!paged || batch.length < 200) break;
+    offset += batch.length;
+  } while (true);
+  return rows.map(row => normalizeEntry(name, row));
+}
+
 async function loadCheckpoint(id) {
   setStatus("Loading checkpoint…");
   state.checkpoint = await api(`/checkpoints/${encodeURIComponent(id)}`); renderCheckpoint(); setStatus("");
@@ -83,19 +167,41 @@ async function loadAll() {
   setStatus("");
 }
 async function updateProgress(payload) {
-  setStatus("Saving…"); await api("/progress", { method: "PATCH", body: JSON.stringify(payload) }); await loadAll(); setStatus("Saved");
+  setStatus("Saving…");
+  const resources = { item: "items", tablet: "tablets", achievement: "achievements" };
+  const endpoint = resources[payload.kind] ? `/${resources[payload.kind]}/${encodeURIComponent(payload.id)}` : "/progress";
+  const body = endpoint === "/progress" ? payload : { completed: payload.completed };
+  await api(endpoint, { method: "PATCH", body: JSON.stringify(body) });
+  const activeDomain = state.domain; if (activeDomain) delete state.catalogs[activeDomain];
+  await loadAll(); if (activeDomain) await loadDomain(activeDomain); setStatus("Saved");
 }
 
 document.addEventListener("click", event => {
-  const nav = event.target.closest("[data-view]"); if (nav) { event.preventDefault(); showView(nav.dataset.view); }
+  const nav = event.target.closest("[data-view]"); if (nav) { event.preventDefault(); showView(nav.dataset.view); $("#main").focus(); }
+  const domain = event.target.closest("[data-domain]"); if (domain) { event.preventDefault(); showDomain(domain.dataset.domain); $("#main").focus(); }
+  const filter = event.target.closest("[data-filter]"); if (filter) { state.filter = filter.dataset.filter; renderCatalog(); }
+  const card = event.target.closest("[data-entry-id]"); if (card) { state.selectedEntry = (state.catalogs[state.domain] || []).find(x => String(x.id) === card.dataset.entryId); renderCatalog(); }
+  if (event.target.closest("[data-retry]")) { if (state.domain) loadDomain(state.domain).catch(handleError); else loadAll().catch(handleError); }
 });
 $("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); });
 $("#refreshButton").addEventListener("click", () => loadAll().catch(handleError));
 $("#checkpointSelect").addEventListener("change", event => loadCheckpoint(event.target.value).catch(handleError));
+$("#setCheckpointButton").addEventListener("click", async () => {
+  const id = $("#checkpointSelect").value;
+  try { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint saved"); }
+  catch (error) { handleError(error); }
+});
+$("#hideCompleted").addEventListener("change", renderCheckpoint);
 document.addEventListener("change", event => {
   if (event.target.dataset.actionId) updateProgress({ kind: "action", id: event.target.dataset.actionId, completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.medal) updateProgress({ kind: "medal", id: Number(event.target.dataset.medal), completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.monsterId) updateProgress({ kind: "monster", id: event.target.dataset.monsterId, completed: event.target.checked }).catch(handleError);
+  if (event.target.dataset.catalogProgress) { const kind = event.target.dataset.catalogProgress; const raw = event.target.dataset.progressId; updateProgress({ kind, id: kind === "medal" ? Number(raw) : raw, completed: event.target.checked }).catch(handleError); }
 });
-function handleError(error) { console.error(error); setStatus(`Could not load guide: ${error.message}`); }
-showView(location.hash.slice(1) || "dashboard"); loadAll().catch(handleError);
+$("#catalogSearch").addEventListener("input", renderCatalog);
+function handleError(error) { console.error(error); const target = $("#status"); target.classList.add("error"); target.innerHTML = `Could not load guide. <button class="secondary" type="button" data-retry>Retry</button>`; }
+document.addEventListener("keydown", event => { if (event.key === "Escape" && $("#primaryNav").classList.contains("open")) { $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false"); $("#menuButton").focus(); } });
+window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
+const initialRoute = location.hash.slice(1) || "dashboard";
+if (domains[initialRoute]) showDomain(initialRoute); else showView(initialRoute);
+loadAll().catch(handleError);

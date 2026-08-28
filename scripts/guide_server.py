@@ -52,6 +52,64 @@ def _rows(db_path: Path, sql: str) -> list[dict]:
         return [dict(row) for row in connection.execute(sql)]
 
 
+def _state(state_path: Path) -> dict:
+    return json.loads(state_path.read_text(encoding="utf-8"))
+
+
+def _page(rows: list[dict], query: dict, searchable: tuple[str, ...]) -> dict:
+    term = query.get("q", [""])[0].strip().casefold()
+    if term:
+        rows = [row for row in rows if any(term in str(row.get(key, "")).casefold()
+                                          for key in searchable)]
+    try:
+        limit = min(max(int(query.get("limit", [50])[0]), 1), 200)
+        offset = max(int(query.get("offset", [0])[0]), 0)
+    except ValueError as error:
+        raise ValueError("limit and offset must be integers") from error
+    return {"total": len(rows), "limit": limit, "offset": offset,
+            "results": rows[offset:offset + limit]}
+
+
+def _items(db_path: Path, state_path: Path, query: dict) -> dict:
+    obtained = set(_state(state_path).get("completion", {}).get("items_obtained", []))
+    rows = _rows(db_path, """SELECT i.item_id, i.name, i.category_id,
+        c.name AS category, i.heroic_hoarder_required, i.heroic_hoarder_ordinal
+        FROM items i JOIN item_categories c USING(category_id) ORDER BY i.name""")
+    for row in rows:
+        row["obtained"] = row["item_id"] in obtained
+    page = _page(rows, query, ("item_id", "name", "category"))
+    page["items"] = page.pop("results")
+    return page
+
+
+def _vocations(db_path: Path, state_path: Path, query: dict) -> dict:
+    members = _state(state_path).get("party", {}).get("members", {})
+    rows = _rows(db_path, """SELECT v.vocation_id, e.name, v.tier, v.exclusive_character
+        FROM vocations v JOIN entities e ON e.entity_id=v.vocation_id
+        ORDER BY v.tier, e.name""")
+    for row in rows:
+        row["mastered_by"] = sorted(name for name, member in members.items()
+            if member.get("vocation_mastery", {}).get(row["vocation_id"]) is True)
+    page = _page(rows, query, ("vocation_id", "name", "tier", "exclusive_character"))
+    page["vocations"] = page.pop("results")
+    return page
+
+
+def _monsters(db_path: Path, state_path: Path, query: dict) -> dict:
+    defeated = set(_state(state_path).get("completion", {}).get("monster_entries", []))
+    rows = _rows(db_path, """SELECT m.monster_id, m.source_ordinal, m.english_name,
+        m.family, COUNT(DISTINCT e.encounter_id) AS route_count,
+        COUNT(DISTINCT d.drop_id) AS drop_count
+        FROM monsters m LEFT JOIN monster_encounters e USING(monster_id)
+        LEFT JOIN monster_drops d USING(monster_id)
+        GROUP BY m.monster_id ORDER BY m.source_ordinal""")
+    for row in rows:
+        row["defeated"] = row["monster_id"] in defeated
+    page = _page(rows, query, ("monster_id", "source_ordinal", "english_name", "family"))
+    page["monsters"] = page.pop("results")
+    return page
+
+
 def _medals(db_path: Path, state_path: Path) -> dict:
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = set(state.get("completion", {}).get("mini_medals_found", []))
@@ -101,6 +159,10 @@ def _dashboard(db_path: Path, state_path: Path) -> dict:
 
 def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dict:
     block = load_walkthrough(db_path, state_path, checkpoint_id, checkpoint_id)["blocks"][0]
+    completion = _state(state_path).get("completion", {})
+    completed_actions = set(completion.get("obligations_completed", []))
+    found_medals = set(completion.get("mini_medals_found", []))
+    defeated_monsters = set(completion.get("monster_entries", []))
     checkpoint = block["checkpoint"]
     medals = block["medals_now"] + block["medals_backtrack"] + block["medals_later"]
     sourced_rows = block["stops"] + block["now"] + block["advice"] + medals
@@ -118,7 +180,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "stop_warnings": [row["action"] for row in block["stops"]],
         "actions": [{
             "id": row["obligation_id"], "title": f"Step {row['display_order']}",
-            "action": row["action"], "completed": False,
+            "action": row["action"], "completed": row["obligation_id"] in completed_actions,
             "required": bool(row["required_for_100_percent"]),
         } for row in block["now"]],
         "advice": [{
@@ -127,10 +189,10 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "goal": row["recommendation_goal"],
         } for row in block["advice"]],
         "medals": [{"number": row["medal_number"], "location": row["location"],
-                     "detail": row["detail"], "found": False} for row in medals],
+                     "detail": row["detail"], "found": row["medal_number"] in found_medals} for row in medals],
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
-                       "drop": None, "defeated": False} for row in block["monsters"]],
+                       "drop": None, "defeated": row["monster_id"] in defeated_monsters} for row in block["monsters"]],
         "safe_condition": checkpoint["safe_exit_condition"],
         "sources": list(sources.values()),
     }
@@ -197,6 +259,35 @@ def _record_ui_progress(db_path: Path, state_path: Path, payload: dict) -> str:
     raise ValueError("Unsupported progress kind")
 
 
+def _record_resource_progress(db_path: Path, state_path: Path, path: str, payload: dict) -> str:
+    completed = payload.get("completed")
+    if path.startswith("/api/checkpoints/"):
+        if payload.get("selected") is not True:
+            raise ValueError("selected must be true")
+        return update_progress(state_path, db_path, "checkpoint",
+                               [unquote(path.removeprefix("/api/checkpoints/"))])
+    if not isinstance(completed, bool):
+        raise ValueError("completed must be true or false")
+    mappings = {
+        "/api/items/": ("item-obtained", "item-undo"),
+        "/api/tablets/": ("tablet-found", "tablet-undo"),
+        "/api/achievements/": ("achievement-unlocked", "achievement-undo"),
+    }
+    for prefix, commands in mappings.items():
+        if path.startswith(prefix):
+            identifier = unquote(path.removeprefix(prefix))
+            return update_progress(state_path, db_path, commands[0] if completed else commands[1],
+                                   [identifier])
+    if path.startswith("/api/vocations/"):
+        character = payload.get("character")
+        if not isinstance(character, str) or not character:
+            raise ValueError("character is required")
+        vocation_id = unquote(path.removeprefix("/api/vocations/"))
+        command = "vocation-mastered" if completed else "vocation-undo"
+        return update_progress(state_path, db_path, command, [character, vocation_id])
+    raise ValueError("Unsupported resource mutation")
+
+
 def make_handler(db_path: Path, state_path: Path, static_dir: Path):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
 
@@ -237,35 +328,69 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._json(load_walkthrough(db_path, state_path, start, through))
                 if parsed.path == "/api/achievements":
                     query = parse_qs(parsed.query)
-                    include = query.get("include_unlocked", ["0"])[0] == "1"
-                    return self._json(load_achievement_report(db_path, state_path, include))
+                    report = load_achievement_report(db_path, state_path, True)
+                    page = _page(report["achievements"], query,
+                                 ("achievement_id", "name", "category", "description"))
+                    report["achievements"] = page.pop("results")
+                    report["page"] = page
+                    return self._json(report)
+                if parsed.path.startswith("/api/achievements/"):
+                    achievement_id = unquote(parsed.path.removeprefix("/api/achievements/"))
+                    rows = load_achievement_report(db_path, state_path, True)["achievements"]
+                    row = next((row for row in rows if row["achievement_id"] == achievement_id), None)
+                    if row is None:
+                        raise ValueError("Unknown achievement")
+                    return self._json(row)
                 if parsed.path == "/api/hoarder":
                     query = parse_qs(parsed.query)
                     gaps = query.get("gaps", ["0"])[0] == "1"
                     return self._json(load_hoarder_report(db_path, state_path, gaps))
                 if parsed.path == "/api/monsters/coverage":
                     return self._json(load_monster_coverage(db_path, state_path))
+                if parsed.path == "/api/monsters":
+                    return self._json(_monsters(db_path, state_path, parse_qs(parsed.query)))
                 if parsed.path.startswith("/api/monsters/"):
                     query = unquote(parsed.path.removeprefix("/api/monsters/"))
-                    return self._json(load_monster_report(db_path, query))
+                    report = load_monster_report(db_path, query)
+                    report["defeated"] = report["monster"]["monster_id"] in set(
+                        _state(state_path).get("completion", {}).get("monster_entries", []))
+                    return self._json(report)
                 if parsed.path == "/api/medals":
                     return self._json(_medals(db_path, state_path))
+                if parsed.path.startswith("/api/medals/"):
+                    number = int(unquote(parsed.path.removeprefix("/api/medals/")))
+                    row = next((row for row in _medals(db_path, state_path)["medals"]
+                                if row["medal_number"] == number), None)
+                    if row is None:
+                        raise ValueError("Unknown Mini Medal")
+                    return self._json(row)
                 if parsed.path == "/api/tablets":
                     return self._json(_tablets(db_path, state_path))
+                if parsed.path.startswith("/api/tablets/"):
+                    tablet_id = unquote(parsed.path.removeprefix("/api/tablets/"))
+                    rows = [row for row in _tablets(db_path, state_path)["fragments"]
+                            if row["tablet_id"] == tablet_id]
+                    if not rows:
+                        raise ValueError("Unknown tablet")
+                    return self._json({"tablet_id": tablet_id,
+                        "tablet_name": rows[0]["tablet_name"], "fragments": rows})
                 if parsed.path == "/api/vocations":
-                    return self._json({"vocations": _rows(db_path,
-                        """SELECT v.vocation_id, e.name, v.tier, v.exclusive_character
-                        FROM vocations v JOIN entities e ON e.entity_id=v.vocation_id
-                        ORDER BY v.tier, e.name""")})
+                    return self._json(_vocations(db_path, state_path, parse_qs(parsed.query)))
                 if parsed.path.startswith("/api/vocations/"):
                     query = unquote(parsed.path.removeprefix("/api/vocations/"))
-                    return self._json(load_vocation_details(db_path, query))
+                    report = load_vocation_details(db_path, query)
+                    vocation_id = report["vocation"]["vocation_id"]
+                    report["mastered_by"] = next(row["mastered_by"] for row in
+                        _vocations(db_path, state_path, {})["vocations"]
+                        if row["vocation_id"] == vocation_id)
+                    return self._json(report)
                 if parsed.path == "/api/items":
-                    return self._json({"items": _rows(db_path,
-                        "SELECT item_id, name, category_id, heroic_hoarder_required FROM items ORDER BY name")})
+                    return self._json(_items(db_path, state_path, parse_qs(parsed.query)))
                 if parsed.path.startswith("/api/items/"):
                     query = unquote(parsed.path.removeprefix("/api/items/"))
                     item, routes = load_item_routes(db_path, query)
+                    item["obtained"] = item["item_id"] in set(
+                        _state(state_path).get("completion", {}).get("items_obtained", []))
                     return self._json({"item": item, "routes": routes})
                 if parsed.path == "/api/conflicts":
                     query = parse_qs(parsed.query)
@@ -303,14 +428,21 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 return self._error(HTTPStatus.BAD_REQUEST, str(error))
 
         def do_PATCH(self):
-            if urlparse(self.path).path != "/api/progress":
-                return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
+            path = urlparse(self.path).path
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > MAX_BODY_BYTES:
                     return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "Invalid body size")
                 payload = json.loads(self.rfile.read(length))
-                message = _record_ui_progress(db_path, state_path, payload)
+                if path == "/api/progress":
+                    message = _record_ui_progress(db_path, state_path, payload)
+                elif any(path.startswith(prefix) for prefix in (
+                    "/api/items/", "/api/tablets/", "/api/achievements/",
+                    "/api/vocations/", "/api/checkpoints/",
+                )):
+                    message = _record_resource_progress(db_path, state_path, path, payload)
+                else:
+                    return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
                 return self._json({"message": message})
             except (TypeError, ValueError, json.JSONDecodeError) as error:
                 return self._error(HTTPStatus.BAD_REQUEST, str(error))
