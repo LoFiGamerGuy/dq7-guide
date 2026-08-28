@@ -25,9 +25,9 @@ The seed includes:
 - early gear power-spike notes;
 - confirmed Metal Slime farming locations;
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
-- all 46 Monster Heart identities and sourced effects, with acquisition routes surfaced for 41 and five link gaps left explicit;
+- all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 459-page source registry with browser search and retrieval-freshness metadata;
+- a 468-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
@@ -46,7 +46,8 @@ Requires Python 3.10+; there are no third-party runtime dependencies.
 
 ### Interactive web guide
 
-On Windows, double-click `start-guide.bat`. Or run:
+On Windows, double-click `start-guide.bat`. On macOS/Linux run
+`./start-guide.sh`. Or run:
 
 ```powershell
 python scripts/guide_server.py --open-browser

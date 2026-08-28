@@ -11,6 +11,7 @@ import json
 import mimetypes
 from pathlib import Path
 import sqlite3
+import threading
 from urllib.parse import parse_qs, unquote, urlparse
 import webbrowser
 
@@ -979,6 +980,7 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
 
 def make_handler(db_path: Path, state_path: Path, static_dir: Path):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
+    state_write_lock = threading.Lock()
 
     class GuideHandler(BaseHTTPRequestHandler):
         server_version = "DQ7Guide/1.0"
@@ -1193,8 +1195,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     for value in values
                 ):
                     raise ValueError("values must be a non-empty list of strings or integers")
-                message = update_progress(state_path, db_path, command, [str(v) for v in values])
-                return self._json({"message": message, "dashboard": _dashboard(db_path, state_path)})
+                with state_write_lock:
+                    message = update_progress(state_path, db_path, command, [str(v) for v in values])
+                    dashboard = _dashboard(db_path, state_path)
+                return self._json({"message": message, "dashboard": dashboard})
             except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
                 return self._error(_client_error_status(error), str(error))
 
@@ -1205,16 +1209,17 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 if length <= 0 or length > MAX_BODY_BYTES:
                     return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "Invalid body size")
                 payload = json.loads(self.rfile.read(length))
-                if path == "/api/progress":
-                    message = _record_ui_progress(db_path, state_path, payload)
-                elif any(path.startswith(prefix) for prefix in (
-                    "/api/items/", "/api/tablets/", "/api/achievements/",
-                    "/api/vocations/", "/api/checkpoints/",
-                    "/api/missables/",
-                )):
-                    message = _record_resource_progress(db_path, state_path, path, payload)
-                else:
-                    return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
+                with state_write_lock:
+                    if path == "/api/progress":
+                        message = _record_ui_progress(db_path, state_path, payload)
+                    elif any(path.startswith(prefix) for prefix in (
+                        "/api/items/", "/api/tablets/", "/api/achievements/",
+                        "/api/vocations/", "/api/checkpoints/",
+                        "/api/missables/",
+                    )):
+                        message = _record_resource_progress(db_path, state_path, path, payload)
+                    else:
+                        return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
                 return self._json({"message": message})
             except (TypeError, ValueError, json.JSONDecodeError) as error:
                 return self._error(_client_error_status(error), str(error))

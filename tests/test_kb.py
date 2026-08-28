@@ -65,7 +65,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 104)
+        self.assertEqual(self.counts["checkpoint_advice"], 107)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
@@ -2140,6 +2140,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 "Arena 3: Hans and the Hands",
                 "Arena 4: Nava's Knaves",
                 "Cardinal Sin",
+                "Rashers and Stripes",
             ],
         )
         self.assertEqual(

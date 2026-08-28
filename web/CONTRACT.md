@@ -235,7 +235,7 @@ The Progress screen also reuses the allowlisted command endpoint for explicit va
 
 The server validates checkpoint IDs, positive integer levels, party-member names, vocation IDs, and character-exclusive vocation eligibility. `unknown` explicitly restores nullable level/current/secondary vocation fields; the browser never fills them from checkpoint or mastery. Explicit Mini Medal records are reversible from the walkthrough and medal catalog. Equipment editing remains disabled until canonical slot and character-compatibility validation exists. Selecting a saved checkpoint never marks actions, collectibles, monsters, or other checkpoints complete. The dashboard distinguishes an explicitly saved checkpoint from the cp001 guide preview used when state is unknown.
 
-Return `204 No Content` or the updated progress object. Reject unknown IDs with `404`, invalid shapes with `400`, and concurrent stale writes with `409` if versioning is implemented.
+Return `204 No Content` or the updated progress object. Reject unknown IDs with `404` and invalid shapes with `400`. The bundled threaded server serializes state mutations and atomically replaces the state file, so rapid independent checkbox writes cannot overwrite one another and readers never observe partial JSON. This is process-local coordination, not distributed versioning; external multi-process writers still require their own coordination.
 
 ## Serving
 

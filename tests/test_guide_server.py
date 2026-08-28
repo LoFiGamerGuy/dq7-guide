@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 import shutil
@@ -74,8 +75,10 @@ class GuideServerTests(unittest.TestCase):
 
     def test_health_checkpoints_dashboard_and_static_assets(self):
         launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")
+        unix_launcher = (ROOT / "start-guide.sh").read_text(encoding="utf-8")
         self.assertIn("Python 3.10 or newer is required", launcher)
         self.assertIn("The guide could not start", launcher)
+        self.assertIn("python3 scripts/guide_server.py --open-browser", unix_launcher)
         self.assertEqual(self.get_json("/api/health"), (200, {"status": "ok"}))
         status, checkpoints = self.get_json("/api/checkpoints")
         self.assertEqual(status, 200)
@@ -412,6 +415,25 @@ class GuideServerTests(unittest.TestCase):
         self.patch_json("/api/missables/missable_fish_bits", {"completed": False})
         _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertTrue(reopened["stop_actions"])
+
+    def test_parallel_browser_writes_do_not_lose_progress(self):
+        _, items = self.get_json("/api/items?limit=12")
+        item_ids = [row["item_id"] for row in items["items"]]
+
+        def mark(item_id):
+            return self.patch_json("/api/items/" + item_id, {"completed": True})[0]
+
+        try:
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                statuses = list(executor.map(mark, item_ids))
+            self.assertEqual(statuses, [200] * len(item_ids))
+            saved = json.loads(self.state.read_text(encoding="utf-8"))
+            self.assertTrue(set(item_ids).issubset(saved["completion"]["items_obtained"]))
+            leftovers = list(self.state.parent.glob(f".{self.state.name}.*.tmp"))
+            self.assertEqual(leftovers, [])
+        finally:
+            for item_id in item_ids:
+                self.patch_json("/api/items/" + item_id, {"completed": False})
 
     def test_advancement_readiness_requires_explicit_actions_and_manual_confirmation(self):
         state_path = Path(self.temp.name) / "advancement-state.json"

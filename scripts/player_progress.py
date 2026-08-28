@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sqlite3
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,9 +67,20 @@ def _load_state(state_path: Path) -> dict:
 
 def _save_state(state_path: Path, state: dict) -> None:
     state["last_updated"] = datetime.now(timezone.utc).isoformat()
-    state_path.write_text(
-        json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    payload = json.dumps(state, indent=2, ensure_ascii=False) + "\n"
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=state_path.parent,
+            prefix=f".{state_path.name}.", suffix=".tmp", delete=False,
+        ) as handle:
+            handle.write(payload)
+            handle.flush()
+            temporary_path = Path(handle.name)
+        temporary_path.replace(state_path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def _connect(db_path: Path) -> sqlite3.Connection:
