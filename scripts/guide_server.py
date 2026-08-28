@@ -341,6 +341,12 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "decision_group": ("optional_grind" if row["advice_type"] == "grind"
                                else "completion_safe" if row["recommendation_goal"] in ("completion_safe", "both")
                                else "strongest_now"),
+            "applicability": json.loads(row["applicability_json"]),
+            "tradeoff": json.loads(row["applicability_json"]).get("tradeoff"),
+            "source": {"id": row["source_id"], "title": row["source_title"],
+                       "url": row["source_url"], "locator": row["locator"]},
+            "confidence": row["confidence"],
+            "verification_status": row["verification_status"],
         } for row in block["advice"]],
         "medals": [{"number": row["medal_number"], "location": row["location"],
                      "detail": row["detail"], "found": row["medal_number"] in found_medals} for row in medals],

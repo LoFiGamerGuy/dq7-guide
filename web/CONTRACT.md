@@ -25,7 +25,7 @@ Returns ordered checkpoint summaries:
   "id":"cp_004_emberdale","name":"Emberdale and Burnmount","time_period":"Past","region":"Emberdale",
   "stop_warnings":["Finish the listed finite sweep before advancing."],
   "actions":[{"id":"obl_id","title":"Finite sweep","action":"Collect …","completed":false,"required":true}],
-  "advice":[{"id":"advice_id","type":"boss","subject":"Glowering Inferno","text":"Use …","goal":"immediate_power","decision_group":"strongest_now"}],
+  "advice":[{"id":"advice_id","type":"boss","subject":"Glowering Inferno","text":"Use …","goal":"immediate_power","decision_group":"strongest_now","applicability":{"difficulty":"Normal"},"tradeoff":null,"confidence":"high","verification_status":"source_checked","source":{"id":"source_id","title":"Boss guide","url":"https://example.com","locator":"Boss Strategy > Tips"}}],
   "medals":[{"number":10,"location":"Burnmount","detail":"Chest …","found":false}],
   "monsters":[{"id":"monster_010","ordinal":10,"name":"Example","location":"Burnmount","drop":null,"defeated":false}],
   "safe_condition":"All required actions complete.",
@@ -34,6 +34,8 @@ Returns ordered checkpoint summaries:
 ```
 
 Advice `goal` remains the source recommendation classification: `completion_safe`, `immediate_power`, or `both`. `decision_group` is presentation-only: grind advice becomes `optional_grind`; other `completion_safe`/`both` advice becomes `completion_safe`; remaining advice becomes `strongest_now`. The browser keeps STOP first and the safe advancement condition last. Stop warnings must contain only verified irreversible/time-sensitive warnings.
+
+Every advice row retains its native `applicability` object. `tradeoff` mirrors only the explicitly stored `applicability.tradeoff` value and remains null when none was sourced; the server does not manufacture one. Direct source, locator, confidence, and verification status accompany the recommendation. The browser keeps these details collapsed under “When, tradeoff & source” to preserve the minimal-reading walkthrough.
 
 ### `GET /api/progress`
 

@@ -66,6 +66,13 @@ function renderChecks(target, actions = [], hideCompleted = false) {
   });
 }
 
+function compactApplicability(value) {
+  if (value === null || value === undefined) return "";
+  if (Array.isArray(value)) return value.join(", ");
+  if (typeof value !== "object") return String(value);
+  return Object.entries(value).filter(([key]) => key !== "tradeoff").map(([key, item]) => `${key.replaceAll("_", " ")}: ${typeof item === "object" ? JSON.stringify(item) : item}`).join(" · ");
+}
+
 function renderDashboard() {
   const d = state.dashboard || {};
   renderStop($("#stopBanner"), d.stop_warnings || []);
@@ -92,7 +99,7 @@ function renderCheckpoint() {
   advice.innerHTML = adviceGroups.map(([group, label]) => {
     const rows = (c.advice || []).filter(a => a.decision_group === group);
     if (!rows.length) return "";
-    return `<section class="advice-group" aria-labelledby="advice-${group}"><h4 id="advice-${group}">${label}</h4>${rows.map(a => `<div class="advice-item"><span class="tag goal-${escapeHtml(a.goal)}">${escapeHtml(a.type)} · ${escapeHtml(a.goal.replaceAll("_", " "))}</span><strong>${escapeHtml(a.subject)}</strong><p>${escapeHtml(a.text)}</p></div>`).join("")}</section>`;
+    return `<section class="advice-group" aria-labelledby="advice-${group}"><h4 id="advice-${group}">${label}</h4>${rows.map(a => { const applies = compactApplicability(a.applicability); return `<div class="advice-item"><span class="tag goal-${escapeHtml(a.goal)}">${escapeHtml(a.type)} · ${escapeHtml(a.goal.replaceAll("_", " "))}</span><strong>${escapeHtml(a.subject)}</strong><p>${escapeHtml(a.text)}</p><details class="advice-evidence"><summary>When, tradeoff & source</summary>${applies ? `<p><strong>Applies:</strong> ${escapeHtml(applies)}</p>` : ""}${a.tradeoff ? `<p><strong>Tradeoff:</strong> ${escapeHtml(a.tradeoff)}</p>` : ""}<p><a href="${escapeHtml(a.source?.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(a.source?.title || "Source")}</a><br><span class="muted">${escapeHtml(a.source?.locator || "Locator unavailable")}</span></p><p class="muted">${escapeHtml(a.confidence || "unknown")} confidence · ${escapeHtml(a.verification_status || "status unknown")}</p></details></div>`; }).join("")}</section>`;
   }).join(""); if (!advice.children.length) advice.append(empty());
   const medals = $("#medals"); medals.innerHTML = (c.medals || []).map(m => `<label class="check-row${m.found ? " completed" : ""}"><input type="checkbox" data-medal="${m.number}" ${m.found ? "checked disabled" : ""}><span class="check-text"><strong>#${m.number} ${escapeHtml(m.location)}</strong><br>${escapeHtml(m.detail)}</span></label>`).join(""); if (!medals.children.length) medals.append(empty());
   const monsters = $("#monsters"); monsters.innerHTML = (c.monsters || []).map(m => `<label class="check-row"><input type="checkbox" data-monster-id="${escapeHtml(m.id)}" ${m.defeated ? "checked" : ""}><span class="check-text"><strong>${escapeHtml(m.name || `Monster #${m.ordinal}`)}</strong><br>${escapeHtml(m.location || "")}${m.drop ? ` · ${escapeHtml(m.drop)}` : ""}</span></label>`).join(""); if (!monsters.children.length) monsters.append(empty());
