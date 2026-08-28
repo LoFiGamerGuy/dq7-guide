@@ -49,6 +49,9 @@ class GuideServerTests(unittest.TestCase):
             return response.status, json.load(response)
 
     def test_health_checkpoints_dashboard_and_static_assets(self):
+        launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")
+        self.assertIn("Python 3.10 or newer is required", launcher)
+        self.assertIn("The guide could not start", launcher)
         self.assertEqual(self.get_json("/api/health"), (200, {"status": "ok"}))
         status, checkpoints = self.get_json("/api/checkpoints")
         self.assertEqual(status, 200)
@@ -104,6 +107,10 @@ class GuideServerTests(unittest.TestCase):
         tempest = next(row for row in conflicts if "tempest shield" in row["subject"])
         self.assertIn("both Sanctum of the Cirrus and Ventus Tower",
                       tempest["required_evidence"])
+        moonlighting = next(row for row in conflicts if "moonlighting" in row["subject"])
+        self.assertIn("post-Aishe Career Sphere message",
+                      moonlighting["required_evidence"])
+        self.assertIn("displayed venue name", moonlighting["required_evidence"])
         _, all_conflicts = self.get_json("/api/conflicts?include_resolved=1")
         iron = next(row for row in all_conflicts
                     if row["resolution_claim_id"] ==

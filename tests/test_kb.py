@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 373)
+        self.assertEqual(self.counts["sources"], 385)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 354)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 710)
+        self.assertEqual(self.counts["item_acquisition_paths"], 715)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -549,6 +549,40 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["source_id"] and row["locator"] for row in drops))
         self.assertTrue(all("rate_unknown" in row["verification_status"] for row in drops))
 
+    def test_early_and_midgame_equipment_has_direct_finite_routes(self):
+        acquisition_ids = (
+            "acq_strength_ring_faraday_castle_past",
+            "acq_strength_ring_mountain_path_wilted_present",
+            "acq_divine_dagger_burnmont_past",
+            "acq_scale_armour_burnmont_past",
+            "acq_scale_armour_frobisher_past",
+        )
+        placeholders = ",".join("?" for _ in acquisition_ids)
+        rows = self.connection.execute(
+            f"""SELECT acquisition_id, item_id, location_text, time_period,
+                available_from_checkpoint_id, supply_type, finite_total, is_free,
+                source_id, locator, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN ({placeholders}) ORDER BY acquisition_id""",
+            acquisition_ids,
+        ).fetchall()
+        self.assertEqual(len(rows), 5)
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["finite_total"] == 1 for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
+        self.assertTrue(all(row["source_id"] and row["locator"] for row in rows))
+        gates = {row["acquisition_id"]: row["available_from_checkpoint_id"] for row in rows}
+        self.assertEqual(gates["acq_divine_dagger_burnmont_past"], "cp_004_emberdale")
+        self.assertEqual(gates["acq_scale_armour_frobisher_past"], "cp_007_frobisher")
+        self.assertEqual(
+            gates["acq_strength_ring_mountain_path_wilted_present"],
+            "cp_015_greenthumb",
+        )
+        burnmont_scale = next(
+            row for row in rows if row["acquisition_id"] == "acq_scale_armour_burnmont_past"
+        )
+        self.assertEqual(burnmont_scale["verification_status"], "source_checked_exact_chest")
+
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
             """SELECT COUNT(*), SUM(required_fragment_count) FROM stone_tablets"""
@@ -597,13 +631,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (346, 195))
+        self.assertEqual(tuple(counts), (360, 204))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (229, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (237, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -636,6 +670,15 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND available_from_checkpoint_id='cp_026_elemental_cleanup_nottagen'"""
         ).fetchone()
         self.assertEqual(tuple(cleanup_equipment_routes), (8, 4))
+        late_area_routes = self.connection.execute(
+            """SELECT COUNT(*), COUNT(DISTINCT monster_id)
+            FROM monster_encounters
+            WHERE source_id IN ('game8_monster_merderer', 'game8_monster_seasaur',
+                'game8_monster_mermaniac', 'game8_monster_croaked_king',
+                'game8_monster_charmour', 'game8_monster_boss_troll',
+                'game8_monster_drakulard', 'game8_monster_orc_king')"""
+        ).fetchone()
+        self.assertEqual(tuple(late_area_routes), (14, 8))
 
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(
@@ -756,8 +799,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 229)
-        self.assertEqual(report["drops"], 170)
+        self.assertEqual(report["routed"], 237)
+        self.assertEqual(report["drops"], 177)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):

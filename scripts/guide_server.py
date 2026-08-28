@@ -725,6 +725,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                         "required_evidence": (None if row["status"] == "resolved" else
                             ("Direct in-game capture or patch-scoped map evidence confirming whether Tempest Shield exists in both Sanctum of the Cirrus and Ventus Tower, or which listed route is erroneous."
                              if row["subject_key"] == "item:tempest_shield" else
+                             "A current-version capture or continuous video showing the post-Aishe Career Sphere message and the complete Jacqui activation interaction, including the displayed venue name."
+                             if row["subject_key"] == "system:moonlighting" else
                              "Direct current-version in-game or location-specific evidence that addresses the same scope and distinguishes the two claims.")),
                         "claims": [{
                             "id": row[f"claim_{side}_id"],
