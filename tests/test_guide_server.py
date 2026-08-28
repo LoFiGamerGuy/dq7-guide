@@ -102,6 +102,19 @@ class GuideServerTests(unittest.TestCase):
         band = source["retrieval_band"]
         _, dated_sources = self.get_json("/api/sources?retrieval_band=" + band + "&limit=200")
         self.assertTrue(all(row["retrieval_band"] == band for row in dated_sources["sources"]))
+        _, seeds = self.get_json("/api/seeds?variant=super&limit=20")
+        self.assertEqual(seeds["total"], 9)
+        self.assertTrue(all(row["variant"] == "super" for row in seeds["seeds"]))
+        seed_id = seeds["seeds"][0]["seed_id"]
+        _, seed = self.get_json("/api/seeds/" + seed_id)
+        self.assertEqual(seed["seed_id"], seed_id)
+        self.assertGreater(seed["increase_amount"], 0)
+        self.assertTrue(seed["locator"])
+        _, rewards = self.get_json("/api/seeds?variant=reward")
+        self.assertEqual(rewards["total"], 1)
+        reward = rewards["seeds"][0]
+        self.assertEqual(reward["eligible_pool_status"], "unknown")
+        self.assertIsNone(reward["eligible_items"])
         _, progress = self.get_json("/api/progress")
         self.assertIn("achievements", progress)
         _, hoarder = self.get_json("/api/hoarder?gaps=1")

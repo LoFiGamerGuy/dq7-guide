@@ -200,6 +200,47 @@ def _sources(db_path: Path, query: dict) -> dict:
     return page
 
 
+def _seeds(db_path: Path, query: dict) -> dict:
+    effects = _rows(db_path, """SELECT se.seed_effect_id AS seed_id,
+        'effect' AS record_type, i.name, se.item_id, se.stat_key,
+        se.increase_amount, se.game_version, se.dlc_scope, se.confidence,
+        se.verification_status, se.locator, se.source_id,
+        s.title AS source_title, s.url AS source_url
+        FROM seed_effects se JOIN items i USING(item_id)
+        JOIN sources s USING(source_id) ORDER BY i.name""")
+    for row in effects:
+        row["variant"] = "super" if row["name"].startswith("Super ") else "standard"
+        row["dlc_scope_status"] = "specified" if row["dlc_scope"] else "not_recorded"
+    rewards = _rows(db_path, """SELECT r.seed_reward_rule_id AS seed_id,
+        'reward_rule' AS record_type, r.reward_family_text AS name,
+        r.available_from_checkpoint_id, c.name AS available_checkpoint,
+        r.location_text, r.trigger_text, r.reward_quantity,
+        r.selection_method, r.eligible_items_json, r.repeatable,
+        r.game_version, r.dlc_scope, r.confidence, r.verification_status,
+        r.locator, r.source_id, s.title AS source_title, s.url AS source_url
+        FROM seed_reward_rules r LEFT JOIN checkpoints c
+        ON c.checkpoint_id = r.available_from_checkpoint_id
+        JOIN sources s USING(source_id) ORDER BY r.reward_family_text""")
+    for row in rewards:
+        row["variant"] = "reward"
+        row["eligible_items"] = (json.loads(row["eligible_items_json"])
+                                 if row["eligible_items_json"] else None)
+        row["eligible_pool_status"] = "known" if row["eligible_items"] is not None else "unknown"
+        row["dlc_scope_status"] = "specified" if row["dlc_scope"] else "not_recorded"
+        del row["eligible_items_json"]
+    rows = effects + rewards
+    variant = query.get("variant", [""])[0].strip().casefold()
+    if variant:
+        rows = [row for row in rows if row["variant"] == variant]
+    stat = query.get("stat", [""])[0].strip().casefold()
+    if stat:
+        rows = [row for row in rows if str(row.get("stat_key", "")).casefold() == stat]
+    page = _page(rows, query, ("seed_id", "name", "record_type", "variant",
+        "stat_key", "location_text", "trigger_text", "source_title"))
+    page["seeds"] = page.pop("results")
+    return page
+
+
 def _medals(db_path: Path, state_path: Path) -> dict:
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = set(state.get("completion", {}).get("mini_medals_found", []))
@@ -566,6 +607,15 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                                 if row["source_id"] == source_id), None)
                     if row is None:
                         raise ValueError("Unknown source")
+                    return self._json(row)
+                if parsed.path == "/api/seeds":
+                    return self._json(_seeds(db_path, parse_qs(parsed.query)))
+                if parsed.path.startswith("/api/seeds/"):
+                    seed_id = unquote(parsed.path.removeprefix("/api/seeds/"))
+                    row = next((row for row in _seeds(db_path, {"q": [seed_id], "limit": ["200"]})["seeds"]
+                                if row["seed_id"] == seed_id), None)
+                    if row is None:
+                        raise ValueError("Unknown seed mechanic")
                     return self._json(row)
                 if parsed.path.startswith("/api/"):
                     return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")

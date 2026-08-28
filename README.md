@@ -27,11 +27,11 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with explicit availability gaps;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 307-page source registry with browser search and retrieval-freshness metadata;
+- a 313-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 259 checkpoint-gated encounters across 158 monsters and 145 verified drops across 126 monsters;
+- 267 checkpoint-gated encounters across 166 monsters and 147 verified drops across 128 monsters;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
 - verified qualitative stat modifiers for all non-default vocations;
@@ -51,7 +51,7 @@ On Windows, double-click `start-guide.bat`. Or run:
 python scripts/guide_server.py --open-browser
 ```
 
-Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, missables, farms, medals, tablets, and achievements. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only explicit changes through the same validation as the CLI.
+Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only explicit changes through the same validation as the CLI.
 
 ```powershell
 python scripts/build_kb.py

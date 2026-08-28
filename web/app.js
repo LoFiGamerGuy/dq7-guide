@@ -8,6 +8,7 @@ const domains = {
   hearts: { title: "Monster Hearts", singular: "heart", progressKind: null, filters: ["all","available","unknown"] },
   missables: { title: "Missables", singular: "missable", progressKind: null, filters: ["all","verified","unresolved","collector","major_choice"] },
   farms: { title: "Farms", singular: "farm", progressKind: null, filters: ["all","exp","seeds","other"] },
+  seeds: { title: "Seed Mechanics", singular: "seed mechanic", progressKind: null, filters: ["all","standard","super","reward"] },
   source_registry: { title: "Sources", singular: "source", progressKind: null, filters: ["all","item","monster","vocation","boss","completion","farming","other"] },
   medals: { title: "Mini Medals", singular: "medal", progressKind: "medal", filters: ["all","found","open"] },
   tablets: { title: "Tablets", singular: "tablet", progressKind: "tablet", filters: ["all","tablet","fragment","found","open"] },
@@ -170,12 +171,18 @@ function renderRichDetail(detail, summary) {
     target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.farm_type)} farm</p><h3>${escapeHtml(detail.target)}</h3><h4>Sourced facts</h4><dl><dt>Location</dt><dd>${escapeHtml(detail.location)}</dd><dt>Period</dt><dd>${escapeHtml(detail.time_period || "Not restricted")}</dd><dt>Available</dt><dd>${escapeHtml(detail.available_checkpoint || detail.available_from)}</dd><dt>Frequency</dt><dd>${escapeHtml(detail.encounter_rate_text || "Numeric rate unpublished")}</dd></dl>${detail.strategy ? `<div class="callout"><strong>Attributed strategy</strong><span>${escapeHtml(detail.strategy)}</span>${strategySource}</div>` : ""}<p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${escapeHtml(detail.locator)}</span></p><p class="muted">Confidence: ${escapeHtml(detail.confidence)} · Numeric rate unpublished. Strategy is a recommendation, not a canonical fact.</p><p class="muted">Read-only: farms do not alter player progress.</p>`;
   } else if (state.domain === "source_registry") {
     target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.source_class)}</p><h3>${escapeHtml(detail.title)}</h3><p><a href="${escapeHtml(detail.url)}" target="_blank" rel="noreferrer">Open source</a></p><dl><dt>Publisher</dt><dd>${escapeHtml(detail.publisher)}</dd><dt>Role</dt><dd>${escapeHtml(detail.role)}</dd><dt>Published</dt><dd>${escapeHtml(detail.published_at || "Unknown")}</dd><dt>Updated</dt><dd>${escapeHtml(detail.updated_at || "Unknown")}</dd><dt>Retrieved</dt><dd>${escapeHtml(detail.retrieved_at || "Unknown")}</dd><dt>Status</dt><dd>${escapeHtml(detail.status)}</dd></dl><div class="callout"><strong>Freshness means retrieval only</strong><span>${detail.retrieval_age_days === null ? "Retrieval age is unknown." : `${escapeHtml(detail.retrieval_age_days)} days since retrieval.`} An update date does not prove that every claim is current.</span></div>${detail.notes ? `<p class="muted">${escapeHtml(detail.notes)}</p>` : ""}<p class="muted">Read-only registry.</p>`;
+  } else if (state.domain === "seeds") {
+    if (detail.record_type === "effect") {
+      target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.variant)} seed</p><h3>${escapeHtml(detail.name)}</h3><div class="callout"><strong>Fixed effect</strong><span>+${escapeHtml(detail.increase_amount)} ${escapeHtml(detail.stat_key.replaceAll("_", " "))}</span></div><dl><dt>Version</dt><dd>${escapeHtml(detail.game_version)}</dd><dt>DLC scope</dt><dd>${escapeHtml(detail.dlc_scope || "Not recorded")}</dd><dt>Confidence</dt><dd>${escapeHtml(detail.confidence)}</dd></dl><p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${escapeHtml(detail.locator)}</span></p><p class="muted">Read-only mechanic; inventory is unchanged.</p>`;
+    } else {
+      target.innerHTML = `<p class="eyebrow">Reward rule</p><h3>${escapeHtml(detail.name)}</h3><div class="uncertain-banner"><strong>Eligible pool unknown</strong><span>The source confirms a random family reward, but not which Super Seeds are eligible.</span></div><dl><dt>Available</dt><dd>${escapeHtml(detail.available_checkpoint || detail.available_from_checkpoint_id || "Unknown")}</dd><dt>Location</dt><dd>${escapeHtml(detail.location_text)}</dd><dt>Trigger</dt><dd>${escapeHtml(detail.trigger_text)}</dd><dt>Quantity</dt><dd>${escapeHtml(detail.reward_quantity ?? "Unknown")}</dd><dt>Selection</dt><dd>${escapeHtml(detail.selection_method)}</dd><dt>Repeatable</dt><dd>${detail.repeatable ? "Yes" : "No"}</dd><dt>DLC scope</dt><dd>${escapeHtml(detail.dlc_scope || "Not recorded")}</dd></dl><p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${escapeHtml(detail.locator)}</span></p><p class="muted">Read-only reward rule.</p>`;
+    }
   }
 }
 async function selectCatalogEntry(id) {
   const domain = state.domain, summary = (state.catalogs[domain] || []).find(row => String(row.id) === String(id));
   state.selectedEntry = summary; renderCatalog();
-  if (!["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry"].includes(domain)) return;
+  if (!["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry", "seeds"].includes(domain)) return;
   const target = $("#catalogDetail"); target.setAttribute("aria-busy", "true"); target.innerHTML = '<p class="empty">Loading details…</p>';
   try { const endpoint = domain === "hearts" ? "monster-hearts" : domain === "source_registry" ? "sources" : domain; const detail = await api(`/${endpoint}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) renderRichDetail(detail, summary); }
   catch (error) { target.innerHTML = '<p class="empty">Details unavailable. List data is still available.</p>'; console.error(error); }
@@ -196,14 +203,15 @@ function normalizeEntry(name, row) {
   if (name === "missables") Object.assign(entry, { id: row.missable_id, category: row.severity, summary: row.window_status === "verified" ? `${row.available_from} → ${row.unavailable_after}` : "Window unresolved", completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "farms") Object.assign(entry, { id: row.farming_id, name: row.target, category: row.farm_type, summary: row.location, location: row.available_from, completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "source_registry") { const role = row.role.toLowerCase(); const family = ["item","monster","vocation","boss","completion","farm"].find(value => role.includes(value)); Object.assign(entry, { id: row.source_id, name: row.title, category: family === "farm" ? "farming" : (family || "other"), summary: `${row.publisher} · ${row.role}`, completed: null, progress_kind: null }); }
+  if (name === "seeds") Object.assign(entry, { id: row.seed_id, name: row.name, category: row.variant, summary: row.record_type === "effect" ? `+${row.increase_amount} ${row.stat_key.replaceAll("_", " ")}` : `${row.selection_method} reward · eligible pool unknown`, completed: null, progress_kind: null });
   if (name === "medals") Object.assign(entry, { id: row.medal_number, number: row.medal_number, name: `Mini Medal #${row.medal_number}`, category: row.found ? "found" : "open", checkpoint: row.available_checkpoint_id || row.checkpoint_id, completed: row.found });
   if (name === "tablets") Object.assign(entry, { id: row.fragment_id, name: `${row.tablet_name}: ${row.fragment_id}`, category: row.found ? "found" : "fragment", checkpoint: row.checkpoint_id, completed: row.found, progress_kind: "tablet" });
   if (name === "achievements") Object.assign(entry, { id: row.achievement_id, title: row.name, completed: row.unlocked });
   return entry;
 }
 async function loadCatalog(name) {
-  const keys = { items: "items", vocations: "vocations", monsters: "monsters", hearts: "hearts", missables: "missables", farms: "farms", source_registry: "sources", medals: "medals", tablets: "fragments", achievements: "achievements" };
-  const paged = ["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry", "achievements"].includes(name);
+  const keys = { items: "items", vocations: "vocations", monsters: "monsters", hearts: "hearts", missables: "missables", farms: "farms", source_registry: "sources", seeds: "seeds", medals: "medals", tablets: "fragments", achievements: "achievements" };
+  const paged = ["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry", "seeds", "achievements"].includes(name);
   let rows = [], offset = 0;
   do {
     const endpoint = name === "hearts" ? "monster-hearts" : name === "source_registry" ? "sources" : name;

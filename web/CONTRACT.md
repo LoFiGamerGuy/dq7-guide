@@ -62,6 +62,7 @@ The first-class domain routes call:
 - `GET /api/missables`
 - `GET /api/farms`
 - `GET /api/sources`
+- `GET /api/seeds`
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`
@@ -75,6 +76,8 @@ Missables return `{total, limit, offset, missables}` and support `GET /api/missa
 Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, checkpoint gate, qualitative frequency, confidence, and direct locator are sourced facts. Numeric rates remain `numeric_unpublished`. Strategy text is separately sourced and labeled `attributed_strategy`, not canonical fact. Farms are read-only and never mutate player progress.
 
 Sources return `{total, limit, offset, sources, publishers}` and support `GET /api/sources/{source_id}`. Search covers title, publisher, role, class, status, and ID. Exact filters are `role`, `publisher`, `retrieval_band`, and `update_date_status`. Retrieval bands are `within_180_days`, `over_180_days`, or `unknown`; they measure only days since this project retrieved the page. They do not assert that page content or dependent claims are current. Missing publication/update dates remain null and display as unknown. The registry is read-only.
+
+Seeds return `{total, limit, offset, seeds}` and support `GET /api/seeds/{seed_id}`. Effect rows expose the fixed stat increase, standard/Super variant, Reimagined version, DLC scope exactly as stored, confidence, verification, source, and locator. A null DLC scope is displayed as “Not recorded,” not interpreted as included or excluded DLC. Reward-rule rows expose their checkpoint, trigger, quantity, random/fixed selection, and repeatability. When `eligible_items` is null, `eligible_pool_status` is `unknown`; the browser must not infer that every Super Seed belongs to the pool. Search covers names, stats, locations, triggers, and provenance; exact filters are `variant` and `stat`. The registry is read-only.
 
 Domain-specific fields:
 
