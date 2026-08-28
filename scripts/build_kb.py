@@ -343,6 +343,20 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             seed.get("vocation_progression_rules", []),
         )
+        connection.executemany(
+            """INSERT INTO vocation_rank_costs(
+                vocation_rank_cost_id,vocation_id,proficiency_rank,
+                proficiency_points,cumulative_points,source_id,
+                corroborating_source_id,locator,corroborating_locator,
+                confidence,verification_status
+            ) VALUES (
+                :vocation_rank_cost_id,:vocation_id,:proficiency_rank,
+                :proficiency_points,:cumulative_points,:source_id,
+                :corroborating_source_id,:locator,:corroborating_locator,
+                :confidence,:verification_status
+            )""",
+            seed.get("vocation_rank_costs", []),
+        )
         vocation_stat_modifiers = list(seed.get("vocation_stat_modifiers", []))
         stat_labels = {
             "max_hp": "Max HP", "max_mp": "Max MP", "attack": "Atk",
@@ -778,6 +792,18 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed.get("lucky_panel_pools", []),
         )
         connection.executemany(
+            """INSERT INTO lucky_panel_rules(
+                rule_id,max_attempts_per_day,reset_action,entry_cost,currency,
+                source_id,corroborating_source_id,locator,
+                corroborating_locator,confidence,verification_status
+            ) VALUES (
+                :rule_id,:max_attempts_per_day,:reset_action,:entry_cost,:currency,
+                :source_id,:corroborating_source_id,:locator,
+                :corroborating_locator,:confidence,:verification_status
+            )""",
+            seed.get("lucky_panel_rules", []),
+        )
+        connection.executemany(
             """INSERT INTO item_acquisition_paths(
                 acquisition_id, item_id, method, route_label, location_text,
                 time_period, available_from_checkpoint_id,
@@ -1002,7 +1028,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
         for table in (
             "sources", "entities", "relationships", "claims", "documents",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
-            "vocation_progression_rules", "vocation_stat_modifiers", "medal_rewards", "missables",
+            "vocation_progression_rules", "vocation_rank_costs", "vocation_stat_modifiers", "medal_rewards", "missables",
             "farming_spots", "seed_effects", "seed_reward_rules",
             "monster_hearts", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
@@ -1012,7 +1038,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             , "vicious_targets", "vicious_encounters"
             , "stone_tablets", "tablet_fragments"
             , "item_categories", "items", "item_aliases", "item_acquisition_paths", "shops"
-            , "shop_inventory", "lucky_panel_pools", "lucky_panel_rewards"
+            , "shop_inventory", "lucky_panel_pools", "lucky_panel_rules", "lucky_panel_rewards"
         ):
             counts[table] = connection.execute(
                 f"SELECT COUNT(*) FROM {table}"

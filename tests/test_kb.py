@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 468)
+        self.assertEqual(self.counts["sources"], 478)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -77,6 +77,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
+        self.assertEqual(self.counts["lucky_panel_rules"], 1)
         self.assertEqual(self.counts["lucky_panel_rewards"], 302)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
@@ -86,6 +87,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["achievements"], 61)
         self.assertEqual(self.counts["achievement_aliases"], 1)
         self.assertEqual(self.counts["achievement_requirements"], 29)
+        self.assertEqual(self.counts["vocation_rank_costs"], 7)
 
     def test_achievement_registry_is_complete_and_checkpoint_scoped(self):
         counts = dict(
@@ -2554,17 +2556,19 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
 
     def test_vocation_progression_rules_preserve_setting_and_moonlight_scope(self):
-        points = dict(
-            self.connection.execute(
-                """SELECT event_type, proficiency_points
+        points = {
+            (row[0], row[1]): (row[2], row[3])
+            for row in self.connection.execute(
+                """SELECT event_type, proficiency_setting, proficiency_points,
+                    affects_both_moonlight_vocations
                 FROM vocation_progression_rules
                 WHERE proficiency_points IS NOT NULL"""
-            ).fetchall()
-        )
-        self.assertEqual(points, {
-            "battle_completion": 7,
-            "overworld_instant_defeat": 1,
-        })
+            )
+        }
+        self.assertEqual(points[("overworld_instant_defeat", "Normal")], (1, 1))
+        self.assertEqual(points[("battle_completion", "Normal")], (5, 1))
+        self.assertEqual(points[("other", "Normal")], (10, 1))
+        self.assertEqual(points[("battle_completion", "More")], (7, 1))
         settings = {
             row[0] for row in self.connection.execute(
                 """SELECT proficiency_setting FROM vocation_progression_rules
@@ -2584,8 +2588,57 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.connection.execute(
                 "SELECT COUNT(*) FROM vocation_progression_rules"
             ).fetchone()[0],
-            7,
+            9,
         )
+
+    def test_luminary_rank_costs_are_two_source_verified(self):
+        rows = self.connection.execute(
+            """SELECT proficiency_rank, proficiency_points, cumulative_points,
+                source_id, corroborating_source_id, verification_status
+            FROM vocation_rank_costs
+            WHERE vocation_id='vocation_luminary'
+            ORDER BY proficiency_rank"""
+        ).fetchall()
+        self.assertEqual(
+            [(row[0], row[1], row[2]) for row in rows],
+            [(2, 25, 25), (3, 35, 60), (4, 40, 100), (5, 65, 165),
+             (6, 75, 240), (7, 110, 350), (8, 130, 480)],
+        )
+        self.assertTrue(all(row[3] != row[4] for row in rows))
+        self.assertTrue(all(row[5] == "two_independent_current_version_tables_match" for row in rows))
+
+    def test_lucky_panel_attempt_rule_preserves_unknown_cost(self):
+        row = self.connection.execute(
+            """SELECT max_attempts_per_day, reset_action, entry_cost, currency,
+                source_id, corroborating_source_id, verification_status
+            FROM lucky_panel_rules WHERE rule_id='lprule_daily_attempts'"""
+        ).fetchone()
+        self.assertEqual((row[0], row[1]), (3, "Stay at an inn"))
+        self.assertIsNone(row[2])
+        self.assertIsNone(row[3])
+        self.assertNotEqual(row[4], row[5])
+        self.assertIn("cost_unknown", row[6])
+
+    def test_moonlighting_sequence_and_skill_scope_are_resolved(self):
+        conflict = self.connection.execute(
+            """SELECT status, rationale FROM conflicts
+            WHERE claim_a_id='claim_moonlighting_unlock'
+              AND claim_b_id='claim_moonlighting_unlock_rpgsite'"""
+        ).fetchone()
+        self.assertEqual(conflict[0], "resolved")
+        self.assertIn("process-stage", conflict[1])
+        sequence = self.connection.execute(
+            """SELECT value_json, confidence FROM claims
+            WHERE claim_id='claim_moonlighting_sequence_corroborated'"""
+        ).fetchone()
+        self.assertIn('"trigger_location": "Shrine of Mysteries"', sequence[0])
+        self.assertIn('"activation_location": "Alltrades Abbey"', sequence[0])
+        self.assertEqual(sequence[1], "verified")
+        retention = self.connection.execute(
+            """SELECT value_json FROM claims
+            WHERE claim_id='claim_vocation_skill_retention'"""
+        ).fetchone()[0]
+        self.assertIn('"retained_after_switching": false', retention)
 
     def test_advanced_vocation_stat_modifiers_are_complete_and_qualitative(self):
         for vocation_id in ("vocation_champion", "vocation_druid", "vocation_hero"):

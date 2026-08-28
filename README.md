@@ -17,7 +17,7 @@ The seed includes:
 
 - all 26 vocation names;
 - complete Beginner → Intermediate and Intermediate → Advanced prerequisites;
-- sourced Moonlighting unlock/mechanics with its activation-venue conflict preserved;
+- sourced Moonlighting unlock/mechanics with the Shrine trigger and Alltrades activation stages independently corroborated;
 - the seven named missable / choice-sensitive events from the initial pass;
 - all 61 achievements with explicit player tracking;
 - the complete 353-item, six-category Heroic Hoarder identity registry;
@@ -27,14 +27,14 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 468-page source registry with browser search and retrieval-freshness metadata;
+- a 478-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
 - 455 checkpoint-gated encounters and 227 verified drops across the 333-monster registry;
 - all directly published Lucky Panel standard-rank matrices normalized with exact-name gaps retained;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
-- verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
+- verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules, including Normal-setting 1/5/10 point awards and the first two-source numeric mastery ladder;
 - verified qualitative stat modifiers for all non-default vocations;
 - an empty, user-editable player save-state.
 

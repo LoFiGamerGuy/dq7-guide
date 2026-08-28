@@ -594,9 +594,32 @@ def _moonlighting(db_path: Path) -> dict:
         del row["value_json"]
     unlocks = [row for row in facts if row["predicate"] == "unlocks_when"]
     mechanics = next((row for row in facts if row["predicate"] == "effect"), None)
-    return {"unlock": next((row for row in unlocks if row["source_id"] == "game8_moonlighting"), unlocks[0] if unlocks else None),
-            "unlock_claims": unlocks, "venue_status": "conflicting_sources" if len(unlocks) > 1 else "single_source",
+    canonical = next((row for row in unlocks
+                      if row["claim_id"] == "claim_moonlighting_sequence_corroborated"),
+                     unlocks[0] if unlocks else None)
+    venue_resolution = _rows(db_path, """SELECT status, rationale
+        FROM conflicts
+        WHERE (claim_a_id='claim_moonlighting_unlock'
+               AND claim_b_id='claim_moonlighting_unlock_rpgsite')
+           OR (claim_b_id='claim_moonlighting_unlock'
+               AND claim_a_id='claim_moonlighting_unlock_rpgsite')""")
+    retention_rows = _rows(db_path, """SELECT c.claim_id, c.value_json,
+        c.confidence, c.verification_status, c.locator, c.source_id,
+        s.title AS source_title, s.url AS source_url
+        FROM claims c JOIN sources s USING(source_id)
+        WHERE c.claim_id='claim_vocation_skill_retention'""")
+    retention = None
+    if retention_rows:
+        retention = {**retention_rows[0], "value": json.loads(retention_rows[0]["value_json"])}
+        del retention["value_json"]
+    return {"unlock": canonical,
+            "unlock_claims": unlocks,
+            "venue_status": ("resolved_process_stages" if venue_resolution
+                             and venue_resolution[0]["status"] == "resolved"
+                             else "conflicting_sources" if len(unlocks) > 1 else "single_source"),
+            "venue_resolution": venue_resolution[0] if venue_resolution else None,
             "mechanics": mechanics,
+            "skill_retention": retention,
             "recommendation_notice": "Pairing suggestions are attributed recommendations, not legal-pairing rules."}
 
 

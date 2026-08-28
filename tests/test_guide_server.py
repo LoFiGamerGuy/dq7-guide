@@ -166,10 +166,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(tempest_chests, {
             "Sanctum of the Cirrus", "Ventus Tower 2F, by the north stairs"
         })
-        moonlighting = next(row for row in conflicts if "moonlighting" in row["subject"])
-        self.assertIn("post-Aishe Career Sphere message",
-                      moonlighting["required_evidence"])
-        self.assertIn("displayed venue name", moonlighting["required_evidence"])
+        self.assertFalse(any("moonlighting" in row["subject"] for row in conflicts))
         stellar = next(row for row in conflicts if "stella fan" in row["subject"])
         self.assertIn("English in-game Item List", stellar["required_evidence"])
         self.assertIn("full fan name legible", stellar["required_evidence"])
@@ -180,6 +177,10 @@ class GuideServerTests(unittest.TestCase):
                          stellar_item["item"]["item_id"])
         self.assertEqual(stellar_item["item"]["name"], "Stellar Fan")
         _, all_conflicts = self.get_json("/api/conflicts?include_resolved=1")
+        moonlighting = next(row for row in all_conflicts
+                            if "moonlighting" in row["subject"])
+        self.assertEqual(moonlighting["status"], "resolved")
+        self.assertIn("process-stage", moonlighting["rationale"])
         iron = next(row for row in all_conflicts
                     if row["resolution_claim_id"] ==
                     "claim_iron_shield_game8_alltrades_price")
@@ -247,10 +248,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("locator", vocation["skills"][0])
         moon = vocation["moonlighting"]
         self.assertEqual(moon["unlock"]["value"]["earliest_checkpoint_id"], "cp_012_roamer_return")
-        self.assertEqual(moon["venue_status"], "conflicting_sources")
-        self.assertEqual(len(moon["unlock_claims"]), 2)
-        self.assertIn("Exact proficiency-point split per battle",
-                      moon["mechanics"]["value"]["unknown_restrictions"])
+        self.assertEqual(moon["venue_status"], "resolved_process_stages")
+        self.assertEqual(len(moon["unlock_claims"]), 3)
+        self.assertEqual(moon["unlock"]["value"]["trigger_location"],
+                         "Shrine of Mysteries")
+        self.assertEqual(moon["unlock"]["value"]["activation_location"],
+                         "Alltrades Abbey")
+        self.assertEqual(moon["mechanics"]["value"]["unknown_restrictions"],
+                         ["Complete legal pairing restrictions"])
+        self.assertFalse(moon["skill_retention"]["value"]["retained_after_switching"])
         _, moon_endpoint = self.get_json("/api/moonlighting")
         self.assertEqual(moon_endpoint["mechanics"]["value"]["simultaneous_vocations"], 2)
         _, items = self.get_json("/api/items")

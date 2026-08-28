@@ -180,6 +180,21 @@ CREATE TABLE vocation_progression_rules (
     UNIQUE(event_type, proficiency_setting, vocation_id, source_id)
 );
 
+CREATE TABLE vocation_rank_costs (
+    vocation_rank_cost_id TEXT PRIMARY KEY,
+    vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),
+    proficiency_rank INTEGER NOT NULL CHECK(proficiency_rank BETWEEN 2 AND 8),
+    proficiency_points INTEGER NOT NULL CHECK(proficiency_points > 0),
+    cumulative_points INTEGER NOT NULL CHECK(cumulative_points >= proficiency_points),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    corroborating_source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    corroborating_locator TEXT NOT NULL CHECK(length(trim(corroborating_locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    UNIQUE(vocation_id, proficiency_rank)
+);
+
 CREATE TABLE vocation_stat_modifiers (
     vocation_stat_modifier_id TEXT PRIMARY KEY,
     vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),
@@ -624,6 +639,21 @@ CREATE TABLE lucky_panel_pools (
     confidence TEXT NOT NULL,
     verification_status TEXT NOT NULL,
     UNIQUE(venue, game_version, panel_rank, chest_tier, time_period)
+);
+
+CREATE TABLE lucky_panel_rules (
+    rule_id TEXT PRIMARY KEY,
+    max_attempts_per_day INTEGER CHECK(max_attempts_per_day IS NULL OR max_attempts_per_day > 0),
+    reset_action TEXT,
+    entry_cost INTEGER CHECK(entry_cost IS NULL OR entry_cost >= 0),
+    currency TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    corroborating_source_id TEXT REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    corroborating_locator TEXT,
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    CHECK(max_attempts_per_day IS NOT NULL OR entry_cost IS NOT NULL)
 );
 
 CREATE TABLE lucky_panel_rewards (
