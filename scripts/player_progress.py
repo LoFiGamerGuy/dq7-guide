@@ -87,6 +87,30 @@ def _obligation_for_step(
     return row["obligation_id"]
 
 
+def _resolve_monsters(connection: sqlite3.Connection, values: list[str]) -> list[str]:
+    resolved = []
+    for value in values:
+        number = value.removeprefix("#")
+        if number.isdigit():
+            rows = connection.execute(
+                "SELECT monster_id FROM monsters WHERE source_ordinal = ?",
+                (int(number),),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                """SELECT monster_id FROM monsters
+                WHERE monster_id = ? OR lower(english_name) = lower(?)
+                ORDER BY source_ordinal""",
+                (value, value),
+            ).fetchall()
+        if not rows:
+            raise ValueError(f"Unknown monster: {value}")
+        if len(rows) > 1:
+            raise ValueError(f"Ambiguous monster name: {value}; use its Monster List number")
+        resolved.append(rows[0]["monster_id"])
+    return resolved
+
+
 def update_progress(
     state_path: Path,
     db_path: Path,
@@ -215,17 +239,14 @@ def update_progress(
                     mastery.pop(vocation_id, None)
                 message = f"Reopened {character} mastery: {', '.join(vocation_ids)}."
         elif command in ("monster-defeated", "monster-undo"):
-            known = {row[0] for row in connection.execute("SELECT monster_id FROM monsters")}
-            invalid = sorted(set(values) - known)
-            if invalid:
-                raise ValueError(f"Unknown monster ID(s): {invalid}")
+            monster_ids = _resolve_monsters(connection, values)
             entries = set(state["completion"]["monster_entries"])
             if command == "monster-defeated":
-                entries.update(values)
-                message = f"Recorded monster(s): {', '.join(values)}."
+                entries.update(monster_ids)
+                message = f"Recorded monster(s): {', '.join(monster_ids)}."
             else:
-                entries.difference_update(values)
-                message = f"Reopened monster(s): {', '.join(values)}."
+                entries.difference_update(monster_ids)
+                message = f"Reopened monster(s): {', '.join(monster_ids)}."
             state["completion"]["monster_entries"] = sorted(entries)
         else:
             raise ValueError(f"Unknown progress command: {command}")
@@ -261,7 +282,7 @@ def main() -> None:
         progress.add_argument("values", nargs="+", metavar="CHARACTER_OR_VOCATION_ID")
     for name in ("monster-defeated", "monster-undo"):
         progress = subparsers.add_parser(name)
-        progress.add_argument("values", nargs="+", metavar="MONSTER_ID")
+        progress.add_argument("values", nargs="+", metavar="MONSTER")
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))
