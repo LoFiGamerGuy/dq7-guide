@@ -7,7 +7,7 @@ const domains = {
   monsters: { title: "Monsters", singular: "monster", progressKind: "monster", filters: ["all","defeated","open"] },
   hearts: { title: "Monster Hearts", singular: "heart", progressKind: null, filters: ["all","available","unknown"] },
   missables: { title: "Missables", singular: "missable", progressKind: null, filters: ["all","verified","unresolved","collector","major_choice"] },
-  farms: { title: "Farms", singular: "farm", progressKind: null, filters: ["all","proficiency","exp","seeds","other"] },
+  farms: { title: "Farms", singular: "farm", progressKind: null, filters: ["all","gold","proficiency","exp","seeds","other"] },
   seeds: { title: "Seed Mechanics", singular: "seed mechanic", progressKind: null, filters: ["all","standard","super","reward"] },
   source_registry: { title: "Sources", singular: "source", progressKind: null, filters: ["all","item","monster","vocation","boss","completion","farming","other"] },
   medals: { title: "Mini Medals", singular: "medal", progressKind: "medal", filters: ["all","found","open"] },

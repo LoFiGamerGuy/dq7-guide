@@ -198,6 +198,17 @@
     "updated_at": "2026-02-09",
     "retrieved_at": "2026-08-27"
   },
+  {
+    "source_id": "game8_gold_farming",
+    "title": "Money Farming Guide: How to Earn Gold Fast",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578226",
+    "source_class": "guide_wiki",
+    "role": "gold_farming",
+    "published_at": null,
+    "updated_at": "2026-02-13",
+    "retrieved_at": "2026-08-28"
+  },
   {"source_id":"game8_seed_of_proficiency","title":"How to Get Seed of Proficiency and Effects","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579386","source_class":"guide_wiki","role":"vocation_proficiency_rank_advancement","published_at":null,"updated_at":"2026-02-23","retrieved_at":"2026-08-27"},
   {"source_id":"game8_difficulty_settings","title":"Best Difficulty Settings and Differences","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/575271","source_class":"guide_wiki","role":"vocation_proficiency_setting_options","published_at":null,"updated_at":null,"retrieved_at":"2026-08-27"},
   {
@@ -1573,5 +1584,7 @@
   {"source_id":"game8_monster_liquid_metal_slime","title":"Liquid Metal Slime Locations and Farming Guide","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579824","source_class":"guide_wiki","role":"monster_encounter_drop_and_farming","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
   {"source_id":"game8_monster_vicious_admirer","title":"Vicious Admirer Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/583665","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
   {"source_id":"game8_monster_vicious_cureslime","title":"Vicious Cureslime Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/583669","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
-  {"source_id":"game8_monster_vicious_vis_mager","title":"Vicious Vis Mager Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/583671","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"}
+  {"source_id":"game8_monster_vicious_vis_mager","title":"Vicious Vis Mager Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/583671","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
+  {"source_id":"game8_monster_togre","title":"Togre Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582777","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-28"},
+  {"source_id":"game8_monster_the_stranger","title":"The Stranger Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582753","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-28"}
 ]

@@ -245,6 +245,7 @@ def _farms(db_path: Path, query: dict) -> dict:
     for row in rows:
         target = row["target"].casefold()
         row["farm_type"] = ("proficiency" if "proficiency" in target
+            else "gold" if "gold" in target
             else "exp" if "metal" in target or "jewel" in target
             else "seeds" if "seed" in target else "other")
         row["rate_status"] = "numeric_unpublished"
