@@ -78,6 +78,16 @@ Renewable shops, Lucky Panel pools, and drops are not duplicated in this finite
 opportunity list. Monster checkboxes likewise reuse the Monster registry ledger;
 completed encounters disappear from the checkpoint's remaining-monster list.
 
+`checkpoint_achievements` distinguishes `due_here` from `tracking_starts`.
+`due_here` means the normalized completion checkpoint matches the viewed checkpoint
+and renders a checkbox backed by the same validated Achievements-registry ledger.
+`tracking_starts` means a counter can begin at this checkpoint but has no exact
+completion checkpoint; these rows remain collapsed, read-only reminders with
+state-aware dependency progress. The guide never marks either class unlocked from
+story position. Each row preserves platform scope, grade, requirement progress,
+confidence, verification, and provenance. Advancement readiness reports unrecorded
+due achievements but does not independently infer that the exit condition is met.
+
 ### `GET /api/progress`
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.

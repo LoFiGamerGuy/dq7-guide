@@ -118,6 +118,13 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(all(route["source"]["locator"]
                             for row in shrine["checkpoint_items"]
                             for route in row["routes"]))
+        due = [row for row in shrine["checkpoint_achievements"]
+               if row["timing"] == "due_here"]
+        self.assertEqual([row["id"] for row in due], ["ach_into_the_unknown"])
+        _, prologue_achievements = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertTrue(prologue_achievements["checkpoint_achievements"])
+        self.assertTrue(all(row["timing"] == "tracking_starts"
+                            for row in prologue_achievements["checkpoint_achievements"]))
         _, ballymolloy = self.get_json("/api/checkpoints/cp_003_ballymolloy")
         slime = next(row for row in ballymolloy["monsters"] if row["id"] == "monster_002")
         self.assertEqual(slime["drop"], "Medicinal Herb")
@@ -367,6 +374,21 @@ class GuideServerTests(unittest.TestCase):
             "kind": "monster", "id": monster_id, "completed": False,
         })
         self.patch_json("/api/items/" + item_id, {"completed": False})
+
+    def test_checkpoint_achievement_progress_shares_registry_ledger(self):
+        _, checkpoint = self.get_json("/api/checkpoints/cp_002_estard_shrine")
+        achievement = next(row for row in checkpoint["checkpoint_achievements"]
+                           if row["timing"] == "due_here")
+        self.patch_json("/api/achievements/" + achievement["id"],
+                        {"completed": True})
+        _, refreshed = self.get_json("/api/checkpoints/cp_002_estard_shrine")
+        due = next(row for row in refreshed["checkpoint_achievements"]
+                   if row["id"] == achievement["id"])
+        self.assertTrue(due["unlocked"])
+        _, registry = self.get_json("/api/achievements?q=" + achievement["id"])
+        self.assertTrue(registry["achievements"][0]["unlocked"])
+        self.patch_json("/api/achievements/" + achievement["id"],
+                        {"completed": False})
 
     def test_advancement_readiness_requires_explicit_actions_and_manual_confirmation(self):
         state_path = Path(self.temp.name) / "advancement-state.json"

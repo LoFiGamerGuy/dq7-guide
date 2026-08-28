@@ -59,14 +59,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 463)
+        self.assertEqual(self.counts["sources"], 467)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
         self.assertEqual(self.counts["checkpoint_advice"], 104)
-        self.assertEqual(self.counts["mini_medal_evidence"], 86)
+        self.assertEqual(self.counts["mini_medal_evidence"], 99)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
@@ -773,13 +773,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (447, 224))
+        self.assertEqual(tuple(counts), (455, 227))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (308, "cp_001_prologue", 77))
+        self.assertEqual(tuple(early), (312, "cp_001_prologue", 77))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -931,7 +931,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 "cp_020_buccanham": 39,
                 "cp_021_malign_shrine": 15,
                 "cp_023_fire_spirit": 5,
-                "cp_025_wind_spirit": 4,
+                "cp_025_wind_spirit": 6,
             },
         )
 
@@ -973,8 +973,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 308)
-        self.assertEqual(report["drops"], 193)
+        self.assertEqual(report["routed"], 312)
+        self.assertEqual(report["drops"], 196)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -1781,6 +1781,17 @@ class KnowledgeBaseTests(unittest.TestCase):
             ORDER BY medal_number"""
         ).fetchall()
         self.assertEqual(verified, evidence)
+
+    def test_only_rpgsite_omitted_medal_remains_index_checked(self):
+        indexed = self.connection.execute(
+            """SELECT medal_number, verification_status FROM mini_medal_locations
+            WHERE verification_status LIKE 'search_index_checked%'
+            ORDER BY medal_number"""
+        ).fetchall()
+        self.assertEqual(
+            [(row["medal_number"], row["verification_status"]) for row in indexed],
+            [(74, "search_index_checked_rpgsite_omits_row")],
+        )
 
     def test_checkpoint_sequences_are_contiguous(self):
         sequences = [

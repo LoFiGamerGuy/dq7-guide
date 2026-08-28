@@ -735,6 +735,28 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "id": row["source_id"], "title": row["source_title"],
             "url": row["source_url"], "locator": row["locator"],
         }
+    achievement_rows = []
+    for row in load_achievement_report(db_path, state_path, True)["achievements"]:
+        timing = ("due_here" if row["completion_checkpoint_id"] == checkpoint_id else
+                  "tracking_starts" if row["completion_checkpoint_id"] is None
+                  and row["earliest_checkpoint_id"] == checkpoint_id else None)
+        if timing is None:
+            continue
+        achievement_rows.append({
+            "id": row["achievement_id"], "name": row["name"],
+            "description": row["description"], "category": row["category"],
+            "grade": row["grade"], "platform_scope": row["platform_scope"],
+            "timing": timing, "unlocked": row["unlocked"],
+            "dependency_progress": row["dependency_progress"],
+            "source": {"id": row["source_id"], "title": row["source_title"],
+                       "url": row["source_url"], "locator": row["locator"]},
+            "confidence": row["confidence"],
+            "verification_status": row["verification_status"],
+        })
+        sources[(row["source_id"], row["locator"])] = {
+            "id": row["source_id"], "title": row["source_title"],
+            "url": row["source_url"], "locator": row["locator"],
+        }
     open_required = [row for row in block["now"] if row["required_for_100_percent"]]
     saved_checkpoint_match = player_state.get("story", {}).get("checkpoint_id") == checkpoint_id
     if block["stops"]:
@@ -757,6 +779,9 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             for row in tablet_fragments),
         "unrecorded_finite_hoarder_item_count": sum(
             not row["obtained"] for row in checkpoint_items.values()),
+        "unrecorded_due_achievement_count": sum(
+            row["timing"] == "due_here" and not row["unlocked"]
+            for row in achievement_rows),
         "saved_checkpoint_match": saved_checkpoint_match,
         "safe_condition_requires_player_confirmation": True,
         "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],
@@ -817,6 +842,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "verification_status": row["verification_status"],
         } for row in tablet_fragments],
         "checkpoint_items": list(checkpoint_items.values()),
+        "checkpoint_achievements": achievement_rows,
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
                        "drop": ", ".join(drops[row["monster_id"]]) or None,
