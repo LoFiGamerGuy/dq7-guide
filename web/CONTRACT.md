@@ -39,6 +39,15 @@ Every advice row retains its native `applicability` object. `tradeoff` mirrors o
 
 `saved_state_applicability` annotates—but never filters—each recommendation with `status: satisfied|unmet|unknown` and a concise reason. Evaluation is conservative: `requires.mini_medals` uses an explicit total, or can be satisfied by enough explicitly numbered medals; a lower numbered-medal count without a reported total stays unknown, and inconsistent count records cannot produce an unmet result. A top-level normalized `vocation` is satisfied only by an explicitly current/secondary or mastered vocation. Missing mastery is not treated as false, unsupported requirements stay unknown, and raw applicability/provenance remain unchanged. To keep the walkthrough terse, the browser omits the state badge when a recommendation has no supported saved-state gate.
 
+Checkpoint detail returns STOP obligations twice by design: `stop_warnings` is a
+plain alert summary, while `stop_actions` contains stable IDs, concise subjects,
+actions, and progress metadata so the interactive walkthrough can explicitly clear
+the warning. STOP actions render before normal actions. Normal actions use their
+sourced subject as the title and mark only the first open row with `is_next: true`.
+Mini Medal rows include `timing: now|backtrack|later`; later-gated rows include their
+availability gate and must not render as current checkboxes. The browser keeps them
+in a collapsed “Later” reference section.
+
 ### `GET /api/progress`
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.

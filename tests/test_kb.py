@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 448)
+        self.assertEqual(self.counts["sources"], 453)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 743)
+        self.assertEqual(self.counts["item_acquisition_paths"], 744)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -357,6 +357,30 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
         self.assertTrue(all("exact_container_unknown" in row["verification_status"] for row in rows))
+
+    def test_early_accessory_routes_are_direct_and_container_safe(self):
+        rows = self.connection.execute(
+            """SELECT acquisition_id, method, location_text,
+                available_from_checkpoint_id, supply_type, is_free,
+                verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_rabbit_tail_grotto_silgillo',
+                'acq_fishnet_stockings_frobisher_past'
+            ) ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        by_id = {row["acquisition_id"]: row for row in rows}
+        rabbit = by_id["acq_rabbit_tail_grotto_silgillo"]
+        self.assertEqual(tuple(rabbit[1:4]), (
+            "chest", "Grotta del Sigillo Level 3", "cp_005_larca"
+        ))
+        self.assertIn("exact_container", rabbit["verification_status"])
+        fishnet = by_id["acq_fishnet_stockings_frobisher_past"]
+        self.assertEqual(fishnet["available_from_checkpoint_id"], "cp_007_frobisher")
+        self.assertIn("exact_container_unknown", fishnet["verification_status"])
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
 
     def test_kamikazee_bracer_has_cp011_fixed_free_alternative(self):
         row = self.connection.execute(
@@ -749,13 +773,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (417, 213))
+        self.assertEqual(tuple(counts), (426, 213))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (287, "cp_001_prologue", 65))
+        self.assertEqual(tuple(early), (295, "cp_001_prologue", 72))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -844,7 +868,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_011_la_bravoure": 14,
+                "cp_011_la_bravoure": 15,
                 "cp_013_flying_carpet": 19,
                 "cp_014_sir_mervyn": 4,
             },
@@ -949,7 +973,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 287)
+        self.assertEqual(report["routed"], 295)
         self.assertEqual(report["drops"], 185)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 

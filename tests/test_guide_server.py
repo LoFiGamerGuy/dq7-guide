@@ -99,6 +99,11 @@ class GuideServerTests(unittest.TestCase):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertEqual(checkpoint["id"], "cp_001_prologue")
         self.assertIn("actions", checkpoint)
+        self.assertEqual(checkpoint["stop_actions"][0]["title"], "Pearl's Fish Bits")
+        self.assertNotEqual(checkpoint["actions"][0]["title"], "Step 1")
+        self.assertTrue(checkpoint["actions"][0]["is_next"])
+        later = [row for row in checkpoint["medals"] if row["timing"] == "later"]
+        self.assertEqual([row["number"] for row in later], [6, 7])
         _, ballymolloy = self.get_json("/api/checkpoints/cp_003_ballymolloy")
         slime = next(row for row in ballymolloy["monsters"] if row["id"] == "monster_002")
         self.assertEqual(slime["drop"], "Medicinal Herb")
@@ -298,6 +303,21 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(farm["encounter_rate_text"])
         self.assertTrue(farm["strategy_source_url"])
         self.assertTrue(farm["strategy_locator"])
+
+    def test_stop_obligation_can_be_cleared_from_walkthrough(self):
+        _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
+        stop_id = checkpoint["stop_actions"][0]["id"]
+        self.patch_json("/api/progress", {
+            "kind": "action", "id": stop_id, "completed": True,
+        })
+        _, cleared = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertEqual(cleared["stop_actions"], [])
+        self.assertEqual(cleared["stop_warnings"], [])
+        self.patch_json("/api/progress", {
+            "kind": "action", "id": stop_id, "completed": False,
+        })
+        _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertEqual(reopened["stop_actions"][0]["id"], stop_id)
 
     def test_vocation_unlock_progress_uses_only_explicit_mastery(self):
         state_path = Path(self.temp.name) / "unlock-progress-state.json"

@@ -646,7 +646,10 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
     found_medals = set(completion.get("mini_medals_found", []))
     defeated_monsters = set(completion.get("monster_entries", []))
     checkpoint = block["checkpoint"]
-    medals = block["medals_now"] + block["medals_backtrack"] + block["medals_later"]
+    medal_groups = (("now", block["medals_now"]),
+                    ("backtrack", block["medals_backtrack"]),
+                    ("later", block["medals_later"]))
+    medals = [row for _, rows in medal_groups for row in rows]
     sourced_rows = block["stops"] + block["now"] + block["advice"] + medals
     sources = {}
     for row in sourced_rows:
@@ -680,11 +683,19 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "id": checkpoint_id, "name": checkpoint["name"],
         "time_period": checkpoint["time_period"], "region": checkpoint["region"],
         "stop_warnings": [row["action"] for row in block["stops"]],
+        "stop_actions": [{
+            "id": row["obligation_id"], "title": row["subject"],
+            "action": row["action"], "completed": False,
+            "required": bool(row["required_for_100_percent"]),
+            "type": row["obligation_type"],
+        } for row in block["stops"]],
         "actions": [{
-            "id": row["obligation_id"], "title": f"Step {row['display_order']}",
+            "id": row["obligation_id"], "title": row["subject"],
             "action": row["action"], "completed": row["obligation_id"] in completed_actions,
             "required": bool(row["required_for_100_percent"]),
-        } for row in block["now"]],
+            "type": row["obligation_type"], "display_order": row["display_order"],
+            "is_next": index == 0,
+        } for index, row in enumerate(block["now"])],
         "advice": [{
             "id": row["advice_id"], "type": row["advice_type"],
             "subject": row["subject"], "text": row["advice_text"],
@@ -702,7 +713,11 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                 db_path, player_state, json.loads(row["applicability_json"])),
         } for row in block["advice"]],
         "medals": [{"number": row["medal_number"], "location": row["location"],
-                     "detail": row["detail"], "found": row["medal_number"] in found_medals} for row in medals],
+                     "detail": row["detail"], "found": row["medal_number"] in found_medals,
+                     "timing": timing,
+                     "available_checkpoint": row["available_checkpoint"],
+                     "available_from": row["available_from"]}
+                    for timing, rows in medal_groups for row in rows],
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
                        "drop": ", ".join(drops[row["monster_id"]]) or None,

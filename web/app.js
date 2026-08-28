@@ -62,8 +62,20 @@ function renderChecks(target, actions = [], hideCompleted = false) {
   const visible = hideCompleted ? actions.filter(action => !action.completed) : actions;
   if (!visible.length) return target.append(empty());
   visible.forEach(action => {
-    const label = document.createElement("label"); label.className = `check-row${action.completed ? " completed" : ""}`;
-    label.innerHTML = `<input type="checkbox" ${action.completed ? "checked" : ""} data-action-id="${escapeHtml(action.id)}"><span class="check-text"><strong>${escapeHtml(action.title || action.subject)}</strong><br>${escapeHtml(action.action || "")}</span>`;
+    const label = document.createElement("label"); label.className = `check-row${action.completed ? " completed" : ""}${action.is_next ? " next-action" : ""}`;
+    label.innerHTML = `<input type="checkbox" ${action.completed ? "checked" : ""} data-action-id="${escapeHtml(action.id)}"><span class="check-text"><strong>${action.is_next ? '<span class="tag">Next</span> ' : ""}${escapeHtml(action.title || action.subject)}</strong><br>${escapeHtml(action.action || "")}</span>`;
+    target.append(label);
+  });
+}
+
+function renderStopActions(target, actions = []) {
+  target.hidden = !actions.length;
+  target.replaceChildren();
+  if (!actions.length) return;
+  const heading = document.createElement("strong"); heading.textContent = "STOP — clear before advancing"; target.append(heading);
+  actions.forEach(action => {
+    const label = document.createElement("label"); label.className = "check-row stop-check";
+    label.innerHTML = `<input type="checkbox" data-action-id="${escapeHtml(action.id)}"><span class="check-text"><strong>${escapeHtml(action.title)}</strong><br>${escapeHtml(action.action)}</span>`;
     target.append(label);
   });
 }
@@ -93,7 +105,7 @@ function renderCheckpoint() {
   $("#previousCheckpoint").disabled = index <= 0;
   $("#nextCheckpoint").disabled = index < 0 || index >= state.checkpoints.length - 1;
   $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
-  renderStop($("#checkpointStop"), c.stop_warnings || []);
+  renderStopActions($("#checkpointStop"), c.stop_actions || []);
   renderChecks($("#actions"), c.actions || [], $("#hideCompleted").checked);
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"), adviceGroups = [
@@ -106,7 +118,10 @@ function renderCheckpoint() {
     if (!rows.length) return "";
     return `<section class="advice-group" aria-labelledby="advice-${group}"><h4 id="advice-${group}">${label}</h4>${rows.map(a => { const applies = compactApplicability(a.applicability), saved = a.saved_state_applicability || { status: "unknown", reason: "Saved-state check unavailable" }, checked = saved.reason !== "No supported saved-state gate"; return `<div class="advice-item"><span class="tag goal-${escapeHtml(a.goal)}">${escapeHtml(a.type)} · ${escapeHtml(a.goal.replaceAll("_", " "))}</span>${checked ? `<span class="tag applicability-${escapeHtml(saved.status)}">${escapeHtml(saved.status === "satisfied" ? "State: met" : saved.status === "unmet" ? "State: unmet" : "State: unknown")}</span>` : ""}<strong>${escapeHtml(a.subject)}</strong><p>${escapeHtml(a.text)}</p><details class="advice-evidence"><summary>When, tradeoff & source</summary>${checked ? `<p><strong>Saved state:</strong> ${escapeHtml(saved.reason)}</p>` : ""}${applies ? `<p><strong>Applies:</strong> ${escapeHtml(applies)}</p>` : ""}${a.tradeoff ? `<p><strong>Tradeoff:</strong> ${escapeHtml(a.tradeoff)}</p>` : ""}<p><a href="${escapeHtml(a.source?.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(a.source?.title || "Source")}</a><br><span class="muted">${escapeHtml(a.source?.locator || "Locator unavailable")}</span></p><p class="muted">${escapeHtml(a.confidence || "unknown")} confidence · ${escapeHtml(a.verification_status || "status unknown")}</p></details></div>`; }).join("")}</section>`;
   }).join(""); if (!advice.children.length) advice.append(empty());
-  const medals = $("#medals"); medals.innerHTML = (c.medals || []).map(m => `<label class="check-row${m.found ? " completed" : ""}"><input type="checkbox" data-medal="${m.number}" ${m.found ? "checked" : ""}><span class="check-text"><strong>#${m.number} ${escapeHtml(m.location)}</strong><br>${escapeHtml(m.detail)}</span></label>`).join(""); if (!medals.children.length) medals.append(empty());
+  const medals = $("#medals"), availableMedals = (c.medals || []).filter(m => m.timing !== "later"), laterMedals = (c.medals || []).filter(m => m.timing === "later");
+  medals.innerHTML = availableMedals.map(m => `<label class="check-row${m.found ? " completed" : ""}"><input type="checkbox" data-medal="${m.number}" ${m.found ? "checked" : ""}><span class="check-text"><strong>${m.timing === "backtrack" ? '<span class="tag">Backtrack</span> ' : ""}#${m.number} ${escapeHtml(m.location)}</strong><br>${escapeHtml(m.detail)}</span></label>`).join("");
+  if (laterMedals.length) medals.insertAdjacentHTML("beforeend", `<details class="later-medals"><summary>Later (${laterMedals.length})</summary>${laterMedals.map(m => `<div><strong>#${m.number} ${escapeHtml(m.location)}</strong><span>${escapeHtml(m.available_checkpoint || m.available_from || "Gate unknown")}</span></div>`).join("")}</details>`);
+  if (!medals.children.length) medals.append(empty());
   const monsters = $("#monsters"); monsters.innerHTML = (c.monsters || []).map(m => `<label class="check-row"><input type="checkbox" data-monster-id="${escapeHtml(m.id)}" ${m.defeated ? "checked" : ""}><span class="check-text"><strong>${escapeHtml(m.name || `Monster #${m.ordinal}`)}</strong><br>${escapeHtml(m.location || "")}${m.drop ? ` · ${escapeHtml(m.drop)}` : ""}</span></label>`).join(""); if (!monsters.children.length) monsters.append(empty());
   $("#safeCondition").textContent = c.safe_condition || "Not yet verified.";
   renderSources(c.sources || []);
