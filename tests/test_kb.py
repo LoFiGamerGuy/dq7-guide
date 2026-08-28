@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 367)
+        self.assertEqual(self.counts["sources"], 373)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 354)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 707)
+        self.assertEqual(self.counts["item_acquisition_paths"], 710)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -235,6 +235,18 @@ class KnowledgeBaseTests(unittest.TestCase):
             [row[0] for row in dlc_scoped],
             ["Gold Golem Heart", "Metal Slime Heart"],
         )
+        availability_unknown = self.connection.execute(
+            """SELECT name, availability_notes, verification_status
+            FROM monster_hearts
+            WHERE name IN ('Dragonlord Heart', 'Malroth Heart', 'Zoma Heart')
+            ORDER BY name"""
+        ).fetchall()
+        self.assertEqual(
+            [row[0] for row in availability_unknown],
+            ["Dragonlord Heart", "Malroth Heart", "Zoma Heart"],
+        )
+        self.assertTrue(all(row[1] is None for row in availability_unknown))
+        self.assertTrue(all(row[2].endswith("availability_unknown") for row in availability_unknown))
 
     def test_meowgician_heart_has_direct_finite_vicious_route(self):
         row = self.connection.execute(
@@ -504,6 +516,39 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
         self.assertTrue(all(row["source_id"] and row["locator"] for row in rows))
 
+    def test_garter_and_slime_earring_have_non_panel_alternatives(self):
+        garter = self.connection.execute(
+            """SELECT method, location_text, time_period,
+                available_from_checkpoint_id, supply_type, finite_total, is_free,
+                verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_garter_greenthumb_region_present'"""
+        ).fetchone()
+        self.assertEqual(
+            tuple(garter[:7]),
+            ("other", "Greenthumb Gardens Region", "Present",
+             "cp_015_greenthumb", "finite", 1, 1),
+        )
+        self.assertIn("container_unknown", garter[7])
+
+        drops = self.connection.execute(
+            """SELECT location_text, time_period, available_from_checkpoint_id,
+                supply_type, finite_total, is_free, source_id, locator,
+                verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_slime_earring_seaslime_drop',
+                'acq_slime_earring_slimecicle_drop'
+            ) ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual(len(drops), 2)
+        self.assertEqual({row["location_text"] for row in drops}, {"Falls Hollow", "Coral Cave"})
+        self.assertTrue(all(row["supply_type"] == "renewable" for row in drops))
+        self.assertTrue(all(row["finite_total"] is None for row in drops))
+        self.assertTrue(all(row["is_free"] == 1 for row in drops))
+        self.assertTrue(all(row["source_id"] and row["locator"] for row in drops))
+        self.assertTrue(all("rate_unknown" in row["verification_status"] for row in drops))
+
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
             """SELECT COUNT(*), SUM(required_fragment_count) FROM stone_tablets"""
@@ -552,13 +597,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (338, 190))
+        self.assertEqual(tuple(counts), (346, 195))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (225, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (229, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -582,6 +627,15 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND available_from_checkpoint_id='cp_026_elemental_cleanup_nottagen'"""
         ).fetchone()
         self.assertEqual(tuple(late_hoarder_routes), (8, 4))
+        cleanup_equipment_routes = self.connection.execute(
+            """SELECT COUNT(*), COUNT(DISTINCT monster_id)
+            FROM monster_encounters
+            WHERE source_id IN ('game8_monster_sculptrice',
+                'game8_monster_fright_night', 'game8_monster_lethal_armour',
+                'game8_monster_gigantes')
+              AND available_from_checkpoint_id='cp_026_elemental_cleanup_nottagen'"""
+        ).fetchone()
+        self.assertEqual(tuple(cleanup_equipment_routes), (8, 4))
 
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(
@@ -702,8 +756,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 225)
-        self.assertEqual(report["drops"], 166)
+        self.assertEqual(report["routed"], 229)
+        self.assertEqual(report["drops"], 170)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -818,15 +872,29 @@ class KnowledgeBaseTests(unittest.TestCase):
         state = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(state["completion"]["items_obtained"], [])
 
-    def test_seeded_source_disagreement_is_visible(self):
+    def test_medal_078_conflict_resolves_to_screenshot_corroborated_route(self):
         row = self.connection.execute(
-            """SELECT c.status, c.detection_method
+            """SELECT c.status, c.detection_method, c.resolution_claim_id,
+                c.rationale
             FROM conflicts c
             WHERE c.claim_a_id = 'claim_medal_078_game8_floor'
               AND c.claim_b_id = 'claim_medal_078_rpgsite_floor'"""
         ).fetchone()
         self.assertIsNotNone(row)
-        self.assertEqual(tuple(row), ("unresolved", "automatic_exact_scope"))
+        self.assertEqual(row["status"], "resolved")
+        self.assertEqual(row["detection_method"],
+                         "manual_screenshot_route_adjudication")
+        self.assertEqual(row["resolution_claim_id"],
+                         "claim_medal_078_rpgsite_floor")
+        self.assertIn("Level 3", row["rationale"])
+        medal = self.connection.execute(
+            """SELECT detail, source_id, verification_status
+            FROM mini_medal_locations WHERE medal_number=78"""
+        ).fetchone()
+        self.assertEqual(medal["detail"],
+                         "Exit south from 3F and open the chest on the outside balcony.")
+        self.assertEqual(medal["source_id"], "rpgsite_walkthrough")
+        self.assertIn("screenshot", medal["verification_status"])
 
     def test_phase_two_source_disagreements_are_visible(self):
         pairs = self.connection.execute(
