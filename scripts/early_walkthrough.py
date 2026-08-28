@@ -83,6 +83,12 @@ def load_walkthrough(
     if not isinstance(completed, list) or any(not isinstance(value, str) for value in completed):
         raise ValueError("completion.obligations_completed must be a list of strings")
     completed_ids = set(completed)
+    monster_entries = state.get("completion", {}).get("monster_entries", [])
+    if not isinstance(monster_entries, list) or any(
+        not isinstance(value, str) for value in monster_entries
+    ):
+        raise ValueError("completion.monster_entries must be a list of strings")
+    completed_monsters = set(monster_entries)
     if medal_count is not None and (
         not isinstance(medal_count, int) or isinstance(medal_count, bool) or medal_count < 0
     ):
@@ -188,6 +194,14 @@ def load_walkthrough(
                 ORDER BY ca.subject_key, ca.predicate, f.conflict_id""",
                 (checkpoint["checkpoint_id"], checkpoint["checkpoint_id"]),
             ).fetchall()
+            monsters = connection.execute(
+                """SELECT m.monster_id, m.source_ordinal, m.english_name,
+                    group_concat(me.location_text || ' (' || me.time_period || ')', '; ') AS locations
+                FROM monster_encounters me JOIN monsters m USING(monster_id)
+                WHERE me.available_from_checkpoint_id = ?
+                GROUP BY m.monster_id ORDER BY m.source_ordinal""",
+                (checkpoint["checkpoint_id"],),
+            ).fetchall()
             stop_rows = [dict(row) for row in obligations if row["stop_before_advancing"]]
             now_rows = [dict(row) for row in obligations if not row["stop_before_advancing"]]
             blocks.append(
@@ -217,6 +231,10 @@ def load_walkthrough(
                     "guidance": [dict(row) for row in guidance],
                     "advice": [dict(row) for row in advice],
                     "conflicts": [dict(row) for row in conflicts],
+                    "monsters": [
+                        dict(row) for row in monsters
+                        if row["monster_id"] not in completed_monsters
+                    ],
                 }
             )
         return {
@@ -307,7 +325,8 @@ def _print_conflicts(block: dict, include_sources: bool) -> None:
 
 
 def print_walkthrough(
-    report: dict, include_sources: bool = False, compact: bool = False
+    report: dict, include_sources: bool = False, compact: bool = False,
+    include_monsters: bool = False,
 ) -> None:
     if report["medal_tracking_status"] == "known":
         medal_note = f"medals tracked: {report['mini_medal_count']}"
@@ -362,6 +381,11 @@ def print_walkthrough(
             if include_sources:
                 print(f"   Source: {_source(row)}")
 
+        if include_monsters and block["monsters"]:
+            print("MONSTERS:")
+            for row in block["monsters"]:
+                print(f"- #{row['source_ordinal']} {row['english_name']} — {row['locations']}")
+
         medal_buckets = (
             ("NOW", block["medals_now"]),
             ("BACKTRACK", block["medals_backtrack"]),
@@ -398,6 +422,9 @@ def main() -> None:
     parser.add_argument(
         "--compact", action="store_true", help="Hide progress and coverage boilerplate"
     )
+    parser.add_argument(
+        "--monsters", action="store_true", help="Include unrecorded checkpoint monsters"
+    )
     args = parser.parse_args()
     try:
         start, end = resolve_checkpoint_range(
@@ -409,6 +436,7 @@ def main() -> None:
             ),
             include_sources=args.sources,
             compact=args.compact,
+            include_monsters=args.monsters,
         )
     except (FileNotFoundError, ValueError, json.JSONDecodeError) as error:
         raise SystemExit(str(error)) from error

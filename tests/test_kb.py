@@ -59,13 +59,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 264)
+        self.assertEqual(self.counts["sources"], 273)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 75)
+        self.assertEqual(self.counts["checkpoint_advice"], 80)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
@@ -273,13 +273,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (198, 119))
+        self.assertEqual(tuple(counts), (206, 123))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (112, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (116, "cp_003_ballymolloy", 0))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -301,7 +301,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_011_la_bravoure": 10,
+                "cp_011_la_bravoure": 11,
                 "cp_013_flying_carpet": 14,
                 "cp_014_sir_mervyn": 3,
             },
@@ -360,7 +360,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_020_buccanham": 26,
+                "cp_020_buccanham": 27,
                 "cp_021_malign_shrine": 6,
                 "cp_023_fire_spirit": 2,
                 "cp_025_wind_spirit": 1,
@@ -405,8 +405,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 112)
-        self.assertEqual(report["drops"], 102)
+        self.assertEqual(report["routed"], 116)
+        self.assertEqual(report["drops"], 106)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -1342,6 +1342,12 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("NOW:", rendered)
         self.assertIn("SAFE:", rendered)
 
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_walkthrough(report, compact=True, include_monsters=True)
+        self.assertIn("MONSTERS:", output.getvalue())
+        self.assertIn("Cactiball", output.getvalue())
+
     def test_martial_artist_rank_progression_is_complete_and_sourced(self):
         rows = self.connection.execute(
             """SELECT proficiency_rank, skill_name, locator
@@ -1548,6 +1554,27 @@ class KnowledgeBaseTests(unittest.TestCase):
             ).fetchone()[0],
             7,
         )
+
+    def test_advanced_vocation_stat_modifiers_are_complete_and_qualitative(self):
+        for vocation_id in ("vocation_champion", "vocation_druid", "vocation_hero"):
+            rows = self.connection.execute(
+                """SELECT stat_key, modifier_direction, modifier_value,
+                    proficiency_rank, locator, source_id
+                FROM vocation_stat_modifiers WHERE vocation_id=?""",
+                (vocation_id,),
+            ).fetchall()
+            self.assertEqual(len(rows), 11)
+            self.assertEqual(len({row[0] for row in rows}), 11)
+            self.assertTrue(all(row[1] in {"increased", "normal", "decreased"} for row in rows))
+            self.assertTrue(all(row[2] is None and row[3] is None for row in rows))
+            self.assertTrue(all("Overview > Stat Bonuses >" in row[4] for row in rows))
+            self.assertTrue(all(row[5].startswith("game8_vocation_") for row in rows))
+
+        champion_resilience = self.connection.execute(
+            """SELECT modifier_direction FROM vocation_stat_modifiers
+            WHERE vocation_id='vocation_champion' AND stat_key='resilience'"""
+        ).fetchone()[0]
+        self.assertEqual(champion_resilience, "normal")
 
 
 if __name__ == "__main__":

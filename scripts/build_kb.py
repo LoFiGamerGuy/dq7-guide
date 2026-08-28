@@ -257,6 +257,42 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             seed.get("vocation_progression_rules", []),
         )
+        vocation_stat_modifiers = list(seed.get("vocation_stat_modifiers", []))
+        stat_labels = {
+            "max_hp": "Max HP", "max_mp": "Max MP", "attack": "Atk",
+            "defence": "Def", "magical_might": "Mag Mt", "charm": "Charm",
+            "magical_mending": "Mag Mend", "strength": "Str",
+            "deftness": "Deft", "resilience": "Res", "agility": "Agi",
+        }
+        for table in seed.get("vocation_stat_tables", []):
+            vocation_slug = table["vocation_id"].removeprefix("vocation_")
+            for stat_key, direction in table["modifiers"].items():
+                vocation_stat_modifiers.append({
+                    "vocation_stat_modifier_id": f"vstat_{vocation_slug}_{stat_key}",
+                    "vocation_id": table["vocation_id"],
+                    "proficiency_rank": table.get("proficiency_rank"),
+                    "stat_key": stat_key,
+                    "modifier_direction": direction,
+                    "modifier_value": None,
+                    "modifier_unit": None,
+                    "source_id": table["source_id"],
+                    "locator": f"{table['name']} Overview > Stat Bonuses > {stat_labels[stat_key]}",
+                    "confidence": "high",
+                    "verification_status": "source_checked",
+                })
+
+        connection.executemany(
+            """INSERT INTO vocation_stat_modifiers(
+                vocation_stat_modifier_id,vocation_id,proficiency_rank,stat_key,
+                modifier_direction,modifier_value,modifier_unit,source_id,locator,
+                confidence,verification_status
+            ) VALUES (
+                :vocation_stat_modifier_id,:vocation_id,:proficiency_rank,:stat_key,
+                :modifier_direction,:modifier_value,:modifier_unit,:source_id,:locator,
+                :confidence,:verification_status
+            )""",
+            vocation_stat_modifiers,
+        )
 
         connection.executemany(
             """INSERT INTO medal_rewards(threshold, reward, source_id, confidence)
@@ -777,7 +813,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
         for table in (
             "sources", "entities", "relationships", "claims", "documents",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
-            "vocation_progression_rules", "medal_rewards", "missables",
+            "vocation_progression_rules", "vocation_stat_modifiers", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"

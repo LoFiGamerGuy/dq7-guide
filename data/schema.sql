@@ -174,6 +174,25 @@ CREATE TABLE vocation_progression_rules (
     UNIQUE(event_type, proficiency_setting, vocation_id, source_id)
 );
 
+CREATE TABLE vocation_stat_modifiers (
+    vocation_stat_modifier_id TEXT PRIMARY KEY,
+    vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),
+    proficiency_rank INTEGER CHECK(proficiency_rank IS NULL OR proficiency_rank BETWEEN 1 AND 8),
+    stat_key TEXT NOT NULL CHECK(stat_key IN (
+        'max_hp', 'max_mp', 'attack', 'defence', 'magical_might', 'charm',
+        'magical_mending', 'strength', 'deftness', 'resilience', 'agility'
+    )),
+    modifier_direction TEXT CHECK(modifier_direction IN ('increased', 'normal', 'decreased')),
+    modifier_value REAL,
+    modifier_unit TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    CHECK(modifier_direction IS NOT NULL OR modifier_value IS NOT NULL),
+    UNIQUE(vocation_id, proficiency_rank, stat_key, source_id)
+);
+
 CREATE TABLE medal_rewards (
     threshold INTEGER PRIMARY KEY,
     reward TEXT NOT NULL,

@@ -26,13 +26,14 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 264-page source registry;
+- a 273-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- checkpoint-gated encounters for 112 monsters and 119 verified drops;
+- checkpoint-gated encounters for 116 monsters and 123 verified drops;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
+- verified qualitative stat modifiers for advanced vocations;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
@@ -48,6 +49,7 @@ python scripts/checkpoint_report.py --checkpoint cp_004_emberdale
 python scripts/walkthrough.py
 python scripts/walkthrough.py --checkpoint cp_004_emberdale
 python scripts/walkthrough.py --checkpoint cp_004_emberdale --compact
+python scripts/walkthrough.py --checkpoint cp_004_emberdale --compact --monsters
 python scripts/walkthrough.py --from cp_010_alltrades_present --through cp_014_sir_mervyn --sources
 python scripts/walkthrough.py --from cp_015_greenthumb --through cp_029_ending_victory_lap
 python scripts/walkthrough.py --from cp_030_postgame_another_world --through cp_033_arena_achievement_cleanup
