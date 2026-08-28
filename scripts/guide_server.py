@@ -223,6 +223,9 @@ def _missables(db_path: Path, query: dict) -> dict:
             row["verification_status"].startswith("source_checked")
             else "unresolved")
         row["provenance_gap"] = not bool(row["locator"])
+        row["window_gap_reason"] = (None if row["window_status"] == "verified"
+            else "The current-version source warns that the opportunity disappears after later story progress but does not name the exact event or checkpoint.")
+        row["stop_warning_eligible"] = row["window_status"] == "verified"
     page = _page(rows, query, ("missable_id", "name", "available_from",
         "unavailable_after", "consequence", "severity", "window_status",
         "verification_status", "locator"))
