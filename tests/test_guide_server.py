@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import create_server
+from guide_server import _vocation_unlock_progress, create_server
 
 
 class GuideServerTests(unittest.TestCase):
@@ -275,6 +275,48 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(farm["encounter_rate_text"])
         self.assertTrue(farm["strategy_source_url"])
         self.assertTrue(farm["strategy_locator"])
+
+    def test_vocation_unlock_progress_uses_only_explicit_mastery(self):
+        state_path = Path(self.temp.name) / "unlock-progress-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["party"]["members"]["Hero"]["vocation_mastery"] = {
+            "vocation_warrior": True,
+            "vocation_martial_artist": True,
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        gladiator = _vocation_unlock_progress(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "vocation_gladiator")
+        hero = next(row for row in gladiator["party_progress"]
+                    if row["party_member"] == "Hero")
+        maribel = next(row for row in gladiator["party_progress"]
+                       if row["party_member"] == "Maribel")
+        self.assertEqual(hero["status"], "satisfied")
+        self.assertEqual(hero["groups"][0]["needed_if_unknowns_are_unmastered"], 0)
+        self.assertEqual(maribel["status"], "unknown")
+        self.assertEqual(maribel["groups"][0]["needed_if_unknowns_are_unmastered"], 2)
+        self.assertEqual(gladiator["cost_status"], "unknown")
+        self.assertIn("absent mastery records remain unknown",
+                      gladiator["cost_note"])
+
+        druid = _vocation_unlock_progress(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "vocation_druid")
+        self.assertEqual(druid["groups"][0]["rule"], "any_n_of")
+        self.assertEqual(druid["groups"][0]["required_count"], 2)
+        self.assertEqual(len(druid["groups"][0]["candidates"]), 3)
+
+    def test_every_checkpoint_is_browser_ready_with_sourced_advice(self):
+        _, checkpoints = self.get_json("/api/checkpoints")
+        self.assertEqual(len(checkpoints), 33)
+        for checkpoint in checkpoints:
+            status, detail = self.get_json("/api/checkpoints/" + checkpoint["id"])
+            self.assertEqual(status, 200)
+            self.assertTrue(detail["actions"], checkpoint["id"])
+            self.assertTrue(detail["safe_condition"], checkpoint["id"])
+            for advice in detail["advice"]:
+                self.assertTrue(advice["source"]["url"], advice["id"])
+                self.assertTrue(advice["source"]["locator"], advice["id"])
 
     def test_progress_post_reuses_validated_mutation_and_rejects_unknown_command(self):
         body = json.dumps({"command": "checkpoint", "values": ["cp_001_prologue"]}).encode()

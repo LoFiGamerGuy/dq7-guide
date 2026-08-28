@@ -151,6 +151,61 @@ def _vocations(db_path: Path, state_path: Path, query: dict) -> dict:
     return page
 
 
+def _vocation_unlock_progress(db_path: Path, state_path: Path,
+                              vocation_id: str) -> dict:
+    """Describe direct sourced prerequisites without treating absent state as false."""
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        requirements = [dict(row) for row in connection.execute(
+            """SELECT r.group_id, r.rule, r.required_count,
+            r.prerequisite_vocation_id, e.name AS prerequisite_name,
+            r.source_id, s.title AS source_title, s.url AS source_url, r.locator
+            FROM vocation_requirements r
+            JOIN entities e ON e.entity_id=r.prerequisite_vocation_id
+            JOIN sources s USING(source_id)
+            WHERE r.vocation_id=? ORDER BY r.group_id, e.name""", (vocation_id,))]
+    if not requirements:
+        return {"status": "no_prerequisites", "groups": [], "party_progress": [],
+                "cost_status": "not_applicable"}
+    groups = []
+    for group_id in dict.fromkeys(row["group_id"] for row in requirements):
+        rows = [row for row in requirements if row["group_id"] == group_id]
+        groups.append({"group_id": group_id, "rule": rows[0]["rule"],
+            "required_count": rows[0]["required_count"],
+            "candidates": [{"vocation_id": row["prerequisite_vocation_id"],
+                "name": row["prerequisite_name"]} for row in rows],
+            "source_id": rows[0]["source_id"],
+            "source_title": rows[0]["source_title"],
+            "source_url": rows[0]["source_url"], "locator": rows[0]["locator"]})
+    progress = []
+    members = _state(state_path).get("party", {}).get("members", {})
+    direct_ids = {candidate["vocation_id"] for group in groups
+                  for candidate in group["candidates"]}
+    for name, member in members.items():
+        mastered = {key for key, value in member.get("vocation_mastery", {}).items()
+                    if value is True}
+        group_progress = []
+        for group in groups:
+            candidate_ids = {row["vocation_id"] for row in group["candidates"]}
+            known = sorted(candidate_ids & mastered)
+            required = group["required_count"]
+            group_progress.append({"group_id": group["group_id"],
+                "status": "satisfied" if len(known) >= required else "unknown",
+                "known_mastered": known,
+                "unknown_mastery": sorted(candidate_ids - mastered),
+                "required_count": required,
+                "needed_if_unknowns_are_unmastered": max(required - len(known), 0)})
+        progress.append({"party_member": name,
+            "status": "satisfied" if all(row["status"] == "satisfied"
+                                           for row in group_progress) else "unknown",
+            "groups": group_progress})
+    return {"status": "sourced_direct_prerequisites", "groups": groups,
+        "party_progress": progress,
+        "cost_status": "unknown",
+        "cost_note": "Numeric proficiency or battle cost is not published here; absent mastery records remain unknown.",
+        "direct_prerequisite_ids": sorted(direct_ids)}
+
+
 def _monsters(db_path: Path, state_path: Path, query: dict) -> dict:
     defeated = set(_state(state_path).get("completion", {}).get("monster_entries", []))
     rows = _rows(db_path, """SELECT m.monster_id, m.source_ordinal, m.english_name,
@@ -699,6 +754,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     report["mastered_by"] = next(row["mastered_by"] for row in
                         _vocations(db_path, state_path, {})["vocations"]
                         if row["vocation_id"] == vocation_id)
+                    report["unlock_progress"] = _vocation_unlock_progress(
+                        db_path, state_path, vocation_id)
                     report["moonlighting"] = _moonlighting(db_path)
                     return self._json(report)
                 if parsed.path == "/api/moonlighting":
