@@ -44,8 +44,10 @@ Requires Python 3.10+; there are no third-party runtime dependencies.
 
 ### Interactive web guide
 
+On Windows, double-click `start-guide.bat`. Or run:
+
 ```powershell
-python scripts/guide_server.py
+python scripts/guide_server.py --open-browser
 ```
 
 Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, sources/conflicts, and searchable registries for items, vocations, monsters, Monster Hearts, missables, farms, medals, tablets, and achievements. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only explicit changes through the same validation as the CLI.

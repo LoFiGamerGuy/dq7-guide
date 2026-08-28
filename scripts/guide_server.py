@@ -11,6 +11,7 @@ import mimetypes
 from pathlib import Path
 import sqlite3
 from urllib.parse import parse_qs, unquote, urlparse
+import webbrowser
 
 from achievement_report import load_achievement_report
 from checkpoint_report import load_report
@@ -583,9 +584,14 @@ def main():
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
     parser.add_argument("--static", type=Path, default=DEFAULT_STATIC)
+    parser.add_argument("--open-browser", action="store_true",
+                        help="Open the guide in the default browser after starting")
     args = parser.parse_args()
     server = create_server(args.host, args.port, args.db, args.state, args.static)
-    print(f"DQ7 guide: http://{args.host}:{server.server_port}")
+    url = f"http://{args.host}:{server.server_port}"
+    print(f"DQ7 guide: {url}")
+    if args.open_browser:
+        webbrowser.open(url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
