@@ -130,6 +130,7 @@ python scripts/player_progress.py monster-defeated 9
 - `AGENTS.md` — durable instructions for Codex and other coding agents.
 - `HANDOFF.md` — architecture, decisions, current state, and first-session checklist.
 - `INGEST_STATUS.md` — coverage ledger and next concrete targets.
+- `docs/PRODUCT_READINESS.md` — verified interactive surface and intentional gaps.
 - `docs/INGESTION_ROADMAP.md` — phased roadmap with acceptance gates.
 - `docs/PROVENANCE_AND_CONFLICT_POLICY.md` — evidence, citation, confidence, and conflict rules.
 - `CODEX_KICKOFF_PROMPT.md` — ready-to-paste prompt for the first local Codex session.

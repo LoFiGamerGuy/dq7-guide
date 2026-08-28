@@ -344,6 +344,18 @@ async function updateProgress(payload) {
   const activeDomain = state.domain; if (activeDomain) delete state.catalogs[activeDomain];
   await loadAll(); if (activeDomain) await loadDomain(activeDomain); setStatus("Saved");
 }
+async function saveToggle(control, payload) {
+  const requested = control.checked;
+  control.disabled = true;
+  try { await updateProgress(payload); }
+  catch (error) {
+    console.error(error);
+    if (control.isConnected) control.checked = !requested;
+    const target = $("#status");
+    target.classList.add("error");
+    target.textContent = "Save failed. Change was not recorded.";
+  } finally { if (control.isConnected) control.disabled = false; }
+}
 async function recordCommand(command, values) {
   setStatus("Saving explicit state…");
   await api("/progress", { method: "POST", body: JSON.stringify({ command, values }) });
@@ -382,14 +394,14 @@ $("#partyDetailsForm").addEventListener("submit", async event => { event.prevent
 document.addEventListener("change", event => {
   if (event.target.id === "sourcePublisher") { state.sourcePublisher = event.target.value; renderCatalog(); return; }
   if (event.target.id === "sourceFreshness") { state.sourceFreshness = event.target.value; renderCatalog(); return; }
-  if (event.target.dataset.actionId) updateProgress({ kind: "action", id: event.target.dataset.actionId, completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.medal) updateProgress({ kind: "medal", id: Number(event.target.dataset.medal), completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.tabletId) updateProgress({ kind: "tablet", id: event.target.dataset.tabletId, completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.itemId) updateProgress({ kind: "item", id: event.target.dataset.itemId, completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.achievementId) updateProgress({ kind: "achievement", id: event.target.dataset.achievementId, completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.missableId) updateProgress({ kind: "missable", id: event.target.dataset.missableId, completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.monsterId) updateProgress({ kind: "monster", id: event.target.dataset.monsterId, completed: event.target.checked }).catch(handleError);
-  if (event.target.dataset.catalogProgress) { const kind = event.target.dataset.catalogProgress; const raw = event.target.dataset.progressId; updateProgress({ kind, id: kind === "medal" ? Number(raw) : raw, completed: event.target.checked }).catch(handleError); }
+  if (event.target.dataset.actionId) saveToggle(event.target, { kind: "action", id: event.target.dataset.actionId, completed: event.target.checked });
+  if (event.target.dataset.medal) saveToggle(event.target, { kind: "medal", id: Number(event.target.dataset.medal), completed: event.target.checked });
+  if (event.target.dataset.tabletId) saveToggle(event.target, { kind: "tablet", id: event.target.dataset.tabletId, completed: event.target.checked });
+  if (event.target.dataset.itemId) saveToggle(event.target, { kind: "item", id: event.target.dataset.itemId, completed: event.target.checked });
+  if (event.target.dataset.achievementId) saveToggle(event.target, { kind: "achievement", id: event.target.dataset.achievementId, completed: event.target.checked });
+  if (event.target.dataset.missableId) saveToggle(event.target, { kind: "missable", id: event.target.dataset.missableId, completed: event.target.checked });
+  if (event.target.dataset.monsterId) saveToggle(event.target, { kind: "monster", id: event.target.dataset.monsterId, completed: event.target.checked });
+  if (event.target.dataset.catalogProgress) { const kind = event.target.dataset.catalogProgress; const raw = event.target.dataset.progressId; saveToggle(event.target, { kind, id: kind === "medal" ? Number(raw) : raw, completed: event.target.checked }); }
 });
 $("#catalogSearch").addEventListener("input", renderCatalog);
 function handleError(error) { console.error(error); const target = $("#status"); target.classList.add("error"); target.innerHTML = `Could not load guide. <button class="secondary" type="button" data-retry>Retry</button>`; }

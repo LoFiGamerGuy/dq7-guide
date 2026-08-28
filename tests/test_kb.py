@@ -65,7 +65,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 107)
+        self.assertEqual(self.counts["checkpoint_advice"], 110)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
@@ -2204,12 +2204,14 @@ class KnowledgeBaseTests(unittest.TestCase):
 
     def test_late_game_missing_boss_sequences_are_normalized(self):
         expected = {
+            "cp_020_buccanham": ["Togrus Maximus", "The Slamphibians"],
             "cp_021_malign_shrine": ["The Time Being", "Orgodemir first fight"],
+            "cp_023_fire_spirit": ["Fire Spirit", "Smothers"],
             "cp_026_elemental_cleanup_nottagen": ["Moostapha", "Malign Vine"],
             "cp_027_deja_vous_rucker": ["Lourgh and Disorder"],
             "cp_030_postgame_another_world": ["The Almighty"],
             "cp_032_yet_another_world": [
-                "Xenlon", "The Almighty and Four Spirits"
+                "Xenlon", "The Almighty and Four Spirits", "The Four Spirits"
             ],
         }
         for checkpoint_id, subjects in expected.items():
@@ -2227,6 +2229,11 @@ class KnowledgeBaseTests(unittest.TestCase):
                                 or row["subject"] in {
                                     "Orgodemir first fight",
                                     "The Almighty and Four Spirits",
+                                    "Togrus Maximus",
+                                    "Fire Spirit",
+                                    "The Slamphibians",
+                                    "Smothers",
+                                    "The Four Spirits",
                                 } for row in rows))
 
     def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):

@@ -99,6 +99,8 @@ class GuideServerTests(unittest.TestCase):
             app = response.read()
             self.assertNotIn(b'checked disabled', app)
             self.assertNotIn(b'state.domain === "medals" && entry.completed', app)
+            self.assertIn(b"Save failed. Change was not recorded.", app)
+            self.assertIn(b"saveToggle(event.target", app)
 
     def test_checkpoint_and_domain_endpoints(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")

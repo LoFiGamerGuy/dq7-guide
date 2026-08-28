@@ -18,7 +18,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Missables / choices | 7/7 direct-source records with precise locators; 6 exact choice/window cutoffs and Little Blue Button explicitly unresolved | High for documented consequences; medium where the source omits a cutoff | Resolve Little Blue Button's story cutoff; it is not STOP-eligible until then |
 | Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized: Version 1 Ranks 1–3 link 23/23, 31/31, and 19/19 published names; Version 2 Ranks 1–3 link 31/32, 31/31, and 33/33; Version 3 Ranks 1–4 link 25/25, 36/36, 31/31, and 21/21 | High for normalized rows; dedicated current-version pages resolve all defensible spelling/number/order variants; `Shell Shield` remains the sole exact-name gap. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; entry costs/probabilities remain unknown | Verify Shell Shield, the legacy row, and costs/probabilities if directly published |
-| Equipment | 89 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
+| Equipment | 110 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Remaining optimization gaps are inventoried below; add only direct current-version evidence |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes, while Dragonlord, Malroth, and Zoma now have separately sourced DLC Battle Arena reward conditions | High for effects and published routes; exact Battle Arena unlock checkpoints remain unknown; numeric drop rates remain unknown | Verify the DLC arena unlock checkpoint and resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
@@ -53,7 +53,7 @@ Expected after `python scripts/build_kb.py`:
 - monsters: 333
 - monster encounters / drops: 455 / 227
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 86
+- ready-for-play checkpoint advice: 110
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
 - item aliases / acquisition paths: 4 / 747
@@ -62,6 +62,22 @@ Expected after `python scripts/build_kb.py`:
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 
 Treat these as build assertions, not completion percentages.
+
+## Final collectibles/data residual audit
+
+Completion-critical registries are closed at the identity/route level: 353/353 Heroic Hoarder items have at least one sourced acquisition path; all 46 Monster Hearts have sourced effects and acquisition evidence; all 100 Mini Medals have independent direct walkthrough evidence; all 20 tablets and 71 fragments are normalized; and all 61 achievements have identities with all 29 non-story requirements structured.
+
+The remaining evidence-blocked inventory is exact and intentionally conservative:
+
+- **Items:** 31 finite acquisition rows retain an unknown exact container, exact room, or exact member of a published chest pair. These are route refinements, not Heroic Hoarder route gaps. Three shop-like rows retain an unpublished price.
+- **Lucky Panel:** `Shell Shield` is the sole published standard-matrix name not linked to a current canonical item identity. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. All 302 normalized reward probabilities and all 14 pool entry costs remain unpublished/unknown.
+- **Monster Hearts:** Dragonlord, Malroth, and Zoma have direct DLC Battle Arena reward conditions but no directly published arena-unlock checkpoint. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
+- **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
+- **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
+- **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
+- **Missables:** Little Blue Button is the sole record without an exact named story cutoff and remains structurally excluded from STOP warnings.
+- **Conflicts:** exactly two remain unresolved: `Stella Fan` versus `Stellar Fan`, and the Shrine of Mysteries versus Alltrades Abbey Moonlighting activation venue. Both require legible/continuous current English UI evidence.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. Source freshness remains mixed, and indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -124,6 +140,8 @@ The first browser-interface batch adds a responsive dependency-free dashboard an
 The current monster expansion has 455 checkpoint-gated encounter routes across 312 of 333 monsters and 227 verified drop rows across 196 monsters. The latest direct-page batches route Sculpture Vulture, Frighturn, Hell Hog, Necromacer, Demon Deacon, Caped Caperer, and Corpse Corporal across fourteen exact habitats and preserve six published drops with null unpublished rates. The 21 evidence-blocked entries are categorized explicitly: ten Silver/Gold Arena members whose exact cup rosters are unpublished (Brawny Brian through King Buccanham); seven generic-only Special Encounter pages (Cannibox, Urnexpected, Scarewell, Damned Well, Mothertoad, Miry Hand, Miry Mudraker); three Vicious pages without exact current-version location evidence (Fandangow, Kisser, Scrapper); and Dark Gryphon, for which no direct current-version habitat page has been verified. No route is created from taxonomy/navigation lists alone.
 
 The current boss-advice audit adds three directly sourced early-game tactics: the scripted-loss and item-only recovery rules for Rashers and Stripes, multi-target damage plus Fizzle control for the Mild Bunch, and Leg Sweep/Dazzle/support alternatives for the Mighty Pip. The Mighty Pip row explicitly preserves the source's incompatible Ruff role alternatives instead of presenting both vocations as one simultaneous build.
+
+The final combat audit adds three directly sourced late tactics: summon priority and poison preparation for the Slamphibians, the forced Sir Mervyn solo constraint for Smothers, and Water-Spirit-first priority plus Dieamend/Magic Barrier preparation for the Four Spirits. Residual combat/optimization work is now explicit: actionable only when stronger evidence appears are remaining dedicated boss pages and free equipment alternatives; evidence-blocked are numeric vocation modifiers and mastery costs, numeric farm/drop/encounter rates, a proven repeatable Heart route, complete character equipability/slot rules, the Moonlighting venue/legal-pair restrictions, and the 21 categorized unrouted Monster List entries. No suggested level or inferred rate is normalized.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
