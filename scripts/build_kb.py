@@ -245,6 +245,18 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 :source_id,:locator,:confidence,:verification_status)""",
             seed.get("vocation_perks", []),
         )
+        connection.executemany(
+            """INSERT INTO vocation_progression_rules(
+                progression_rule_id,vocation_id,event_type,proficiency_setting,
+                proficiency_points,rank_delta,affects_both_moonlight_vocations,
+                rule_description,source_id,locator,confidence,verification_status
+            ) VALUES (
+                :progression_rule_id,:vocation_id,:event_type,:proficiency_setting,
+                :proficiency_points,:rank_delta,:affects_both_moonlight_vocations,
+                :rule_description,:source_id,:locator,:confidence,:verification_status
+            )""",
+            seed.get("vocation_progression_rules", []),
+        )
 
         connection.executemany(
             """INSERT INTO medal_rewards(threshold, reward, source_id, confidence)
@@ -764,7 +776,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
         counts = {}
         for table in (
             "sources", "entities", "relationships", "claims", "documents",
-            "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks", "medal_rewards", "missables",
+            "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
+            "vocation_progression_rules", "medal_rewards", "missables",
             "farming_spots", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"

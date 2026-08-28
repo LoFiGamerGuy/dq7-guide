@@ -195,9 +195,11 @@
     "source_class": "guide_wiki",
     "role": "vocation_proficiency_farming",
     "published_at": null,
-    "updated_at": null,
-    "retrieved_at": "2026-08-25"
+    "updated_at": "2026-02-09",
+    "retrieved_at": "2026-08-27"
   },
+  {"source_id":"game8_seed_of_proficiency","title":"How to Get Seed of Proficiency and Effects","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/579386","source_class":"guide_wiki","role":"vocation_proficiency_rank_advancement","published_at":null,"updated_at":"2026-02-23","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_difficulty_settings","title":"Best Difficulty Settings and Differences","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/575271","source_class":"guide_wiki","role":"vocation_proficiency_setting_options","published_at":null,"updated_at":null,"retrieved_at":"2026-08-27"},
   {
     "source_id": "game8_hearts_all",
     "title": "List of All Monster Hearts",
@@ -1456,5 +1458,13 @@
   {"source_id":"game8_monster_diethon","title":"Diethon Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582833","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
   {"source_id":"game8_monster_admirer","title":"Admirer Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582832","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
   {"source_id":"game8_monster_stainless_scrapper","title":"Stainless Scrapper Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582830","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
-  {"source_id":"game8_monster_high_djinks","title":"High Djinks Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582825","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"}
+  {"source_id":"game8_monster_high_djinks","title":"High Djinks Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582825","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_abyss_diver","title":"Abyss Diver Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582822","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_gripevine","title":"Gripevine Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582816","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_skeleton_swordsman","title":"Skeleton Swordsman Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582807","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_barbatos","title":"Barbatos Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582772","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_blue_dragon","title":"Blue Dragon Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582765","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_whackolyte","title":"Whackolyte Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582763","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_drakulord","title":"Drakulord Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582754","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"},
+  {"source_id":"game8_monster_dread_dragon","title":"Dread Dragon Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582743","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-27"}
 ]

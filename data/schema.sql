@@ -152,6 +152,28 @@ CREATE TABLE vocation_perks (
     UNIQUE(vocation_id, perk_type, perk_name)
 );
 
+CREATE TABLE vocation_progression_rules (
+    progression_rule_id TEXT PRIMARY KEY,
+    vocation_id TEXT REFERENCES vocations(vocation_id),
+    event_type TEXT NOT NULL CHECK(event_type IN (
+        'battle_completion', 'overworld_instant_defeat', 'proficiency_seed',
+        'difficulty_setting', 'other'
+    )),
+    proficiency_setting TEXT CHECK(proficiency_setting IN ('Less', 'Normal', 'More')),
+    proficiency_points INTEGER CHECK(proficiency_points IS NULL OR proficiency_points >= 0),
+    rank_delta INTEGER CHECK(rank_delta IS NULL OR rank_delta > 0),
+    affects_both_moonlight_vocations INTEGER NOT NULL DEFAULT 0
+        CHECK(affects_both_moonlight_vocations IN (0, 1)),
+    rule_description TEXT NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    CHECK(proficiency_points IS NOT NULL OR rank_delta IS NOT NULL
+        OR proficiency_setting IS NOT NULL),
+    UNIQUE(event_type, proficiency_setting, vocation_id, source_id)
+);
+
 CREATE TABLE medal_rewards (
     threshold INTEGER PRIMARY KEY,
     reward TEXT NOT NULL,

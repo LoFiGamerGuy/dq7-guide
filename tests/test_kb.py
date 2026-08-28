@@ -32,6 +32,7 @@ from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
 from monster_report import (  # noqa: E402
     load_checkpoint_monsters,
+    load_monster_coverage,
     load_monster_report,
     print_monster_report,
 )
@@ -58,13 +59,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 254)
+        self.assertEqual(self.counts["sources"], 264)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 69)
+        self.assertEqual(self.counts["checkpoint_advice"], 75)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
@@ -272,13 +273,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (183, 111))
+        self.assertEqual(tuple(counts), (198, 119))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (104, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (112, "cp_003_ballymolloy", 0))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -359,7 +360,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_020_buccanham": 25,
+                "cp_020_buccanham": 26,
                 "cp_021_malign_shrine": 6,
                 "cp_023_fire_spirit": 2,
                 "cp_025_wind_spirit": 1,
@@ -395,6 +396,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         cactiball = next(row for row in complete["monsters"] if row["monster_id"] == "monster_009")
         self.assertTrue(cactiball["completed"])
+
+    def test_monster_coverage_uses_only_explicit_player_state(self):
+        state_path = Path(self.tempdir.name) / "monster-coverage.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["monster_entries"] = ["monster_009", "unknown_monster"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_monster_coverage(self.db_path, state_path)
+        self.assertEqual(report["total"], 333)
+        self.assertEqual(report["defeated"], 1)
+        self.assertEqual(report["routed"], 112)
+        self.assertEqual(report["drops"], 102)
+        self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
         state_path = Path(self.tempdir.name) / "tablet-progress.json"
@@ -1500,6 +1513,40 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(
             [row[0] for row in destiny_rank_eight], ["Death Dance", "Kerplunk Dance"]
+        )
+
+    def test_vocation_progression_rules_preserve_setting_and_moonlight_scope(self):
+        points = dict(
+            self.connection.execute(
+                """SELECT event_type, proficiency_points
+                FROM vocation_progression_rules
+                WHERE proficiency_points IS NOT NULL"""
+            ).fetchall()
+        )
+        self.assertEqual(points, {
+            "battle_completion": 7,
+            "overworld_instant_defeat": 1,
+        })
+        settings = {
+            row[0] for row in self.connection.execute(
+                """SELECT proficiency_setting FROM vocation_progression_rules
+                WHERE event_type='difficulty_setting'"""
+            )
+        }
+        self.assertEqual(settings, {"Less", "Normal", "More"})
+        seed_rows = self.connection.execute(
+            """SELECT rank_delta, affects_both_moonlight_vocations, locator
+            FROM vocation_progression_rules
+            WHERE event_type='proficiency_seed'
+            ORDER BY affects_both_moonlight_vocations"""
+        ).fetchall()
+        self.assertEqual([(row[0], row[1]) for row in seed_rows], [(1, 0), (1, 1)])
+        self.assertTrue(all(row[2].strip() for row in seed_rows))
+        self.assertEqual(
+            self.connection.execute(
+                "SELECT COUNT(*) FROM vocation_progression_rules"
+            ).fetchone()[0],
+            7,
         )
 
 

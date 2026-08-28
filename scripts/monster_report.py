@@ -130,17 +130,58 @@ def print_checkpoint_monsters(report: dict) -> None:
         print(f"- [{marker}] #{row['source_ordinal']} {row['english_name']} — {row['locations']}")
 
 
+def load_monster_coverage(db_path: Path, state_path: Path) -> dict:
+    if not db_path.exists():
+        raise FileNotFoundError(f"Database not found: {db_path}")
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    completed = state.get("completion", {}).get("monster_entries", [])
+    if not isinstance(completed, list) or any(not isinstance(value, str) for value in completed):
+        raise ValueError("completion.monster_entries must be a list of strings")
+    connection = sqlite3.connect(db_path)
+    try:
+        total, routed, drops = connection.execute(
+            """SELECT COUNT(DISTINCT m.monster_id),
+                COUNT(DISTINCT CASE WHEN me.monster_id IS NOT NULL THEN m.monster_id END),
+                COUNT(DISTINCT CASE WHEN md.monster_id IS NOT NULL THEN m.monster_id END)
+            FROM monsters m
+            LEFT JOIN monster_encounters me USING(monster_id)
+            LEFT JOIN monster_drops md USING(monster_id)"""
+        ).fetchone()
+        known = {row[0] for row in connection.execute("SELECT monster_id FROM monsters")}
+        return {
+            "total": total,
+            "defeated": len(set(completed) & known),
+            "routed": routed,
+            "drops": drops,
+            "unknown_state_ids": sorted(set(completed) - known),
+        }
+    finally:
+        connection.close()
+
+
+def print_monster_coverage(report: dict) -> None:
+    print(f"Monster List: {report['defeated']}/{report['total']} explicitly defeated")
+    print(f"Knowledge coverage: {report['routed']}/{report['total']} routed; {report['drops']}/{report['total']} with verified drops")
+    if report["unknown_state_ids"]:
+        print("Unknown saved IDs: " + ", ".join(report["unknown_state_ids"]))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("monster", nargs="?", help="English name, stable ID, or Monster List number")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
     parser.add_argument("--checkpoint", help="List monsters introduced at this checkpoint")
+    parser.add_argument("--coverage", action="store_true", help="Show concise registry coverage")
     parser.add_argument("--all", action="store_true", help="Include completed monster entries")
     parser.add_argument("--sources", action="store_true")
     args = parser.parse_args()
     try:
-        if args.checkpoint:
+        if args.coverage:
+            if args.monster or args.checkpoint:
+                raise ValueError("--coverage cannot be combined with monster or --checkpoint")
+            print_monster_coverage(load_monster_coverage(args.db, args.state))
+        elif args.checkpoint:
             if args.monster:
                 raise ValueError("monster cannot be combined with --checkpoint")
             print_checkpoint_monsters(
