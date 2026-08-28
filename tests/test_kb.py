@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 362)
+        self.assertEqual(self.counts["sources"], 367)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 354)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 705)
+        self.assertEqual(self.counts["item_acquisition_paths"], 707)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -472,6 +472,38 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
         self.assertTrue(all("container_unknown" in row["verification_status"] for row in rows))
 
+    def test_late_panel_only_helmets_have_finite_free_alternatives(self):
+        rows = self.connection.execute(
+            """SELECT acquisition_id, item_id, location_text, time_period,
+                available_from_checkpoint_id, supply_type, finite_total, is_free,
+                source_id, locator, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_pirates_hat_buccanham_palace_closet',
+                'acq_steel_helmet_rucker_castle_past'
+            ) ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        by_item = {row["item_id"]: row for row in rows}
+        pirate = by_item["item_pirates_hat"]
+        self.assertEqual(
+            (pirate["location_text"], pirate["time_period"],
+             pirate["available_from_checkpoint_id"]),
+            ("Buccanham Palace", "Present", "cp_020_buccanham"),
+        )
+        self.assertIn("closet", pirate["locator"].lower())
+        steel = by_item["item_steel_helmet"]
+        self.assertEqual(
+            (steel["location_text"], steel["time_period"],
+             steel["available_from_checkpoint_id"]),
+            ("Rucker Castle", "Past", "cp_027_deja_vous_rucker"),
+        )
+        self.assertIn("container_unknown", steel["verification_status"])
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["finite_total"] == 1 for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
+        self.assertTrue(all(row["source_id"] and row["locator"] for row in rows))
+
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
             """SELECT COUNT(*), SUM(required_fragment_count) FROM stone_tablets"""
@@ -520,13 +552,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (330, 185))
+        self.assertEqual(tuple(counts), (338, 190))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (221, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (225, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -541,6 +573,15 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND available_from_checkpoint_id='cp_026_elemental_cleanup_nottagen'"""
         ).fetchone()
         self.assertEqual(tuple(late_cleanup), (6, 3))
+        late_hoarder_routes = self.connection.execute(
+            """SELECT COUNT(*), COUNT(DISTINCT monster_id)
+            FROM monster_encounters
+            WHERE source_id IN ('game8_monster_delusionist',
+                'game8_monster_infernal_serpent',
+                'game8_monster_hyperpyrexion', 'game8_monster_alarmour')
+              AND available_from_checkpoint_id='cp_026_elemental_cleanup_nottagen'"""
+        ).fetchone()
+        self.assertEqual(tuple(late_hoarder_routes), (8, 4))
 
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(
@@ -661,8 +702,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 221)
-        self.assertEqual(report["drops"], 162)
+        self.assertEqual(report["routed"], 225)
+        self.assertEqual(report["drops"], 166)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -807,6 +848,19 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "manual_direct_item_page_adjudication")
         self.assertIn("dedicated Cautery Sword acquisition page",
                       cautery["rationale"])
+
+        elevating = self.connection.execute(
+            """SELECT status, resolution_claim_id, detection_method, rationale
+            FROM conflicts WHERE claim_a_id LIKE 'claim_elevating_shoes_%'
+               OR claim_b_id LIKE 'claim_elevating_shoes_%'"""
+        ).fetchone()
+        self.assertEqual(elevating["status"], "resolved")
+        self.assertEqual(elevating["resolution_claim_id"],
+                         "claim_elevating_shoes_game8_routes")
+        self.assertEqual(elevating["detection_method"],
+                         "manual_direct_item_acquisition_adjudication")
+        self.assertIn("Metal King Slime", elevating["rationale"])
+        self.assertIn("rate", elevating["rationale"])
 
     def test_iron_shield_conflict_and_scale_shield_gap_are_visible(self):
         conflict = self.connection.execute(
