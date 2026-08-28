@@ -401,17 +401,6 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
-            """INSERT INTO missables(
-                missable_id, name, available_from, unavailable_after,
-                consequence, severity, source_id, locator, confidence, verification_status
-            ) VALUES (
-                :id, :name, :available_from, :unavailable_after, :consequence,
-                :severity, 'game8_missables', :locator, :confidence, :verification_status
-            )""",
-            seed["missables"],
-        )
-
-        connection.executemany(
             """INSERT INTO checkpoints(
                 checkpoint_id, sequence_no, name, time_period, region,
                 entry_condition, safe_exit_condition, source_id, locator, confidence,
@@ -443,11 +432,13 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             """INSERT INTO monster_hearts(
                 heart_id, name, effect_text, available_from_checkpoint_id,
-                availability_notes, source_id, locator, confidence,
+                availability_notes, availability_source_id,
+                availability_locator, source_id, locator, confidence,
                 verification_status
             ) VALUES (
                 :heart_id, :name, :effect_text, :available_from_checkpoint_id,
-                :availability_notes, :source_id, :locator, :confidence,
+                :availability_notes, :availability_source_id,
+                :availability_locator, :source_id, :locator, :confidence,
                 :verification_status
             )""",
             [
@@ -457,6 +448,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         "available_from_checkpoint_id"
                     ),
                     "availability_notes": heart.get("availability_notes"),
+                    "availability_source_id": heart.get("availability_source_id"),
+                    "availability_locator": heart.get("availability_locator"),
                 }
                 for heart in seed.get("monster_hearts", [])
             ],
@@ -500,6 +493,23 @@ def _build_database(db_path: Path) -> dict[str, int]:
             [
                 {**row, "display_order": row.get("display_order")}
                 for row in seed.get("checkpoint_obligations", [])
+            ],
+        )
+
+        connection.executemany(
+            """INSERT INTO missables(
+                missable_id, name, available_from_checkpoint_id, obligation_id,
+                available_from, unavailable_after,
+                consequence, severity, source_id, locator, confidence, verification_status
+            ) VALUES (
+                :id, :name, :available_from_checkpoint_id, :obligation_id,
+                :available_from, :unavailable_after, :consequence,
+                :severity, 'game8_missables', :locator, :confidence, :verification_status
+            )""",
+            [
+                {**row, **next(link for link in seed["missable_checkpoint_links"]
+                               if link["missable_id"] == row["id"])}
+                for row in seed["missables"]
             ],
         )
 

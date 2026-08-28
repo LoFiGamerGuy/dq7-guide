@@ -59,14 +59,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 467)
+        self.assertEqual(self.counts["sources"], 468)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
         self.assertEqual(self.counts["checkpoint_advice"], 104)
-        self.assertEqual(self.counts["mini_medal_evidence"], 99)
+        self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
@@ -260,18 +260,23 @@ class KnowledgeBaseTests(unittest.TestCase):
             [row[0] for row in dlc_scoped],
             ["Gold Golem Heart", "Metal Slime Heart"],
         )
-        availability_unknown = self.connection.execute(
-            """SELECT name, availability_notes, verification_status
+        dlc_arena_routes = self.connection.execute(
+            """SELECT name, availability_notes, availability_source_id,
+                availability_locator, available_from_checkpoint_id,
+                verification_status
             FROM monster_hearts
             WHERE name IN ('Dragonlord Heart', 'Malroth Heart', 'Zoma Heart')
             ORDER BY name"""
         ).fetchall()
         self.assertEqual(
-            [row[0] for row in availability_unknown],
+            [row[0] for row in dlc_arena_routes],
             ["Dragonlord Heart", "Malroth Heart", "Zoma Heart"],
         )
-        self.assertTrue(all(row[1] is None for row in availability_unknown))
-        self.assertTrue(all(row[2].endswith("availability_unknown") for row in availability_unknown))
+        self.assertTrue(all("DLC-only Buccanham Palace Battle Arena" in row[1] for row in dlc_arena_routes))
+        self.assertTrue(all(row[2] == "ngb_monster_hearts" for row in dlc_arena_routes))
+        self.assertTrue(all(row[3].endswith("> How to Obtain") for row in dlc_arena_routes))
+        self.assertTrue(all(row[4] is None for row in dlc_arena_routes))
+        self.assertTrue(all(row[5].endswith("checkpoint_unknown") for row in dlc_arena_routes))
 
     def test_meowgician_heart_has_direct_finite_vicious_route(self):
         row = self.connection.execute(
@@ -414,6 +419,11 @@ class KnowledgeBaseTests(unittest.TestCase):
         vogograd = next(row for row in rows if row[0] == "missable_vogograd_tablet")
         self.assertIn("Pretty Betsy", vogograd[2])
         self.assertNotIn("Seed of Therapeusis", vogograd[2])
+        links = self.connection.execute(
+            """SELECT COUNT(*), COUNT(obligation_id)
+            FROM missables WHERE available_from_checkpoint_id IS NOT NULL"""
+        ).fetchone()
+        self.assertEqual(tuple(links), (7, 7))
 
         blue_stop = self.connection.execute(
             """SELECT stop_before_advancing FROM checkpoint_obligations
@@ -1782,16 +1792,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(verified, evidence)
 
-    def test_only_rpgsite_omitted_medal_remains_index_checked(self):
+    def test_all_medals_have_direct_independent_evidence(self):
         indexed = self.connection.execute(
             """SELECT medal_number, verification_status FROM mini_medal_locations
             WHERE verification_status LIKE 'search_index_checked%'
             ORDER BY medal_number"""
         ).fetchall()
-        self.assertEqual(
-            [(row["medal_number"], row["verification_status"]) for row in indexed],
-            [(74, "search_index_checked_rpgsite_omits_row")],
-        )
+        self.assertEqual(indexed, [])
 
     def test_checkpoint_sequences_are_contiguous(self):
         sequences = [

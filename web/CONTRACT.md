@@ -143,7 +143,16 @@ Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/mon
 
 Heart detail also returns `routes`, reusing current-version item acquisition rows with their checkpoint, time period, method, supply, source, and locator. When the Heart row has no native gate, the earliest linked route supplies the displayed gate and `availability_status: "route_normalized"`; it does not overwrite the underlying effect claim. Drop routes return `drop_rate: null` and `drop_rate_status: "unknown"` because no numeric rate is stored. Acquisition DLC scope is likewise null/unknown unless directly sourced. Name mismatches or unlinked Hearts remain route-free rather than being guessed.
 
-Missables return `{total, limit, offset, missables}` and support `GET /api/missables/{missable_id}`. `window_status` is `verified` only when both boundaries and direct source verification are present; otherwise it is `unresolved`. `window_gap_reason` explains a missing exact boundary and `stop_warning_eligible` is false for unresolved rows. Every row carries its direct source locator; unknown cutoffs remain null instead of being inferred. The browser must not promote unresolved rows into STOP warnings.
+Missables return `{total, limit, offset, missables}` and support `GET /api/missables/{missable_id}`. `window_status` is `verified` only when both boundaries and direct source verification are present; otherwise it is `unresolved`. `window_gap_reason` explains a missing exact boundary and `stop_warning_eligible` is true only when the verified record links a normalized `stop_before_advancing` obligation. Every row carries its checkpoint, linked obligation, direct source locator, and explicit `progress_status: completed|missed|unknown`; unknown cutoffs remain null instead of being inferred. The browser must not promote unresolved rows into STOP warnings.
+
+Missable checkboxes use `PATCH /api/missables/{missable_id}` with
+`{"completed":true|false}`. This records/removes the ID in
+`completion.missables_completed` and synchronizes only its explicitly linked
+checkpoint obligation. It never marks story progress, unrelated obligations, or an
+unknown-cutoff STOP. `missables_missed` remains an explicit external-state field;
+completing a record removes the same ID from that list, but the browser does not infer
+or automatically record a missed outcome. Checkpoint missable rows use the same
+ledger as the registry and show unresolved windows as “Cutoff unknown · not a STOP.”
 
 Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, checkpoint gate, qualitative frequency, confidence, and direct locator are sourced facts. Numeric rates remain `numeric_unpublished`. Strategy text is separately sourced and labeled `attributed_strategy`, not canonical fact. Farms are read-only and never mutate player progress.
 

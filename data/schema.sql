@@ -237,6 +237,8 @@ CREATE TABLE mini_medal_evidence (
 CREATE TABLE missables (
     missable_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    available_from_checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    obligation_id TEXT REFERENCES checkpoint_obligations(obligation_id),
     available_from TEXT,
     unavailable_after TEXT,
     consequence TEXT NOT NULL,
@@ -246,6 +248,8 @@ CREATE TABLE missables (
     confidence TEXT NOT NULL,
     verification_status TEXT NOT NULL
 );
+CREATE INDEX missables_by_checkpoint
+    ON missables(available_from_checkpoint_id, obligation_id);
 
 CREATE TABLE farming_spots (
     farming_id TEXT PRIMARY KEY,
@@ -305,6 +309,8 @@ CREATE TABLE monster_hearts (
     effect_text TEXT NOT NULL CHECK(length(trim(effect_text)) > 0),
     available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
     availability_notes TEXT,
+    availability_source_id TEXT REFERENCES sources(source_id),
+    availability_locator TEXT,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
     locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
     confidence TEXT NOT NULL,

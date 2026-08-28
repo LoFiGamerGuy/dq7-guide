@@ -38,6 +38,10 @@ def _load_state(state_path: Path) -> dict:
         not isinstance(value, str) for value in monsters
     ):
         raise ValueError("completion.monster_entries must be a list of strings")
+    for field in ("missables_completed", "missables_missed"):
+        values = state.get("completion", {}).get(field)
+        if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+            raise ValueError(f"completion.{field} must be a list of strings")
     members = state.get("party", {}).get("members")
     if not isinstance(members, dict):
         raise ValueError("party.members must be an object")
@@ -204,6 +208,30 @@ def update_progress(
                 obtained.difference_update(values)
                 message = f"Reopened item(s): {', '.join(values)}."
             state["completion"]["items_obtained"] = sorted(obtained)
+        elif command in ("missable-completed", "missable-undo"):
+            links = {row[0]: row[1] for row in connection.execute(
+                "SELECT missable_id, obligation_id FROM missables")}
+            known = set(links)
+            invalid = sorted(set(values) - known)
+            if invalid:
+                raise ValueError(f"Unknown missable ID(s): {invalid}")
+            completed = set(state["completion"]["missables_completed"])
+            missed = set(state["completion"]["missables_missed"])
+            if command == "missable-completed":
+                completed.update(values)
+                missed.difference_update(values)
+                state["completion"]["obligations_completed"] = sorted(
+                    set(state["completion"]["obligations_completed"])
+                    | {links[value] for value in values if links[value]})
+                message = f"Recorded completed missable(s): {', '.join(values)}."
+            else:
+                completed.difference_update(values)
+                state["completion"]["obligations_completed"] = sorted(
+                    set(state["completion"]["obligations_completed"])
+                    - {links[value] for value in values if links[value]})
+                message = f"Reopened missable(s): {', '.join(values)}."
+            state["completion"]["missables_completed"] = sorted(completed)
+            state["completion"]["missables_missed"] = sorted(missed)
         elif command in ("tablet-found", "tablet-undo"):
             known = {
                 row[0] for row in connection.execute(
@@ -322,6 +350,9 @@ def main() -> None:
     for name in ("item-obtained", "item-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="ITEM_ID")
+    for name in ("missable-completed", "missable-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="MISSABLE_ID")
     for name in ("tablet-found", "tablet-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="FRAGMENT_ID")

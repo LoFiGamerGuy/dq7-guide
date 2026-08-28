@@ -36,6 +36,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
     "vocation-mastered", "vocation-undo",
     "party-level", "party-vocations",
+    "missable-completed", "missable-undo",
 }
 
 
@@ -454,12 +455,14 @@ def _heart_routes(db_path: Path, heart_name: str) -> list[dict]:
     return rows
 
 
-def _missables(db_path: Path, query: dict) -> dict:
+def _missables(db_path: Path, query: dict, state_path: Path | None = None) -> dict:
     rows = _rows(db_path, """SELECT m.missable_id, m.name, m.available_from,
         m.unavailable_after, m.consequence, m.severity, m.confidence,
-        m.verification_status, m.source_id, s.title AS source_title,
+        m.verification_status, m.available_from_checkpoint_id, m.obligation_id,
+        o.stop_before_advancing AS linked_stop, m.source_id, s.title AS source_title,
         s.url AS source_url, m.locator
         FROM missables m JOIN sources s USING(source_id)
+        LEFT JOIN checkpoint_obligations o USING(obligation_id)
         ORDER BY CASE WHEN m.unavailable_after IS NULL THEN 1 ELSE 0 END, m.name""")
     for row in rows:
         row["window_status"] = ("verified" if row["available_from"] and
@@ -469,7 +472,12 @@ def _missables(db_path: Path, query: dict) -> dict:
         row["provenance_gap"] = not bool(row["locator"])
         row["window_gap_reason"] = (None if row["window_status"] == "verified"
             else "The current-version source warns that the opportunity disappears after later story progress but does not name the exact event or checkpoint.")
-        row["stop_warning_eligible"] = row["window_status"] == "verified"
+        row["stop_warning_eligible"] = (row["window_status"] == "verified"
+                                        and row["linked_stop"] == 1)
+        completed = set(_state(state_path).get("completion", {}).get("missables_completed", [])) if state_path else set()
+        missed = set(_state(state_path).get("completion", {}).get("missables_missed", [])) if state_path else set()
+        row["progress_status"] = ("completed" if row["missable_id"] in completed else
+                                  "missed" if row["missable_id"] in missed else "unknown")
     page = _page(rows, query, ("missable_id", "name", "available_from",
         "unavailable_after", "consequence", "severity", "window_status",
         "verification_status", "locator"))
@@ -757,6 +765,13 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "id": row["source_id"], "title": row["source_title"],
             "url": row["source_url"], "locator": row["locator"],
         }
+    checkpoint_missables = [row for row in _missables(db_path, {}, state_path)["missables"]
+                            if row["available_from_checkpoint_id"] == checkpoint_id]
+    for row in checkpoint_missables:
+        sources[(row["source_id"], row["locator"])] = {
+            "id": row["source_id"], "title": row["source_title"],
+            "url": row["source_url"], "locator": row["locator"],
+        }
     open_required = [row for row in block["now"] if row["required_for_100_percent"]]
     saved_checkpoint_match = player_state.get("story", {}).get("checkpoint_id") == checkpoint_id
     if block["stops"]:
@@ -782,6 +797,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "unrecorded_due_achievement_count": sum(
             row["timing"] == "due_here" and not row["unlocked"]
             for row in achievement_rows),
+        "unrecorded_checkpoint_missable_count": sum(
+            row["progress_status"] == "unknown" for row in checkpoint_missables),
         "saved_checkpoint_match": saved_checkpoint_match,
         "safe_condition_requires_player_confirmation": True,
         "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],
@@ -843,6 +860,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         } for row in tablet_fragments],
         "checkpoint_items": list(checkpoint_items.values()),
         "checkpoint_achievements": achievement_rows,
+        "checkpoint_missables": checkpoint_missables,
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
                        "drop": ", ".join(drops[row["monster_id"]]) or None,
@@ -951,6 +969,11 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
         vocation_id = unquote(path.removeprefix("/api/vocations/"))
         command = "vocation-mastered" if completed else "vocation-undo"
         return update_progress(state_path, db_path, command, [character, vocation_id])
+    if path.startswith("/api/missables/"):
+        missable_id = unquote(path.removeprefix("/api/missables/"))
+        return update_progress(state_path, db_path,
+                               "missable-completed" if completed else "missable-undo",
+                               [missable_id])
     raise ValueError("Unsupported resource mutation")
 
 
@@ -1034,10 +1057,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     row["routes"] = _heart_routes(db_path, row["name"])
                     return self._json(row)
                 if parsed.path == "/api/missables":
-                    return self._json(_missables(db_path, parse_qs(parsed.query)))
+                    return self._json(_missables(db_path, parse_qs(parsed.query), state_path))
                 if parsed.path.startswith("/api/missables/"):
                     missable_id = unquote(parsed.path.removeprefix("/api/missables/"))
-                    row = next((row for row in _missables(db_path, {})["missables"]
+                    row = next((row for row in _missables(db_path, {}, state_path)["missables"]
                                 if row["missable_id"] == missable_id), None)
                     if row is None:
                         raise ValueError("Unknown missable")
@@ -1187,6 +1210,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 elif any(path.startswith(prefix) for prefix in (
                     "/api/items/", "/api/tablets/", "/api/achievements/",
                     "/api/vocations/", "/api/checkpoints/",
+                    "/api/missables/",
                 )):
                     message = _record_resource_progress(db_path, state_path, path, payload)
                 else:

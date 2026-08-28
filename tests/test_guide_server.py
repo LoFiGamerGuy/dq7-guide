@@ -289,6 +289,8 @@ class GuideServerTests(unittest.TestCase):
         _, blue_button = self.get_json("/api/missables/missable_blue_button")
         self.assertEqual(blue_button["window_status"], "unresolved")
         self.assertFalse(blue_button["stop_warning_eligible"])
+        self.assertEqual(blue_button["available_from_checkpoint_id"],
+                         "cp_004_emberdale")
         self.assertTrue(blue_button["window_gap_reason"])
         _, wooden_doll = self.get_json("/api/missables/missable_wooden_doll")
         self.assertEqual(wooden_doll["window_status"], "verified")
@@ -389,6 +391,27 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(registry["achievements"][0]["unlocked"])
         self.patch_json("/api/achievements/" + achievement["id"],
                         {"completed": False})
+
+    def test_checkpoint_missable_completion_clears_only_linked_verified_stop(self):
+        _, prologue = self.get_json("/api/checkpoints/cp_001_prologue")
+        fish = next(row for row in prologue["checkpoint_missables"]
+                    if row["missable_id"] == "missable_fish_bits")
+        self.assertTrue(fish["stop_warning_eligible"])
+        self.patch_json("/api/missables/missable_fish_bits", {"completed": True})
+        _, cleared = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertEqual(cleared["stop_actions"], [])
+        self.assertEqual(cleared["checkpoint_missables"][0]["progress_status"],
+                         "completed")
+        _, registry = self.get_json("/api/missables/missable_fish_bits")
+        self.assertEqual(registry["progress_status"], "completed")
+        _, emberdale = self.get_json("/api/checkpoints/cp_004_emberdale")
+        blue = next(row for row in emberdale["checkpoint_missables"]
+                    if row["missable_id"] == "missable_blue_button")
+        self.assertEqual(blue["window_status"], "unresolved")
+        self.assertFalse(blue["stop_warning_eligible"])
+        self.patch_json("/api/missables/missable_fish_bits", {"completed": False})
+        _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertTrue(reopened["stop_actions"])
 
     def test_advancement_readiness_requires_explicit_actions_and_manual_confirmation(self):
         state_path = Path(self.temp.name) / "advancement-state.json"
