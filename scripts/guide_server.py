@@ -121,10 +121,44 @@ def _monster_hearts(db_path: Path, query: dict) -> dict:
         LEFT JOIN checkpoints c ON c.checkpoint_id=h.available_from_checkpoint_id
         JOIN sources s USING(source_id)
         ORDER BY COALESCE(c.sequence_no, 999), h.name""")
+    for row in rows:
+        routes = _heart_routes(db_path, row["name"])
+        row["route_count"] = len(routes)
+        if not row["available_from_checkpoint_id"] and routes:
+            row["available_from_checkpoint_id"] = routes[0]["available_from_checkpoint_id"]
+            row["available_checkpoint"] = routes[0]["available_checkpoint"]
+            row["availability_status"] = "route_normalized"
+        else:
+            row["availability_status"] = ("heart_gate" if row["available_from_checkpoint_id"]
+                                          else "unknown")
     page = _page(rows, query, ("heart_id", "name", "effect_text",
         "available_checkpoint", "availability_notes"))
     page["hearts"] = page.pop("results")
     return page
+
+
+def _heart_routes(db_path: Path, heart_name: str) -> list[dict]:
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = [dict(row) for row in connection.execute("""SELECT a.acquisition_id, a.method,
+            a.route_label, a.location_text, a.time_period,
+            a.available_from_checkpoint_id, c.name AS available_checkpoint,
+            a.unavailable_after_checkpoint_id, a.prerequisite_json,
+            a.quantity, a.supply_type, a.finite_total, a.is_free,
+            a.confidence, a.verification_status, a.source_id,
+            s.title AS source_title, s.url AS source_url, a.locator
+            FROM item_acquisition_paths a JOIN items i USING(item_id)
+            JOIN sources s USING(source_id)
+            LEFT JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
+            WHERE lower(i.name)=lower(?)
+            ORDER BY COALESCE(c.sequence_no, 999), a.acquisition_id""", (heart_name,))]
+    for row in rows:
+        row["prerequisites"] = json.loads(row.pop("prerequisite_json"))
+        row["drop_rate"] = None
+        row["drop_rate_status"] = "unknown" if row["method"] == "drop" else "not_applicable"
+        row["dlc_scope"] = None
+        row["dlc_scope_status"] = "unknown"
+    return rows
 
 
 def _missables(db_path: Path, query: dict) -> dict:
@@ -524,6 +558,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                                 if row["heart_id"] == heart_id), None)
                     if row is None:
                         raise ValueError("Unknown Monster Heart")
+                    row["routes"] = _heart_routes(db_path, row["name"])
                     return self._json(row)
                 if parsed.path == "/api/missables":
                     return self._json(_missables(db_path, parse_qs(parsed.query)))

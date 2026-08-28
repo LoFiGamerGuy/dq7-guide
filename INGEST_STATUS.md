@@ -8,11 +8,11 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 316 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 317 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 7 progression rules, and 220 stat modifiers across all non-default vocations | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware; cp001–cp020 have directly verified RPG Site section-range locators | High for chronology/safety spine; coarse checkpoint provenance remains partial | Verify direct section ranges for cp021–cp033 |
+| Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware; all 33 have directly verified RPG Site section-range locators | High for chronology and locator provenance; optimization/content depth remains partial | Expand checkpoint-specific optimization without treating locator coverage as content completeness |
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7/7 direct-source records with precise locators; 5 exact choice/window cutoffs and 2 explicitly unknown cutoffs | High for documented consequences; medium where the source omits a cutoff | Resolve Wooden Doll's branching cutoff and Little Blue Button's story cutoff |
@@ -21,10 +21,10 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
 | Farming | 8/8 routes have direct-source locators and checkpoint gates; factual locations and attributed tactics are separated | High for routes/gates; all numeric encounter rates remain unpublished | Add verified proficiency, gold, and Heart farms without inventing rates |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
-| Monster Hearts | 46/46 normalized Hearts with sourced effects; Golem Heart has an explicit Ballymolloy gate | High for effects; 45 acquisition windows remain unknown | Add direct acquisition routes without inventing drop rates |
+| Monster Hearts | 46/46 normalized Hearts with sourced effects; 40/46 now surface checkpoint-aware acquisition from existing current-version item routes | High for effects and linked routes; six unlinked names, drop rates, and route DLC scope remain unknown | Resolve remaining name/link gaps from direct pages without inventing rates |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 273 gated locations across 172 monsters and 149 drops across 130 monsters; 10 Vicious species / 11 encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
+| Monster List / Vicious | 333/333 ordinals and English names; 279 gated locations across 178 monsters and 151 drops across 132 monsters; 10 Vicious species / 11 encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 7 unresolved source conflicts | Conservative coverage | Resolve location disputes and Stella/Stellar spelling with direct in-game evidence |
 
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 316
+- sources: 317
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -51,7 +51,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 273 / 149
+- monster encounters / drops: 279 / 151
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -117,13 +117,15 @@ The eighth combat-engine batch extends qualitative modifiers to all non-default 
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 273 checkpoint-gated encounter routes across 172 of 333 monsters and 149 verified drop rows across 130 monsters. The latest chronological boss batch adds Rainiac, The Envoy, Hybris, Gasputin, Vaipur, and Cumulus Vex through cp019. The Envoy's Seed of Therapeusis and Cumulus Vex's Prayer Ring are recorded with unpublished rates; explicit `None` drops remain unset, and Vaipur's erroneous narrative heading is exposed in its verification status while its structured Sullied Sanctum route is retained.
+The current monster expansion has 279 checkpoint-gated encounter routes across 178 of 333 monsters and 151 verified drop rows across 132 monsters. The latest chronological boss batch adds Togrus Maximus, The Time Being, both first-fight Orgodemir forms, Fire Spirit, and Macho Picchu through cp025. Togrus Maximus's Black Fragment and The Time Being's Heart are recorded with unpublished rates; explicit `None` drops remain unset, and Macho Picchu uses the page's precise encounter narrative because its structured location field is blank.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
 The first Monster Heart batch adds a forward-compatible registry and 12 directly sourced effects covering the earliest entries through Mud Mannequin Heart. Golem Heart is gated at Ballymolloy from explicit availability evidence; the other 11 acquisition windows remain unknown, and the Metal Slime Heart note preserves its documented DLC scope without claiming a non-DLC route.
 
 The second Monster Heart batch completes all 46 current-version identities and effects. Availability remains unset for 45 Hearts, and both Metal Slime Heart and Gold Golem Heart retain the source's Jam-Packed Swag Bag DLC scope without implying exclusivity or a non-DLC route.
+
+The acquisition-link batch reuses independently sourced item-acquisition rows to expose checkpoint, period, method, supply, source, and locator on Heart details. Earliest playable examples now include Slime/Golem/Hammerhood at cp003, Bodkin Archer/Little Devil at cp004, Healslime at cp005, and additional fixed/drop routes through cp011. No stored numeric drop rate or acquisition DLC scope exists, so both remain explicitly unknown; unmatched Heart/item names remain unlinked.
 
 The missable audit gives all seven records precise direct-source locators and normalizes five exact action boundaries. It corrects the Vogograd reward to Pretty Betsy, records the irreversible Wrecked Specs, Wiggles, and Kiefer choices, and leaves the Wooden Doll's branching cutoff and Little Blue Button's unnamed story cutoff explicitly unknown.
 
@@ -133,7 +135,7 @@ The farming audit adds precise provenance and checkpoint gates to all eight rout
 
 The Seed normalization batch records fixed current-version increases for all nine standard Seeds and nine Super Seeds. It separately models the repeatable cp032 Almighty-and-Spirits rematch as one random Super Seed per victory while leaving the eligible-item pool unknown because the direct farming source does not enumerate it.
 
-The provenance-completeness batch adds non-empty direct-page row locators and verification states to all 19 Medal rewards, 26 Vocations, and 27 vocation-prerequisite edges. Direct RPG Site heading audits now map cp001–cp020 to exact chapter/section ranges; the remaining 13 checkpoint locators stay NULL, and all checkpoints remain visibly `seed_partial` because locator coverage does not imply complete optimization coverage.
+The provenance-completeness batch adds non-empty direct-page row locators and verification states to all 19 Medal rewards, 26 Vocations, and 27 vocation-prerequisite edges. Direct RPG Site heading audits now map all 33 checkpoints to exact chapter/section ranges. Every checkpoint remains visibly `seed_partial` because complete locator coverage does not imply complete walkthrough or optimization coverage.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 
