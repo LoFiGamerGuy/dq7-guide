@@ -275,6 +275,19 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn(vocation_id, hero["mastered_vocations"])
         self.assertEqual((hero["level"], hero["primary_vocation"], hero["secondary_vocation"]),
                          (17, "vocation_warrior", "vocation_priest"))
+        _, cp007 = self.get_json("/api/checkpoints/cp_007_frobisher")
+        medal_advice = next(row for row in cp007["advice"]
+                            if row["id"] == "advice_cp007_windcheater_spike")
+        self.assertEqual(medal_advice["saved_state_applicability"]["status"], "unmet")
+        self.assertIn("7/15", medal_advice["saved_state_applicability"]["reason"])
+        _, cp010 = self.get_json("/api/checkpoints/cp_010_alltrades_present")
+        priest_advice = next(row for row in cp010["advice"]
+                             if row["id"] == "advice_cp010_priest_emergency_role")
+        self.assertEqual(priest_advice["saved_state_applicability"]["status"], "satisfied")
+        self.assertIn("Hero current", priest_advice["saved_state_applicability"]["reason"])
+        ungated = next(row for row in cp010["advice"]
+                       if row["id"] == "advice_cp010_steel_helmet_panel")
+        self.assertEqual(ungated["saved_state_applicability"]["status"], "unknown")
         self.patch_json("/api/vocations/" + vocation_id,
                         {"character": "Hero", "completed": False})
         saved = json.loads(self.state.read_text())

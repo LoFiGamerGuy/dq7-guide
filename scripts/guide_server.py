@@ -59,6 +59,54 @@ def _state(state_path: Path) -> dict:
     return json.loads(state_path.read_text(encoding="utf-8"))
 
 
+def _advice_applicability(db_path: Path, state: dict, applicability: dict) -> dict:
+    checks = []
+    requires = applicability.get("requires") if isinstance(applicability.get("requires"), dict) else {}
+    required_medals = requires.get("mini_medals")
+    if isinstance(required_medals, int) and not isinstance(required_medals, bool):
+        explicit_count = state.get("completion", {}).get("mini_medal_count")
+        numbered = len(state.get("completion", {}).get("mini_medals_found", []))
+        if isinstance(explicit_count, int) and not isinstance(explicit_count, bool):
+            if max(explicit_count, numbered) >= required_medals:
+                checks.append(("satisfied", f"Mini Medals: {max(explicit_count, numbered)}/{required_medals} explicitly recorded"))
+            elif numbered > explicit_count:
+                checks.append(("unknown", f"Mini Medal records disagree ({explicit_count} total; {numbered} numbered; {required_medals} needed)"))
+            else:
+                checks.append(("unmet", f"Mini Medals: {explicit_count}/{required_medals} explicitly recorded"))
+        elif numbered >= required_medals:
+            checks.append(("satisfied", f"Mini Medals: {numbered}/{required_medals} numbered medals recorded"))
+        else:
+            checks.append(("unknown", f"Mini Medal count unknown ({numbered} numbered recorded; {required_medals} needed)"))
+    unsupported_requires = sorted(key for key in requires if key != "mini_medals")
+    if unsupported_requires:
+        checks.append(("unknown", "Saved state does not track " + ", ".join(key.replace("_", " ") for key in unsupported_requires)))
+    vocation_name = applicability.get("vocation")
+    if isinstance(vocation_name, str):
+        with sqlite3.connect(db_path) as connection:
+            row = connection.execute(
+                """SELECT v.vocation_id FROM vocations v JOIN entities e
+                ON e.entity_id=v.vocation_id WHERE lower(e.name)=lower(?)""",
+                (vocation_name,),
+            ).fetchone()
+        if row:
+            vocation_id = row[0]
+            matches = []
+            for name, member in state.get("party", {}).get("members", {}).items():
+                if vocation_id in (member.get("primary_vocation"), member.get("secondary_vocation")):
+                    matches.append(f"{name} current")
+                elif member.get("vocation_mastery", {}).get(vocation_id) is True:
+                    matches.append(f"{name} mastered")
+            checks.append(("satisfied", f"{vocation_name}: {', '.join(matches)}") if matches
+                          else ("unknown", f"No explicit current/mastered {vocation_name} recorded"))
+        else:
+            checks.append(("unknown", f"Vocation gate is not normalized: {vocation_name}"))
+    if not checks:
+        return {"status": "unknown", "reason": "No supported saved-state gate"}
+    statuses = {status for status, _ in checks}
+    status = "unmet" if "unmet" in statuses else "unknown" if "unknown" in statuses else "satisfied"
+    return {"status": status, "reason": "; ".join(reason for _, reason in checks)}
+
+
 def _page(rows: list[dict], query: dict, searchable: tuple[str, ...]) -> dict:
     term = query.get("q", [""])[0].strip().casefold()
     if term:
@@ -325,7 +373,8 @@ def _dashboard(db_path: Path, state_path: Path) -> dict:
 
 def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dict:
     block = load_walkthrough(db_path, state_path, checkpoint_id, checkpoint_id)["blocks"][0]
-    completion = _state(state_path).get("completion", {})
+    player_state = _state(state_path)
+    completion = player_state.get("completion", {})
     completed_actions = set(completion.get("obligations_completed", []))
     found_medals = set(completion.get("mini_medals_found", []))
     defeated_monsters = set(completion.get("monster_entries", []))
@@ -382,6 +431,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                        "url": row["source_url"], "locator": row["locator"]},
             "confidence": row["confidence"],
             "verification_status": row["verification_status"],
+            "saved_state_applicability": _advice_applicability(
+                db_path, player_state, json.loads(row["applicability_json"])),
         } for row in block["advice"]],
         "medals": [{"number": row["medal_number"], "location": row["location"],
                      "detail": row["detail"], "found": row["medal_number"] in found_medals} for row in medals],

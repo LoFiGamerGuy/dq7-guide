@@ -37,6 +37,8 @@ Advice `goal` remains the source recommendation classification: `completion_safe
 
 Every advice row retains its native `applicability` object. `tradeoff` mirrors only the explicitly stored `applicability.tradeoff` value and remains null when none was sourced; the server does not manufacture one. Direct source, locator, confidence, and verification status accompany the recommendation. The browser keeps these details collapsed under “When, tradeoff & source” to preserve the minimal-reading walkthrough.
 
+`saved_state_applicability` annotates—but never filters—each recommendation with `status: satisfied|unmet|unknown` and a concise reason. Evaluation is conservative: `requires.mini_medals` uses an explicit total, or can be satisfied by enough explicitly numbered medals; a lower numbered-medal count without a reported total stays unknown, and inconsistent count records cannot produce an unmet result. A top-level normalized `vocation` is satisfied only by an explicitly current/secondary or mastered vocation. Missing mastery is not treated as false, unsupported requirements stay unknown, and raw applicability/provenance remain unchanged. To keep the walkthrough terse, the browser omits the state badge when a recommendation has no supported saved-state gate.
+
 ### `GET /api/progress`
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.

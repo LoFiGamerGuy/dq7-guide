@@ -1756,7 +1756,31 @@
     {"item_id":"item_steel_broadsword","source_name":"Steel Broadsword"},
     {"item_id":"item_steel_helmet","source_name":"Steel Helmet"},
     {"item_id":"item_tin_pot","source_name":"Tin Pot"},
-    {"item_id":"item_war_hammer","source_name":"War Hammer"}
+    {"item_id":"item_war_hammer","source_name":"War Hammer"},
+    {"item_id":"item_cobra_claws","source_name":"Cobra Claws","panel_rank":"3"},
+    {"item_id":"item_dragon_mail","source_name":"Dragon Mail","panel_rank":"3"},
+    {"item_id":"item_dread_dagger","source_name":"Dread Dagger","panel_rank":"3"},
+    {"item_id":"item_dream_blade","source_name":"Dream Blade","panel_rank":"3"},
+    {"item_id":"item_flametang_boomerang","source_name":"Flametang Boomerang","panel_rank":"3"},
+    {"item_id":"item_glass_slippers","source_name":"Glass Slippers","panel_rank":"3"},
+    {"item_id":"item_gold_bracer","source_name":"Gold Bracer","panel_rank":"3"},
+    {"item_id":"item_heavy_armour","source_name":"Heavy Armour","panel_rank":"3"},
+    {"item_id":"item_kamikazee_bracer","source_name":"Kamikazee Bracer","panel_rank":"3"},
+    {"item_id":"item_lightning_staff","source_name":"Lightning Staff","panel_rank":"3"},
+    {"item_id":"item_magic_armour","source_name":"Magic Armour","panel_rank":"3"},
+    {"item_id":"item_magic_water","source_name":"Magic Water","panel_rank":"3"},
+    {"item_id":"item_mink_mantle","source_name":"Mink Mantle","panel_rank":"3"},
+    {"item_id":"item_platinum_mail","source_name":"Platinum Mail","panel_rank":"3"},
+    {"item_id":"item_prayer_ring","source_name":"Prayer Ring","panel_rank":"3"},
+    {"item_id":"item_princesss_robe","source_name":"Princess’s Robe","panel_rank":"3","name_resolution":"typographic_apostrophe"},
+    {"item_id":"item_rabbit_tail","source_name":"Rabbit Tail","panel_rank":"3"},
+    {"item_id":"item_rippled_rapier","source_name":"Rippled Rapier","panel_rank":"3"},
+    {"item_id":"item_ruby_of_protection","source_name":"Ruby of Protection","panel_rank":"3"},
+    {"item_id":"item_silver_mail","source_name":"Silver Mail","panel_rank":"3"},
+    {"item_id":"item_siren_sword","source_name":"Siren Sword","panel_rank":"3"},
+    {"item_id":"item_slime_armour","source_name":"Slime Armour","panel_rank":"3"},
+    {"item_id":"item_staff_of_divine_wrath","source_name":"Staff of Divine Wrath","panel_rank":"3"},
+    {"item_id":"item_zombiesbane","source_name":"Zombiesbane","panel_rank":"3"}
   ],
   "mini_medal_evidence": [
     {"evidence_id":"medal_001_rpgsite_order_001","medal_number":1,"source_id":"rpgsite_walkthrough","locator":"Prologue - Pilchard Bay and Estard Castle > Estard Castle King's Bedroom drawers","source_ordinal":1,"ordinal_scheme":"walkthrough_acquisition_order","notes":"RPG Site ordinal is route order, not Game8 list number."},
@@ -4081,6 +4105,8 @@
     ,{"encounter_id":"enc_metal_slime_roamer_region_past","monster_id":"monster_045","location_text":"Roamer Encampment Region","time_period":"Past","available_from_checkpoint_id":"cp_008_roamer","unavailable_after_checkpoint_id":null,"source_id":"game8_metal_farming","locator":"Metal Slime Locations > Roamer Encampment Region (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated_bonus_enemy_not_overworld"}
     ,{"encounter_id":"enc_rashers_western_cave_past","monster_id":"monster_056","location_text":"Western Cave / Cave Leading to the Dungeon","time_period":"Past","available_from_checkpoint_id":"cp_009_alltrades","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_rashers_stripes","locator":"Rashers and Stripes Boss Information > Rashers Details > Locations > Western Cave (Past); Cave Leading to the Dungeon (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated_first_encounter_scripted_loss"}
     ,{"encounter_id":"enc_stripes_western_cave_past","monster_id":"monster_057","location_text":"Western Cave / Cave Leading to the Dungeon","time_period":"Past","available_from_checkpoint_id":"cp_009_alltrades","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_rashers_stripes","locator":"Rashers and Stripes Boss Information > Stripes Details > Locations > Western Cave (Past); Cave Leading to the Dungeon (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated_first_encounter_scripted_loss"}
+    ,{"encounter_id":"enc_vicious_mud_mannequin_greenthumb_region_past","monster_id":"monster_103","location_text":"Greenthumb Gardens Region","time_period":"Past","available_from_checkpoint_id":"cp_015_greenthumb","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_vicious_mud_mannequin","locator":"Where to Find Vicious Mud Mannequin > Locations and Habitats > (Past) Greenthumb Gardens Region","confidence":"high","verification_status":"source_checked_checkpoint_gated_one_time_vicious"}
+    ,{"encounter_id":"enc_vicious_cyclops_vogograd_region_past","monster_id":"monster_130","location_text":"Vogograd Region","time_period":"Past","available_from_checkpoint_id":"cp_018_vogograd","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_vicious_cyclops","locator":"Where to Find Vicious Cyclops > Locations and Habitats > (Past) Vogograd Region","confidence":"high","verification_status":"source_checked_checkpoint_gated_one_time_vicious"}
   ],
   "monster_drops": [
     {"drop_id":"drop_slime_medicinal_herb","monster_id":"monster_002","item_name":"Medicinal Herb","drop_rate_text":null,"source_id":"game8_monster_slime","locator":"Slime Overview > Available Drops > Medicinal Herb","confidence":"high","verification_status":"source_checked_rate_unpublished"},
@@ -4236,6 +4262,8 @@
     ,{"drop_id":"drop_time_being_heart","monster_id":"monster_186","item_name":"Time Being Heart","drop_rate_text":null,"source_id":"game8_boss_time_being","locator":"The Time Being Boss Information > The Time Being Details > Drops > Time Being Heart","confidence":"high","verification_status":"source_checked_rate_unpublished"}
     ,{"drop_id":"drop_almighty_numen_heart","monster_id":"monster_284","item_name":"Numen Heart","drop_rate_text":null,"source_id":"game8_boss_almighty","locator":"The Almighty Boss Information > The Almighty Details > Drops > Numen Heart","confidence":"high","verification_status":"source_checked_rate_unpublished"}
     ,{"drop_id":"drop_xenlon_heart","monster_id":"monster_295","item_name":"Xenlon Heart","drop_rate_text":null,"source_id":"game8_boss_xenlon","locator":"Xenlon Boss Information > Xenlon Details > Drops > Xenlon Heart","confidence":"high","verification_status":"source_checked_rate_unpublished"}
+    ,{"drop_id":"drop_vicious_mud_mannequin_heart","monster_id":"monster_103","item_name":"Mud Mannequin Heart","drop_rate_text":null,"source_id":"game8_monster_vicious_mud_mannequin","locator":"Vicious Mud Mannequin Overview > Available Drops > Mud Mannequin Heart","confidence":"high","verification_status":"source_checked_rate_unpublished"}
+    ,{"drop_id":"drop_vicious_cyclops_heart","monster_id":"monster_130","item_name":"Cyclops Heart","drop_rate_text":null,"source_id":"game8_monster_vicious_cyclops","locator":"Vicious Cyclops Overview > Available Drops > Cyclops Heart","confidence":"high","verification_status":"source_checked_rate_unpublished"}
   ],
   "documents": [
     {"id":"doc_methodology","title":"Two-guide methodology","domain":"methodology","checkpoint_key":null,"source_id":null,"confidence":"high","body":"Use RPG Site as the chronological 100% completion backbone and Game8 as the optimization layer. Keep every claim attributed. Verify disagreements with official or direct in-game evidence. Never silently blend subjective best-build advice into canonical facts."},
