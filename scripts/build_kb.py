@@ -177,14 +177,20 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )
             connection.execute(
                 """INSERT INTO vocations(
-                    vocation_id, tier, exclusive_character, let_loose, source_id
-                ) VALUES (?, ?, ?, ?, ?)""",
+                    vocation_id, tier, exclusive_character, let_loose, source_id,
+                    locator, confidence, verification_status
+                ) VALUES (?, ?, ?, ?, ?, ?, 'high', 'source_checked_registry_row')""",
                 (
                     vocation["id"],
                     vocation["tier"],
                     vocation.get("exclusive_character"),
                     vocation.get("let_loose"),
                     vocation["source_id"],
+                    vocation.get("locator") or (
+                        "List of All Vocations > "
+                        f"{'Character-Exclusive' if vocation['tier'] == 'default' else vocation['tier'].title()} "
+                        f"Vocations > {vocation['name']}"
+                    ),
                 ),
             )
 
@@ -195,8 +201,10 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 connection.execute(
                     """INSERT INTO vocation_requirements(
                         requirement_id, vocation_id, group_id, rule,
-                        required_count, prerequisite_vocation_id, source_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                        required_count, prerequisite_vocation_id, source_id,
+                        locator, confidence, verification_status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'high',
+                        'source_checked_requirement_row')""",
                     (
                         requirement_id,
                         requirement["vocation_id"],
@@ -205,6 +213,11 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         requirement["required_count"],
                         prerequisite_id,
                         requirement["source_id"],
+                        requirement.get("locator") or (
+                            "Vocation Unlock Requirements > "
+                            f"{next(v['name'] for v in seed['vocations'] if v['id'] == requirement['vocation_id'])} "
+                            f"> {next(v['name'] for v in seed['vocations'] if v['id'] == prerequisite_id)} prerequisite"
+                        ),
                     ),
                 )
 
@@ -295,9 +308,23 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
-            """INSERT INTO medal_rewards(threshold, reward, source_id, confidence)
-            VALUES (:threshold, :reward, 'game8_medals', 'high')""",
-            seed["medal_rewards"],
+            """INSERT INTO medal_rewards(
+                threshold, reward, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :threshold, :reward, 'game8_medals', :locator, 'high',
+                'source_checked_reward_row'
+            )""",
+            [
+                {
+                    **reward,
+                    "locator": reward.get("locator") or (
+                        "Mini Medal Rewards > All Mini Medal Rewards > "
+                        f"{reward['threshold']} Medals — {reward['reward']}"
+                    ),
+                }
+                for reward in seed["medal_rewards"]
+            ],
         )
 
         connection.executemany(
@@ -314,14 +341,15 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             """INSERT INTO checkpoints(
                 checkpoint_id, sequence_no, name, time_period, region,
-                entry_condition, safe_exit_condition, source_id, confidence,
+                entry_condition, safe_exit_condition, source_id, locator, confidence,
                 coverage_status
             ) VALUES (
                 :id, :sequence_no, :name, :time_period, :region,
-                :entry_condition, :safe_exit_condition, 'rpgsite_walkthrough',
+                :entry_condition, :safe_exit_condition, 'rpgsite_walkthrough', :locator,
                 'medium', :coverage_status
             )""",
-            seed["checkpoints"],
+            [{**checkpoint, "locator": checkpoint.get("locator")}
+             for checkpoint in seed["checkpoints"]],
         )
 
         connection.executemany(

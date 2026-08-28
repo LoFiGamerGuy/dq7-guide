@@ -113,7 +113,10 @@ CREATE TABLE vocations (
     tier TEXT NOT NULL,
     exclusive_character TEXT,
     let_loose TEXT,
-    source_id TEXT NOT NULL REFERENCES sources(source_id)
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
 );
 
 CREATE TABLE vocation_requirements (
@@ -123,7 +126,10 @@ CREATE TABLE vocation_requirements (
     rule TEXT NOT NULL,
     required_count INTEGER NOT NULL,
     prerequisite_vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),
-    source_id TEXT NOT NULL REFERENCES sources(source_id)
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
 );
 
 CREATE TABLE vocation_rank_skills (
@@ -197,7 +203,9 @@ CREATE TABLE medal_rewards (
     threshold INTEGER PRIMARY KEY,
     reward TEXT NOT NULL,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
-    confidence TEXT NOT NULL
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
 );
 
 CREATE TABLE mini_medal_locations (
@@ -312,6 +320,7 @@ CREATE TABLE checkpoints (
     entry_condition TEXT,
     safe_exit_condition TEXT,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT,
     confidence TEXT NOT NULL,
     coverage_status TEXT NOT NULL
 );

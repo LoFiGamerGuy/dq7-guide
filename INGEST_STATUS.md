@@ -10,10 +10,10 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 |---|---:|---|---|
 | Source registry | 285 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 7 progression rules, and 220 stat modifiers across all non-default vocations | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
-| Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
+| Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
-| Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware; responsive browser UI | High for chronology/safety spine; optimization remains partial | Expand browser domain browsers and combat coverage |
-| Mini Medal rewards | 19/19 reward thresholds | High | Cross-check reward stats/effects and exchange availability |
+| Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware; checkpoint-level section locators remain explicitly pending | High for chronology/safety spine; coarse checkpoint provenance remains partial | Add direct per-checkpoint section locators without deriving them from display names |
+| Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7/7 direct-source records with precise locators; 5 exact choice/window cutoffs and 2 explicitly unknown cutoffs | High for documented consequences; medium where the source omits a cutoff | Resolve Wooden Doll's branching cutoff and Little Blue Button's story cutoff |
 | Heroic Hoarder items | 353/353 identities / 501 acquisition paths; all items have routes; 44 direct monster-drop alternatives normalized for 19 items previously represented only by Lucky Panel routes | High for identities and explicit routes; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and finite-supply evidence |
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 303
+- sources: 307
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -51,7 +51,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 248 / 145
+- monster encounters / drops: 259 / 145
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -117,7 +117,7 @@ The eighth combat-engine batch extends qualitative modifiers to all non-default 
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 248 checkpoint-gated encounter routes across 147 of 333 monsters and 145 verified drop rows across 126 monsters. The latest chronological boss batch adds Maeve, Glowering Inferno, Hackrobat, Tinpot Dictator, and Slaughtomaton through cp007, plus the published Red Fragment reward; None and unknown drops remain unset.
+The current monster expansion has 259 checkpoint-gated encounter routes across 158 of 333 monsters and 145 verified drop rows across 126 monsters. The latest chronological boss batch adds the three Guardians of the Roamers, Bronson, Hans, Nava, Cardinal Sin, and all four members of the Mild Bunch through cp009; every direct page reports `None` for these drops, so no drop rows were added.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
@@ -132,6 +132,8 @@ The Lucky Panel chest batch completes Version 2's three-item and Version 3's ele
 The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
 
 The Seed normalization batch records fixed current-version increases for all nine standard Seeds and nine Super Seeds. It separately models the repeatable cp032 Almighty-and-Spirits rematch as one random Super Seed per victory while leaving the eligible-item pool unknown because the direct farming source does not enumerate it.
+
+The provenance-completeness batch adds non-empty direct-page row locators and verification states to all 19 Medal rewards, 26 Vocations, and 27 vocation-prerequisite edges. All 33 checkpoint locators remain NULL and visibly `seed_partial`; their display names were not converted into invented walkthrough anchors.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

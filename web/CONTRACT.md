@@ -61,6 +61,7 @@ The first-class domain routes call:
 - `GET /api/monster-hearts`
 - `GET /api/missables`
 - `GET /api/farms`
+- `GET /api/sources`
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`
@@ -72,6 +73,8 @@ Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/mon
 Missables return `{total, limit, offset, missables}` and support `GET /api/missables/{missable_id}`. `window_status` is `verified` only when both boundaries and direct source verification are present; otherwise it is `unresolved`. Every row carries its direct source locator; unknown cutoffs remain null instead of being inferred. The browser must not promote unresolved rows into STOP warnings.
 
 Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, checkpoint gate, qualitative frequency, confidence, and direct locator are sourced facts. Numeric rates remain `numeric_unpublished`. Strategy text is separately sourced and labeled `attributed_strategy`, not canonical fact. Farms are read-only and never mutate player progress.
+
+Sources return `{total, limit, offset, sources, publishers}` and support `GET /api/sources/{source_id}`. Search covers title, publisher, role, class, status, and ID. Exact filters are `role`, `publisher`, `retrieval_band`, and `update_date_status`. Retrieval bands are `within_180_days`, `over_180_days`, or `unknown`; they measure only days since this project retrieved the page. They do not assert that page content or dependent claims are current. Missing publication/update dates remain null and display as unknown. The registry is read-only.
 
 Domain-specific fields:
 

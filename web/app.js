@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", requests: 0 };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0 };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -8,6 +8,7 @@ const domains = {
   hearts: { title: "Monster Hearts", singular: "heart", progressKind: null, filters: ["all","available","unknown"] },
   missables: { title: "Missables", singular: "missable", progressKind: null, filters: ["all","verified","unresolved","collector","major_choice"] },
   farms: { title: "Farms", singular: "farm", progressKind: null, filters: ["all","exp","seeds","other"] },
+  source_registry: { title: "Sources", singular: "source", progressKind: null, filters: ["all","item","monster","vocation","boss","completion","farming","other"] },
   medals: { title: "Mini Medals", singular: "medal", progressKind: "medal", filters: ["all","found","open"] },
   tablets: { title: "Tablets", singular: "tablet", progressKind: "tablet", filters: ["all","tablet","fragment","found","open"] },
   achievements: { title: "Achievements", singular: "achievement", progressKind: "achievement", filters: ["all","story","completion","combat","unlocked","open"] }
@@ -39,7 +40,7 @@ function showView(name) {
   if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
 }
 function showDomain(name) {
-  state.domain = name; state.filter = "all"; state.selectedEntry = null;
+  state.domain = name; state.filter = "all"; state.sourcePublisher = "all"; state.sourceFreshness = "all"; state.selectedEntry = null;
   document.querySelectorAll(".view").forEach(view => { view.hidden = view.id !== "catalog"; });
   setCurrentRoute(link => link.dataset.domain === name);
   $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false");
@@ -112,6 +113,8 @@ function entryName(entry) { return entry.name || entry.title || (entry.number ? 
 function entryCategory(entry) { return String(entry.category || entry.type || entry.rank_group || "uncategorized").toLowerCase(); }
 function entrySubtitle(entry) { return entry.summary || entry.location || entry.description || entry.requirement || entry.checkpoint || ""; }
 function matchesFilter(entry) {
+  if (state.domain === "source_registry" && state.sourcePublisher !== "all" && entry.publisher !== state.sourcePublisher) return false;
+  if (state.domain === "source_registry" && state.sourceFreshness !== "all" && entry.retrieval_band !== state.sourceFreshness) return false;
   if (state.filter === "all") return true;
   if (["verified", "unresolved"].includes(state.filter)) return entry.window_status === state.filter;
   if (["found", "unlocked", "defeated"].includes(state.filter)) return entry.completed === true;
@@ -122,6 +125,10 @@ function renderCatalog() {
   const config = domains[state.domain], rows = state.catalogs[state.domain] || [];
   $("#catalogTitle").textContent = config.title; document.title = `${config.title} · DQ7 Run Guide`;
   $("#catalogFilters").innerHTML = config.filters.map(value => `<button class="filter-button" type="button" data-filter="${escapeHtml(value)}" aria-pressed="${state.filter === value}">${escapeHtml(value)}</button>`).join("");
+  if (state.domain === "source_registry") {
+    const publishers = [...new Set(rows.map(row => row.publisher))].sort();
+    $("#catalogFilters").insertAdjacentHTML("beforeend", `<label class="compact-filter">Publisher <select id="sourcePublisher"><option value="all">All</option>${publishers.map(value => `<option value="${escapeHtml(value)}" ${state.sourcePublisher === value ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></label><label class="compact-filter">Retrieved <select id="sourceFreshness"><option value="all">Any date</option><option value="within_180_days" ${state.sourceFreshness === "within_180_days" ? "selected" : ""}>Within 180 days</option><option value="over_180_days" ${state.sourceFreshness === "over_180_days" ? "selected" : ""}>Over 180 days</option><option value="unknown" ${state.sourceFreshness === "unknown" ? "selected" : ""}>Unknown</option></select></label>`);
+  }
   const term = $("#catalogSearch").value.trim().toLowerCase();
   const visible = rows.filter(row => matchesFilter(row) && (!term || JSON.stringify(row).toLowerCase().includes(term)));
   $("#catalogCount").textContent = `${visible.length} of ${rows.length}`;
@@ -161,14 +168,16 @@ function renderRichDetail(detail, summary) {
   } else if (state.domain === "farms") {
     const strategySource = detail.strategy_source_url ? `<br><a href="${escapeHtml(detail.strategy_source_url)}" target="_blank" rel="noreferrer">Strategy source</a><br><span class="muted">${escapeHtml(detail.strategy_locator)}</span>` : "";
     target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.farm_type)} farm</p><h3>${escapeHtml(detail.target)}</h3><h4>Sourced facts</h4><dl><dt>Location</dt><dd>${escapeHtml(detail.location)}</dd><dt>Period</dt><dd>${escapeHtml(detail.time_period || "Not restricted")}</dd><dt>Available</dt><dd>${escapeHtml(detail.available_checkpoint || detail.available_from)}</dd><dt>Frequency</dt><dd>${escapeHtml(detail.encounter_rate_text || "Numeric rate unpublished")}</dd></dl>${detail.strategy ? `<div class="callout"><strong>Attributed strategy</strong><span>${escapeHtml(detail.strategy)}</span>${strategySource}</div>` : ""}<p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${escapeHtml(detail.locator)}</span></p><p class="muted">Confidence: ${escapeHtml(detail.confidence)} · Numeric rate unpublished. Strategy is a recommendation, not a canonical fact.</p><p class="muted">Read-only: farms do not alter player progress.</p>`;
+  } else if (state.domain === "source_registry") {
+    target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.source_class)}</p><h3>${escapeHtml(detail.title)}</h3><p><a href="${escapeHtml(detail.url)}" target="_blank" rel="noreferrer">Open source</a></p><dl><dt>Publisher</dt><dd>${escapeHtml(detail.publisher)}</dd><dt>Role</dt><dd>${escapeHtml(detail.role)}</dd><dt>Published</dt><dd>${escapeHtml(detail.published_at || "Unknown")}</dd><dt>Updated</dt><dd>${escapeHtml(detail.updated_at || "Unknown")}</dd><dt>Retrieved</dt><dd>${escapeHtml(detail.retrieved_at || "Unknown")}</dd><dt>Status</dt><dd>${escapeHtml(detail.status)}</dd></dl><div class="callout"><strong>Freshness means retrieval only</strong><span>${detail.retrieval_age_days === null ? "Retrieval age is unknown." : `${escapeHtml(detail.retrieval_age_days)} days since retrieval.`} An update date does not prove that every claim is current.</span></div>${detail.notes ? `<p class="muted">${escapeHtml(detail.notes)}</p>` : ""}<p class="muted">Read-only registry.</p>`;
   }
 }
 async function selectCatalogEntry(id) {
   const domain = state.domain, summary = (state.catalogs[domain] || []).find(row => String(row.id) === String(id));
   state.selectedEntry = summary; renderCatalog();
-  if (!["items", "vocations", "monsters", "hearts", "missables", "farms"].includes(domain)) return;
+  if (!["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry"].includes(domain)) return;
   const target = $("#catalogDetail"); target.setAttribute("aria-busy", "true"); target.innerHTML = '<p class="empty">Loading details…</p>';
-  try { const endpoint = domain === "hearts" ? "monster-hearts" : domain; const detail = await api(`/${endpoint}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) renderRichDetail(detail, summary); }
+  try { const endpoint = domain === "hearts" ? "monster-hearts" : domain === "source_registry" ? "sources" : domain; const detail = await api(`/${endpoint}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) renderRichDetail(detail, summary); }
   catch (error) { target.innerHTML = '<p class="empty">Details unavailable. List data is still available.</p>'; console.error(error); }
   finally { if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) target.removeAttribute("aria-busy"); }
 }
@@ -186,17 +195,18 @@ function normalizeEntry(name, row) {
   if (name === "hearts") Object.assign(entry, { id: row.heart_id, category: row.available_from_checkpoint_id ? "available" : "unknown", summary: row.effect_text, location: row.available_checkpoint, completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "missables") Object.assign(entry, { id: row.missable_id, category: row.severity, summary: row.window_status === "verified" ? `${row.available_from} → ${row.unavailable_after}` : "Window unresolved", completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "farms") Object.assign(entry, { id: row.farming_id, name: row.target, category: row.farm_type, summary: row.location, location: row.available_from, completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
+  if (name === "source_registry") { const role = row.role.toLowerCase(); const family = ["item","monster","vocation","boss","completion","farm"].find(value => role.includes(value)); Object.assign(entry, { id: row.source_id, name: row.title, category: family === "farm" ? "farming" : (family || "other"), summary: `${row.publisher} · ${row.role}`, completed: null, progress_kind: null }); }
   if (name === "medals") Object.assign(entry, { id: row.medal_number, number: row.medal_number, name: `Mini Medal #${row.medal_number}`, category: row.found ? "found" : "open", checkpoint: row.available_checkpoint_id || row.checkpoint_id, completed: row.found });
   if (name === "tablets") Object.assign(entry, { id: row.fragment_id, name: `${row.tablet_name}: ${row.fragment_id}`, category: row.found ? "found" : "fragment", checkpoint: row.checkpoint_id, completed: row.found, progress_kind: "tablet" });
   if (name === "achievements") Object.assign(entry, { id: row.achievement_id, title: row.name, completed: row.unlocked });
   return entry;
 }
 async function loadCatalog(name) {
-  const keys = { items: "items", vocations: "vocations", monsters: "monsters", hearts: "hearts", missables: "missables", farms: "farms", medals: "medals", tablets: "fragments", achievements: "achievements" };
-  const paged = ["items", "vocations", "monsters", "hearts", "missables", "farms", "achievements"].includes(name);
+  const keys = { items: "items", vocations: "vocations", monsters: "monsters", hearts: "hearts", missables: "missables", farms: "farms", source_registry: "sources", medals: "medals", tablets: "fragments", achievements: "achievements" };
+  const paged = ["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry", "achievements"].includes(name);
   let rows = [], offset = 0;
   do {
-    const endpoint = name === "hearts" ? "monster-hearts" : name;
+    const endpoint = name === "hearts" ? "monster-hearts" : name === "source_registry" ? "sources" : name;
     const payload = await api(`/${endpoint}${paged ? `?limit=200&offset=${offset}` : ""}`);
     const batch = payload[keys[name]] || [];
     rows.push(...batch);
@@ -245,6 +255,8 @@ $("#setCheckpointButton").addEventListener("click", async () => {
 });
 $("#hideCompleted").addEventListener("change", renderCheckpoint);
 document.addEventListener("change", event => {
+  if (event.target.id === "sourcePublisher") { state.sourcePublisher = event.target.value; renderCatalog(); return; }
+  if (event.target.id === "sourceFreshness") { state.sourceFreshness = event.target.value; renderCatalog(); return; }
   if (event.target.dataset.actionId) updateProgress({ kind: "action", id: event.target.dataset.actionId, completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.medal) updateProgress({ kind: "medal", id: Number(event.target.dataset.medal), completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.monsterId) updateProgress({ kind: "monster", id: event.target.dataset.monsterId, completed: event.target.checked }).catch(handleError);

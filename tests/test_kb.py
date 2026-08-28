@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 303)
+        self.assertEqual(self.counts["sources"], 307)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -294,6 +294,25 @@ class KnowledgeBaseTests(unittest.TestCase):
             tuple(reward), ("cp_032_yet_another_world", 1, "random", None, 1)
         )
 
+    def test_priority_source_tables_expose_locator_completeness(self):
+        for table in ("medal_rewards", "vocations", "vocation_requirements"):
+            missing = self.connection.execute(
+                f"SELECT COUNT(*) FROM {table} WHERE locator IS NULL OR trim(locator) = ''"
+            ).fetchone()[0]
+            self.assertEqual(missing, 0, table)
+        checkpoint_counts = self.connection.execute(
+            """SELECT COUNT(*), SUM(locator IS NULL),
+                SUM(coverage_status NOT LIKE '%partial%')
+            FROM checkpoints"""
+        ).fetchone()
+        self.assertEqual(tuple(checkpoint_counts), (33, 33, 0))
+        requirement = self.connection.execute(
+            """SELECT locator FROM vocation_requirements
+            WHERE requirement_id = 'req_gladiator_01'"""
+        ).fetchone()[0]
+        self.assertIn("Gladiator", requirement)
+        self.assertIn("Warrior prerequisite", requirement)
+
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
         report = load_hoarder_report(
             self.db_path, ROOT / "player" / "ryan-save-state.json", gaps_only=True
@@ -364,13 +383,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (248, 145))
+        self.assertEqual(tuple(counts), (259, 145))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (147, "cp_001_prologue", 13))
+        self.assertEqual(tuple(early), (158, "cp_001_prologue", 24))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -497,7 +516,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 147)
+        self.assertEqual(report["routed"], 158)
         self.assertEqual(report["drops"], 126)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 

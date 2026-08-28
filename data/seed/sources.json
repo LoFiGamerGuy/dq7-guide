@@ -700,6 +700,50 @@
     "retrieved_at": "2026-08-26"
   },
   {
+    "source_id": "game8_boss_bronson",
+    "title": "How to Beat Bronson and the Bristles",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578337",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-12",
+    "retrieved_at": "2026-08-28"
+  },
+  {
+    "source_id": "game8_boss_hans",
+    "title": "How to Beat Hans and the Hands",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578348",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-12",
+    "retrieved_at": "2026-08-28"
+  },
+  {
+    "source_id": "game8_boss_nava",
+    "title": "How to Beat Nava's Knaves",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578350",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-12",
+    "retrieved_at": "2026-08-28"
+  },
+  {
+    "source_id": "game8_boss_mild_bunch",
+    "title": "How to Beat the Mild Bunch",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/578449",
+    "source_class": "guide_wiki",
+    "role": "boss_strategy",
+    "published_at": null,
+    "updated_at": "2026-02-23",
+    "retrieved_at": "2026-08-28"
+  },
+  {
     "source_id": "game8_ballymolloy_walkthrough",
     "title": "Ballymolloy Walkthrough Guide",
     "publisher": "Game8",

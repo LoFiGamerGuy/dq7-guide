@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -168,6 +169,34 @@ def _farms(db_path: Path, query: dict) -> dict:
     page = _page(rows, query, ("farming_id", "target", "location",
         "time_period", "available_from", "encounter_rate_text", "strategy", "farm_type"))
     page["farms"] = page.pop("results")
+    return page
+
+
+def _sources(db_path: Path, query: dict) -> dict:
+    rows = _rows(db_path, """SELECT source_id, title, publisher, url,
+        source_class, role, published_at, updated_at, retrieved_at, status, notes
+        FROM sources ORDER BY publisher, title""")
+    today = date.today()
+    for row in rows:
+        try:
+            retrieved_age = (today - date.fromisoformat(row["retrieved_at"][:10])).days
+        except (TypeError, ValueError):
+            retrieved_age = None
+        row["retrieval_age_days"] = retrieved_age
+        row["retrieval_band"] = ("unknown" if retrieved_age is None else
+                                 "over_180_days" if retrieved_age > 180 else
+                                 "within_180_days")
+        row["update_date_status"] = "known" if row["updated_at"] else "unknown"
+    for key in ("role", "publisher", "retrieval_band", "update_date_status"):
+        value = query.get(key, [""])[0].strip().casefold()
+        if value:
+            rows = [row for row in rows if str(row.get(key, "")).casefold() == value]
+    publishers = sorted({row["publisher"] for row in _rows(db_path,
+        "SELECT publisher FROM sources ORDER BY publisher")})
+    page = _page(rows, query, ("source_id", "title", "publisher", "role",
+        "source_class", "status"))
+    page["sources"] = page.pop("results")
+    page["publishers"] = publishers
     return page
 
 
@@ -529,6 +558,15 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                             },
                         } for side in ("a", "b")],
                     } for row in rows])
+                if parsed.path == "/api/sources":
+                    return self._json(_sources(db_path, parse_qs(parsed.query)))
+                if parsed.path.startswith("/api/sources/"):
+                    source_id = unquote(parsed.path.removeprefix("/api/sources/"))
+                    row = next((row for row in _sources(db_path, {"q": [source_id], "limit": ["200"]})["sources"]
+                                if row["source_id"] == source_id), None)
+                    if row is None:
+                        raise ValueError("Unknown source")
+                    return self._json(row)
                 if parsed.path.startswith("/api/"):
                     return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
                 return self._static(parsed.path)
