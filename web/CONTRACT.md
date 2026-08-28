@@ -57,6 +57,7 @@ The first-class domain routes call:
 - `GET /api/vocations`
 - `GET /api/monsters`
 - `GET /api/monster-hearts`
+- `GET /api/missables`
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`
@@ -64,6 +65,8 @@ The first-class domain routes call:
 Each returns an object containing `items`, `vocations`, `monsters`, `medals`, `fragments`, or `achievements`. Paginated registries also return `total`, `limit`, and `offset` (achievement paging metadata is under `page`). The browser normalizes persisted IDs and progress fields for display.
 
 Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, and locator. Hearts are read-only because player state has no dedicated Heart inventory field.
+
+Missables return `{total, limit, offset, missables}` and support `GET /api/missables/{missable_id}`. `window_status` is `verified` only when both boundaries and direct source verification are present; otherwise it is `unresolved`. Every row carries its direct source locator; unknown cutoffs remain null instead of being inferred. The browser must not promote unresolved rows into STOP warnings.
 
 Domain-specific fields:
 

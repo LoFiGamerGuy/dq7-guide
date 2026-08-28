@@ -234,6 +234,7 @@ CREATE TABLE missables (
     consequence TEXT NOT NULL,
     severity TEXT NOT NULL,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
     confidence TEXT NOT NULL,
     verification_status TEXT NOT NULL
 );

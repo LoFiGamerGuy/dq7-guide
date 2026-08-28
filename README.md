@@ -26,11 +26,11 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - all 46 Monster Heart identities and sourced effects, with explicit availability gaps;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 291-page source registry;
+- a 293-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 225 checkpoint-gated encounters across 130 monsters and 137 verified drops across 119 monsters;
+- 229 checkpoint-gated encounters across 132 monsters and 139 verified drops across 121 monsters;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
 - verified qualitative stat modifiers for all non-default vocations;
@@ -48,7 +48,7 @@ Requires Python 3.10+; there are no third-party runtime dependencies.
 python scripts/guide_server.py
 ```
 
-Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, sources/conflicts, and searchable registries for items, vocations, monsters, medals, tablets, and achievements. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only explicit changes through the same validation as the CLI.
+Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, sources/conflicts, and searchable registries for items, vocations, monsters, Monster Hearts, missables, medals, tablets, and achievements. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only explicit changes through the same validation as the CLI.
 
 ```powershell
 python scripts/build_kb.py

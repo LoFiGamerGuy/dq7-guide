@@ -125,6 +125,26 @@ def _monster_hearts(db_path: Path, query: dict) -> dict:
     return page
 
 
+def _missables(db_path: Path, query: dict) -> dict:
+    rows = _rows(db_path, """SELECT m.missable_id, m.name, m.available_from,
+        m.unavailable_after, m.consequence, m.severity, m.confidence,
+        m.verification_status, m.source_id, s.title AS source_title,
+        s.url AS source_url, m.locator
+        FROM missables m JOIN sources s USING(source_id)
+        ORDER BY CASE WHEN m.unavailable_after IS NULL THEN 1 ELSE 0 END, m.name""")
+    for row in rows:
+        row["window_status"] = ("verified" if row["available_from"] and
+            row["unavailable_after"] and
+            row["verification_status"].startswith("source_checked")
+            else "unresolved")
+        row["provenance_gap"] = not bool(row["locator"])
+    page = _page(rows, query, ("missable_id", "name", "available_from",
+        "unavailable_after", "consequence", "severity", "window_status",
+        "verification_status", "locator"))
+    page["missables"] = page.pop("results")
+    return page
+
+
 def _medals(db_path: Path, state_path: Path) -> dict:
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = set(state.get("completion", {}).get("mini_medals_found", []))
@@ -399,6 +419,15 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                                 if row["heart_id"] == heart_id), None)
                     if row is None:
                         raise ValueError("Unknown Monster Heart")
+                    return self._json(row)
+                if parsed.path == "/api/missables":
+                    return self._json(_missables(db_path, parse_qs(parsed.query)))
+                if parsed.path.startswith("/api/missables/"):
+                    missable_id = unquote(parsed.path.removeprefix("/api/missables/"))
+                    row = next((row for row in _missables(db_path, {})["missables"]
+                                if row["missable_id"] == missable_id), None)
+                    if row is None:
+                        raise ValueError("Unknown missable")
                     return self._json(row)
                 if parsed.path == "/api/medals":
                     return self._json(_medals(db_path, state_path))

@@ -106,6 +106,14 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(heart["effect_text"])
         self.assertTrue(heart["source_url"])
         self.assertTrue(heart["locator"])
+        _, missables = self.get_json("/api/missables?q=window&limit=3")
+        self.assertGreater(missables["total"], 0)
+        missable_id = missables["missables"][0]["missable_id"]
+        _, missable = self.get_json("/api/missables/" + missable_id)
+        self.assertIn(missable["window_status"], ("verified", "unresolved"))
+        self.assertTrue(missable["source_url"])
+        if missable["window_status"] == "unresolved":
+            self.assertTrue(missable["provenance_gap"])
 
     def test_progress_post_reuses_validated_mutation_and_rejects_unknown_command(self):
         body = json.dumps({"command": "checkpoint", "values": ["cp_001_prologue"]}).encode()

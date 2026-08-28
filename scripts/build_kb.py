@@ -303,10 +303,10 @@ def _build_database(db_path: Path) -> dict[str, int]:
         connection.executemany(
             """INSERT INTO missables(
                 missable_id, name, available_from, unavailable_after,
-                consequence, severity, source_id, confidence, verification_status
+                consequence, severity, source_id, locator, confidence, verification_status
             ) VALUES (
                 :id, :name, :available_from, :unavailable_after, :consequence,
-                :severity, 'game8_missables', :confidence, :verification_status
+                :severity, 'game8_missables', :locator, :confidence, :verification_status
             )""",
             seed["missables"],
         )
