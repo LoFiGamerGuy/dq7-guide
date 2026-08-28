@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 355 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 356 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 7 progression rules, and 220 stat modifiers across all non-default vocations | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators | High | Add derived shortest paths and mastery cost |
 | Moonlighting | cp012-after-Aishe gate, Career Sphere flow, simultaneous two-vocation learning, and dual skill/stat access normalized | High for published behavior; Alltrades-vs-Shrine activation venue conflict and unpublished restrictions remain open | Resolve venue conflict and legal-pair/skill-retention restrictions from in-game evidence |
@@ -21,10 +21,10 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
-| Monster Hearts | 46/46 normalized Hearts with sourced effects; 40/46 now surface checkpoint-aware acquisition from existing current-version item routes | High for effects and linked routes; six unlinked names, drop rates, and route DLC scope remain unknown | Resolve remaining name/link gaps from direct pages without inventing rates |
+| Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 now surface acquisition routes after adding the finite Vicious Meowgician reward at cp005 | High for effects and linked routes; five DLC identities/routes remain outside the shared item registry, and numeric drop rates remain unknown | Normalize the five dedicated-page DLC routes without implying base-game or Heroic Hoarder scope |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 320 gated locations across 216 monsters and 179 drops across 158 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
+| Monster List / Vicious | 333/333 ordinals and English names; 322 gated locations across 217 monsters and 180 drops across 159 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; Iron Shield price, Ice Shield chest, and Cautery Sword's Tunnel route are manually resolved from dedicated current-version pages; 5 source conflicts remain unresolved and expose required evidence | High for resolved location rows; conservative elsewhere; Tempest may represent two valid routes rather than a single-value disagreement | Verify Tempest Shield's Sanctum and Ventus chests in-game under one patch before adjudicating; resolve spelling with direct UI evidence |
 
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 355
+- sources: 356
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -51,7 +51,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 320 / 179
+- monster encounters / drops: 322 / 180
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -75,7 +75,7 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The 2026-08-26 early-game vertical slice has 54 explicitly ordered obligations and 20 attributed recommendations through Alltrades. It supports explicit completed-check tracking, checkpoint-focused output, honest medal state, conditional threshold advice, operational STOP warnings, and checkpoint-scoped conflict alerts. Unsupported advice remains an explicit gap; no levels or grind rates were invented.
+The early-game vertical slice now includes direct tactical coverage for the Tribulators, Golem, Tinpot Dictator, and Florin alongside the existing bosses through Alltrades. It supports explicit completed-check tracking, checkpoint-focused output, honest medal state, conditional threshold advice, operational STOP warnings, and checkpoint-scoped conflict alerts. Unsupported advice remains an explicit gap; no levels or grind rates were invented.
 
 The next chronological slice adds 45 ordered obligations across Alltrades Present, the desert arc, Aishe/Moonlighting, the Flying Carpet route, and Sir Mervyn. No irreversible STOP was asserted without evidence. `walkthrough.py` is now the canonical checkpoint-generic command; `early_walkthrough.py` remains compatible.
 
@@ -117,7 +117,7 @@ The eighth combat-engine batch extends qualitative modifiers to all non-default 
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 320 checkpoint-gated encounter routes across 216 of 333 monsters and 179 verified drop rows across 158 monsters. The latest chronological late-game batch adds Robber Baron in Present Cathedral of Blight - Hellfire Hollow at cp028 with Seed of Deftness and Heroic Hoarder Dark Robe. Both direct-page rates remain unknown. Generic `Special Encounter` pages remain excluded.
+The current monster expansion has 322 checkpoint-gated encounter routes across 217 of 333 monsters and 180 verified drop rows across 159 monsters. The earliest remaining cp001-cp010 gaps were container or Vicious/special encounters without checkpoint-specific direct pages, so the latest nearest chronological batch adds Bloody Hand in Present Al-Balad Region at cp011 and Present Hidden Pyramid at cp024 with its Kerplunk Bracer drop. Its rate remains unknown.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
@@ -126,6 +126,8 @@ The first Monster Heart batch adds a forward-compatible registry and 12 directly
 The second Monster Heart batch completes all 46 current-version identities and effects. Availability remains unset for 45 Hearts, and both Metal Slime Heart and Gold Golem Heart retain the source's Jam-Packed Swag Bag DLC scope without implying exclusivity or a non-DLC route.
 
 The acquisition-link batch reuses independently sourced item-acquisition rows to expose checkpoint, period, method, supply, source, and locator on Heart details. Earliest playable examples now include Slime/Golem/Hammerhood at cp003, Bodkin Archer/Little Devil at cp004, Healslime at cp005, and additional fixed/drop routes through cp011. No stored numeric drop rate or acquisition DLC scope exists, so both remain explicitly unknown; unmatched Heart/item names remain unlinked.
+
+The remaining-heart audit directly links Meowgician Heart to the finite Vicious Meowgician reward/drop in L'Arca Past at `cp_005_larca`. Its dedicated page proves the exact identity and monster source, while the existing encounter page supplies the checkpoint gate; drop rate and repeatability remain unpublished, so it is not labeled renewable. Metal Slime and Gold Golem Hearts are directly documented as Jam-Packed Swag Bag DLC grants, and Dragonlord, Malroth, and Zoma Hearts as Road of Regal Battle Arena DLC rewards. Those five exact identities remain outside the shared item registry until DLC ownership/availability and non-Heroic item semantics are normalized rather than guessed.
 
 The missable audit gives all seven records precise direct-source locators and normalizes six exact action boundaries. It corrects the Vogograd reward to Pretty Betsy, records the irreversible Wrecked Specs, Wooden Doll branch confirmations, Wiggles, and Kiefer choices, and leaves only the Little Blue Button's unnamed story cutoff explicitly unknown and ineligible for STOP presentation.
 

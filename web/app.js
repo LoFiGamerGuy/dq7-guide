@@ -87,6 +87,9 @@ function renderDashboard() {
 
 function renderCheckpoint() {
   const c = state.checkpoint || {};
+  const index = state.checkpoints.findIndex(row => row.id === c.id);
+  $("#previousCheckpoint").disabled = index <= 0;
+  $("#nextCheckpoint").disabled = index < 0 || index >= state.checkpoints.length - 1;
   $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
   renderStop($("#checkpointStop"), c.stop_warnings || []);
   renderChecks($("#actions"), c.actions || [], $("#hideCompleted").checked);
@@ -263,6 +266,12 @@ async function loadCheckpoint(id) {
   setStatus("Loading checkpoint…");
   state.checkpoint = await api(`/checkpoints/${encodeURIComponent(id)}`); renderCheckpoint(); setStatus("");
 }
+async function stepCheckpoint(delta) {
+  const select = $("#checkpointSelect"), next = select.selectedIndex + delta;
+  if (next < 0 || next >= select.options.length) return;
+  select.selectedIndex = next;
+  await loadCheckpoint(select.value);
+}
 async function loadAll() {
   setStatus("Loading guide…");
   const vocationRequest = state.vocations.length ? Promise.resolve(null) : api("/vocations?limit=200");
@@ -300,6 +309,8 @@ document.addEventListener("click", event => {
 $("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); });
 $("#refreshButton").addEventListener("click", () => loadAll().catch(handleError));
 $("#checkpointSelect").addEventListener("change", event => loadCheckpoint(event.target.value).catch(handleError));
+$("#previousCheckpoint").addEventListener("click", () => stepCheckpoint(-1).catch(handleError));
+$("#nextCheckpoint").addEventListener("click", () => stepCheckpoint(1).catch(handleError));
 $("#setCheckpointButton").addEventListener("click", async () => {
   const id = $("#checkpointSelect").value;
   try { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint saved"); }

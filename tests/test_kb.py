@@ -59,18 +59,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 355)
+        self.assertEqual(self.counts["sources"], 357)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 86)
+        self.assertEqual(self.counts["checkpoint_advice"], 90)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
-        self.assertEqual(self.counts["items"], 353)
+        self.assertEqual(self.counts["items"], 354)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 701)
+        self.assertEqual(self.counts["item_acquisition_paths"], 702)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -178,6 +178,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.connection.execute(
                 """SELECT c.name, COUNT(*) FROM items i
                 JOIN item_categories c USING(category_id)
+                WHERE i.heroic_hoarder_required = 1
                 GROUP BY c.name"""
             ).fetchall()
         )
@@ -234,6 +235,17 @@ class KnowledgeBaseTests(unittest.TestCase):
             [row[0] for row in dlc_scoped],
             ["Gold Golem Heart", "Metal Slime Heart"],
         )
+
+    def test_meowgician_heart_has_direct_finite_vicious_route(self):
+        row = self.connection.execute(
+            """SELECT i.heroic_hoarder_required, a.method, a.location_text,
+                a.available_from_checkpoint_id, a.supply_type, a.finite_total,
+                a.is_free, a.verification_status
+            FROM items i JOIN item_acquisition_paths a USING(item_id)
+            WHERE i.name = 'Meowgician Heart'"""
+        ).fetchone()
+        self.assertEqual(tuple(row[:7]), (0, "drop", "L'Arca", "cp_005_larca", "finite", 1, 1))
+        self.assertIn("repeatability_unproven", row[7])
 
     def test_missables_have_precise_provenance_and_preserve_unknown_cutoffs(self):
         rows = self.connection.execute(
@@ -472,13 +484,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (320, 179))
+        self.assertEqual(tuple(counts), (322, 180))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (216, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (217, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -500,7 +512,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_011_la_bravoure": 13,
+                "cp_011_la_bravoure": 14,
                 "cp_013_flying_carpet": 19,
                 "cp_014_sir_mervyn": 4,
             },
@@ -605,8 +617,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 216)
-        self.assertEqual(report["drops"], 158)
+        self.assertEqual(report["routed"], 217)
+        self.assertEqual(report["drops"], 159)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -1721,6 +1733,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         with redirect_stdout(sourced):
             print_walkthrough(report, include_sources=True)
         self.assertIn("https://", sourced.getvalue())
+
+    def test_first_ten_hours_cover_all_direct_boss_sequences(self):
+        rows = self.connection.execute(
+            """SELECT advice_id, checkpoint_id, subject, display_order, source_id,
+                locator, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id IN (
+                'advice_cp002_tribulators', 'advice_cp003_golem',
+                'advice_cp003_crabble_maeve_sequence',
+                'advice_cp007_tinpot_dictator', 'advice_cp007_slaughtomaton',
+                'advice_cp008_florin', 'advice_cp008_guardians_roamers')
+            ORDER BY checkpoint_id, display_order"""
+        ).fetchall()
+        self.assertEqual([row["subject"] for row in rows], [
+            "Tribulators", "Golem", "Crabble-Rouser and Maeve",
+            "Tinpot Dictator", "Slaughtomaton", "Florin",
+            "Guardians of the Roamers",
+        ])
+        self.assertTrue(all(row["source_id"].startswith("game8_") for row in rows))
+        self.assertTrue(all(row["locator"] for row in rows))
+        self.assertTrue(all(row["verification_status"] == "source_checked"
+                            for row in rows))
 
     def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):
         self.assertEqual(classify_medal_tracking(None, set()), ("unknown", None))

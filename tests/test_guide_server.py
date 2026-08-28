@@ -60,6 +60,8 @@ class GuideServerTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
             page = response.read()
             self.assertIn(b"Run Guide", page)
+            self.assertIn(b'id="previousCheckpoint"', page)
+            self.assertIn(b'id="nextCheckpoint"', page)
             self.assertLess(page.index(b'id="checkpointStop"'), page.index(b'id="advice"'))
             self.assertLess(page.index(b'id="advice"'), page.index(b'id="safeCondition"'))
         with urlopen(self.base + "/app.js") as response:
