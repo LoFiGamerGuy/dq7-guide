@@ -110,6 +110,21 @@ def _monsters(db_path: Path, state_path: Path, query: dict) -> dict:
     return page
 
 
+def _monster_hearts(db_path: Path, query: dict) -> dict:
+    rows = _rows(db_path, """SELECT h.heart_id, h.name, h.effect_text,
+        h.available_from_checkpoint_id, c.name AS available_checkpoint,
+        h.availability_notes, h.confidence, h.verification_status,
+        h.source_id, s.title AS source_title, s.url AS source_url, h.locator
+        FROM monster_hearts h
+        LEFT JOIN checkpoints c ON c.checkpoint_id=h.available_from_checkpoint_id
+        JOIN sources s USING(source_id)
+        ORDER BY COALESCE(c.sequence_no, 999), h.name""")
+    page = _page(rows, query, ("heart_id", "name", "effect_text",
+        "available_checkpoint", "availability_notes"))
+    page["hearts"] = page.pop("results")
+    return page
+
+
 def _medals(db_path: Path, state_path: Path) -> dict:
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = set(state.get("completion", {}).get("mini_medals_found", []))
@@ -376,6 +391,15 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     report["defeated"] = report["monster"]["monster_id"] in set(
                         _state(state_path).get("completion", {}).get("monster_entries", []))
                     return self._json(report)
+                if parsed.path == "/api/monster-hearts":
+                    return self._json(_monster_hearts(db_path, parse_qs(parsed.query)))
+                if parsed.path.startswith("/api/monster-hearts/"):
+                    heart_id = unquote(parsed.path.removeprefix("/api/monster-hearts/"))
+                    row = next((row for row in _monster_hearts(db_path, {})["hearts"]
+                                if row["heart_id"] == heart_id), None)
+                    if row is None:
+                        raise ValueError("Unknown Monster Heart")
+                    return self._json(row)
                 if parsed.path == "/api/medals":
                     return self._json(_medals(db_path, state_path))
                 if parsed.path.startswith("/api/medals/"):

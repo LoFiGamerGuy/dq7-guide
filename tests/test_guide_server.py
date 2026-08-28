@@ -97,6 +97,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(monster["monster"]["monster_id"], "monster_001")
         self.assertIn("encounters", monster)
         self.assertIn("drops", monster)
+        _, hearts = self.get_json("/api/monster-hearts?q=critical&limit=2")
+        self.assertGreater(hearts["total"], 0)
+        self.assertLessEqual(len(hearts["hearts"]), 2)
+        heart_id = hearts["hearts"][0]["heart_id"]
+        _, heart = self.get_json("/api/monster-hearts/" + heart_id)
+        self.assertEqual(heart["heart_id"], heart_id)
+        self.assertTrue(heart["effect_text"])
+        self.assertTrue(heart["source_url"])
+        self.assertTrue(heart["locator"])
 
     def test_progress_post_reuses_validated_mutation_and_rejects_unknown_command(self):
         body = json.dumps({"command": "checkpoint", "values": ["cp_001_prologue"]}).encode()

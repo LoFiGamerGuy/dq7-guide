@@ -51,16 +51,19 @@ Each counter may be a string, `{ "display": "x / y" }`, or `null`. `open_work` i
 
 ## Domain registries
 
-The six first-class domain routes call:
+The first-class domain routes call:
 
 - `GET /api/items`
 - `GET /api/vocations`
 - `GET /api/monsters`
+- `GET /api/monster-hearts`
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`
 
 Each returns an object containing `items`, `vocations`, `monsters`, `medals`, `fragments`, or `achievements`. Paginated registries also return `total`, `limit`, and `offset` (achievement paging metadata is under `page`). The browser normalizes persisted IDs and progress fields for display.
+
+Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, and locator. Hearts are read-only because player state has no dedicated Heart inventory field.
 
 Domain-specific fields:
 

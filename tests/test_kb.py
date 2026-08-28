@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 289)
+        self.assertEqual(self.counts["sources"], 291)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -71,7 +71,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
         self.assertEqual(self.counts["item_acquisition_paths"], 488)
-        self.assertEqual(self.counts["monster_hearts"], 12)
+        self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 13)
@@ -216,13 +216,22 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM monster_hearts
             WHERE available_from_checkpoint_id IS NULL"""
         ).fetchone()[0]
-        self.assertEqual(unknown, 11)
+        self.assertEqual(unknown, 45)
         missing_provenance = self.connection.execute(
             """SELECT COUNT(*) FROM monster_hearts h
             LEFT JOIN sources s USING(source_id)
             WHERE s.source_id IS NULL OR trim(h.locator) = ''"""
         ).fetchone()[0]
         self.assertEqual(missing_provenance, 0)
+        dlc_scoped = self.connection.execute(
+            """SELECT name FROM monster_hearts
+            WHERE verification_status = 'source_checked_effect_dlc_scope_not_fully_normalized'
+            ORDER BY name"""
+        ).fetchall()
+        self.assertEqual(
+            [row[0] for row in dlc_scoped],
+            ["Gold Golem Heart", "Metal Slime Heart"],
+        )
 
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
         report = load_hoarder_report(
@@ -294,13 +303,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (222, 134))
+        self.assertEqual(tuple(counts), (225, 137))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (128, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (130, "cp_003_ballymolloy", 3))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -427,8 +436,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 128)
-        self.assertEqual(report["drops"], 117)
+        self.assertEqual(report["routed"], 130)
+        self.assertEqual(report["drops"], 119)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):

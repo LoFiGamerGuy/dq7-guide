@@ -20,10 +20,10 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
 | Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
-| Monster Hearts | 12 normalized early-facing Hearts with sourced effects; Golem Heart has an explicit Ballymolloy gate | High for effects; 11 acquisition windows remain unknown | Complete the 46-Heart registry and direct acquisition routes |
+| Monster Hearts | 46/46 normalized Hearts with sourced effects; Golem Heart has an explicit Ballymolloy gate | High for effects; 45 acquisition windows remain unknown | Add direct acquisition routes without inventing drop rates |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 215 gated locations across 123 monsters and 130 drops; 10 Vicious species / 11 encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
+| Monster List / Vicious | 333/333 ordinals and English names; 225 gated locations across 130 monsters and 137 drops across 119 monsters; 10 Vicious species / 11 encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 7 unresolved source conflicts | Conservative coverage | Resolve location disputes and Stella/Stellar spelling with direct in-game evidence |
 
@@ -31,7 +31,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 285
+- sources: 291
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -41,7 +41,7 @@ Expected after `python scripts/build_kb.py`:
 - medal rewards: 19
 - missables: 7
 - farming spots: 8
-- monster hearts: 12
+- monster hearts: 46
 - checkpoints: 33
 - mini medal locations: 100
 - checkpoint obligations: 222
@@ -49,7 +49,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 215 / 130
+- monster encounters / drops: 225 / 137
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -115,11 +115,13 @@ The eighth combat-engine batch extends qualitative modifiers to all non-default 
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 222 checkpoint-gated encounter routes across 128 of 333 monsters and 134 verified drop rows across 117 monsters. The latest direct-page additions cover Vicious Meowgician, Vicious Bubble Slime, and Mimic, including two early Monster Heart drops useful to live play; unsupported special encounters remain unset.
+The current monster expansion has 225 checkpoint-gated encounter routes across 130 of 333 monsters and 137 verified drop rows across 119 monsters. The latest direct-page additions cover Vicious Hammerhood and Vicious Bodkin Archer, including their three named Heart drops and early cp003/cp004/cp007 routes; unsupported special encounters remain unset.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
 The first Monster Heart batch adds a forward-compatible registry and 12 directly sourced effects covering the earliest entries through Mud Mannequin Heart. Golem Heart is gated at Ballymolloy from explicit availability evidence; the other 11 acquisition windows remain unknown, and the Metal Slime Heart note preserves its documented DLC scope without claiming a non-DLC route.
+
+The second Monster Heart batch completes all 46 current-version identities and effects. Availability remains unset for 45 Hearts, and both Metal Slime Heart and Gold Golem Heart retain the source's Jam-Packed Swag Bag DLC scope without implying exclusivity or a non-DLC route.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 
