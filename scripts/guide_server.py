@@ -317,9 +317,16 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         "checkpoint_id": checkpoint_id,
         "gaps": [
             "No current-version character-by-item equipability matrix is normalized.",
-            "Accessory slot count and duplicate-equip rules are not normalized.",
+            "Duplicate accessory equip and effect-stacking rules are not verified.",
+            "Non-accessory slot counts are not independently verified.",
             "Item categories identify nominal slots, but do not prove a character can equip an item.",
         ],
+        "mechanics": [],
+        "compatibility_coverage": {
+            "verified_item_character_pairs": 0,
+            "conflicted_item_rows": 0,
+            "status": "not_normalized",
+        },
         "members": [],
         "recommendations": [],
     }
@@ -332,6 +339,21 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             "note": ("No equipment explicitly recorded." if not equipment else
                      "Recorded values are displayed only; compatibility has not been validated."),
         })
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        result["mechanics"] = [dict(row) for row in connection.execute(
+            """SELECT r.rule_id, r.rule_type, r.slot_name, r.numeric_value,
+                r.applies_to, r.confidence, r.verification_status,
+                r.locator, r.corroborating_locator,
+                s.source_id, s.title AS source_title, s.url AS source_url,
+                cs.source_id AS corroborating_source_id,
+                cs.title AS corroborating_source_title,
+                cs.url AS corroborating_source_url
+            FROM equipment_rules r
+            JOIN sources s ON s.source_id=r.source_id
+            JOIN sources cs ON cs.source_id=r.corroborating_source_id
+            ORDER BY r.rule_id"""
+        )]
     if not checkpoint_id:
         result["status"] = "unknown_checkpoint"
         return result

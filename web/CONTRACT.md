@@ -189,6 +189,10 @@ has not itself been recorded. This distinction applies to Heroic Hoarder, Monste
 List, Vicious encounters, tablets, vocations, and medals.
 
 `GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
+It includes independently corroborated `mechanics` rows for the two accessory
+slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
+reports the normalized character/item matrix separately; verified slot mechanics
+must not be mistaken for complete equipability or duplicate-effect rules.
 It returns `editor_supported: false`, the exact normalization `gaps`, each party
 member's raw explicitly recorded equipment with an `unvalidated_record` warning,
 and gear recommendations for the saved checkpoint. Recommendation rows resolve

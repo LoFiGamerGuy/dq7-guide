@@ -36,6 +36,7 @@ The seed includes:
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules, including Normal-setting 1/5/10 point awards and the first two-source numeric mastery ladder;
 - verified qualitative stat modifiers for all non-default vocations;
+- independently corroborated two-accessory-slot and Monster-Heart slot-use rules;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.

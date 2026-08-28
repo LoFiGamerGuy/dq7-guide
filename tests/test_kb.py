@@ -59,7 +59,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 492)
+        self.assertEqual(self.counts["sources"], 494)
+        self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)

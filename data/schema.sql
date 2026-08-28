@@ -56,6 +56,21 @@ CREATE TABLE claims (
 
 CREATE INDEX claims_lookup ON claims(subject_key, predicate);
 
+CREATE TABLE equipment_rules (
+    rule_id TEXT PRIMARY KEY,
+    rule_type TEXT NOT NULL CHECK(rule_type IN ('slot_count', 'slot_consumption')),
+    slot_name TEXT NOT NULL,
+    numeric_value INTEGER NOT NULL CHECK(numeric_value > 0),
+    applies_to TEXT NOT NULL,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    corroborating_source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    corroborating_locator TEXT NOT NULL CHECK(length(trim(corroborating_locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    notes TEXT
+);
+
 CREATE TABLE conflicts (
     conflict_id TEXT PRIMARY KEY,
     conflict_key TEXT NOT NULL,

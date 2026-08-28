@@ -235,6 +235,19 @@ def _build_database(db_path: Path) -> dict[str, int]:
             ],
         )
 
+        connection.executemany(
+            """INSERT INTO equipment_rules(
+                rule_id, rule_type, slot_name, numeric_value, applies_to,
+                source_id, corroborating_source_id, locator,
+                corroborating_locator, confidence, verification_status, notes
+            ) VALUES (
+                :rule_id, :rule_type, :slot_name, :numeric_value, :applies_to,
+                :source_id, :corroborating_source_id, :locator,
+                :corroborating_locator, :confidence, :verification_status, :notes
+            )""",
+            seed.get("equipment_rules", []),
+        )
+
         for vocation in seed["vocations"]:
             connection.execute(
                 """INSERT INTO entities(
@@ -1026,7 +1039,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
 
         counts = {}
         for table in (
-            "sources", "entities", "relationships", "claims", "documents",
+            "sources", "entities", "relationships", "claims", "documents", "equipment_rules",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
             "vocation_progression_rules", "vocation_rank_costs", "vocation_stat_modifiers", "medal_rewards", "missables",
             "farming_spots", "seed_effects", "seed_reward_rules",

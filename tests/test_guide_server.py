@@ -62,6 +62,12 @@ class GuideServerTests(unittest.TestCase):
                                       state_path)
         self.assertFalse(report["editor_supported"])
         self.assertTrue(any("equipability matrix" in gap for gap in report["gaps"]))
+        self.assertEqual(len(report["mechanics"]), 2)
+        accessory = next(row for row in report["mechanics"]
+                         if row["rule_type"] == "slot_count")
+        self.assertEqual(accessory["numeric_value"], 2)
+        self.assertEqual(accessory["confidence"], "verified")
+        self.assertEqual(report["compatibility_coverage"]["status"], "not_normalized")
         cautery = next(row for row in report["recommendations"]
                        if row["item_name"] == "Cautery Sword")
         self.assertEqual(cautery["character"], "Hero")
@@ -72,6 +78,7 @@ class GuideServerTests(unittest.TestCase):
         status, endpoint = self.get_json("/api/equipment")
         self.assertEqual(status, 200)
         self.assertFalse(endpoint["editor_supported"])
+        self.assertEqual(len(endpoint["mechanics"]), 2)
 
     def test_health_checkpoints_dashboard_and_static_assets(self):
         launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")
