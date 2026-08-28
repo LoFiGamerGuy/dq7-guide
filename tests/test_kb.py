@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 478)
+        self.assertEqual(self.counts["sources"], 492)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -246,7 +246,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM monster_hearts
             WHERE available_from_checkpoint_id IS NULL"""
         ).fetchone()[0]
-        self.assertEqual(unknown, 45)
+        self.assertEqual(unknown, 42)
         missing_provenance = self.connection.execute(
             """SELECT COUNT(*) FROM monster_hearts h
             LEFT JOIN sources s USING(source_id)
@@ -276,9 +276,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         self.assertTrue(all("DLC-only Buccanham Palace Battle Arena" in row[1] for row in dlc_arena_routes))
         self.assertTrue(all(row[2] == "ngb_monster_hearts" for row in dlc_arena_routes))
-        self.assertTrue(all(row[3].endswith("> How to Obtain") for row in dlc_arena_routes))
-        self.assertTrue(all(row[4] is None for row in dlc_arena_routes))
-        self.assertTrue(all(row[5].endswith("checkpoint_unknown") for row in dlc_arena_routes))
+        self.assertTrue(all("> How to Obtain" in row[3] for row in dlc_arena_routes))
+        self.assertTrue(all(row[4] == "cp_020_buccanham" for row in dlc_arena_routes))
+        self.assertTrue(all(row[5] == "cross_source_checked_dlc_route_checkpoint_gated" for row in dlc_arena_routes))
 
     def test_meowgician_heart_has_direct_finite_vicious_route(self):
         row = self.connection.execute(
@@ -785,13 +785,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (455, 227))
+        self.assertEqual(tuple(counts), (476, 227))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (312, "cp_001_prologue", 77))
+        self.assertEqual(tuple(early), (333, "cp_001_prologue", 98))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -866,6 +866,26 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(tuple(completion_special_routes), (8, 8))
 
+        newly_routed = self.connection.execute(
+            """SELECT COUNT(DISTINCT monster_id),
+                SUM(verification_status LIKE 'cross_source_checked%'),
+                SUM(verification_status LIKE 'single_independent_source%')
+            FROM monster_encounters
+            WHERE monster_id IN ('monster_040','monster_044','monster_058',
+                'monster_076','monster_089','monster_137','monster_156',
+                'monster_157','monster_158','monster_159','monster_160',
+                'monster_161','monster_162','monster_163','monster_164',
+                'monster_165','monster_209','monster_211','monster_251',
+                'monster_275','monster_276')"""
+        ).fetchone()
+        self.assertEqual(tuple(newly_routed), (21, 9, 12))
+        corroborating_claims = self.connection.execute(
+            """SELECT COUNT(*) FROM claims
+            WHERE claim_id LIKE 'claim_enc_%'
+              AND verification_status LIKE 'cross_source_checked%'"""
+        ).fetchone()[0]
+        self.assertEqual(corroborating_claims, 9)
+
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(
             self.connection.execute(
@@ -880,8 +900,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_011_la_bravoure": 16,
-                "cp_013_flying_carpet": 19,
+                "cp_011_la_bravoure": 17,
+                "cp_013_flying_carpet": 21,
                 "cp_014_sir_mervyn": 4,
             },
         )
@@ -909,7 +929,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             {
                 "cp_015_greenthumb": 5,
                 "cp_016_hubble": 15,
-                "cp_019_aeolus": 16,
+                "cp_019_aeolus": 17,
             },
         )
         later_routes = dict(
@@ -940,7 +960,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_020_buccanham": 39,
+                "cp_020_buccanham": 49,
                 "cp_021_malign_shrine": 15,
                 "cp_023_fire_spirit": 5,
                 "cp_025_wind_spirit": 6,
@@ -985,7 +1005,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 312)
+        self.assertEqual(report["routed"], 333)
         self.assertEqual(report["drops"], 196)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 

@@ -31,7 +31,7 @@ The seed includes:
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 455 checkpoint-gated encounters and 227 verified drops across the 333-monster registry;
+- 476 checkpoint-gated encounters covering all 333 monsters and 227 verified drops;
 - all directly published Lucky Panel standard-rank matrices normalized with exact-name gaps retained;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules, including Normal-setting 1/5/10 point awards and the first two-source numeric mastery ladder;
