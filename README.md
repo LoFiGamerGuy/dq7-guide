@@ -26,12 +26,12 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - high-value Monster Heart examples;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 197-page source registry;
+- a 211-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- checkpoint-gated encounters for 59 monsters and 58 verified drops;
-- all rank skills and Let Loose perks for all beginner and intermediate vocations;
+- checkpoint-gated encounters for 70 monsters and 71 verified drops;
+- all rank skills and Let Loose perks for all beginner, intermediate, and advanced vocations;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
