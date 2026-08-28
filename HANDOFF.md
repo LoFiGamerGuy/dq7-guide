@@ -17,6 +17,8 @@ That requires four layers to work together:
 
 SQLite is the canonical local store. FTS5 provides lightweight RAG retrieval without requiring a hosted vector service. Seed JSON is committed for review and reproducible builds. A richer embedding index can be added later, but it must remain derivable and must never become the sole copy of provenance.
 
+`scripts/guide_server.py` is the dependency-free local browser entry point. It serves `web/` and exposes read APIs over the generated SQLite database plus allowlisted progress mutations against the selected player-state file. The CLI remains supported and shares the same loaders and validation paths.
+
 The schema deliberately separates:
 
 - `entities` and `relationships` for the normalized graph;
@@ -82,4 +84,3 @@ The KB is useful during live play when, for every checkpoint through Alltrades A
 - Past and Present locations often share names; time-period scoping is mandatory.
 - Completion requirements and optional collector-only items are not always identical.
 - The user's actual save state is currently empty; personalized recommendations must expose this uncertainty.
-

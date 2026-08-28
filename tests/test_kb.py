@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 283)
+        self.assertEqual(self.counts["sources"], 285)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -273,13 +273,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (211, 128))
+        self.assertEqual(tuple(counts), (215, 130))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (121, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (123, "cp_003_ballymolloy", 0))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -330,7 +330,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             {
                 "cp_015_greenthumb": 3,
                 "cp_016_hubble": 13,
-                "cp_019_aeolus": 11,
+                "cp_019_aeolus": 12,
             },
         )
         later_routes = dict(
@@ -361,10 +361,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_020_buccanham": 27,
-                "cp_021_malign_shrine": 6,
+                "cp_020_buccanham": 28,
+                "cp_021_malign_shrine": 7,
                 "cp_023_fire_spirit": 2,
-                "cp_025_wind_spirit": 1,
+                "cp_025_wind_spirit": 2,
             },
         )
 
@@ -406,8 +406,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 121)
-        self.assertEqual(report["drops"], 111)
+        self.assertEqual(report["routed"], 123)
+        self.assertEqual(report["drops"], 113)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):

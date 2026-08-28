@@ -42,6 +42,14 @@ Records marked `reconstructed_seed` are based on the earlier task inventory and/
 
 Requires Python 3.10+; there are no third-party runtime dependencies.
 
+### Interactive web guide
+
+```powershell
+python scripts/guide_server.py
+```
+
+Open `http://127.0.0.1:8765`. The responsive interface provides the current dashboard, compact checkpoint walkthrough, STOP warnings, advice, medal and monster checks, progress summaries, sources, and unresolved conflicts. Changes use the same validated explicit-progress workflow as the CLI.
+
 ```powershell
 python scripts/build_kb.py
 python scripts/query_kb.py "alltrades vocation"

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251f">
+  <title>DQ7 Run Guide</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to guide</a>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Dragon Quest VII Reimagined</p>
+      <h1>Ryan's Run Guide</h1>
+    </div>
+    <button id="menuButton" class="icon-button" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+  </header>
+
+  <div class="shell">
+    <nav id="primaryNav" class="nav" aria-label="Primary">
+      <a href="#dashboard" data-view="dashboard" aria-current="page">Dashboard</a>
+      <a href="#walkthrough" data-view="walkthrough">Walkthrough</a>
+      <a href="#progress" data-view="progress">Progress</a>
+      <a href="#sources" data-view="sources">Sources</a>
+    </nav>
+
+    <main id="main" tabindex="-1">
+      <div id="status" class="status" role="status" aria-live="polite">Loading guide…</div>
+
+      <section id="dashboard" class="view" aria-labelledby="dashboardTitle">
+        <div class="section-heading">
+          <div><p class="eyebrow">Current run</p><h2 id="dashboardTitle">Dashboard</h2></div>
+          <button id="refreshButton" class="secondary" type="button">Refresh</button>
+        </div>
+        <div id="stopBanner" class="stop-banner" role="alert" hidden></div>
+        <div id="summaryCards" class="summary-grid" aria-label="Completion summary"></div>
+        <article class="panel next-panel">
+          <div class="panel-heading"><h3>Do this next</h3><a href="#walkthrough" data-view="walkthrough">Open checkpoint</a></div>
+          <div id="nextActions"></div>
+        </article>
+      </section>
+
+      <section id="walkthrough" class="view" aria-labelledby="walkthroughTitle" hidden>
+        <div class="section-heading">
+          <div><p class="eyebrow">Compact mode</p><h2 id="walkthroughTitle">Walkthrough</h2></div>
+          <label class="select-label">Checkpoint <select id="checkpointSelect"></select></label>
+        </div>
+        <div id="checkpointMeta" class="checkpoint-meta"></div>
+        <div id="checkpointStop" class="stop-banner" role="alert" hidden></div>
+        <div class="walk-grid">
+          <article class="panel span-two"><div class="panel-heading"><h3>Actions</h3><span id="actionCount" class="muted"></span></div><div id="actions"></div></article>
+          <article class="panel"><div class="panel-heading"><h3>Advice</h3></div><div id="advice"></div></article>
+          <article class="panel"><div class="panel-heading"><h3>Mini Medals</h3></div><div id="medals"></div></article>
+          <article class="panel"><div class="panel-heading"><h3>Monsters</h3></div><div id="monsters"></div></article>
+          <article class="panel"><div class="panel-heading"><h3>Safe to advance when</h3></div><p id="safeCondition"></p></article>
+        </div>
+      </section>
+
+      <section id="progress" class="view" aria-labelledby="progressTitle" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Explicitly recorded only</p><h2 id="progressTitle">Progress</h2></div></div>
+        <div id="progressCards" class="summary-grid"></div>
+        <article class="panel"><h3>Open completion work</h3><div id="openWork"></div></article>
+      </section>
+
+      <section id="sources" class="view" aria-labelledby="sourcesTitle" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Evidence and uncertainty</p><h2 id="sourcesTitle">Sources & conflicts</h2></div></div>
+        <article class="panel"><h3>Unresolved conflicts</h3><div id="conflicts"></div></article>
+        <article class="panel"><h3>Checkpoint sources</h3><div id="sourceList"></div></article>
+      </section>
+    </main>
+  </div>
+
+  <template id="emptyTemplate"><p class="empty">Nothing open here.</p></template>
+</body>
+</html>
