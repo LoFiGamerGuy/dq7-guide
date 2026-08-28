@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 328)
+        self.assertEqual(self.counts["sources"], 331)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,14 +70,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
-        self.assertEqual(self.counts["item_acquisition_paths"], 586)
+        self.assertEqual(self.counts["item_acquisition_paths"], 611)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 176)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 201)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -258,14 +258,20 @@ class KnowledgeBaseTests(unittest.TestCase):
                 strategy_source_id, strategy_locator
             FROM farming_spots ORDER BY farming_id"""
         ).fetchall()
-        self.assertEqual(len(rows), 8)
+        self.assertEqual(len(rows), 9)
         self.assertTrue(all(row[1] for row in rows))
         self.assertTrue(all(row[4] and row[5] for row in rows))
         self.assertTrue(all(not row[3] or (row[6] and row[7]) for row in rows))
         self.assertTrue(all(
             row[2] is None or "no numeric encounter rate published" in row[2]
+            or "no proficiency-per-time rate is published" in row[2]
             for row in rows
         ))
+        proficiency = next(row for row in rows
+                           if row[0] == "farm_vocation_proficiency_highendreigh")
+        self.assertEqual(proficiency[1], "cp_013_flying_carpet")
+        self.assertEqual(proficiency[4], "game8_proficiency_farming")
+        self.assertEqual(proficiency[6], "game8_proficiency_farming")
         seed = next(row for row in rows if row[0] == "farm_super_seeds_almighty")
         self.assertEqual(seed[1], "cp_032_yet_another_world")
         self.assertEqual(seed[4], "game8_boss_almighty_spirits")
@@ -393,13 +399,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (297, 158))
+        self.assertEqual(tuple(counts), (300, 161))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (195, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (198, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -526,8 +532,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 195)
-        self.assertEqual(report["drops"], 138)
+        self.assertEqual(report["routed"], 198)
+        self.assertEqual(report["drops"], 141)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -996,6 +1002,32 @@ class KnowledgeBaseTests(unittest.TestCase):
                 json.loads(by_name[name]["prerequisite_json"])["source_qualifier"],
                 "Lucky Panel exclusive",
             )
+        self.assertTrue(all(row["probability_text"] is None for row in rows))
+        self.assertTrue(all(row["entry_cost"] is None for row in rows))
+
+    def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
+        rows = self.connection.execute(
+            """SELECT i.name, a.locator, a.available_from_checkpoint_id,
+                a.unavailable_after_checkpoint_id, lr.probability_text,
+                lp.entry_cost
+            FROM lucky_panel_pools lp
+            JOIN lucky_panel_rewards lr USING(pool_id)
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            JOIN items i USING(item_id)
+            WHERE lp.pool_id = 'lp_pilgrims_rest_v2_rank_1_standard'
+            ORDER BY i.name"""
+        ).fetchall()
+        self.assertEqual(len(rows), 30)
+        self.assertIn("Wizard's Staff", {row["name"] for row in rows})
+        self.assertTrue(all(
+            "Version 2" in row["locator"] and "Rank 1" in row["locator"]
+            for row in rows
+        ))
+        self.assertTrue(all(
+            row["available_from_checkpoint_id"] == "cp_010_alltrades_present"
+            for row in rows
+        ))
+        self.assertTrue(all(row["unavailable_after_checkpoint_id"] is None for row in rows))
         self.assertTrue(all(row["probability_text"] is None for row in rows))
         self.assertTrue(all(row["entry_cost"] is None for row in rows))
 

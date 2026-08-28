@@ -244,7 +244,8 @@ def _farms(db_path: Path, query: dict) -> dict:
         ORDER BY f.location, f.target""")
     for row in rows:
         target = row["target"].casefold()
-        row["farm_type"] = ("exp" if "metal" in target or "jewel" in target
+        row["farm_type"] = ("proficiency" if "proficiency" in target
+            else "exp" if "metal" in target or "jewel" in target
             else "seeds" if "seed" in target else "other")
         row["rate_status"] = "numeric_unpublished"
         row["provenance_gap"] = False

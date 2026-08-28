@@ -138,6 +138,13 @@ def _build_database(db_path: Path) -> dict[str, int]:
         for row in seed.get("lucky_panel_standard_matrix_rows", []):
             game_version = str(row.get("game_version", "3"))
             panel_rank = str(row.get("panel_rank", "2"))
+            pool_id = row.get("pool_id") or (
+                f"lp_pilgrims_rest_v{game_version}_rank_{panel_rank}_standard"
+            )
+            pool = next(
+                pool for pool in seed.get("lucky_panel_pools", [])
+                if pool["pool_id"] == pool_id
+            )
             acquisition_id = (
                 f"acq_{row['item_id'].removeprefix('item_')}"
                 f"_lucky_panel_v{game_version}_rank{panel_rank}"
@@ -150,12 +157,11 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     f"Lucky Panel Version {game_version} Rank {panel_rank}"
                 ),
                 "location_text": "Pilgrim's Rest well",
-                "time_period": row.get("time_period", "Present"),
-                "available_from_checkpoint_id": row.get(
-                    "available_from_checkpoint_id",
-                    "cp_026_elemental_cleanup_nottagen",
+                "time_period": pool["time_period"],
+                "available_from_checkpoint_id": pool["available_from_checkpoint_id"],
+                "unavailable_after_checkpoint_id": pool.get(
+                    "unavailable_after_checkpoint_id"
                 ),
-                "unavailable_after_checkpoint_id": row.get("unavailable_after_checkpoint_id"),
                 "prerequisites": {
                     "panel_version": int(game_version),
                     "rank": int(panel_rank),
@@ -194,9 +200,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             })
             normalized_panel_matrix_rewards.append({
                 "acquisition_id": acquisition_id,
-                "pool_id": row.get("pool_id") or (
-                    f"lp_pilgrims_rest_v{game_version}_rank_{panel_rank}_standard"
-                ),
+                "pool_id": pool_id,
                 "reward_quantity": 1,
                 "slot_count": None,
                 "probability_text": None,

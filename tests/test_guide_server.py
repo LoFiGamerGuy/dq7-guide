@@ -196,6 +196,13 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(farm["strategy_kind"], "attributed_strategy")
         self.assertTrue(farm["source_url"])
         self.assertTrue(farm["locator"])
+        _, proficiency_farms = self.get_json("/api/farms?q=vocational%20proficiency")
+        self.assertEqual(proficiency_farms["total"], 1)
+        proficiency_farm = proficiency_farms["farms"][0]
+        self.assertEqual(proficiency_farm["farm_type"], "proficiency")
+        self.assertEqual(proficiency_farm["available_from_checkpoint_id"], "cp_013_flying_carpet")
+        self.assertEqual(proficiency_farm["rate_status"], "numeric_unpublished")
+        self.assertTrue(proficiency_farm["strategy_source_url"])
         self.assertFalse(farm["provenance_gap"])
         self.assertTrue(farm["available_from_checkpoint_id"])
         self.assertTrue(farm["encounter_rate_text"])
