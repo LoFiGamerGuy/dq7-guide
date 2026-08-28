@@ -646,6 +646,11 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
     found_medals = set(completion.get("mini_medals_found", []))
     defeated_monsters = set(completion.get("monster_entries", []))
     checkpoint = block["checkpoint"]
+    checkpoint_rows = _checkpoints(db_path)
+    checkpoint_index = next(index for index, row in enumerate(checkpoint_rows)
+                            if row["checkpoint_id"] == checkpoint_id)
+    next_checkpoint = (checkpoint_rows[checkpoint_index + 1]
+                       if checkpoint_index + 1 < len(checkpoint_rows) else None)
     medal_groups = (("now", block["medals_now"]),
                     ("backtrack", block["medals_backtrack"]),
                     ("later", block["medals_later"]))
@@ -679,6 +684,31 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                     "id": row["source_id"], "title": row["source_title"],
                     "url": row["source_url"], "locator": row["locator"],
                 }
+    open_required = [row for row in block["now"] if row["required_for_100_percent"]]
+    saved_checkpoint_match = player_state.get("story", {}).get("checkpoint_id") == checkpoint_id
+    if block["stops"]:
+        readiness_status = "blocked_by_stop"
+        readiness_reason = "Clear the STOP obligation before advancing."
+    elif open_required:
+        readiness_status = "required_actions_open"
+        readiness_reason = "Complete the remaining required actions first."
+    else:
+        readiness_status = "manual_confirmation"
+        readiness_reason = "No structured blocker remains; confirm the sourced safe condition yourself."
+    advancement_readiness = {
+        "status": readiness_status, "reason": readiness_reason,
+        "open_stop_count": len(block["stops"]),
+        "open_required_action_count": len(open_required),
+        "open_optional_action_count": len(block["now"]) - len(open_required),
+        "unrecorded_available_medal_count": len(block["medals_now"]) + len(block["medals_backtrack"]),
+        "saved_checkpoint_match": saved_checkpoint_match,
+        "safe_condition_requires_player_confirmation": True,
+        "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],
+                             "name": next_checkpoint["name"]}
+                            if next_checkpoint else None),
+        "can_confirm_and_save_next": bool(next_checkpoint and saved_checkpoint_match
+                                           and readiness_status == "manual_confirmation"),
+    }
     return {
         "id": checkpoint_id, "name": checkpoint["name"],
         "time_period": checkpoint["time_period"], "region": checkpoint["region"],
@@ -723,6 +753,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                        "drop": ", ".join(drops[row["monster_id"]]) or None,
                        "defeated": row["monster_id"] in defeated_monsters} for row in block["monsters"]],
         "safe_condition": checkpoint["safe_exit_condition"],
+        "advancement_readiness": advancement_readiness,
         "sources": list(sources.values()),
     }
 

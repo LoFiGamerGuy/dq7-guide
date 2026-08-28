@@ -27,11 +27,11 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with acquisition routes surfaced for 41 and five link gaps left explicit;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 453-page source registry with browser search and retrieval-freshness metadata;
+- a 454-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 426 checkpoint-gated encounters and 213 verified drops across the 333-monster registry;
+- 431 checkpoint-gated encounters and 213 verified drops across the 333-monster registry;
 - all directly published Lucky Panel standard-rank matrices normalized with exact-name gaps retained;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;

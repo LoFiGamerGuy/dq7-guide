@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 453)
+        self.assertEqual(self.counts["sources"], 454)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 744)
+        self.assertEqual(self.counts["item_acquisition_paths"], 747)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -773,13 +773,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (426, 213))
+        self.assertEqual(tuple(counts), (431, 213))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (295, "cp_001_prologue", 72))
+        self.assertEqual(tuple(early), (300, "cp_001_prologue", 77))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -973,7 +973,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 295)
+        self.assertEqual(report["routed"], 300)
         self.assertEqual(report["drops"], 185)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 

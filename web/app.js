@@ -124,6 +124,12 @@ function renderCheckpoint() {
   if (!medals.children.length) medals.append(empty());
   const monsters = $("#monsters"); monsters.innerHTML = (c.monsters || []).map(m => `<label class="check-row"><input type="checkbox" data-monster-id="${escapeHtml(m.id)}" ${m.defeated ? "checked" : ""}><span class="check-text"><strong>${escapeHtml(m.name || `Monster #${m.ordinal}`)}</strong><br>${escapeHtml(m.location || "")}${m.drop ? ` · ${escapeHtml(m.drop)}` : ""}</span></label>`).join(""); if (!monsters.children.length) monsters.append(empty());
   $("#safeCondition").textContent = c.safe_condition || "Not yet verified.";
+  const readiness = c.advancement_readiness || {}, labels = { blocked_by_stop: "STOP open", required_actions_open: "Actions open", manual_confirmation: "Confirm manually" };
+  $("#advanceStatus").textContent = labels[readiness.status] || "Unknown";
+  $("#advanceReason").textContent = readiness.reason || "Readiness is not machine-verifiable.";
+  const advanceButton = $("#advanceCheckpointButton"); advanceButton.disabled = !readiness.can_confirm_and_save_next;
+  advanceButton.dataset.nextCheckpoint = readiness.next_checkpoint?.id || "";
+  advanceButton.textContent = readiness.next_checkpoint ? `Confirm and set ${readiness.next_checkpoint.name}` : "Final checkpoint";
   renderSources(c.sources || []);
 }
 
@@ -345,6 +351,12 @@ $("#nextCheckpoint").addEventListener("click", () => stepCheckpoint(1).catch(han
 $("#setCheckpointButton").addEventListener("click", async () => {
   const id = $("#checkpointSelect").value;
   try { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint saved"); }
+  catch (error) { handleError(error); }
+});
+$("#advanceCheckpointButton").addEventListener("click", async event => {
+  const id = event.currentTarget.dataset.nextCheckpoint;
+  if (!id || !state.checkpoint?.advancement_readiness?.can_confirm_and_save_next) return;
+  try { setStatus("Saving explicit advancement…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint advanced"); }
   catch (error) { handleError(error); }
 });
 $("#hideCompleted").addEventListener("change", renderCheckpoint);

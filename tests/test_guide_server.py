@@ -14,7 +14,8 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import _equipment_readiness, _vocation_unlock_progress, create_server
+from guide_server import (_checkpoint_view, _equipment_readiness,
+                          _vocation_unlock_progress, create_server)
 
 
 class GuideServerTests(unittest.TestCase):
@@ -88,6 +89,7 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b"Run Guide", page)
             self.assertIn(b'id="previousCheckpoint"', page)
             self.assertIn(b'id="nextCheckpoint"', page)
+            self.assertIn(b'id="advanceCheckpointButton"', page)
             self.assertLess(page.index(b'id="checkpointStop"'), page.index(b'id="advice"'))
             self.assertLess(page.index(b'id="advice"'), page.index(b'id="safeCondition"'))
         with urlopen(self.base + "/app.js") as response:
@@ -104,6 +106,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(checkpoint["actions"][0]["is_next"])
         later = [row for row in checkpoint["medals"] if row["timing"] == "later"]
         self.assertEqual([row["number"] for row in later], [6, 7])
+        self.assertEqual(checkpoint["advancement_readiness"]["status"],
+                         "blocked_by_stop")
+        self.assertFalse(checkpoint["advancement_readiness"]["can_confirm_and_save_next"])
         _, ballymolloy = self.get_json("/api/checkpoints/cp_003_ballymolloy")
         slime = next(row for row in ballymolloy["monsters"] if row["id"] == "monster_002")
         self.assertEqual(slime["drop"], "Medicinal Herb")
@@ -318,6 +323,30 @@ class GuideServerTests(unittest.TestCase):
         })
         _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertEqual(reopened["stop_actions"][0]["id"], stop_id)
+
+    def test_advancement_readiness_requires_explicit_actions_and_manual_confirmation(self):
+        state_path = Path(self.temp.name) / "advancement-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_001_prologue"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        initial = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                   state_path, "cp_001_prologue")
+        required_ids = [row["id"] for row in initial["stop_actions"]]
+        required_ids += [row["id"] for row in initial["actions"] if row["required"]]
+        state["completion"]["obligations_completed"] = required_ids
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        ready = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                 state_path, "cp_001_prologue")
+        self.assertEqual(ready["advancement_readiness"]["status"],
+                         "manual_confirmation")
+        self.assertTrue(ready["advancement_readiness"]["can_confirm_and_save_next"])
+        self.assertTrue(ready["advancement_readiness"]["safe_condition_requires_player_confirmation"])
+        self.assertEqual(ready["advancement_readiness"]["next_checkpoint"]["id"],
+                         "cp_002_estard_shrine")
+        preview = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                   state_path, "cp_002_estard_shrine")
+        self.assertFalse(preview["advancement_readiness"]["saved_checkpoint_match"])
+        self.assertFalse(preview["advancement_readiness"]["can_confirm_and_save_next"])
 
     def test_vocation_unlock_progress_uses_only_explicit_mastery(self):
         state_path = Path(self.temp.name) / "unlock-progress-state.json"

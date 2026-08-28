@@ -48,6 +48,16 @@ Mini Medal rows include `timing: now|backtrack|later`; later-gated rows include 
 availability gate and must not render as current checkboxes. The browser keeps them
 in a collapsed “Later” reference section.
 
+`advancement_readiness` summarizes only structured evidence: open STOPs, open
+100%-required obligations, optional actions, unrecorded currently available medals,
+whether the viewed checkpoint is the explicitly saved checkpoint, and the next
+checkpoint. Status is `blocked_by_stop`, `required_actions_open`, or
+`manual_confirmation`. Even `manual_confirmation` never asserts that prose story
+conditions are complete: `safe_condition_requires_player_confirmation` remains true.
+The browser enables “Confirm and set next current” only for the saved checkpoint when
+no structured blocker remains. Clicking it is the player's explicit confirmation;
+the guide never advances automatically. Browsing Next/Previous does not change state.
+
 ### `GET /api/progress`
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.
