@@ -145,6 +145,26 @@ def _missables(db_path: Path, query: dict) -> dict:
     return page
 
 
+def _farms(db_path: Path, query: dict) -> dict:
+    rows = _rows(db_path, """SELECT f.farming_id, f.target, f.location,
+        f.time_period, f.available_from, f.strategy, f.confidence,
+        f.source_id, s.title AS source_title, s.url AS source_url
+        FROM farming_spots f JOIN sources s USING(source_id)
+        ORDER BY f.location, f.target""")
+    for row in rows:
+        target = row["target"].casefold()
+        row["farm_type"] = ("exp" if "metal" in target or "jewel" in target
+            else "seeds" if "seed" in target else "other")
+        row["rate_status"] = "unknown"
+        row["locator"] = None
+        row["provenance_gap"] = True
+        row["strategy_kind"] = "attributed_strategy"
+    page = _page(rows, query, ("farming_id", "target", "location",
+        "time_period", "available_from", "strategy", "farm_type"))
+    page["farms"] = page.pop("results")
+    return page
+
+
 def _medals(db_path: Path, state_path: Path) -> dict:
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = set(state.get("completion", {}).get("mini_medals_found", []))
@@ -428,6 +448,15 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                                 if row["missable_id"] == missable_id), None)
                     if row is None:
                         raise ValueError("Unknown missable")
+                    return self._json(row)
+                if parsed.path == "/api/farms":
+                    return self._json(_farms(db_path, parse_qs(parsed.query)))
+                if parsed.path.startswith("/api/farms/"):
+                    farming_id = unquote(parsed.path.removeprefix("/api/farms/"))
+                    row = next((row for row in _farms(db_path, {})["farms"]
+                                if row["farming_id"] == farming_id), None)
+                    if row is None:
+                        raise ValueError("Unknown farm")
                     return self._json(row)
                 if parsed.path == "/api/medals":
                     return self._json(_medals(db_path, state_path))

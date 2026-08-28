@@ -7,6 +7,7 @@ const domains = {
   monsters: { title: "Monsters", singular: "monster", progressKind: "monster", filters: ["all","defeated","open"] },
   hearts: { title: "Monster Hearts", singular: "heart", progressKind: null, filters: ["all","available","unknown"] },
   missables: { title: "Missables", singular: "missable", progressKind: null, filters: ["all","verified","unresolved","collector","major_choice"] },
+  farms: { title: "Farms", singular: "farm", progressKind: null, filters: ["all","exp","seeds","other"] },
   medals: { title: "Mini Medals", singular: "medal", progressKind: "medal", filters: ["all","found","open"] },
   tablets: { title: "Tablets", singular: "tablet", progressKind: "tablet", filters: ["all","tablet","fragment","found","open"] },
   achievements: { title: "Achievements", singular: "achievement", progressKind: "achievement", filters: ["all","story","completion","combat","unlocked","open"] }
@@ -106,7 +107,6 @@ function matchesFilter(entry) {
   if (["verified", "unresolved"].includes(state.filter)) return entry.window_status === state.filter;
   if (["found", "unlocked", "defeated"].includes(state.filter)) return entry.completed === true;
   if (state.filter === "open") return entry.completed !== true;
-  if (["verified", "unresolved"].includes(state.filter)) return entry.window_status === state.filter;
   return entryCategory(entry) === state.filter;
 }
 function renderCatalog() {
@@ -149,12 +149,14 @@ function renderRichDetail(detail, summary) {
   } else if (state.domain === "missables") {
     const unresolved = detail.window_status !== "verified";
     target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.severity)} missable</p><h3>${escapeHtml(detail.name)}</h3>${unresolved ? '<div class="uncertain-banner"><strong>Window unresolved</strong><span>Do not use this row as a STOP warning yet.</span></div>' : '<span class="tag">Verified window</span>'}<h4>Window</h4><dl><dt>From</dt><dd>${escapeHtml(detail.available_from || "Unknown")}</dd><dt>Until</dt><dd>${escapeHtml(detail.unavailable_after || "Unknown")}</dd></dl><h4>Consequence</h4><p>${escapeHtml(detail.consequence)}</p><p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${detail.locator ? escapeHtml(detail.locator) : "Precise locator not yet stored"}</span></p><p class="muted">Confidence: ${escapeHtml(detail.confidence)} · ${escapeHtml(detail.verification_status)}</p><p class="muted">Read-only: missable completion is not inferred from story progress.</p>`;
+  } else if (state.domain === "farms") {
+    target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.farm_type)} farm</p><h3>${escapeHtml(detail.target)}</h3><h4>Sourced facts</h4><dl><dt>Location</dt><dd>${escapeHtml(detail.location)}</dd><dt>Period</dt><dd>${escapeHtml(detail.time_period || "Not restricted")}</dd><dt>Available</dt><dd>${escapeHtml(detail.available_from || "Gate not normalized")}</dd><dt>Rate</dt><dd>Unknown — no rate is stored</dd></dl><div class="callout"><strong>Attributed strategy</strong><span>${escapeHtml(detail.strategy)}</span></div><p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${detail.locator ? escapeHtml(detail.locator) : "Precise locator not stored"}</span></p><p class="muted">Confidence: ${escapeHtml(detail.confidence)} · Strategy is a recommendation, not a canonical fact.</p><p class="muted">Read-only: farms do not alter player progress.</p>`;
   }
 }
 async function selectCatalogEntry(id) {
   const domain = state.domain, summary = (state.catalogs[domain] || []).find(row => String(row.id) === String(id));
   state.selectedEntry = summary; renderCatalog();
-  if (!["items", "vocations", "monsters", "hearts", "missables"].includes(domain)) return;
+  if (!["items", "vocations", "monsters", "hearts", "missables", "farms"].includes(domain)) return;
   const target = $("#catalogDetail"); target.setAttribute("aria-busy", "true"); target.innerHTML = '<p class="empty">Loading details…</p>';
   try { const endpoint = domain === "hearts" ? "monster-hearts" : domain; const detail = await api(`/${endpoint}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) renderRichDetail(detail, summary); }
   catch (error) { target.innerHTML = '<p class="empty">Details unavailable. List data is still available.</p>'; console.error(error); }
@@ -173,14 +175,15 @@ function normalizeEntry(name, row) {
   if (name === "monsters") Object.assign(entry, { id: row.monster_id, name: row.english_name || `Monster #${row.source_ordinal}`, ordinal: row.source_ordinal, completed: row.defeated });
   if (name === "hearts") Object.assign(entry, { id: row.heart_id, category: row.available_from_checkpoint_id ? "available" : "unknown", summary: row.effect_text, location: row.available_checkpoint, completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "missables") Object.assign(entry, { id: row.missable_id, category: row.severity, summary: row.window_status === "verified" ? `${row.available_from} → ${row.unavailable_after}` : "Window unresolved", completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
+  if (name === "farms") Object.assign(entry, { id: row.farming_id, name: row.target, category: row.farm_type, summary: row.location, location: row.available_from, completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "medals") Object.assign(entry, { id: row.medal_number, number: row.medal_number, name: `Mini Medal #${row.medal_number}`, category: row.found ? "found" : "open", checkpoint: row.available_checkpoint_id || row.checkpoint_id, completed: row.found });
   if (name === "tablets") Object.assign(entry, { id: row.fragment_id, name: `${row.tablet_name}: ${row.fragment_id}`, category: row.found ? "found" : "fragment", checkpoint: row.checkpoint_id, completed: row.found, progress_kind: "tablet" });
   if (name === "achievements") Object.assign(entry, { id: row.achievement_id, title: row.name, completed: row.unlocked });
   return entry;
 }
 async function loadCatalog(name) {
-  const keys = { items: "items", vocations: "vocations", monsters: "monsters", hearts: "hearts", missables: "missables", medals: "medals", tablets: "fragments", achievements: "achievements" };
-  const paged = ["items", "vocations", "monsters", "hearts", "missables", "achievements"].includes(name);
+  const keys = { items: "items", vocations: "vocations", monsters: "monsters", hearts: "hearts", missables: "missables", farms: "farms", medals: "medals", tablets: "fragments", achievements: "achievements" };
+  const paged = ["items", "vocations", "monsters", "hearts", "missables", "farms", "achievements"].includes(name);
   let rows = [], offset = 0;
   do {
     const endpoint = name === "hearts" ? "monster-hearts" : name;

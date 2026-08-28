@@ -114,6 +114,17 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(missable["source_url"])
         if missable["window_status"] == "unresolved":
             self.assertTrue(missable["provenance_gap"])
+        _, farms = self.get_json("/api/farms?q=metal&limit=2")
+        self.assertGreater(farms["total"], 0)
+        self.assertLessEqual(len(farms["farms"]), 2)
+        farm_id = farms["farms"][0]["farming_id"]
+        _, farm = self.get_json("/api/farms/" + farm_id)
+        self.assertEqual(farm["farming_id"], farm_id)
+        self.assertEqual(farm["rate_status"], "unknown")
+        self.assertEqual(farm["strategy_kind"], "attributed_strategy")
+        self.assertTrue(farm["source_url"])
+        self.assertIsNone(farm["locator"])
+        self.assertTrue(farm["provenance_gap"])
 
     def test_progress_post_reuses_validated_mutation_and_rejects_unknown_command(self):
         body = json.dumps({"command": "checkpoint", "values": ["cp_001_prologue"]}).encode()

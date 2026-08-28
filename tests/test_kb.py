@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 293)
+        self.assertEqual(self.counts["sources"], 297)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,12 +70,12 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
-        self.assertEqual(self.counts["item_acquisition_paths"], 488)
+        self.assertEqual(self.counts["item_acquisition_paths"], 501)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
-        self.assertEqual(self.counts["lucky_panel_pools"], 13)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 78)
+        self.assertEqual(self.counts["lucky_panel_pools"], 14)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 91)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -319,13 +319,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (229, 139))
+        self.assertEqual(tuple(counts), (238, 142))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (132, "cp_003_ballymolloy", 3))
+        self.assertEqual(tuple(early), (137, "cp_003_ballymolloy", 3))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -376,7 +376,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             {
                 "cp_015_greenthumb": 3,
                 "cp_016_hubble": 13,
-                "cp_019_aeolus": 12,
+                "cp_019_aeolus": 14,
             },
         )
         later_routes = dict(
@@ -408,7 +408,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             checkpoints,
             {
                 "cp_020_buccanham": 29,
-                "cp_021_malign_shrine": 8,
+                "cp_021_malign_shrine": 9,
                 "cp_023_fire_spirit": 2,
                 "cp_025_wind_spirit": 2,
             },
@@ -452,8 +452,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 132)
-        self.assertEqual(report["drops"], 121)
+        self.assertEqual(report["routed"], 137)
+        self.assertEqual(report["drops"], 123)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -798,6 +798,23 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual([tuple(row) for row in rows], [
             ("lucky_panel", "renewable"), ("lucky_panel", "renewable")
         ])
+
+    def test_lucky_panel_treasure_chest_matrices_are_version_scoped(self):
+        pools = dict(self.connection.execute(
+            """SELECT game_version, COUNT(lr.acquisition_id)
+            FROM lucky_panel_pools lp JOIN lucky_panel_rewards lr USING(pool_id)
+            WHERE chest_tier = 'treasure_chest' AND game_version IN ('2', '3')
+            GROUP BY game_version"""
+        ).fetchall())
+        self.assertEqual(pools, {"2": 3, "3": 11})
+        invented_values = self.connection.execute(
+            """SELECT COUNT(*) FROM lucky_panel_rewards lr
+            JOIN lucky_panel_pools lp USING(pool_id)
+            WHERE lp.chest_tier = 'treasure_chest'
+              AND lp.game_version IN ('2', '3')
+              AND (lr.slot_count IS NOT NULL OR lr.probability_text IS NOT NULL)"""
+        ).fetchone()[0]
+        self.assertEqual(invented_values, 0)
 
     def test_item_report_includes_shop_price_and_alternate_panel_routes(self):
         crackers, cracker_routes = load_item_routes(self.db_path, "Pilchard Crackers")

@@ -58,6 +58,7 @@ The first-class domain routes call:
 - `GET /api/monsters`
 - `GET /api/monster-hearts`
 - `GET /api/missables`
+- `GET /api/farms`
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`
@@ -67,6 +68,8 @@ Each returns an object containing `items`, `vocations`, `monsters`, `medals`, `f
 Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, and locator. Hearts are read-only because player state has no dedicated Heart inventory field.
 
 Missables return `{total, limit, offset, missables}` and support `GET /api/missables/{missable_id}`. `window_status` is `verified` only when both boundaries and direct source verification are present; otherwise it is `unresolved`. Every row carries its direct source locator; unknown cutoffs remain null instead of being inferred. The browser must not promote unresolved rows into STOP warnings.
+
+Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, availability gate, confidence, and source are sourced fields. `strategy` is explicitly labeled `attributed_strategy`, not canonical fact. The current schema stores neither a rate nor a precise locator, so the API returns `rate_status: "unknown"`, `locator: null`, and `provenance_gap: true` rather than inferring them. Farms are read-only and never mutate player progress.
 
 Domain-specific fields:
 
