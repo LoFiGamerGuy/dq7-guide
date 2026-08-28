@@ -272,6 +272,20 @@ class GuideServerTests(unittest.TestCase):
             urlopen(bad)
         self.assertEqual(caught.exception.code, 400)
 
+        with self.assertRaises(HTTPError) as caught:
+            urlopen(self.base + "/api/items/item_missing")
+        self.assertEqual(caught.exception.code, 404)
+
+        unknown = Request(
+            self.base + "/api/progress",
+            data=json.dumps({"kind": "monster", "id": "monster_missing",
+                             "completed": True}).encode(),
+            headers={"Content-Type": "application/json"}, method="PATCH",
+        )
+        with self.assertRaises(HTTPError) as caught:
+            urlopen(unknown)
+        self.assertEqual(caught.exception.code, 404)
+
     def test_browser_contract_patch_records_and_reopens_one_action(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
         action = checkpoint["actions"][0]

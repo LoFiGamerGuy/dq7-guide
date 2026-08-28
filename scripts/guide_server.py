@@ -39,6 +39,11 @@ ALLOWED_PROGRESS_COMMANDS = {
 }
 
 
+def _client_error_status(error: Exception) -> HTTPStatus:
+    return (HTTPStatus.NOT_FOUND if str(error).startswith("Unknown ")
+            else HTTPStatus.BAD_REQUEST)
+
+
 def _checkpoints(db_path: Path) -> list[dict]:
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row
@@ -759,7 +764,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
                 return self._static(parsed.path)
             except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError) as error:
-                return self._error(HTTPStatus.BAD_REQUEST, str(error))
+                return self._error(_client_error_status(error), str(error))
 
         def do_POST(self):
             if urlparse(self.path).path != "/api/progress":
@@ -780,7 +785,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 message = update_progress(state_path, db_path, command, [str(v) for v in values])
                 return self._json({"message": message, "dashboard": _dashboard(db_path, state_path)})
             except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
-                return self._error(HTTPStatus.BAD_REQUEST, str(error))
+                return self._error(_client_error_status(error), str(error))
 
         def do_PATCH(self):
             path = urlparse(self.path).path
@@ -800,7 +805,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
                 return self._json({"message": message})
             except (TypeError, ValueError, json.JSONDecodeError) as error:
-                return self._error(HTTPStatus.BAD_REQUEST, str(error))
+                return self._error(_client_error_status(error), str(error))
 
         def _static(self, request_path):
             relative = "index.html" if request_path == "/" else unquote(request_path).lstrip("/")

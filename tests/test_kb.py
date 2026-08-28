@@ -59,18 +59,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 357)
+        self.assertEqual(self.counts["sources"], 358)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 90)
+        self.assertEqual(self.counts["checkpoint_advice"], 98)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 354)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 702)
+        self.assertEqual(self.counts["item_acquisition_paths"], 704)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -246,6 +246,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(tuple(row[:7]), (0, "drop", "L'Arca", "cp_005_larca", "finite", 1, 1))
         self.assertIn("repeatability_unproven", row[7])
+
+    def test_early_panel_items_have_direct_free_fixed_alternatives(self):
+        rows = self.connection.execute(
+            """SELECT item_id, available_from_checkpoint_id, supply_type,
+                finite_total, is_free, prerequisite_json
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_pretty_betsy_larca_region_present',
+                'acq_prayer_ring_tunnel_to_abbey_past'
+            ) ORDER BY item_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        by_item = {row["item_id"]: row for row in rows}
+        self.assertEqual(by_item["item_pretty_betsy"]["available_from_checkpoint_id"], "cp_005_larca")
+        self.assertEqual(
+            json.loads(by_item["item_pretty_betsy"]["prerequisite_json"])["access"],
+            "land directly by boat",
+        )
+        self.assertEqual(by_item["item_prayer_ring"]["available_from_checkpoint_id"], "cp_009_alltrades")
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["finite_total"] == 1 for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
 
     def test_missables_have_precise_provenance_and_preserve_unknown_cutoffs(self):
         rows = self.connection.execute(
@@ -484,13 +506,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (322, 180))
+        self.assertEqual(tuple(counts), (324, 180))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (217, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (218, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -617,7 +639,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 217)
+        self.assertEqual(report["routed"], 218)
         self.assertEqual(report["drops"], 159)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
@@ -1755,6 +1777,26 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["locator"] for row in rows))
         self.assertTrue(all(row["verification_status"] == "source_checked"
                             for row in rows))
+
+    def test_cp011_through_cp020_boss_sequences_are_complete(self):
+        expected = {
+            "cp_011_la_bravoure": ["Skeleton Squire", "Setesh the Punisher"],
+            "cp_013_flying_carpet": ["Sunken Spirits", "Gracos", "King Slime",
+                                      "Ethereal Serpent"],
+            "cp_015_greenthumb": ["Rainiac"],
+            "cp_016_hubble": ["The Envoy", "Hybris"],
+            "cp_019_aeolus": ["Vaipur", "Cumulus Vex"],
+        }
+        for checkpoint_id, subjects in expected.items():
+            rows = self.connection.execute(
+                """SELECT subject, source_id, locator FROM checkpoint_advice
+                WHERE checkpoint_id=? AND advice_type='boss'
+                ORDER BY display_order, advice_id""", (checkpoint_id,)
+            ).fetchall()
+            self.assertEqual([row["subject"] for row in rows], subjects)
+            self.assertTrue(all(row["source_id"].startswith("game8_boss_")
+                                for row in rows))
+            self.assertTrue(all(row["locator"] for row in rows))
 
     def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):
         self.assertEqual(classify_medal_tracking(None, set()), ("unknown", None))

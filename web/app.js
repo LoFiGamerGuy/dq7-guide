@@ -14,6 +14,7 @@ const domains = {
   tablets: { title: "Tablets", singular: "tablet", progressKind: "tablet", filters: ["all","tablet","fragment","found","open"] },
   achievements: { title: "Achievements", singular: "achievement", progressKind: "achievement", filters: ["all","story","completion","combat","unlocked","open"] }
 };
+const viewTitles = { dashboard: "Dashboard", walkthrough: "Walkthrough", progress: "Progress", sources: "Sources & conflicts" };
 const $ = (selector) => document.querySelector(selector);
 const empty = () => document.importNode($("#emptyTemplate").content, true);
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -38,6 +39,7 @@ function showView(name) {
   document.querySelectorAll(".view").forEach(view => { view.hidden = view.id !== name; });
   setCurrentRoute(link => link.dataset.view === name);
   $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false");
+  document.title = `${viewTitles[name] || "Guide"} · DQ7 Run Guide`;
   if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
 }
 function showDomain(name) {
