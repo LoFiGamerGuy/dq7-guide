@@ -255,6 +255,24 @@ class GuideServerTests(unittest.TestCase):
                             {"character": "Hero", "completed": completed})
 
         self.patch_json("/api/checkpoints/cp_002_estard_shrine", {"selected": True})
+        status, dashboard = self.get_json("/api/dashboard")
+        self.assertEqual(status, 200)
+        self.assertTrue(dashboard["checkpoint"]["is_saved"])
+        self.assertEqual(dashboard["checkpoint"]["name"], "Estard Castle and Shrine of Mysteries")
+        for command, values in (("medal-count", [7]),
+                                ("vocation-mastered", ["Hero", vocation_id])):
+            request = Request(self.base + "/api/progress",
+                              data=json.dumps({"command": command, "values": values}).encode(),
+                              headers={"Content-Type": "application/json"}, method="POST")
+            with urlopen(request) as response:
+                self.assertEqual(response.status, 200)
+        _, progress = self.get_json("/api/progress")
+        self.assertEqual(progress["saved_checkpoint"], "cp_002_estard_shrine")
+        self.assertEqual(progress["mini_medal_count"], 7)
+        hero = next(member for member in progress["party"] if member["name"] == "Hero")
+        self.assertIn(vocation_id, hero["mastered_vocations"])
+        self.patch_json("/api/vocations/" + vocation_id,
+                        {"character": "Hero", "completed": False})
         saved = json.loads(self.state.read_text())
         self.assertEqual(saved["story"]["checkpoint_id"], "cp_002_estard_shrine")
         self.assertNotIn(item_id, saved["completion"]["items_obtained"])

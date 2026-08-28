@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0 };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [], vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0 };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -77,7 +77,7 @@ function renderDashboard() {
   const d = state.dashboard || {};
   renderStop($("#stopBanner"), d.stop_warnings || []);
   renderCards($("#summaryCards"), [
-    { label: "Checkpoint", value: d.checkpoint?.sequence_label || "Unknown" },
+    { label: d.checkpoint?.is_saved ? "Saved checkpoint" : "Guide preview", value: d.checkpoint?.name || "Unknown" },
     { label: "Mini Medals", value: d.progress?.medals ?? "Unknown" },
     { label: "Hoarder items", value: d.progress?.items ?? "Unknown" },
     { label: "Monsters", value: d.progress?.monsters ?? "Unknown" }
@@ -111,6 +111,20 @@ function renderProgress() {
   const p = state.progress || {};
   renderCards($("#progressCards"), ["actions", "medals", "items", "monsters", "vocations", "achievements"].map(key => ({ label: key[0].toUpperCase() + key.slice(1), value: p[key]?.display ?? p[key] ?? "Unknown" })));
   const open = $("#openWork"); open.innerHTML = (p.open_work || []).map(x => `<div class="advice-item"><strong>${escapeHtml(x.title)}</strong><p>${escapeHtml(x.detail)}</p></div>`).join(""); if (!open.children.length) open.append(empty());
+  const saved = state.checkpoints.find(row => row.id === p.saved_checkpoint);
+  $("#savedCheckpoint").textContent = saved ? `Saved: ${saved.sequence} · ${saved.name}` : "Checkpoint not recorded";
+  const members = p.party || [];
+  $("#partyMemberSelect").innerHTML = members.map(member => `<option value="${escapeHtml(member.name)}">${escapeHtml(member.name)}</option>`).join("");
+  $("#masteryVocationSelect").innerHTML = state.vocations.map(vocation => `<option value="${escapeHtml(vocation.vocation_id)}" data-exclusive="${escapeHtml(vocation.exclusive_character || "")}">${escapeHtml(vocation.name)}</option>`).join("");
+  $("#medalCountInput").value = p.mini_medal_count ?? "";
+  syncVocationChoices();
+  $("#partyState").innerHTML = members.map(member => `<div><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml(member.mastered_vocations.length ? `${member.mastered_vocations.length} mastered` : "No mastery recorded")}</span></div>`).join("");
+}
+function syncVocationChoices() {
+  const character = $("#partyMemberSelect")?.value, select = $("#masteryVocationSelect");
+  if (!select) return;
+  [...select.options].forEach(option => { option.disabled = Boolean(option.dataset.exclusive && option.dataset.exclusive !== character); });
+  if (select.selectedOptions[0]?.disabled) select.value = [...select.options].find(option => !option.disabled)?.value || "";
 }
 function renderSources(sources = state.checkpoint?.sources || []) {
   const target = $("#sourceList"); target.innerHTML = sources.map(s => `<div class="source-item"><a href="${escapeHtml(s.url)}" target="_blank" rel="noreferrer">${escapeHtml(s.title)}</a><br><span class="muted">${escapeHtml(s.locator || "")}</span></div>`).join(""); if (!target.children.length) target.append(empty());
@@ -238,9 +252,13 @@ async function loadCheckpoint(id) {
 }
 async function loadAll() {
   setStatus("Loading guide…");
-  [state.dashboard, state.checkpoints, state.progress, state.conflicts] = await Promise.all([api("/dashboard"), api("/checkpoints"), api("/progress"), api("/conflicts")]);
+  const vocationRequest = state.vocations.length ? Promise.resolve(null) : api("/vocations?limit=200");
+  const loaded = await Promise.all([api("/dashboard"), api("/checkpoints"), api("/progress"), api("/conflicts"), vocationRequest]);
+  [state.dashboard, state.checkpoints, state.progress, state.conflicts] = loaded;
+  if (loaded[4]) state.vocations = loaded[4].vocations || [];
   renderDashboard(); renderProgress();
-  const select = $("#checkpointSelect"); select.innerHTML = state.checkpoints.map(c => `<option value="${escapeHtml(c.id)}">${String(c.sequence).padStart(2,"0")} · ${escapeHtml(c.name)}</option>`).join("");
+  const savedCheckpoint = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
+  const select = $("#checkpointSelect"); select.innerHTML = state.checkpoints.map(c => `<option value="${escapeHtml(c.id)}">${String(c.sequence).padStart(2,"0")} · ${escapeHtml(c.name)}${c.id === savedCheckpoint ? " (saved)" : ""}</option>`).join("");
   const current = state.dashboard?.checkpoint?.id || state.checkpoints[0]?.id; if (current) { select.value = current; await loadCheckpoint(current); }
   setStatus("");
 }
@@ -252,6 +270,11 @@ async function updateProgress(payload) {
   await api(endpoint, { method: "PATCH", body: JSON.stringify(body) });
   const activeDomain = state.domain; if (activeDomain) delete state.catalogs[activeDomain];
   await loadAll(); if (activeDomain) await loadDomain(activeDomain); setStatus("Saved");
+}
+async function recordCommand(command, values) {
+  setStatus("Saving explicit state…");
+  await api("/progress", { method: "POST", body: JSON.stringify({ command, values }) });
+  await loadAll(); setStatus("Saved");
 }
 
 document.addEventListener("click", event => {
@@ -270,6 +293,9 @@ $("#setCheckpointButton").addEventListener("click", async () => {
   catch (error) { handleError(error); }
 });
 $("#hideCompleted").addEventListener("change", renderCheckpoint);
+$("#partyMemberSelect").addEventListener("change", syncVocationChoices);
+$("#medalCountForm").addEventListener("submit", event => { event.preventDefault(); recordCommand("medal-count", [$("#medalCountInput").value]).catch(handleError); });
+$("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
 document.addEventListener("change", event => {
   if (event.target.id === "sourcePublisher") { state.sourcePublisher = event.target.value; renderCatalog(); return; }
   if (event.target.id === "sourceFreshness") { state.sourceFreshness = event.target.value; renderCatalog(); return; }

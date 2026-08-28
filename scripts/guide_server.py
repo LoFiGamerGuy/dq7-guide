@@ -409,10 +409,17 @@ def _progress(db_path: Path, state_path: Path) -> dict:
     return {
         "actions": {"display": f"{len(completion.get('obligations_completed', []))} recorded"},
         "medals": None if medals is None else {"display": f"{medals} / 100"},
+        "mini_medal_count": medal_count,
         "items": {"display": f"{hoarder['obtained_count']} / {hoarder['total']}"},
         "monsters": {"display": f"{monsters['defeated']} / {monsters['total']}"},
         "vocations": {"display": f"{len(mastered)} / 26"},
         "achievements": {"display": f"{achievements['unlocked_count']} / {achievements['total']}"},
+        "saved_checkpoint": state.get("story", {}).get("checkpoint_id"),
+        "party": [{"name": name,
+                   "mastered_vocations": sorted(vocation_id for vocation_id, value
+                                                in member.get("vocation_mastery", {}).items()
+                                                if value is True)}
+                  for name, member in state.get("party", {}).get("members", {}).items()],
         "open_work": [{"title": "Player checkpoint", "detail": state.get("story", {}).get("checkpoint_id") or "Unknown — select your current checkpoint"}],
     }
 
@@ -424,7 +431,9 @@ def _dashboard_view(db_path: Path, state_path: Path) -> dict:
     progress = _progress(db_path, state_path)
     sequence = next(row["sequence_no"] for row in _checkpoints(db_path) if row["checkpoint_id"] == checkpoint_id)
     return {
-        "checkpoint": {"id": checkpoint_id, "sequence_label": f"{sequence:02d} / 33"},
+        "checkpoint": {"id": checkpoint_id, "name": checkpoint["name"],
+                       "sequence_label": f"{sequence:02d} / 33",
+                       "is_saved": bool(state.get("story", {}).get("checkpoint_id"))},
         "stop_warnings": checkpoint["stop_warnings"],
         "progress": {key: (progress[key]["display"] if progress[key] else None)
                      for key in ("medals", "items", "monsters")},

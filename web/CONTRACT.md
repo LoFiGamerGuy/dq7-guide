@@ -39,6 +39,8 @@ Every advice row retains its native `applicability` object. `tradeoff` mirrors o
 
 ### `GET /api/progress`
 
+Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`, whose member rows contain only explicitly recorded `mastered_vocations`. Unknown levels, current vocations, equipment, and party membership are not inferred.
+
 Each counter may be a string, `{ "display": "x / y" }`, or `null`. `open_work` is ordered by current relevance.
 
 ```json
@@ -116,6 +118,16 @@ PATCH /api/tablets/{fragment_id}       {"completed":true}
 PATCH /api/achievements/{achievement_id} {"completed":true}
 PATCH /api/checkpoints/{checkpoint_id} {"selected":true}
 ```
+
+The Progress screen also reuses the allowlisted command endpoint for explicit values:
+
+```json
+{"command":"medal-count","values":[7]}
+{"command":"vocation-mastered","values":["Hero","vocation_warrior"]}
+{"command":"vocation-undo","values":["Hero","vocation_warrior"]}
+```
+
+The server validates checkpoint IDs, party-member names, vocation IDs, and character-exclusive vocation eligibility. Selecting a saved checkpoint never marks actions, collectibles, monsters, or other checkpoints complete. The dashboard distinguishes an explicitly saved checkpoint from the cp001 guide preview used when state is unknown.
 
 Return `204 No Content` or the updated progress object. Reject unknown IDs with `404`, invalid shapes with `400`, and concurrent stale writes with `409` if versioning is implemented.
 
