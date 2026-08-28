@@ -75,6 +75,15 @@ The first-class domain routes call:
 - `GET /api/seeds`
 
 `GET /api/vocations/{id-or-name}` includes `unlock_progress`. `groups` preserves the sourced direct rule (`all_of` or `any_n_of`), required count, candidate vocation IDs/names, and provenance. `party_progress` evaluates only explicit `vocation_mastery: true` records: a satisfied threshold is `satisfied`, while absent records remain `unknown`, never unmet. `needed_if_unknowns_are_unmastered` is a conditional planning count, not an assertion about saved state. `cost_status: "unknown"` remains explicit because numeric proficiency/battle cost is not derived from the rank-skill tables.
+
+`unlock_progress.recursive_plans` expands the complete sourced prerequisite DAG for
+each party member. Every nested group retains `all_of`/`any_n_of`, its threshold,
+candidate tree, direct provenance, explicit mastery status, and character-exclusive
+eligibility. `next_options` contains base vocations or higher vocations whose direct
+requirements are explicitly satisfied; it is an unranked planning menu, not a
+shortest-cost recommendation. Missing mastery remains unknown, alternative branches
+are never silently selected, and numeric battles/proficiency/mastery costs remain
+unknown.
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`

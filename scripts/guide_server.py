@@ -164,9 +164,10 @@ def _vocation_unlock_progress(db_path: Path, state_path: Path,
             JOIN entities e ON e.entity_id=r.prerequisite_vocation_id
             JOIN sources s USING(source_id)
             WHERE r.vocation_id=? ORDER BY r.group_id, e.name""", (vocation_id,))]
+    recursive_plans = _vocation_recursive_plans(db_path, state_path, vocation_id)
     if not requirements:
         return {"status": "no_prerequisites", "groups": [], "party_progress": [],
-                "cost_status": "not_applicable"}
+                "cost_status": "not_applicable", "recursive_plans": recursive_plans}
     groups = []
     for group_id in dict.fromkeys(row["group_id"] for row in requirements):
         rows = [row for row in requirements if row["group_id"] == group_id]
@@ -201,9 +202,91 @@ def _vocation_unlock_progress(db_path: Path, state_path: Path,
             "groups": group_progress})
     return {"status": "sourced_direct_prerequisites", "groups": groups,
         "party_progress": progress,
+        "recursive_plans": recursive_plans,
         "cost_status": "unknown",
         "cost_note": "Numeric proficiency or battle cost is not published here; absent mastery records remain unknown.",
         "direct_prerequisite_ids": sorted(direct_ids)}
+
+
+def _vocation_recursive_plans(db_path: Path, state_path: Path,
+                              target_id: str) -> list[dict]:
+    """Expand the sourced prerequisite DAG without selecting among alternatives."""
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        vocation_rows = connection.execute(
+            """SELECT v.vocation_id, e.name, v.tier, v.exclusive_character
+            FROM vocations v JOIN entities e ON e.entity_id=v.vocation_id"""
+        ).fetchall()
+        requirement_rows = connection.execute(
+            """SELECT r.vocation_id, r.group_id, r.rule, r.required_count,
+                r.prerequisite_vocation_id, r.source_id, s.title AS source_title,
+                s.url AS source_url, r.locator
+            FROM vocation_requirements r JOIN sources s USING(source_id)
+            ORDER BY r.group_id, r.prerequisite_vocation_id"""
+        ).fetchall()
+    vocations = {row["vocation_id"]: dict(row) for row in vocation_rows}
+    if target_id not in vocations:
+        raise ValueError(f"Unknown vocation: {target_id}")
+    grouped: dict[str, list[dict]] = {}
+    for row in requirement_rows:
+        grouped.setdefault(row["vocation_id"], []).append(dict(row))
+    members = _state(state_path).get("party", {}).get("members", {})
+    plans = []
+    for character, member in members.items():
+        mastered = {key for key, value in member.get("vocation_mastery", {}).items()
+                    if value is True}
+        next_options: dict[str, dict] = {}
+
+        def expand(vocation_id: str, ancestry: set[str]) -> dict:
+            vocation = vocations[vocation_id]
+            if vocation_id in ancestry:
+                raise ValueError(f"Vocation prerequisite cycle at {vocation_id}")
+            eligible = vocation["exclusive_character"] in (None, character)
+            rows = grouped.get(vocation_id, [])
+            groups = []
+            all_direct_satisfied = True
+            for group_id in dict.fromkeys(row["group_id"] for row in rows):
+                members_of_group = [row for row in rows if row["group_id"] == group_id]
+                candidates = [expand(row["prerequisite_vocation_id"], ancestry | {vocation_id})
+                              for row in members_of_group]
+                known = sum(candidate["mastery_status"] == "mastered"
+                            for candidate in candidates)
+                required = members_of_group[0]["required_count"]
+                satisfied = known >= required
+                all_direct_satisfied = all_direct_satisfied and satisfied
+                groups.append({"group_id": group_id,
+                    "rule": members_of_group[0]["rule"],
+                    "required_count": required, "explicitly_mastered_count": known,
+                    "status": "satisfied" if satisfied else "unknown",
+                    "candidates": candidates,
+                    "source": {"id": members_of_group[0]["source_id"],
+                        "title": members_of_group[0]["source_title"],
+                        "url": members_of_group[0]["source_url"],
+                        "locator": members_of_group[0]["locator"]}})
+            mastery_status = "mastered" if vocation_id in mastered else "unknown"
+            direct_status = ("ineligible" if not eligible else "no_prerequisites"
+                             if not rows else "satisfied" if all_direct_satisfied else "unknown")
+            if eligible and mastery_status != "mastered" and direct_status in (
+                    "no_prerequisites", "satisfied"):
+                next_options[vocation_id] = {"vocation_id": vocation_id,
+                    "name": vocation["name"], "tier": vocation["tier"],
+                    "readiness": ("base_candidate" if not rows else
+                                  "direct_prerequisites_explicitly_mastered"),
+                    "caveat": "Mastery cost and unrecorded game progress remain unknown."}
+            return {"vocation_id": vocation_id, "name": vocation["name"],
+                "tier": vocation["tier"], "eligible_for_character": eligible,
+                "mastery_status": mastery_status,
+                "direct_prerequisite_status": direct_status, "groups": groups}
+
+        tree = expand(target_id, set())
+        plans.append({"character": character,
+            "status": "target_mastered" if target_id in mastered else
+                      "ineligible" if not tree["eligible_for_character"] else "planning",
+            "target": tree,
+            "next_options": sorted(next_options.values(), key=lambda row: (row["tier"], row["name"])),
+            "choice_policy": "All legal next options are shown; any_n_of branches are not ranked or silently selected.",
+            "cost_status": "unknown"})
+    return plans
 
 
 def _monsters(db_path: Path, state_path: Path, query: dict) -> dict:

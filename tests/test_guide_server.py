@@ -322,12 +322,30 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("absent mastery records remain unknown",
                       gladiator["cost_note"])
 
+        champion = _vocation_unlock_progress(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "vocation_champion")
+        hero_plan = next(row for row in champion["recursive_plans"]
+                         if row["character"] == "Hero")
+        next_ids = {row["vocation_id"] for row in hero_plan["next_options"]}
+        self.assertIn("vocation_gladiator", next_ids)
+        self.assertIn("vocation_priest", next_ids)
+        self.assertNotIn("vocation_paladin", next_ids)
+        champion_group = hero_plan["target"]["groups"][0]
+        self.assertEqual(champion_group["rule"], "all_of")
+        self.assertTrue(champion_group["source"]["url"])
+        self.assertEqual(champion_group["candidates"][0]["tier"], "intermediate")
+
         druid = _vocation_unlock_progress(
             ROOT / "data" / "dq7_reimagined.sqlite", state_path,
             "vocation_druid")
         self.assertEqual(druid["groups"][0]["rule"], "any_n_of")
         self.assertEqual(druid["groups"][0]["required_count"], 2)
         self.assertEqual(len(druid["groups"][0]["candidates"]), 3)
+        recursive_druid = next(row for row in druid["recursive_plans"]
+                               if row["character"] == "Hero")
+        self.assertEqual(recursive_druid["choice_policy"],
+                         "All legal next options are shown; any_n_of branches are not ranked or silently selected.")
 
     def test_every_checkpoint_is_browser_ready_with_sourced_advice(self):
         _, checkpoints = self.get_json("/api/checkpoints")
