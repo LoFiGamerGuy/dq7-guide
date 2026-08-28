@@ -58,6 +58,15 @@ The browser enables “Confirm and set next current” only for the saved checkp
 no structured blocker remains. Clicking it is the player's explicit confirmation;
 the guide never advances automatically. Browsing Next/Previous does not change state.
 
+Checkpoint detail also includes `tablet_fragments` available from that checkpoint.
+Rows carry the stable fragment ID and ordinal, tablet/color, location/detail,
+time period, explicit `found` state, cutoff when one is published, and full source
+provenance. They use the same validated `PATCH /api/tablets/{fragment_id}` mutation
+as the Tablets registry, so both views remain synchronized. Missing fragment state
+is displayed as unchecked and is never inferred from story progress. Advancement
+readiness reports the unrecorded checkpoint-fragment count without independently
+declaring the prose safe condition complete or blocked.
+
 ### `GET /api/progress`
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.

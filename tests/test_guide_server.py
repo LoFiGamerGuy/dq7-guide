@@ -109,6 +109,10 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(checkpoint["advancement_readiness"]["status"],
                          "blocked_by_stop")
         self.assertFalse(checkpoint["advancement_readiness"]["can_confirm_and_save_next"])
+        _, shrine = self.get_json("/api/checkpoints/cp_002_estard_shrine")
+        self.assertEqual(len(shrine["tablet_fragments"]), 4)
+        self.assertTrue(all(row["source"]["url"] and row["source"]["locator"]
+                            for row in shrine["tablet_fragments"]))
         _, ballymolloy = self.get_json("/api/checkpoints/cp_003_ballymolloy")
         slime = next(row for row in ballymolloy["monsters"] if row["id"] == "monster_002")
         self.assertEqual(slime["drop"], "Medicinal Herb")
@@ -323,6 +327,20 @@ class GuideServerTests(unittest.TestCase):
         })
         _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertEqual(reopened["stop_actions"][0]["id"], stop_id)
+
+    def test_checkpoint_tablet_progress_stays_synchronized_with_registry(self):
+        _, checkpoint = self.get_json("/api/checkpoints/cp_002_estard_shrine")
+        fragment_id = checkpoint["tablet_fragments"][0]["id"]
+        self.patch_json("/api/tablets/" + fragment_id, {"completed": True})
+        _, updated_checkpoint = self.get_json("/api/checkpoints/cp_002_estard_shrine")
+        fragment = next(row for row in updated_checkpoint["tablet_fragments"]
+                        if row["id"] == fragment_id)
+        self.assertTrue(fragment["found"])
+        _, registry = self.get_json("/api/tablets")
+        registry_fragment = next(row for row in registry["fragments"]
+                                 if row["fragment_id"] == fragment_id)
+        self.assertTrue(registry_fragment["found"])
+        self.patch_json("/api/tablets/" + fragment_id, {"completed": False})
 
     def test_advancement_readiness_requires_explicit_actions_and_manual_confirmation(self):
         state_path = Path(self.temp.name) / "advancement-state.json"

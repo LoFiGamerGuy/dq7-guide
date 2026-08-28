@@ -24,7 +24,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 now surface acquisition routes after adding the finite Vicious Meowgician reward at cp005 | High for effects and linked routes; Metal Slime and Gold Golem have explicit DLC notes, while Dragonlord, Malroth, and Zoma availability remains unknown; numeric drop rates remain unknown | Verify and normalize the three availability-unknown Hearts without implying DLC, base-game, or Heroic Hoarder scope |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 431 gated locations across 300 monsters and 213 drops across 185 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
+| Monster List / Vicious | 333/333 ordinals and English names; 441 gated locations across 305 monsters and 221 drops across 190 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; Iron Shield price, Ice Shield chest, Cautery Sword's Tunnel route, Elevating Shoes methods, and Mini Medal 78 are resolved; Tempest Shield is modeled as two supported acquisition routes rather than a false single-value conflict; 2 source conflicts remain unresolved | High for resolved location rows; conservative for Moonlighting venue and Stella/Stellar spelling | Resolve spelling with direct English UI evidence and Moonlighting venue with a continuous activation capture |
 
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 454
+- sources: 459
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -51,7 +51,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 431 / 213
+- monster encounters / drops: 441 / 221
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -121,7 +121,7 @@ The late/postgame boss-sequence audit adds six direct current-version tactics: o
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 431 checkpoint-gated encounter routes across 300 of 333 monsters and 213 verified drop rows across 185 monsters. The latest batch routes Chasmonaut, Whirly Girly, Octophant, Mega Moai, and Mandrake Monarch from the Cathedral of Blight's direct current-version enemy roster at cp028. The preceding batch adds the exact Yet Another World Four Spirits boss members, Ersatz Estark and Seavern, Metal King Slime habitats, Worm of Woe, and the optional Wiggles fight. Every Rampaging Monster List entry retains a direct postgame Buccanham Arena route; exact Testy / Simmering / Fuming / Furious membership remains unresolved for 34 of them. Generic `Special Encounter` alone still does not support a route for Cannibox, Urnexpected, Scarewell, Frighturn, or Damned Well; no route is created from taxonomy/navigation lists alone.
+The current monster expansion has 441 checkpoint-gated encounter routes across 305 of 333 monsters and 221 verified drop rows across 190 monsters. The latest direct-page batch routes Gem Slime, Dark Sabrecub, Wight Prowler, Fire Fry, and Wrecktor across ten exact Past/Present habitats and preserves eight published drops with null unpublished rates. Earlier batches retain the Cathedral of Blight roster, exact Yet Another World boss members, Metal King Slime habitats, Nottagen choice encounters, and all Rampaging entries. The 28 remaining unrouted entries include generic-only Special Encounter pages and Arena cup members whose Silver/Gold roster pages are not published; no route is created from taxonomy/navigation lists alone.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
@@ -187,6 +187,8 @@ The next accessory pass upgrades Rabbit Tail from an area-only Heroic entry to t
 
 Three further direct-page routes add Hardwood Headwear in Past Faraday Castle (`cp_007_frobisher`), Fur Cape in Present Poolside Cave (`cp_010_alltrades_present`), and Silk Robe in Present Temple Palace (`cp_011_la_bravoure`). Each is finite/free and retains the source's unpublished exact container.
 
+The direct L'Arca walkthrough also upgrades Sledgehammer from a generic Grotta del Sigillo chest to the exact Level 4 route: climb the stairs before going outside and open the exterior chest. This preserves the existing `cp_005_larca` gate while making the free alternative actionable before purchase decisions.
+
 The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
 
 The Seed normalization batch records fixed current-version increases for all nine standard Seeds and nine Super Seeds. It separately models the repeatable cp032 Almighty-and-Spirits rematch as one random Super Seed per victory while leaving the eligible-item pool unknown because the direct farming source does not enumerate it.
@@ -204,6 +206,8 @@ The recursive vocation-planning batch expands all 10 sourced prerequisite groups
 The interactive walkthrough readiness pass makes completion STOP obligations explicitly checkable before the normal action list, replaces opaque “Step N” labels with sourced subjects, and marks only the first open action as next. Mini Medals are now structurally separated into current/backtrack checkboxes and a collapsed later-gated reference list, preventing early players from hunting inaccessible medals.
 
 The safe-advancement pass adds a conservative checkpoint readiness summary over explicit STOP and required-obligation state, while separately reporting optional work and unrecorded available medals. The browser distinguishes browsing from advancement and offers an explicit “Confirm and set next current” action only after structured blockers are cleared at the saved checkpoint; the sourced prose exit condition always requires player confirmation and is never inferred.
+
+The checkpoint-ledger synchronization pass surfaces all 71 canonical tablet fragments at their directly sourced availability checkpoints with stable IDs, ordinals, locations, provenance, and explicit found state. Walkthrough checkboxes reuse the validated Tablets-registry mutation, so either view updates the same player ledger; saved-story progress never implies fragment collection.
 
 The Moonlighting venue re-audit keeps the conflict unresolved. Both current-version sources agree on the cp012 gate after recruiting Aishe, but Game8 directs the player to Jacqui at Alltrades Abbey while RPG Site places the event at the Shrine of Mysteries; available corroboration does not continuously show the Career Sphere contact and activation venue. The walkthrough now follows the prompt, tries the Shrine route, and names Alltrades as a fallback without implying either disputed venue is canonical. Conflict details request a same-version capture or continuous video with the venue name visible.
 

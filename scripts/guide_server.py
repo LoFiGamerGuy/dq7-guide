@@ -684,6 +684,23 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                     "id": row["source_id"], "title": row["source_title"],
                     "url": row["source_url"], "locator": row["locator"],
                 }
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        tablet_fragments = [dict(row) for row in connection.execute(
+            """SELECT f.fragment_id, f.source_ordinal, f.color, f.tablet_id,
+                t.destination_name AS tablet_name, f.location, f.time_period,
+                f.detail, f.unavailable_after_checkpoint_id,
+                f.source_id, s.title AS source_title, s.url AS source_url,
+                f.locator, f.confidence, f.verification_status
+            FROM tablet_fragments f JOIN stone_tablets t USING(tablet_id)
+            JOIN sources s ON s.source_id=f.source_id
+            WHERE f.available_from_checkpoint_id=?
+            ORDER BY f.source_ordinal""", (checkpoint_id,))]
+    for row in tablet_fragments:
+        sources[(row["source_id"], row["locator"])] = {
+            "id": row["source_id"], "title": row["source_title"],
+            "url": row["source_url"], "locator": row["locator"],
+        }
     open_required = [row for row in block["now"] if row["required_for_100_percent"]]
     saved_checkpoint_match = player_state.get("story", {}).get("checkpoint_id") == checkpoint_id
     if block["stops"]:
@@ -701,6 +718,9 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "open_required_action_count": len(open_required),
         "open_optional_action_count": len(block["now"]) - len(open_required),
         "unrecorded_available_medal_count": len(block["medals_now"]) + len(block["medals_backtrack"]),
+        "unrecorded_checkpoint_tablet_fragment_count": sum(
+            row["fragment_id"] not in set(completion.get("tablet_fragments", []))
+            for row in tablet_fragments),
         "saved_checkpoint_match": saved_checkpoint_match,
         "safe_condition_requires_player_confirmation": True,
         "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],
@@ -748,6 +768,18 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                      "available_checkpoint": row["available_checkpoint"],
                      "available_from": row["available_from"]}
                     for timing, rows in medal_groups for row in rows],
+        "tablet_fragments": [{
+            "id": row["fragment_id"], "ordinal": row["source_ordinal"],
+            "color": row["color"], "tablet_id": row["tablet_id"],
+            "tablet_name": row["tablet_name"], "location": row["location"],
+            "time_period": row["time_period"], "detail": row["detail"],
+            "found": row["fragment_id"] in set(completion.get("tablet_fragments", [])),
+            "unavailable_after_checkpoint_id": row["unavailable_after_checkpoint_id"],
+            "source": {"id": row["source_id"], "title": row["source_title"],
+                       "url": row["source_url"], "locator": row["locator"]},
+            "confidence": row["confidence"],
+            "verification_status": row["verification_status"],
+        } for row in tablet_fragments],
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
                        "drop": ", ".join(drops[row["monster_id"]]) or None,
