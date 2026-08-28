@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 302)
+        self.assertEqual(self.counts["sources"], 303)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -72,6 +72,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_aliases"], 1)
         self.assertEqual(self.counts["item_acquisition_paths"], 501)
         self.assertEqual(self.counts["monster_hearts"], 46)
+        self.assertEqual(self.counts["seed_effects"], 18)
+        self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
@@ -269,6 +271,29 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(seed[4], "game8_boss_almighty_spirits")
         self.assertEqual(seed[6], "game8_party_builds")
 
+    def test_seed_effects_are_fixed_and_reward_membership_stays_unknown(self):
+        rows = self.connection.execute(
+            """SELECT item_id, stat_key, increase_amount, locator
+            FROM seed_effects ORDER BY item_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 18)
+        self.assertTrue(all(row[2] > 0 and row[3] for row in rows))
+        strength = next(row for row in rows if row[0] == "item_seed_of_strength")
+        super_strength = next(
+            row for row in rows if row[0] == "item_super_seed_of_strength"
+        )
+        self.assertEqual((strength[1], strength[2]), ("strength", 2))
+        self.assertEqual((super_strength[1], super_strength[2]), ("strength", 20))
+        reward = self.connection.execute(
+            """SELECT available_from_checkpoint_id, reward_quantity,
+                selection_method, eligible_items_json, repeatable
+            FROM seed_reward_rules
+            WHERE seed_reward_rule_id = 'seed_reward_almighty_spirits_rematch'"""
+        ).fetchone()
+        self.assertEqual(
+            tuple(reward), ("cp_032_yet_another_world", 1, "random", None, 1)
+        )
+
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
         report = load_hoarder_report(
             self.db_path, ROOT / "player" / "ryan-save-state.json", gaps_only=True
@@ -339,13 +364,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (243, 144))
+        self.assertEqual(tuple(counts), (248, 145))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (142, "cp_001_prologue", 8))
+        self.assertEqual(tuple(early), (147, "cp_001_prologue", 13))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -472,8 +497,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 142)
-        self.assertEqual(report["drops"], 125)
+        self.assertEqual(report["routed"], 147)
+        self.assertEqual(report["drops"], 126)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):

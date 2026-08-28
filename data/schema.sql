@@ -257,6 +257,40 @@ CREATE TABLE farming_spots (
     CHECK(strategy IS NULL OR (strategy_source_id IS NOT NULL AND strategy_locator IS NOT NULL))
 );
 
+CREATE TABLE seed_effects (
+    seed_effect_id TEXT PRIMARY KEY,
+    item_id TEXT NOT NULL UNIQUE REFERENCES items(item_id),
+    stat_key TEXT NOT NULL CHECK(stat_key IN (
+        'max_hp', 'max_mp', 'strength', 'deftness', 'agility',
+        'resilience', 'magical_might', 'magical_mending', 'charm'
+    )),
+    increase_amount INTEGER NOT NULL CHECK(increase_amount > 0),
+    game_version TEXT NOT NULL,
+    dlc_scope TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
+CREATE TABLE seed_reward_rules (
+    seed_reward_rule_id TEXT PRIMARY KEY,
+    reward_family_text TEXT NOT NULL,
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    location_text TEXT NOT NULL,
+    trigger_text TEXT NOT NULL,
+    reward_quantity INTEGER CHECK(reward_quantity IS NULL OR reward_quantity > 0),
+    selection_method TEXT CHECK(selection_method IN ('fixed', 'random', 'unknown')),
+    eligible_items_json TEXT,
+    repeatable INTEGER NOT NULL CHECK(repeatable IN (0, 1)),
+    game_version TEXT NOT NULL,
+    dlc_scope TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
 CREATE TABLE monster_hearts (
     heart_id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE CHECK(length(trim(name)) > 0),

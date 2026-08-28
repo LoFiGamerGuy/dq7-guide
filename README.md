@@ -24,13 +24,14 @@ The seed includes:
 - all 19 Mini Medal reward thresholds, including the major power spikes;
 - early gear power-spike notes;
 - confirmed Metal Slime farming locations;
+- 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with explicit availability gaps;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 302-page source registry;
+- a 303-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 243 checkpoint-gated encounters across 142 monsters and 144 verified drops across 125 monsters;
+- 248 checkpoint-gated encounters across 147 monsters and 145 verified drops across 126 monsters;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
 - verified qualitative stat modifiers for all non-default vocations;

@@ -46,8 +46,10 @@ Each counter may be a string, `{ "display": "x / y" }`, or `null`. `open_work` i
 ### `GET /api/conflicts`
 
 ```json
-[{"id":"conflict_id","subject":"Tempest Shield location","summary":"Sources disagree …","status":"unresolved"}]
+[{"id":"conflict_id","subject":"item:tempest shield","predicate":"precise location","status":"unresolved","detection_method":"manual","rationale":null,"claims":[{"id":"claim_a","value":{"location":"A"},"scope":{"game":"DQ7 Reimagined"},"confidence":"high","verification_status":"source_checked","locator":"Heading > row","source":{"title":"Guide A","url":"https://example.com/a","updated_at":"2026-02-19","retrieved_at":"2026-08-25"}},{"id":"claim_b","value":{"location":"B"},"scope":{"game":"DQ7 Reimagined"},"confidence":"high","verification_status":"source_checked","locator":"Heading > row","source":{"title":"Guide B","url":"https://example.com/b","updated_at":null,"retrieved_at":"2026-08-25"}}]}]
 ```
+
+The conflict view presents both claims symmetrically with their independent scopes, confidence, verification status, source, locator, and freshness dates. `updated_at: null` is displayed as unknown. An unresolved badge and “No resolution is implied” remain visible; value order does not indicate preference.
 
 ## Domain registries
 

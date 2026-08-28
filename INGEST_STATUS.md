@@ -20,6 +20,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Lucky Panel | 14 normalized pools / 91 reward paths; Version 2 and Version 3 treasure-chest matrices complete | High for normalized rows; entry costs and reward probabilities remain unknown | Complete remaining standard-rank matrices and preserve exclusivity qualifiers |
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
 | Farming | 8/8 routes have direct-source locators and checkpoint gates; factual locations and attributed tactics are separated | High for routes/gates; all numeric encounter rates remain unpublished | Add verified proficiency, gold, and Heart farms without inventing rates |
+| Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; Golem Heart has an explicit Ballymolloy gate | High for effects; 45 acquisition windows remain unknown | Add direct acquisition routes without inventing drop rates |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
@@ -31,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 302
+- sources: 303
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -41,6 +42,7 @@ Expected after `python scripts/build_kb.py`:
 - medal rewards: 19
 - missables: 7
 - farming spots: 8
+- seed effects / reward rules: 18 / 1
 - monster hearts: 46
 - checkpoints: 33
 - mini medal locations: 100
@@ -49,7 +51,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 243 / 144
+- monster encounters / drops: 248 / 145
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -115,7 +117,7 @@ The eighth combat-engine batch extends qualitative modifiers to all non-default 
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 243 checkpoint-gated encounter routes across 142 of 333 monsters and 144 verified drop rows across 125 monsters. The latest first-10-hours batch adds direct boss routes for Tribulator, Golem, Crabble-Rouser, Florin, and Numpton, plus the two published boss rewards; None and unknown drops remain unset.
+The current monster expansion has 248 checkpoint-gated encounter routes across 147 of 333 monsters and 145 verified drop rows across 126 monsters. The latest chronological boss batch adds Maeve, Glowering Inferno, Hackrobat, Tinpot Dictator, and Slaughtomaton through cp007, plus the published Red Fragment reward; None and unknown drops remain unset.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
@@ -128,6 +130,8 @@ The missable audit gives all seven records precise direct-source locators and no
 The Lucky Panel chest batch completes Version 2's three-item and Version 3's eleven-item treasure-chest matrices. It adds 13 version-scoped reward paths, retains the Version 2 replacement boundary at the final Elemental Spirits upgrade, and leaves chest probability and slot counts unknown.
 
 The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
+
+The Seed normalization batch records fixed current-version increases for all nine standard Seeds and nine Super Seeds. It separately models the repeatable cp032 Almighty-and-Spirits rematch as one random Super Seed per victory while leaving the eligible-item pool unknown because the direct farming source does not enumerate it.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

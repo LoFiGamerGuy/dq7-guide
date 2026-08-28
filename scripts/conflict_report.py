@@ -21,11 +21,20 @@ def load_conflicts(db_path: Path, include_resolved: bool = False) -> list[dict]:
     try:
         where = "" if include_resolved else "WHERE cf.status != 'resolved'"
         rows = connection.execute(
-            f"""SELECT cf.*, ca.subject_key, ca.predicate, ca.scope_json,
+            f"""SELECT cf.*, ca.subject_key, ca.predicate,
+                ca.scope_json AS scope_a, cb.scope_json AS scope_b,
                 ca.value_json AS value_a, ca.locator AS locator_a,
+                ca.confidence AS confidence_a,
+                ca.verification_status AS verification_status_a,
                 sa.title AS source_title_a, sa.url AS source_url_a,
+                sa.updated_at AS source_updated_at_a,
+                sa.retrieved_at AS source_retrieved_at_a,
                 cb.value_json AS value_b, cb.locator AS locator_b,
-                sb.title AS source_title_b, sb.url AS source_url_b
+                cb.confidence AS confidence_b,
+                cb.verification_status AS verification_status_b,
+                sb.title AS source_title_b, sb.url AS source_url_b,
+                sb.updated_at AS source_updated_at_b,
+                sb.retrieved_at AS source_retrieved_at_b
             FROM conflicts cf
             JOIN claims ca ON ca.claim_id = cf.claim_a_id
             JOIN claims cb ON cb.claim_id = cf.claim_b_id
@@ -46,7 +55,8 @@ def print_conflicts(rows: list[dict]) -> None:
     for row in rows:
         print(f"{row['conflict_id']}: {row['subject_key']} / {row['predicate']}")
         print(f"Status: {row['status']} ({row['detection_method']})")
-        print("Scope: " + json.dumps(json.loads(row["scope_json"]), sort_keys=True))
+        print("Scope A: " + json.dumps(json.loads(row["scope_a"]), sort_keys=True))
+        print("Scope B: " + json.dumps(json.loads(row["scope_b"]), sort_keys=True))
         print(f"A [{row['claim_a_id']}]: {row['value_a']}")
         print(f"  {row['source_title_a']} — {row['source_url_a']} ({row['locator_a'] or 'no locator'})")
         print(f"B [{row['claim_b_id']}]: {row['value_b']}")

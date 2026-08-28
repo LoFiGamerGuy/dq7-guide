@@ -811,6 +811,44 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 ),
             )
 
+        connection.executemany(
+            """INSERT INTO seed_effects(
+                seed_effect_id, item_id, stat_key, increase_amount,
+                game_version, dlc_scope, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :seed_effect_id, :item_id, :stat_key, :increase_amount,
+                :game_version, :dlc_scope, :source_id, :locator, :confidence,
+                :verification_status
+            )""",
+            seed.get("seed_effects", []),
+        )
+        connection.executemany(
+            """INSERT INTO seed_reward_rules(
+                seed_reward_rule_id, reward_family_text,
+                available_from_checkpoint_id, location_text, trigger_text,
+                reward_quantity, selection_method, eligible_items_json,
+                repeatable, game_version, dlc_scope, source_id, locator,
+                confidence, verification_status
+            ) VALUES (
+                :seed_reward_rule_id, :reward_family_text,
+                :available_from_checkpoint_id, :location_text, :trigger_text,
+                :reward_quantity, :selection_method, :eligible_items_json,
+                :repeatable, :game_version, :dlc_scope, :source_id, :locator,
+                :confidence, :verification_status
+            )""",
+            [
+                {
+                    **rule,
+                    "eligible_items_json": (
+                        json.dumps(rule["eligible_items"], sort_keys=True)
+                        if rule.get("eligible_items") is not None else None
+                    ),
+                }
+                for rule in seed.get("seed_reward_rules", [])
+            ],
+        )
+
         # Add searchable domain summaries generated from structured rows.
         for reward in seed["medal_rewards"]:
             connection.execute(
@@ -833,7 +871,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "sources", "entities", "relationships", "claims", "documents",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
             "vocation_progression_rules", "vocation_stat_modifiers", "medal_rewards", "missables",
-            "farming_spots", "monster_hearts", "checkpoints", "conflicts"
+            "farming_spots", "seed_effects", "seed_reward_rules",
+            "monster_hearts", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"
             , "achievement_requirements"

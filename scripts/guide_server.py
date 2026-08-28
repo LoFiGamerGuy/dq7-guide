@@ -510,8 +510,25 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     rows = load_conflicts(db_path, resolved)
                     return self._json([{"id": row["conflict_id"],
                         "subject": row["subject_key"].replace("_", " "),
-                        "summary": f"{row['predicate'].replace('_', ' ')}: {row['value_a']} vs {row['value_b']}",
-                        "status": row["status"]} for row in rows])
+                        "predicate": row["predicate"].replace("_", " "),
+                        "status": row["status"],
+                        "detection_method": row["detection_method"],
+                        "rationale": row["rationale"],
+                        "claims": [{
+                            "id": row[f"claim_{side}_id"],
+                            "value": json.loads(row[f"value_{side}"]),
+                            "scope": json.loads(row[f"scope_{side}"]),
+                            "confidence": row[f"confidence_{side}"],
+                            "verification_status": row[f"verification_status_{side}"],
+                            "locator": row[f"locator_{side}"],
+                            "source": {
+                                "title": row[f"source_title_{side}"],
+                                "url": row[f"source_url_{side}"],
+                                "updated_at": row[f"source_updated_at_{side}"],
+                                "retrieved_at": row[f"source_retrieved_at_{side}"],
+                            },
+                        } for side in ("a", "b")],
+                    } for row in rows])
                 if parsed.path.startswith("/api/"):
                     return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
                 return self._static(parsed.path)
