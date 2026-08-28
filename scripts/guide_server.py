@@ -148,20 +148,25 @@ def _missables(db_path: Path, query: dict) -> dict:
 
 def _farms(db_path: Path, query: dict) -> dict:
     rows = _rows(db_path, """SELECT f.farming_id, f.target, f.location,
-        f.time_period, f.available_from, f.strategy, f.confidence,
-        f.source_id, s.title AS source_title, s.url AS source_url
+        f.time_period, f.available_from, f.available_from_checkpoint_id,
+        c.name AS available_checkpoint, f.encounter_rate_text, f.strategy,
+        f.confidence, f.verification_status, f.source_id, f.locator,
+        s.title AS source_title, s.url AS source_url,
+        f.strategy_source_id, f.strategy_locator,
+        ss.title AS strategy_source_title, ss.url AS strategy_source_url
         FROM farming_spots f JOIN sources s USING(source_id)
+        LEFT JOIN checkpoints c ON c.checkpoint_id=f.available_from_checkpoint_id
+        LEFT JOIN sources ss ON ss.source_id=f.strategy_source_id
         ORDER BY f.location, f.target""")
     for row in rows:
         target = row["target"].casefold()
         row["farm_type"] = ("exp" if "metal" in target or "jewel" in target
             else "seeds" if "seed" in target else "other")
-        row["rate_status"] = "unknown"
-        row["locator"] = None
-        row["provenance_gap"] = True
-        row["strategy_kind"] = "attributed_strategy"
+        row["rate_status"] = "numeric_unpublished"
+        row["provenance_gap"] = False
+        row["strategy_kind"] = "attributed_strategy" if row["strategy"] else None
     page = _page(rows, query, ("farming_id", "target", "location",
-        "time_period", "available_from", "strategy", "farm_type"))
+        "time_period", "available_from", "encounter_rate_text", "strategy", "farm_type"))
     page["farms"] = page.pop("results")
     return page
 
@@ -263,6 +268,9 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "id": row["advice_id"], "type": row["advice_type"],
             "subject": row["subject"], "text": row["advice_text"],
             "goal": row["recommendation_goal"],
+            "decision_group": ("optional_grind" if row["advice_type"] == "grind"
+                               else "completion_safe" if row["recommendation_goal"] in ("completion_safe", "both")
+                               else "strongest_now"),
         } for row in block["advice"]],
         "medals": [{"number": row["medal_number"], "location": row["location"],
                      "detail": row["detail"], "found": row["medal_number"] in found_medals} for row in medals],

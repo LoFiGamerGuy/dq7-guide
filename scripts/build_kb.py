@@ -311,24 +311,6 @@ def _build_database(db_path: Path) -> dict[str, int]:
             seed["missables"],
         )
 
-        for farm in seed["farming_spots"]:
-            connection.execute(
-                """INSERT INTO farming_spots(
-                    farming_id, target, location, time_period, available_from,
-                    strategy, source_id, confidence
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    farm["id"],
-                    farm["target"],
-                    farm["location"],
-                    farm.get("time_period"),
-                    farm.get("available_from"),
-                    farm.get("strategy"),
-                    farm.get("source_id", "game8_exp_farming"),
-                    "high" if farm["id"] != "farm_super_seeds_almighty" else "medium",
-                ),
-            )
-
         connection.executemany(
             """INSERT INTO checkpoints(
                 checkpoint_id, sequence_no, name, time_period, region,
@@ -343,6 +325,21 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
+            """INSERT INTO farming_spots(
+                farming_id, target, location, time_period, available_from,
+                available_from_checkpoint_id, encounter_rate_text, strategy,
+                source_id, locator, strategy_source_id, strategy_locator,
+                confidence, verification_status
+            ) VALUES (
+                :id, :target, :location, :time_period, :available_from,
+                :available_from_checkpoint_id, :encounter_rate_text, :strategy,
+                :source_id, :locator, :strategy_source_id, :strategy_locator,
+                :confidence, :verification_status
+            )""",
+            seed["farming_spots"],
+        )
+
+        connection.executemany(
             """INSERT INTO monster_hearts(
                 heart_id, name, effect_text, available_from_checkpoint_id,
                 availability_notes, source_id, locator, confidence,
@@ -352,7 +349,16 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 :availability_notes, :source_id, :locator, :confidence,
                 :verification_status
             )""",
-            seed.get("monster_hearts", []),
+            [
+                {
+                    **heart,
+                    "available_from_checkpoint_id": heart.get(
+                        "available_from_checkpoint_id"
+                    ),
+                    "availability_notes": heart.get("availability_notes"),
+                }
+                for heart in seed.get("monster_hearts", [])
+            ],
         )
 
         connection.executemany(

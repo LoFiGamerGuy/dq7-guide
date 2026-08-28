@@ -25,7 +25,7 @@ Returns ordered checkpoint summaries:
   "id":"cp_004_emberdale","name":"Emberdale and Burnmount","time_period":"Past","region":"Emberdale",
   "stop_warnings":["Finish the listed finite sweep before advancing."],
   "actions":[{"id":"obl_id","title":"Finite sweep","action":"Collect …","completed":false,"required":true}],
-  "advice":[{"id":"advice_id","type":"boss","subject":"Glowering Inferno","text":"Use …","goal":"immediate_power"}],
+  "advice":[{"id":"advice_id","type":"boss","subject":"Glowering Inferno","text":"Use …","goal":"immediate_power","decision_group":"strongest_now"}],
   "medals":[{"number":10,"location":"Burnmount","detail":"Chest …","found":false}],
   "monsters":[{"id":"monster_010","ordinal":10,"name":"Example","location":"Burnmount","drop":null,"defeated":false}],
   "safe_condition":"All required actions complete.",
@@ -33,7 +33,7 @@ Returns ordered checkpoint summaries:
 }
 ```
 
-Advice `goal` is `completion_safe`, `immediate_power`, or `both`. Stop warnings must contain only verified irreversible/time-sensitive warnings.
+Advice `goal` remains the source recommendation classification: `completion_safe`, `immediate_power`, or `both`. `decision_group` is presentation-only: grind advice becomes `optional_grind`; other `completion_safe`/`both` advice becomes `completion_safe`; remaining advice becomes `strongest_now`. The browser keeps STOP first and the safe advancement condition last. Stop warnings must contain only verified irreversible/time-sensitive warnings.
 
 ### `GET /api/progress`
 
@@ -69,7 +69,7 @@ Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/mon
 
 Missables return `{total, limit, offset, missables}` and support `GET /api/missables/{missable_id}`. `window_status` is `verified` only when both boundaries and direct source verification are present; otherwise it is `unresolved`. Every row carries its direct source locator; unknown cutoffs remain null instead of being inferred. The browser must not promote unresolved rows into STOP warnings.
 
-Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, availability gate, confidence, and source are sourced fields. `strategy` is explicitly labeled `attributed_strategy`, not canonical fact. The current schema stores neither a rate nor a precise locator, so the API returns `rate_status: "unknown"`, `locator: null`, and `provenance_gap: true` rather than inferring them. Farms are read-only and never mutate player progress.
+Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, checkpoint gate, qualitative frequency, confidence, and direct locator are sourced facts. Numeric rates remain `numeric_unpublished`. Strategy text is separately sourced and labeled `attributed_strategy`, not canonical fact. Farms are read-only and never mutate player progress.
 
 Domain-specific fields:
 

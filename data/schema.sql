@@ -245,9 +245,16 @@ CREATE TABLE farming_spots (
     location TEXT NOT NULL,
     time_period TEXT,
     available_from TEXT,
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    encounter_rate_text TEXT,
     strategy TEXT,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
-    confidence TEXT NOT NULL
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    strategy_source_id TEXT REFERENCES sources(source_id),
+    strategy_locator TEXT,
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    CHECK(strategy IS NULL OR (strategy_source_id IS NOT NULL AND strategy_locator IS NOT NULL))
 );
 
 CREATE TABLE monster_hearts (

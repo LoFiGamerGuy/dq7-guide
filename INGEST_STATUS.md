@@ -19,11 +19,11 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Heroic Hoarder items | 353/353 identities / 501 acquisition paths; all items have routes; 44 direct monster-drop alternatives normalized for 19 items previously represented only by Lucky Panel routes | High for identities and explicit routes; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and finite-supply evidence |
 | Lucky Panel | 14 normalized pools / 91 reward paths; Version 2 and Version 3 treasure-chest matrices complete | High for normalized rows; entry costs and reward probabilities remain unknown | Complete remaining standard-rank matrices and preserve exclusivity qualifiers |
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
-| Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
+| Farming | 8/8 routes have direct-source locators and checkpoint gates; factual locations and attributed tactics are separated | High for routes/gates; all numeric encounter rates remain unpublished | Add verified proficiency, gold, and Heart farms without inventing rates |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; Golem Heart has an explicit Ballymolloy gate | High for effects; 45 acquisition windows remain unknown | Add direct acquisition routes without inventing drop rates |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 238 gated locations across 137 monsters and 142 drops across 123 monsters; 10 Vicious species / 11 encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
+| Monster List / Vicious | 333/333 ordinals and English names; 243 gated locations across 142 monsters and 144 drops across 125 monsters; 10 Vicious species / 11 encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 7 unresolved source conflicts | Conservative coverage | Resolve location disputes and Stella/Stellar spelling with direct in-game evidence |
 
@@ -31,7 +31,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 297
+- sources: 302
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -49,7 +49,7 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 238 / 142
+- monster encounters / drops: 243 / 144
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
@@ -115,7 +115,7 @@ The eighth combat-engine batch extends qualitative modifiers to all non-default 
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 238 checkpoint-gated encounter routes across 137 of 333 monsters and 142 verified drop rows across 123 monsters. The latest direct-page additions cover Toxic Zombie, Rockbomb, Side Winder, Very Devil, and Stout Troll; unknown drops and rates remain unset rather than inferred.
+The current monster expansion has 243 checkpoint-gated encounter routes across 142 of 333 monsters and 144 verified drop rows across 125 monsters. The latest first-10-hours batch adds direct boss routes for Tribulator, Golem, Crabble-Rouser, Florin, and Numpton, plus the two published boss rewards; None and unknown drops remain unset.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
@@ -126,6 +126,8 @@ The second Monster Heart batch completes all 46 current-version identities and e
 The missable audit gives all seven records precise direct-source locators and normalizes five exact action boundaries. It corrects the Vogograd reward to Pretty Betsy, records the irreversible Wrecked Specs, Wiggles, and Kiefer choices, and leaves the Wooden Doll's branching cutoff and Little Blue Button's unnamed story cutoff explicitly unknown.
 
 The Lucky Panel chest batch completes Version 2's three-item and Version 3's eleven-item treasure-chest matrices. It adds 13 version-scoped reward paths, retains the Version 2 replacement boundary at the final Elemental Spirits upgrade, and leaves chest probability and slot counts unknown.
+
+The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 

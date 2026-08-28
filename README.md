@@ -26,11 +26,11 @@ The seed includes:
 - confirmed Metal Slime farming locations;
 - all 46 Monster Heart identities and sourced effects, with explicit availability gaps;
 - ordered chronological checkpoints through the final postgame cleanup;
-- a 297-page source registry;
+- a 302-page source registry;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 238 checkpoint-gated encounters across 137 monsters and 142 verified drops across 123 monsters;
+- 243 checkpoint-gated encounters across 142 monsters and 144 verified drops across 125 monsters;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
 - verified qualitative stat modifiers for all non-default vocations;

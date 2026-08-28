@@ -58,7 +58,10 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("progress", dashboard)
         with urlopen(self.base + "/") as response:
             self.assertEqual(response.status, 200)
-            self.assertIn(b"Run Guide", response.read())
+            page = response.read()
+            self.assertIn(b"Run Guide", page)
+            self.assertLess(page.index(b'id="checkpointStop"'), page.index(b'id="advice"'))
+            self.assertLess(page.index(b'id="advice"'), page.index(b'id="safeCondition"'))
 
     def test_checkpoint_and_domain_endpoints(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
@@ -69,6 +72,11 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(slime["drop"], "Medicinal Herb")
         self.assertTrue(any(source["id"] == "game8_monster_slime"
                             for source in ballymolloy["sources"]))
+        _, alltrades = self.get_json("/api/checkpoints/cp_009_alltrades")
+        groups = {row["decision_group"] for row in alltrades["advice"]}
+        self.assertEqual(groups, {"completion_safe", "strongest_now", "optional_grind"})
+        self.assertTrue(all(row["goal"] in ("completion_safe", "immediate_power", "both")
+                            for row in alltrades["advice"]))
         _, progress = self.get_json("/api/progress")
         self.assertIn("achievements", progress)
         _, hoarder = self.get_json("/api/hoarder?gaps=1")
@@ -120,11 +128,15 @@ class GuideServerTests(unittest.TestCase):
         farm_id = farms["farms"][0]["farming_id"]
         _, farm = self.get_json("/api/farms/" + farm_id)
         self.assertEqual(farm["farming_id"], farm_id)
-        self.assertEqual(farm["rate_status"], "unknown")
+        self.assertEqual(farm["rate_status"], "numeric_unpublished")
         self.assertEqual(farm["strategy_kind"], "attributed_strategy")
         self.assertTrue(farm["source_url"])
-        self.assertIsNone(farm["locator"])
-        self.assertTrue(farm["provenance_gap"])
+        self.assertTrue(farm["locator"])
+        self.assertFalse(farm["provenance_gap"])
+        self.assertTrue(farm["available_from_checkpoint_id"])
+        self.assertTrue(farm["encounter_rate_text"])
+        self.assertTrue(farm["strategy_source_url"])
+        self.assertTrue(farm["strategy_locator"])
 
     def test_progress_post_reuses_validated_mutation_and_rejects_unknown_command(self):
         body = json.dumps({"command": "checkpoint", "values": ["cp_001_prologue"]}).encode()

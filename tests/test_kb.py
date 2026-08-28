@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 297)
+        self.assertEqual(self.counts["sources"], 302)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -249,6 +249,26 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Pretty Betsy", vogograd[2])
         self.assertNotIn("Seed of Therapeusis", vogograd[2])
 
+    def test_farming_rows_are_checkpoint_gated_and_strategy_attributed(self):
+        rows = self.connection.execute(
+            """SELECT farming_id, available_from_checkpoint_id,
+                encounter_rate_text, strategy, source_id, locator,
+                strategy_source_id, strategy_locator
+            FROM farming_spots ORDER BY farming_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 8)
+        self.assertTrue(all(row[1] for row in rows))
+        self.assertTrue(all(row[4] and row[5] for row in rows))
+        self.assertTrue(all(not row[3] or (row[6] and row[7]) for row in rows))
+        self.assertTrue(all(
+            row[2] is None or "no numeric encounter rate published" in row[2]
+            for row in rows
+        ))
+        seed = next(row for row in rows if row[0] == "farm_super_seeds_almighty")
+        self.assertEqual(seed[1], "cp_032_yet_another_world")
+        self.assertEqual(seed[4], "game8_boss_almighty_spirits")
+        self.assertEqual(seed[6], "game8_party_builds")
+
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
         report = load_hoarder_report(
             self.db_path, ROOT / "player" / "ryan-save-state.json", gaps_only=True
@@ -319,13 +339,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (238, 142))
+        self.assertEqual(tuple(counts), (243, 144))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (137, "cp_003_ballymolloy", 3))
+        self.assertEqual(tuple(early), (142, "cp_001_prologue", 8))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -452,8 +472,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 137)
-        self.assertEqual(report["drops"], 123)
+        self.assertEqual(report["routed"], 142)
+        self.assertEqual(report["drops"], 125)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
