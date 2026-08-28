@@ -717,6 +717,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                         "resolution_claim_id": row["resolution_claim_id"],
                         "detection_method": row["detection_method"],
                         "rationale": row["rationale"],
+                        "required_evidence": (None if row["status"] == "resolved" else
+                            ("Direct in-game capture or patch-scoped map evidence confirming whether Tempest Shield exists in both Sanctum of the Cirrus and Ventus Tower, or which listed route is erroneous."
+                             if row["subject_key"] == "item:tempest_shield" else
+                             "Direct current-version in-game or location-specific evidence that addresses the same scope and distinguishes the two claims.")),
                         "claims": [{
                             "id": row[f"claim_{side}_id"],
                             "is_resolution": row[f"claim_{side}_id"] == row["resolution_claim_id"],

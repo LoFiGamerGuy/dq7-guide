@@ -94,12 +94,19 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn("locator", claim)
             self.assertTrue(claim["source"]["url"])
             self.assertIn("retrieved_at", claim["source"])
+        self.assertTrue(conflicts[0]["required_evidence"])
+        tempest = next(row for row in conflicts if "tempest shield" in row["subject"])
+        self.assertIn("both Sanctum of the Cirrus and Ventus Tower",
+                      tempest["required_evidence"])
         _, all_conflicts = self.get_json("/api/conflicts?include_resolved=1")
         iron = next(row for row in all_conflicts
                     if row["resolution_claim_id"] ==
                     "claim_iron_shield_game8_alltrades_price")
         self.assertEqual(iron["status"], "resolved")
         self.assertEqual(sum(claim["is_resolution"] for claim in iron["claims"]), 1)
+        self.assertIn(iron["resolution_claim_id"],
+                      {claim["id"] for claim in iron["claims"]})
+        self.assertIsNone(iron["required_evidence"])
         self.assertIn("dedicated Alltrades Abbey map shop table", iron["rationale"])
         self.assertTrue(all(
             sum(claim["is_resolution"] for claim in row["claims"]) == 1
