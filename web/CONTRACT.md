@@ -112,6 +112,15 @@ Domain-specific fields:
 {"id":"ach_heroic_hoarder","name":"Heroic Hoarder","category":"completion","requirement":"Obtain all 353 items","completed":false}
 ```
 
+Achievement list and detail rows include `dependency_progress` with `status`
+(`unknown`, `partial`, `target_met`, or `complete`), `known_count`,
+`required_count`, `basis`, and `reason`. Registry counts use only explicitly saved
+identities. Empty item, monster, tablet, Vicious-obligation, and vocation trackers
+remain `unknown`, not zero; an explicit `mini_medal_count: 0` is an exact zero.
+`target_met` means the dependency counter is sufficient but the achievement unlock
+has not itself been recorded. This distinction applies to Heroic Hoarder, Monster
+List, Vicious encounters, tablets, vocations, and medals.
+
 The Python server derives these endpoints from the generated database and explicitly selected state file. Vocation mastery and whole-tablet status need dedicated workflows and remain read-only in the generic catalog.
 
 ## Writes

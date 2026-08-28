@@ -75,36 +75,70 @@ def load_achievement_report(
             item = dict(row)
             item["unlocked"] = item["achievement_id"] in unlocked
             progress = None
+            basis = "No supported player-state counter has been recorded."
             completion = state.get("completion", {})
             if item["target_type"] == "mini_medal_registry":
                 progress = completion.get("mini_medal_count")
+                basis = "Explicit Mini Medal total."
                 if progress is None:
                     found = completion.get("mini_medals_found", [])
-                    progress = len(found) if isinstance(found, list) else None
+                    progress = len(found) if isinstance(found, list) and found else None
+                    basis = "Explicitly checked medal identities." if progress is not None else basis
             elif item["target_type"] == "item_registry":
                 found = completion.get("items_obtained", [])
-                progress = len(found) if isinstance(found, list) else None
+                progress = len(set(found)) if isinstance(found, list) and found else None
+                basis = "Explicitly recorded Heroic Hoarder item identities."
             elif item["target_type"] == "checkpoint_obligation":
                 done = completion.get("obligations_completed", [])
-                progress = int(item["target_key"] in done) if isinstance(done, list) else None
+                progress = 1 if isinstance(done, list) and item["target_key"] in done else None
+                basis = "Explicitly completed checkpoint obligation."
             elif item["target_type"] == "achievement_registry":
-                progress = len(set(unlocked) & known)
+                recorded = len(set(unlocked) & known)
+                progress = recorded if recorded else None
+                basis = "Explicitly recorded achievement unlocks."
             elif item["target_type"] == "stone_tablet_registry":
-                progress = assembled_tablets
+                progress = assembled_tablets if found_fragments else None
+                basis = "Whole tablets assembled from explicitly recorded fragment identities."
             elif item["target_type"] == "monster_registry":
                 entries = completion.get("monster_entries", [])
-                progress = len(entries) if isinstance(entries, list) else None
+                progress = len(set(entries)) if isinstance(entries, list) and entries else None
+                basis = "Explicitly recorded Monster List identities."
             elif item["target_type"] == "vicious_registry":
-                progress = vicious_defeats
+                progress = vicious_defeats if vicious_defeats else None
+                basis = "Vicious encounter sizes linked to explicitly completed obligations."
             elif item["target_type"] == "vocation_registry":
-                progress = len(mastered_vocations)
+                progress = len(mastered_vocations) if mastered_vocations else None
+                basis = "Distinct vocations explicitly mastered by at least one party member."
             elif item["target_type"] == "vocation_tier":
                 tier = item["target_key"].removesuffix("_masteries")
-                progress = sum(
+                tier_count = sum(
                     vocation_tiers[vocation_id] == tier
                     for vocation_id in mastered_vocations
                 )
+                progress = tier_count if tier_count else None
+                basis = f"Distinct explicitly mastered {tier} vocations."
             item["progress"] = progress
+            if item["unlocked"]:
+                progress_status = "complete"
+                status_reason = "Achievement unlock is explicitly recorded."
+            elif progress is None:
+                progress_status = "unknown"
+                status_reason = "No positive or exact counter is recorded; an empty tracker is not treated as zero."
+            elif progress >= item["required_count"]:
+                progress_status = "target_met"
+                status_reason = "The explicit dependency count meets the published requirement; unlock is not recorded."
+            else:
+                progress_status = "partial"
+                status_reason = "Some dependency progress is explicitly recorded."
+            item["dependency_progress"] = {
+                "status": progress_status,
+                "known_count": progress,
+                "required_count": item["required_count"],
+                "basis": basis,
+                "reason": status_reason,
+                "target_type": item["target_type"],
+                "target_key": item["target_key"],
+            }
             if include_unlocked or not item["unlocked"]:
                 result_rows.append(item)
     return {

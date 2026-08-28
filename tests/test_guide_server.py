@@ -388,6 +388,10 @@ class GuideServerTests(unittest.TestCase):
         _, achievements = self.get_json("/api/achievements?limit=1")
         achievement_id = achievements["achievements"][0]["achievement_id"]
         self.assertIn("unlocked", achievements["achievements"][0])
+        self.assertIn("dependency_progress", achievements["achievements"][0])
+        _, achievement_detail = self.get_json("/api/achievements/" + achievement_id)
+        self.assertIn(achievement_detail["dependency_progress"]["status"],
+                      {"unknown", "partial", "target_met", "complete"})
         for completed in (True, False):
             self.patch_json("/api/achievements/" + achievement_id,
                             {"completed": completed})

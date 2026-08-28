@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 411)
+        self.assertEqual(self.counts["sources"], 418)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 735)
+        self.assertEqual(self.counts["item_acquisition_paths"], 739)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -130,6 +130,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(report["total"], 61)
         self.assertEqual(report["unlocked_count"], 0)
         self.assertEqual(len(report["achievements"]), 61)
+        by_id = {row["achievement_id"]: row for row in report["achievements"]}
+        for achievement_id in ("ach_heroic_hoarder", "ach_take_no_prisoners",
+                               "ach_vanquisher_of_the_vicious",
+                               "ach_no_stone_left_unturned", "ach_master_of_all"):
+            self.assertIsNone(by_id[achievement_id]["progress"])
+            self.assertEqual(by_id[achievement_id]["dependency_progress"]["status"],
+                             "unknown")
 
         state_path = Path(self.tempdir.name) / "achievement-state.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
@@ -141,6 +148,24 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(report["unlocked_count"], 1)
         self.assertEqual(report["unknown_state_ids"], ["unknown_legacy_name"])
         self.assertEqual(len(report["achievements"]), 60)
+
+    def test_achievement_dependencies_count_only_explicit_identifiers(self):
+        state_path = Path(self.tempdir.name) / "achievement-dependencies.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["items_obtained"] = ["item_cypress_stick"]
+        state["completion"]["monster_entries"] = ["monster_001"]
+        state["completion"]["tablet_fragments"] = ["fragment_land_pilchard_bay_1"]
+        state["completion"]["mini_medal_count"] = 0
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_achievement_report(self.db_path, state_path, True)
+        by_id = {row["achievement_id"]: row for row in report["achievements"]}
+        self.assertEqual(by_id["ach_heroic_hoarder"]["progress"], 1)
+        self.assertEqual(by_id["ach_heroic_hoarder"]["dependency_progress"]["status"],
+                         "partial")
+        self.assertEqual(by_id["ach_take_no_prisoners"]["progress"], 1)
+        self.assertEqual(by_id["ach_gold_medallist"]["progress"], 0)
+        self.assertEqual(by_id["ach_gold_medallist"]["dependency_progress"]["status"],
+                         "partial")
 
     def test_player_progress_records_and_reopens_achievements(self):
         state_path = Path(self.tempdir.name) / "achievement-progress.json"
@@ -280,6 +305,33 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
+
+    def test_early_helmet_pages_add_finite_free_routes(self):
+        rows = self.connection.execute(
+            """SELECT acquisition_id, available_from_checkpoint_id, supply_type,
+                finite_total, is_free, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_leather_hat_pilchard_bay_present',
+                'acq_leather_hat_estard_present',
+                'acq_pointy_hat_rainbow_mines_past',
+                'acq_hardwood_headwear_ballymolloy_present'
+            ) ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 4)
+        by_id = {row["acquisition_id"]: row for row in rows}
+        self.assertEqual(
+            by_id["acq_leather_hat_pilchard_bay_present"]["available_from_checkpoint_id"],
+            "cp_001_prologue",
+        )
+        self.assertEqual(
+            by_id["acq_hardwood_headwear_ballymolloy_present"]["available_from_checkpoint_id"],
+            "cp_003_ballymolloy",
+        )
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["finite_total"] == 1 for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
+        self.assertTrue(all("exact_container_unknown" in row["verification_status"] for row in rows))
 
     def test_kamikazee_bracer_has_cp011_fixed_free_alternative(self):
         row = self.connection.execute(
@@ -672,13 +724,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (383, 212))
+        self.assertEqual(tuple(counts), (391, 213))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (254, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (261, "cp_001_prologue", 65))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -737,6 +789,21 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND available_from_checkpoint_id='cp_031_testy_road_gold_gate'"""
         ).fetchone()
         self.assertEqual(tuple(rampage_completion_routes), (8, 8))
+        completion_special_routes = self.connection.execute(
+            """SELECT COUNT(*), COUNT(DISTINCT monster_id)
+            FROM monster_encounters
+            WHERE encounter_id IN (
+                'enc_rampaging_goon_testy_road',
+                'enc_colin_cocksure_bronze_cup',
+                'enc_fair_weather_fred_bronze_cup',
+                'enc_formidable_finn_bronze_cup',
+                'enc_mossferatu_heavy_metal_hole_past',
+                'enc_overtoad_slamphibians_heavy_metal_hole_past',
+                'enc_toxic_toad_slamphibians_heavy_metal_hole_past',
+                'enc_smothers_beacon_present'
+            )"""
+        ).fetchone()
+        self.assertEqual(tuple(completion_special_routes), (8, 8))
 
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(
@@ -812,9 +879,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_020_buccanham": 33,
+                "cp_020_buccanham": 39,
                 "cp_021_malign_shrine": 12,
-                "cp_023_fire_spirit": 3,
+                "cp_023_fire_spirit": 4,
                 "cp_025_wind_spirit": 4,
             },
         )
@@ -857,8 +924,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 254)
-        self.assertEqual(report["drops"], 184)
+        self.assertEqual(report["routed"], 261)
+        self.assertEqual(report["drops"], 185)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
