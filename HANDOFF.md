@@ -29,7 +29,7 @@ The schema deliberately separates:
 
 The browser exposes first-class item, vocation, monster, medal, tablet, and achievement registries alongside the walkthrough. Reads are state-aware and paginated; supported writes reuse the validated player-progress layer. Checkpoint selection is explicit, and the responsive UI includes keyboard focus, high-contrast support, loading/retry states, and a default hide-completed mode.
 
-Current reproducible headline counts are 287 sources, 353 items with 488 acquisition paths, 333 monsters with 219 checkpoint-gated encounters and 132 verified drops, 100 Mini Medals, 71 tablet fragments, 61 achievements, and 26 complete vocation skill/perk ladders. `INGEST_STATUS.md` remains the authoritative detailed ledger.
+Current reproducible headline counts are 289 sources, 353 items with 488 acquisition paths, 333 monsters with 222 checkpoint-gated encounters and 134 verified drops, 12 structured Monster Hearts, 100 Mini Medals, 71 tablet fragments, 61 achievements, and 26 complete vocation skill/perk ladders. `INGEST_STATUS.md` remains the authoritative detailed ledger.
 
 ## Source methodology
 

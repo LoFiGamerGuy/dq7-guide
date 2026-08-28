@@ -249,6 +249,18 @@ CREATE TABLE farming_spots (
     confidence TEXT NOT NULL
 );
 
+CREATE TABLE monster_hearts (
+    heart_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE CHECK(length(trim(name)) > 0),
+    effect_text TEXT NOT NULL CHECK(length(trim(effect_text)) > 0),
+    available_from_checkpoint_id TEXT REFERENCES checkpoints(checkpoint_id),
+    availability_notes TEXT,
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL
+);
+
 CREATE TABLE checkpoints (
     checkpoint_id TEXT PRIMARY KEY,
     sequence_no INTEGER NOT NULL UNIQUE,

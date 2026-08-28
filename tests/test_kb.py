@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 287)
+        self.assertEqual(self.counts["sources"], 289)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -71,6 +71,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
         self.assertEqual(self.counts["item_acquisition_paths"], 488)
+        self.assertEqual(self.counts["monster_hearts"], 12)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 13)
@@ -203,6 +204,26 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(gaps, 0)
         self.assertEqual(unexplained_gaps, [])
 
+    def test_monster_heart_batch_preserves_known_and_unknown_availability(self):
+        golem = self.connection.execute(
+            """SELECT effect_text, available_from_checkpoint_id, locator
+            FROM monster_hearts WHERE heart_id = 'heart_golem'"""
+        ).fetchone()
+        self.assertEqual(golem[1], "cp_003_ballymolloy")
+        self.assertIn("survive a killing blow", golem[0])
+        self.assertIn("Golem Heart for Survivability", golem[2])
+        unknown = self.connection.execute(
+            """SELECT COUNT(*) FROM monster_hearts
+            WHERE available_from_checkpoint_id IS NULL"""
+        ).fetchone()[0]
+        self.assertEqual(unknown, 11)
+        missing_provenance = self.connection.execute(
+            """SELECT COUNT(*) FROM monster_hearts h
+            LEFT JOIN sources s USING(source_id)
+            WHERE s.source_id IS NULL OR trim(h.locator) = ''"""
+        ).fetchone()[0]
+        self.assertEqual(missing_provenance, 0)
+
     def test_hoarder_report_preserves_unknown_progress_and_route_gaps(self):
         report = load_hoarder_report(
             self.db_path, ROOT / "player" / "ryan-save-state.json", gaps_only=True
@@ -273,13 +294,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (219, 132))
+        self.assertEqual(tuple(counts), (222, 134))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (125, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (128, "cp_003_ballymolloy", 0))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -302,7 +323,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             checkpoints,
             {
                 "cp_011_la_bravoure": 11,
-                "cp_013_flying_carpet": 14,
+                "cp_013_flying_carpet": 15,
                 "cp_014_sir_mervyn": 3,
             },
         )
@@ -406,8 +427,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 125)
-        self.assertEqual(report["drops"], 115)
+        self.assertEqual(report["routed"], 128)
+        self.assertEqual(report["drops"], 117)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):

@@ -83,12 +83,20 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(len(vocations["vocations"]), 26)
         _, vocation = self.get_json("/api/vocations/vocation_warrior")
         self.assertEqual(vocation["vocation"]["name"], "Warrior")
+        self.assertTrue(vocation["skills"])
+        self.assertIn("source_url", vocation["skills"][0])
+        self.assertIn("locator", vocation["skills"][0])
         _, items = self.get_json("/api/items")
         item_id = items["items"][0]["item_id"]
         _, item = self.get_json("/api/items/" + item_id)
         self.assertEqual(item["item"]["item_id"], item_id)
+        if item["routes"]:
+            self.assertIn("source_url", item["routes"][0])
+            self.assertIn("locator", item["routes"][0])
         _, monster = self.get_json("/api/monsters/monster_001")
         self.assertEqual(monster["monster"]["monster_id"], "monster_001")
+        self.assertIn("encounters", monster)
+        self.assertIn("drops", monster)
 
     def test_progress_post_reuses_validated_mutation_and_rejects_unknown_command(self):
         body = json.dumps({"command": "checkpoint", "values": ["cp_001_prologue"]}).encode()

@@ -343,6 +343,19 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
+            """INSERT INTO monster_hearts(
+                heart_id, name, effect_text, available_from_checkpoint_id,
+                availability_notes, source_id, locator, confidence,
+                verification_status
+            ) VALUES (
+                :heart_id, :name, :effect_text, :available_from_checkpoint_id,
+                :availability_notes, :source_id, :locator, :confidence,
+                :verification_status
+            )""",
+            seed.get("monster_hearts", []),
+        )
+
+        connection.executemany(
             """INSERT INTO mini_medal_locations(
                 medal_number, location, detail, time_period, checkpoint_id,
                 available_checkpoint_id,
@@ -814,7 +827,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "sources", "entities", "relationships", "claims", "documents",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
             "vocation_progression_rules", "vocation_stat_modifiers", "medal_rewards", "missables",
-            "farming_spots", "checkpoints", "conflicts"
+            "farming_spots", "monster_hearts", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
             , "checkpoint_advice", "achievements", "achievement_aliases"
             , "achievement_requirements"

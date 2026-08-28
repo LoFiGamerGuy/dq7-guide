@@ -124,6 +124,33 @@ function renderDetail() {
   const progressKind = entry.progress_kind === null || (state.domain === "tablets" && entryCategory(entry) === "tablet") || (state.domain === "medals" && entry.completed) ? null : (entry.progress_kind || config.progressKind);
   target.innerHTML = `<p class="eyebrow">${escapeHtml(config.singular)}</p><h3>${escapeHtml(entryName(entry))}</h3><dl>${fields.map(([k,v]) => `<dt>${escapeHtml(k.replaceAll("_"," "))}</dt><dd>${escapeHtml(v)}</dd>`).join("")}</dl>${source ? `<p><a href="${escapeHtml(source.url || entry.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(source.title || "Source")}</a><br><span class="muted">${escapeHtml(source.locator || "")}</span></p>` : ""}${progressKind ? `<label class="progress-toggle"><input type="checkbox" data-catalog-progress="${progressKind}" data-progress-id="${escapeHtml(entry.id)}" ${entry.completed ? "checked" : ""}> Explicitly mark ${config.singular} complete</label>` : `<p class="muted">This entry needs its dedicated player workflow; generic updates are disabled.</p>`}`;
 }
+function sourceLink(row) {
+  if (!row?.source_url) return row?.locator ? `<span class="muted">${escapeHtml(row.locator)}</span>` : "";
+  return `<a href="${escapeHtml(row.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(row.source_title || "Source")}</a><br><span class="muted">${escapeHtml(row.locator || "")}</span>`;
+}
+function renderRichDetail(detail, summary) {
+  const target = $("#catalogDetail");
+  if (state.domain === "items") {
+    const item = detail.item, routes = detail.routes || [];
+    target.innerHTML = `<p class="eyebrow">Item · ${escapeHtml(item.category_name || summary.category)}</p><h3>${escapeHtml(item.name)}</h3><p><span class="tag">${item.heroic_hoarder_required ? "Hoarder" : "Optional"}</span> ${escapeHtml(item.confidence || "")}</p><h4>Get it</h4><div class="detail-list">${routes.map(route => `<div><strong>${escapeHtml(route.route_label)}</strong><span>${escapeHtml([route.location_text, route.time_period, route.available_checkpoint].filter(Boolean).join(" · "))}</span><span>${route.is_free === 1 ? "Free" : route.price ? `${route.price} ${escapeHtml(route.currency || "gold")}` : escapeHtml(route.supply_type || "")}</span>${sourceLink(route)}</div>`).join("") || '<p class="empty">No verified route yet.</p>'}</div><label class="progress-toggle"><input type="checkbox" data-catalog-progress="item" data-progress-id="${escapeHtml(item.item_id)}" ${item.obtained ? "checked" : ""}> Explicitly mark obtained</label>`;
+  } else if (state.domain === "vocations") {
+    const vocation = detail.vocation, skills = detail.skills || [], perks = detail.perks || [], requirements = detail.requirements || [];
+    target.innerHTML = `<p class="eyebrow">${escapeHtml(vocation.tier)} vocation</p><h3>${escapeHtml(vocation.name)}</h3>${vocation.exclusive_character ? `<p class="tag">${escapeHtml(vocation.exclusive_character)} only</p>` : ""}${perks.map(perk => `<div class="callout"><strong>${escapeHtml(perk.perk_name)}</strong><span>${escapeHtml(perk.perk_description)}</span>${sourceLink(perk)}</div>`).join("")}<h4>Skills</h4><ol class="skill-list">${skills.map(skill => `<li><strong>${skill.proficiency_rank}★ ${escapeHtml(skill.skill_name)}</strong><span>${escapeHtml(skill.skill_description)}</span>${sourceLink(skill)}</li>`).join("") || '<li class="empty">No skill rows.</li>'}</ol>${requirements.length ? `<h4>Requires</h4><p>${requirements.map(r => escapeHtml(r.prerequisite_name || r.prerequisite_id)).join(" + ")}</p>` : ""}<p class="muted">Mastered by: ${escapeHtml((detail.mastered_by || []).join(", ") || "nobody recorded")}</p>`;
+  } else if (state.domain === "monsters") {
+    const monster = detail.monster, encounters = detail.encounters || [], drops = detail.drops || [];
+    const stats = [["HP",monster.hp],["Attack",monster.strength],["Defence",monster.defence],["EXP",monster.experience],["Vocation EXP",monster.vocation_experience],["Gold",monster.gold]].filter(([,v]) => v !== null && v !== undefined);
+    target.innerHTML = `<p class="eyebrow">Monster #${escapeHtml(monster.source_ordinal)}</p><h3>${escapeHtml(monster.english_name || summary.name)}</h3><dl>${stats.map(([k,v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("")}</dl><h4>Where</h4><div class="detail-list">${encounters.map(row => `<div><strong>${escapeHtml(row.location || row.location_text)}</strong><span>${escapeHtml([row.time_period, row.checkpoint_name].filter(Boolean).join(" · "))}</span>${sourceLink(row)}</div>`).join("") || '<p class="empty">No verified encounter route.</p>'}</div><h4>Drops</h4><div class="detail-list">${drops.map(row => `<div><strong>${escapeHtml(row.item_name || row.drop_name || row.item_id)}</strong><span>${escapeHtml(row.drop_type || "Verified drop")}</span>${sourceLink(row)}</div>`).join("") || '<p class="empty">No verified drops.</p>'}</div>${sourceLink(monster)}<label class="progress-toggle"><input type="checkbox" data-catalog-progress="monster" data-progress-id="${escapeHtml(monster.monster_id)}" ${detail.defeated ? "checked" : ""}> Explicitly mark defeated</label>`;
+  }
+}
+async function selectCatalogEntry(id) {
+  const domain = state.domain, summary = (state.catalogs[domain] || []).find(row => String(row.id) === String(id));
+  state.selectedEntry = summary; renderCatalog();
+  if (!["items", "vocations", "monsters"].includes(domain)) return;
+  const target = $("#catalogDetail"); target.setAttribute("aria-busy", "true"); target.innerHTML = '<p class="empty">Loading details…</p>';
+  try { const detail = await api(`/${domain}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) renderRichDetail(detail, summary); }
+  catch (error) { target.innerHTML = '<p class="empty">Details unavailable. List data is still available.</p>'; console.error(error); }
+  finally { if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) target.removeAttribute("aria-busy"); }
+}
 async function loadDomain(name) {
   setStatus(`Loading ${domains[name].title.toLowerCase()}…`);
   if (!state.catalogs[name]) state.catalogs[name] = await loadCatalog(name);
@@ -180,7 +207,7 @@ document.addEventListener("click", event => {
   const nav = event.target.closest("[data-view]"); if (nav) { event.preventDefault(); showView(nav.dataset.view); $("#main").focus(); }
   const domain = event.target.closest("[data-domain]"); if (domain) { event.preventDefault(); showDomain(domain.dataset.domain); $("#main").focus(); }
   const filter = event.target.closest("[data-filter]"); if (filter) { state.filter = filter.dataset.filter; renderCatalog(); }
-  const card = event.target.closest("[data-entry-id]"); if (card) { state.selectedEntry = (state.catalogs[state.domain] || []).find(x => String(x.id) === card.dataset.entryId); renderCatalog(); }
+  const card = event.target.closest("[data-entry-id]"); if (card) selectCatalogEntry(card.dataset.entryId);
   if (event.target.closest("[data-retry]")) { if (state.domain) loadDomain(state.domain).catch(handleError); else loadAll().catch(handleError); }
 });
 $("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); });
