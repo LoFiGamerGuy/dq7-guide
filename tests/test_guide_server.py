@@ -104,9 +104,14 @@ class GuideServerTests(unittest.TestCase):
             self.assertTrue(claim["source"]["url"])
             self.assertIn("retrieved_at", claim["source"])
         self.assertTrue(conflicts[0]["required_evidence"])
-        tempest = next(row for row in conflicts if "tempest shield" in row["subject"])
-        self.assertIn("both Sanctum of the Cirrus and Ventus Tower",
-                      tempest["required_evidence"])
+        self.assertFalse(any("tempest shield" in row["subject"]
+                             for row in conflicts))
+        _, tempest_item = self.get_json("/api/items/Tempest%20Shield")
+        tempest_chests = {row["location_text"] for row in tempest_item["routes"]
+                          if row["method"] == "chest"}
+        self.assertEqual(tempest_chests, {
+            "Sanctum of the Cirrus", "Ventus Tower 2F, by the north stairs"
+        })
         moonlighting = next(row for row in conflicts if "moonlighting" in row["subject"])
         self.assertIn("post-Aishe Career Sphere message",
                       moonlighting["required_evidence"])

@@ -59,6 +59,8 @@ The conflict view presents both claims symmetrically with their independent scop
 
 The Stella/Stellar Fan spelling remains unresolved because the current direct evidence consists of conflicting guide text, not a legible English in-game name capture. Both spellings resolve to the same item detail/search result through the sourced alias, while the canonical display remains `Stellar Fan` without claiming that this adjudicates the conflict. Resolution requires a current-version English Item List, inventory, shop, or acquisition-result capture with the complete name visible.
 
+Tempest Shield is intentionally absent from the conflict registry. Its Present Sanctum of the Cirrus treasure and later Ventus Tower 2F chest are independent finite acquisition rows, not competing values: Game8's dedicated item/map tables support the Sanctum route, and both Game8's Wind Spirit walkthrough and RPG Site support Ventus Tower. Item detail therefore returns both chest routes with their separate checkpoint gates.
+
 ## Domain registries
 
 The first-class domain routes call:
