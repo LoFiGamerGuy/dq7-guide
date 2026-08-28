@@ -121,6 +121,9 @@ function renderCheckpoint() {
   const fragments = c.tablet_fragments || [], checkpointTablets = $("#checkpointTablets");
   $("#tabletFragmentCount").textContent = `${fragments.filter(row => row.found).length}/${fragments.length}`;
   checkpointTablets.innerHTML = fragments.map(row => `<label class="check-row${row.found ? " completed" : ""}"><input type="checkbox" data-tablet-id="${escapeHtml(row.id)}" ${row.found ? "checked" : ""}><span class="check-text"><strong>#${row.ordinal} ${escapeHtml(row.color)} · ${escapeHtml(row.tablet_name)}</strong><br>${escapeHtml(row.location)} · ${escapeHtml(row.detail)}</span></label>`).join(""); if (!checkpointTablets.children.length) checkpointTablets.append(empty());
+  const checkpointItems = c.checkpoint_items || [], itemTarget = $("#checkpointItems");
+  $("#checkpointItemCount").textContent = `${checkpointItems.filter(row => row.obtained).length}/${checkpointItems.length}`;
+  itemTarget.innerHTML = checkpointItems.map(row => `<label class="check-row${row.obtained ? " completed" : ""}"><input type="checkbox" data-item-id="${escapeHtml(row.id)}" ${row.obtained ? "checked" : ""}><span class="check-text"><strong>${escapeHtml(row.name)} · ${escapeHtml(row.category)}</strong><br>${escapeHtml((row.routes || []).map(route => `${route.route_label}${route.is_free === 1 ? " · free" : ""}`).join(" / "))}</span></label>`).join(""); if (!itemTarget.children.length) itemTarget.append(empty());
   const medals = $("#medals"), availableMedals = (c.medals || []).filter(m => m.timing !== "later"), laterMedals = (c.medals || []).filter(m => m.timing === "later");
   medals.innerHTML = availableMedals.map(m => `<label class="check-row${m.found ? " completed" : ""}"><input type="checkbox" data-medal="${m.number}" ${m.found ? "checked" : ""}><span class="check-text"><strong>${m.timing === "backtrack" ? '<span class="tag">Backtrack</span> ' : ""}#${m.number} ${escapeHtml(m.location)}</strong><br>${escapeHtml(m.detail)}</span></label>`).join("");
   if (laterMedals.length) medals.insertAdjacentHTML("beforeend", `<details class="later-medals"><summary>Later (${laterMedals.length})</summary>${laterMedals.map(m => `<div><strong>#${m.number} ${escapeHtml(m.location)}</strong><span>${escapeHtml(m.available_checkpoint || m.available_from || "Gate unknown")}</span></div>`).join("")}</details>`);
@@ -374,6 +377,7 @@ document.addEventListener("change", event => {
   if (event.target.dataset.actionId) updateProgress({ kind: "action", id: event.target.dataset.actionId, completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.medal) updateProgress({ kind: "medal", id: Number(event.target.dataset.medal), completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.tabletId) updateProgress({ kind: "tablet", id: event.target.dataset.tabletId, completed: event.target.checked }).catch(handleError);
+  if (event.target.dataset.itemId) updateProgress({ kind: "item", id: event.target.dataset.itemId, completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.monsterId) updateProgress({ kind: "monster", id: event.target.dataset.monsterId, completed: event.target.checked }).catch(handleError);
   if (event.target.dataset.catalogProgress) { const kind = event.target.dataset.catalogProgress; const raw = event.target.dataset.progressId; updateProgress({ kind, id: kind === "medal" ? Number(raw) : raw, completed: event.target.checked }).catch(handleError); }
 });

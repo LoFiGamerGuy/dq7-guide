@@ -67,6 +67,17 @@ is displayed as unchecked and is never inferred from story progress. Advancement
 readiness reports the unrecorded checkpoint-fragment count without independently
 declaring the prose safe condition complete or blocked.
 
+`checkpoint_items` groups finite acquisition paths for Heroic Hoarder-required items
+whose route first becomes available at the viewed checkpoint. Each canonical item
+appears once with explicit `obtained` state and one or more route choices carrying
+method, location, time period, free/unknown cost, cutoff, confidence, verification,
+and source provenance. The checkpoint checkbox reuses the validated
+`PATCH /api/items/{item_id}` ledger used by the Items registry; acquiring any listed
+copy satisfies the item identity, but the API does not infer which route was used.
+Renewable shops, Lucky Panel pools, and drops are not duplicated in this finite
+opportunity list. Monster checkboxes likewise reuse the Monster registry ledger;
+completed encounters disappear from the checkpoint's remaining-monster list.
+
 ### `GET /api/progress`
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.

@@ -701,6 +701,40 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "id": row["source_id"], "title": row["source_title"],
             "url": row["source_url"], "locator": row["locator"],
         }
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        item_route_rows = [dict(row) for row in connection.execute(
+            """SELECT i.item_id, i.name, c.name AS category,
+                a.acquisition_id, a.method, a.route_label, a.location_text,
+                a.time_period, a.unavailable_after_checkpoint_id, a.is_free,
+                a.quantity, a.source_id, s.title AS source_title,
+                s.url AS source_url, a.locator, a.confidence,
+                a.verification_status
+            FROM item_acquisition_paths a JOIN items i USING(item_id)
+            JOIN item_categories c USING(category_id)
+            JOIN sources s ON s.source_id=a.source_id
+            WHERE a.available_from_checkpoint_id=? AND a.supply_type='finite'
+              AND i.heroic_hoarder_required=1
+            ORDER BY c.heroic_hoarder_order, i.heroic_hoarder_ordinal,
+                     a.acquisition_id""", (checkpoint_id,))]
+    checkpoint_items: dict[str, dict] = {}
+    obtained_items = set(completion.get("items_obtained", []))
+    for row in item_route_rows:
+        item = checkpoint_items.setdefault(row["item_id"], {
+            "id": row["item_id"], "name": row["name"],
+            "category": row["category"], "obtained": row["item_id"] in obtained_items,
+            "routes": [],
+        })
+        item["routes"].append({key: row[key] for key in (
+            "acquisition_id", "method", "route_label", "location_text",
+            "time_period", "unavailable_after_checkpoint_id", "is_free",
+            "quantity", "confidence", "verification_status")}
+            | {"source": {"id": row["source_id"], "title": row["source_title"],
+                          "url": row["source_url"], "locator": row["locator"]}})
+        sources[(row["source_id"], row["locator"])] = {
+            "id": row["source_id"], "title": row["source_title"],
+            "url": row["source_url"], "locator": row["locator"],
+        }
     open_required = [row for row in block["now"] if row["required_for_100_percent"]]
     saved_checkpoint_match = player_state.get("story", {}).get("checkpoint_id") == checkpoint_id
     if block["stops"]:
@@ -721,6 +755,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "unrecorded_checkpoint_tablet_fragment_count": sum(
             row["fragment_id"] not in set(completion.get("tablet_fragments", []))
             for row in tablet_fragments),
+        "unrecorded_finite_hoarder_item_count": sum(
+            not row["obtained"] for row in checkpoint_items.values()),
         "saved_checkpoint_match": saved_checkpoint_match,
         "safe_condition_requires_player_confirmation": True,
         "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],
@@ -780,6 +816,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "confidence": row["confidence"],
             "verification_status": row["verification_status"],
         } for row in tablet_fragments],
+        "checkpoint_items": list(checkpoint_items.values()),
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
                        "drop": ", ".join(drops[row["monster_id"]]) or None,

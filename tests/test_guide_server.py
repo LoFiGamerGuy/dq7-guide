@@ -113,6 +113,11 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(len(shrine["tablet_fragments"]), 4)
         self.assertTrue(all(row["source"]["url"] and row["source"]["locator"]
                             for row in shrine["tablet_fragments"]))
+        self.assertTrue(shrine["checkpoint_items"])
+        self.assertTrue(all(row["routes"] for row in shrine["checkpoint_items"]))
+        self.assertTrue(all(route["source"]["locator"]
+                            for row in shrine["checkpoint_items"]
+                            for route in row["routes"]))
         _, ballymolloy = self.get_json("/api/checkpoints/cp_003_ballymolloy")
         slime = next(row for row in ballymolloy["monsters"] if row["id"] == "monster_002")
         self.assertEqual(slime["drop"], "Medicinal Herb")
@@ -341,6 +346,27 @@ class GuideServerTests(unittest.TestCase):
                                  if row["fragment_id"] == fragment_id)
         self.assertTrue(registry_fragment["found"])
         self.patch_json("/api/tablets/" + fragment_id, {"completed": False})
+
+    def test_checkpoint_monster_and_item_progress_share_registry_ledgers(self):
+        _, checkpoint = self.get_json("/api/checkpoints/cp_003_ballymolloy")
+        monster_id = checkpoint["monsters"][0]["id"]
+        item_id = checkpoint["checkpoint_items"][0]["id"]
+        self.patch_json("/api/progress", {
+            "kind": "monster", "id": monster_id, "completed": True,
+        })
+        self.patch_json("/api/items/" + item_id, {"completed": True})
+        _, refreshed = self.get_json("/api/checkpoints/cp_003_ballymolloy")
+        self.assertNotIn(monster_id, {row["id"] for row in refreshed["monsters"]})
+        self.assertTrue(next(row for row in refreshed["checkpoint_items"]
+                             if row["id"] == item_id)["obtained"])
+        _, monster_registry = self.get_json("/api/monsters?q=" + monster_id)
+        self.assertTrue(monster_registry["monsters"][0]["defeated"])
+        _, item_registry = self.get_json("/api/items?q=" + item_id)
+        self.assertTrue(item_registry["items"][0]["obtained"])
+        self.patch_json("/api/progress", {
+            "kind": "monster", "id": monster_id, "completed": False,
+        })
+        self.patch_json("/api/items/" + item_id, {"completed": False})
 
     def test_advancement_readiness_requires_explicit_actions_and_manual_confirmation(self):
         state_path = Path(self.temp.name) / "advancement-state.json"
