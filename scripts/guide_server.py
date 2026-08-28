@@ -714,10 +714,12 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                         "subject": row["subject_key"].replace("_", " "),
                         "predicate": row["predicate"].replace("_", " "),
                         "status": row["status"],
+                        "resolution_claim_id": row["resolution_claim_id"],
                         "detection_method": row["detection_method"],
                         "rationale": row["rationale"],
                         "claims": [{
                             "id": row[f"claim_{side}_id"],
+                            "is_resolution": row[f"claim_{side}_id"] == row["resolution_claim_id"],
                             "value": json.loads(row[f"value_{side}"]),
                             "scope": json.loads(row[f"scope_{side}"]),
                             "confidence": row[f"confidence_{side}"],

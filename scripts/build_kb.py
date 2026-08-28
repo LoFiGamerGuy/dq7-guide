@@ -896,6 +896,19 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )
 
         detect_conflicts(connection)
+        for resolution in seed.get("conflict_resolutions", []):
+            claim_a, claim_b = sorted((resolution["claim_a_id"], resolution["claim_b_id"]))
+            cursor = connection.execute(
+                """UPDATE conflicts
+                SET status='resolved', resolution_claim_id=?, rationale=?, detection_method=?
+                WHERE claim_a_id=? AND claim_b_id=?""",
+                (resolution["resolution_claim_id"], resolution["rationale"],
+                 resolution["detection_method"], claim_a, claim_b),
+            )
+            if cursor.rowcount != 1:
+                raise ValueError(
+                    f"Conflict resolution did not match exactly one conflict: {claim_a}, {claim_b}"
+                )
 
         for document in seed["documents"]:
             connection.execute(
