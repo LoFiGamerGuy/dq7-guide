@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 334)
+        self.assertEqual(self.counts["sources"], 338)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,14 +70,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
-        self.assertEqual(self.counts["item_acquisition_paths"], 633)
+        self.assertEqual(self.counts["item_acquisition_paths"], 653)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 223)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 243)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -283,6 +283,19 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(seed[4], "game8_boss_almighty_spirits")
         self.assertEqual(seed[6], "game8_party_builds")
 
+    def test_no_finite_monster_heart_reward_is_mislabeled_as_a_farm(self):
+        heart_farms = self.connection.execute(
+            "SELECT COUNT(*) FROM farming_spots WHERE lower(target) LIKE '%heart%'"
+        ).fetchone()[0]
+        self.assertEqual(heart_farms, 0)
+        heart_drops = self.connection.execute(
+            """SELECT DISTINCT a.supply_type
+            FROM item_acquisition_paths a
+            JOIN items i USING(item_id)
+            WHERE i.name LIKE '% Heart' AND a.method='drop'"""
+        ).fetchall()
+        self.assertEqual({row[0] for row in heart_drops}, {"finite"})
+
     def test_seed_effects_are_fixed_and_reward_membership_stays_unknown(self):
         rows = self.connection.execute(
             """SELECT item_id, stat_key, increase_amount, locator
@@ -405,13 +418,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (302, 164))
+        self.assertEqual(tuple(counts), (307, 168))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (200, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (204, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -538,8 +551,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 200)
-        self.assertEqual(report["drops"], 144)
+        self.assertEqual(report["routed"], 204)
+        self.assertEqual(report["drops"], 148)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -1057,6 +1070,32 @@ class KnowledgeBaseTests(unittest.TestCase):
             for row in rows
         ))
         self.assertTrue(all(row["unavailable_after_checkpoint_id"] is None for row in rows))
+        self.assertTrue(all(row["probability_text"] is None for row in rows))
+        self.assertTrue(all(row["entry_cost"] is None for row in rows))
+
+    def test_lucky_panel_version_2_rank_3_preserves_qualifiers(self):
+        rows = self.connection.execute(
+            """SELECT i.name, a.locator, a.prerequisite_json,
+                a.available_from_checkpoint_id, lr.probability_text,
+                lp.entry_cost
+            FROM lucky_panel_pools lp
+            JOIN lucky_panel_rewards lr USING(pool_id)
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            JOIN items i USING(item_id)
+            WHERE lp.pool_id = 'lp_pilgrims_rest_v2_rank_3_standard'
+            ORDER BY i.name"""
+        ).fetchall()
+        self.assertEqual(len(rows), 30)
+        by_name = {row["name"]: row for row in rows}
+        self.assertIn("Lucky Panel or enemy drop", by_name["Staff of Salvation"]["locator"])
+        self.assertEqual(
+            json.loads(by_name["Staff of Salvation"]["prerequisite_json"])["source_qualifier"],
+            "Lucky Panel or enemy drop",
+        )
+        self.assertTrue(all(
+            row["available_from_checkpoint_id"] == "cp_010_alltrades_present"
+            for row in rows
+        ))
         self.assertTrue(all(row["probability_text"] is None for row in rows))
         self.assertTrue(all(row["entry_cost"] is None for row in rows))
 

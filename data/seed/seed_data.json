@@ -1842,7 +1842,27 @@
     {"item_id":"item_steel_broadsword","source_name":"Steel Broadsword","game_version":"2","panel_rank":"2"},
     {"item_id":"item_stella_fan","source_name":"Stellar Fan","game_version":"2","panel_rank":"2","name_resolution":"adjudicated_stellar_fan_alias"},
     {"item_id":"item_strength_ring","source_name":"Strength Ring","game_version":"2","panel_rank":"2"},
-    {"item_id":"item_tortoise_shell","source_name":"Tortoise Shell","game_version":"2","panel_rank":"2"}
+    {"item_id":"item_tortoise_shell","source_name":"Tortoise Shell","game_version":"2","panel_rank":"2"},
+    {"item_id":"item_assassins_dagger","source_name":"Assassin’s Dagger","game_version":"2","panel_rank":"3","name_resolution":"typographic_apostrophe"},
+    {"item_id":"item_dragontail_whip","source_name":"Dragontail Whip","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_fire_claws","source_name":"Fire Claws","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_full_plate_armour","source_name":"Full Plate Armour","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_gold_bracer","source_name":"Gold Bracer","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_icicle_dirk","source_name":"Icicle Dirk","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_lunar_fan","source_name":"Lunar Fan","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_magic_water","source_name":"Magic Water","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_magical_skirt","source_name":"Magical Skirt","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_platinum_lance","source_name":"Platinum Lance","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_pretty_betsy","source_name":"Pretty Betsy","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_rabbit_tail","source_name":"Rabbit Tail","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_ruby_of_protection","source_name":"Ruby of Protection","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_shiverstick","source_name":"Shiverstick","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_silver_cuirass","source_name":"Silver Cuirass","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_spangled_dress","source_name":"Spangled Dress","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_spiked_steel_whip","source_name":"Spiked Steel Whip","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_staff_of_salvation","source_name":"Staff of Salvation","game_version":"2","panel_rank":"3","source_qualifier":"Lucky Panel or enemy drop"},
+    {"item_id":"item_tin_pot","source_name":"Tin Pot","game_version":"2","panel_rank":"3"},
+    {"item_id":"item_war_hammer","source_name":"War Hammer","game_version":"2","panel_rank":"3"}
   ],
   "mini_medal_evidence": [
     {"evidence_id":"medal_001_rpgsite_order_001","medal_number":1,"source_id":"rpgsite_walkthrough","locator":"Prologue - Pilchard Bay and Estard Castle > Estard Castle King's Bedroom drawers","source_ordinal":1,"ordinal_scheme":"walkthrough_acquisition_order","notes":"RPG Site ordinal is route order, not Game8 list number."},
@@ -4180,6 +4200,11 @@
     ,{"encounter_id":"enc_vicious_vis_mager_vogograd_region_present","monster_id":"monster_248","location_text":"Vogograd Region","time_period":"Present","available_from_checkpoint_id":"cp_026_elemental_cleanup_nottagen","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_vicious_vis_mager","locator":"Where to Find Vicious Vis Mager > Locations and Habitats > (Present) Vogograd Region","confidence":"high","verification_status":"source_checked_checkpoint_gated_one_time_vicious"}
     ,{"encounter_id":"enc_togre_cathedral_of_blight_present","monster_id":"monster_240","location_text":"Cathedral of Blight","time_period":"Present","available_from_checkpoint_id":"cp_028_cathedral_of_blight","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_togre","locator":"Where to Find Togre > Locations and Habitats > (Present) Cathedral of Blight","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
     ,{"encounter_id":"enc_the_stranger_another_world_present","monster_id":"monster_279","location_text":"Another World","time_period":"Present","available_from_checkpoint_id":"cp_030_postgame_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_the_stranger","locator":"Where to Find The Stranger > Locations and Habitats > (Present) Another World","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
+    ,{"encounter_id":"enc_grody_gumdrops_another_world_present","monster_id":"monster_283","location_text":"Another World","time_period":"Present","available_from_checkpoint_id":"cp_030_postgame_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_grody_gumdrops","locator":"Where to Find Grody Gumdrops > Locations and Habitats > (Present) Another World","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
+    ,{"encounter_id":"enc_merking_another_world_present","monster_id":"monster_280","location_text":"Another World","time_period":"Present","available_from_checkpoint_id":"cp_030_postgame_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_merking","locator":"Where to Find Merking > Locations and Habitats > (Present) Another World","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
+    ,{"encounter_id":"enc_merking_yet_another_world_present","monster_id":"monster_280","location_text":"Yet Another World","time_period":"Present","available_from_checkpoint_id":"cp_032_yet_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_merking","locator":"Where to Find Merking > Locations and Habitats > (Present) Yet Another World","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
+    ,{"encounter_id":"enc_platinum_king_jewel_yet_another_world_present","monster_id":"monster_285","location_text":"Yet Another World","time_period":"Present","available_from_checkpoint_id":"cp_032_yet_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_platinum_king_jewel","locator":"Where to Find Platinum King Jewel > Locations and Habitats > (Present) Yet Another World","confidence":"high","verification_status":"source_checked_checkpoint_gated_bonus_enemy_not_overworld"}
+    ,{"encounter_id":"enc_night_knight_yet_another_world_present","monster_id":"monster_289","location_text":"Yet Another World","time_period":"Present","available_from_checkpoint_id":"cp_032_yet_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_monster_night_knight","locator":"Where to Find Night Knight > Locations and Habitats > (Present) Yet Another World","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
   ],
   "monster_drops": [
     {"drop_id":"drop_slime_medicinal_herb","monster_id":"monster_002","item_name":"Medicinal Herb","drop_rate_text":null,"source_id":"game8_monster_slime","locator":"Slime Overview > Available Drops > Medicinal Herb","confidence":"high","verification_status":"source_checked_rate_unpublished"},
@@ -4346,6 +4371,10 @@
     ,{"drop_id":"drop_togre_shield_of_shame","monster_id":"monster_240","item_name":"Shield of Shame","drop_rate_text":null,"source_id":"game8_monster_togre","locator":"Togre Overview > Available Drops > Shield of Shame","confidence":"high","verification_status":"source_checked_rate_unpublished"}
     ,{"drop_id":"drop_stout_troll_seed_of_strength","monster_id":"monster_262","item_name":"Seed of Strength","drop_rate_text":null,"source_id":"game8_monster_stout_troll","locator":"Stout Troll Overview > Available Drops > Seed of Strength","confidence":"high","verification_status":"source_checked_rate_unpublished"}
     ,{"drop_id":"drop_the_stranger_seed_of_deftness","monster_id":"monster_279","item_name":"Seed of Deftness","drop_rate_text":null,"source_id":"game8_monster_the_stranger","locator":"The Stranger Overview > Available Drops > Seed of Deftness","confidence":"high","verification_status":"source_checked_rate_unpublished"}
+    ,{"drop_id":"drop_grody_gumdrops_heart","monster_id":"monster_283","item_name":"Grody Gumdrops Heart","drop_rate_text":null,"source_id":"game8_monster_grody_gumdrops","locator":"Grody Gumdrops Overview > Available Drops > Grody Gumdrops Heart","confidence":"high","verification_status":"source_checked_rate_unpublished"}
+    ,{"drop_id":"drop_merking_cobra_claws","monster_id":"monster_280","item_name":"Cobra Claws","drop_rate_text":null,"source_id":"game8_monster_merking","locator":"Merking Overview > Available Drops > Cobra Claws","confidence":"high","verification_status":"source_checked_rate_unpublished"}
+    ,{"drop_id":"drop_platinum_king_jewel_meteorite_bracer","monster_id":"monster_285","item_name":"Meteorite Bracer","drop_rate_text":null,"source_id":"game8_monster_platinum_king_jewel","locator":"Platinum King Jewel Overview > Available Drops > Meteorite Bracer","confidence":"high","verification_status":"source_checked_rate_unpublished"}
+    ,{"drop_id":"drop_night_knight_seed_of_therapeusis","monster_id":"monster_289","item_name":"Seed of Therapeusis","drop_rate_text":null,"source_id":"game8_monster_night_knight","locator":"Night Knight Overview > Available Drops > Seed of Therapeusis","confidence":"high","verification_status":"source_checked_rate_unpublished"}
   ],
   "documents": [
     {"id":"doc_methodology","title":"Two-guide methodology","domain":"methodology","checkpoint_key":null,"source_id":null,"confidence":"high","body":"Use RPG Site as the chronological 100% completion backbone and Game8 as the optimization layer. Keep every claim attributed. Verify disagreements with official or direct in-game evidence. Never silently blend subjective best-build advice into canonical facts."},
