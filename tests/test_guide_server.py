@@ -64,6 +64,11 @@ class GuideServerTests(unittest.TestCase):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertEqual(checkpoint["id"], "cp_001_prologue")
         self.assertIn("actions", checkpoint)
+        _, ballymolloy = self.get_json("/api/checkpoints/cp_003_ballymolloy")
+        slime = next(row for row in ballymolloy["monsters"] if row["id"] == "monster_002")
+        self.assertEqual(slime["drop"], "Medicinal Herb")
+        self.assertTrue(any(source["id"] == "game8_monster_slime"
+                            for source in ballymolloy["sources"]))
         _, progress = self.get_json("/api/progress")
         self.assertIn("achievements", progress)
         _, hoarder = self.get_json("/api/hoarder?gaps=1")

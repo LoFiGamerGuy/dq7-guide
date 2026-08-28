@@ -174,6 +174,26 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                 "id": source_id, "title": row.get("source_title"),
                 "url": row.get("source_url"), "locator": row.get("locator"),
             }
+    monster_ids = [row["monster_id"] for row in block["monsters"]]
+    drops: dict[str, list[str]] = {monster_id: [] for monster_id in monster_ids}
+    if monster_ids:
+        placeholders = ",".join("?" for _ in monster_ids)
+        with sqlite3.connect(db_path) as connection:
+            connection.row_factory = sqlite3.Row
+            drop_rows = connection.execute(
+                f"""SELECT d.monster_id, d.item_name, d.locator, s.source_id,
+                    s.title AS source_title, s.url AS source_url
+                FROM monster_drops d JOIN sources s USING(source_id)
+                WHERE d.monster_id IN ({placeholders})
+                ORDER BY d.monster_id, d.item_name""",
+                monster_ids,
+            )
+            for row in drop_rows:
+                drops[row["monster_id"]].append(row["item_name"])
+                sources[(row["source_id"], row["locator"])] = {
+                    "id": row["source_id"], "title": row["source_title"],
+                    "url": row["source_url"], "locator": row["locator"],
+                }
     return {
         "id": checkpoint_id, "name": checkpoint["name"],
         "time_period": checkpoint["time_period"], "region": checkpoint["region"],
@@ -192,7 +212,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                      "detail": row["detail"], "found": row["medal_number"] in found_medals} for row in medals],
         "monsters": [{"id": row["monster_id"], "ordinal": row["source_ordinal"],
                        "name": row["english_name"], "location": row["locations"],
-                       "drop": None, "defeated": row["monster_id"] in defeated_monsters} for row in block["monsters"]],
+                       "drop": ", ".join(drops[row["monster_id"]]) or None,
+                       "defeated": row["monster_id"] in defeated_monsters} for row in block["monsters"]],
         "safe_condition": checkpoint["safe_exit_condition"],
         "sources": list(sources.values()),
     }
