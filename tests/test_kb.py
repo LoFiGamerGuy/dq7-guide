@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 351)
+        self.assertEqual(self.counts["sources"], 355)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 698)
+        self.assertEqual(self.counts["item_acquisition_paths"], 701)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -403,6 +403,27 @@ class KnowledgeBaseTests(unittest.TestCase):
             ).fetchone()[0]
             self.assertEqual(count, expected)
 
+    def test_direct_item_pages_add_finite_free_alternatives_to_panel_routes(self):
+        rows = self.connection.execute(
+            """SELECT item_id, time_period, available_from_checkpoint_id,
+                supply_type, finite_total, is_free, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_hairband_treasure_larca_past',
+                'acq_rabbit_ears_treasure_larca_present',
+                'acq_coagulant_treasure_hubble_castle_past'
+            ) ORDER BY item_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 3)
+        by_item = {row["item_id"]: row for row in rows}
+        self.assertEqual(by_item["item_hairband"]["available_from_checkpoint_id"], "cp_005_larca")
+        self.assertEqual(by_item["item_rabbit_ears"]["time_period"], "Present")
+        self.assertEqual(by_item["item_coagulant"]["available_from_checkpoint_id"], "cp_016_hubble")
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["finite_total"] == 1 for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
+        self.assertTrue(all("container_unknown" in row["verification_status"] for row in rows))
+
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
             """SELECT COUNT(*), SUM(required_fragment_count) FROM stone_tablets"""
@@ -451,13 +472,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (319, 177))
+        self.assertEqual(tuple(counts), (320, 179))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (215, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (216, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -584,8 +605,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 215)
-        self.assertEqual(report["drops"], 157)
+        self.assertEqual(report["routed"], 216)
+        self.assertEqual(report["drops"], 158)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -717,6 +738,19 @@ class KnowledgeBaseTests(unittest.TestCase):
                OR claim_a_id LIKE 'claim_cautery_sword_%'"""
         ).fetchall()
         self.assertEqual(len(pairs), 2)
+
+        cautery = self.connection.execute(
+            """SELECT status, resolution_claim_id, detection_method, rationale
+            FROM conflicts WHERE claim_a_id LIKE 'claim_cautery_sword_%'
+               OR claim_b_id LIKE 'claim_cautery_sword_%'"""
+        ).fetchone()
+        self.assertEqual(cautery["status"], "resolved")
+        self.assertEqual(cautery["resolution_claim_id"],
+                         "claim_cautery_sword_rpgsite_location")
+        self.assertEqual(cautery["detection_method"],
+                         "manual_direct_item_page_adjudication")
+        self.assertIn("dedicated Cautery Sword acquisition page",
+                      cautery["rationale"])
 
     def test_iron_shield_conflict_and_scale_shield_gap_are_visible(self):
         conflict = self.connection.execute(
@@ -1260,7 +1294,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         free_chest = next(row for row in cautery if row["method"] == "chest")
         self.assertEqual(free_chest["timing_status"], "available_now")
-        self.assertTrue(cautery_verdict.startswith("UNRESOLVED"))
+        self.assertNotIn("acquisition evidence conflict", cautery_verdict)
 
     def test_new_equipment_routes_preserve_free_and_unknown_timing(self):
         _, mask_routes, mask_verdict = load_purchase_advice(
@@ -1680,14 +1714,12 @@ class KnowledgeBaseTests(unittest.TestCase):
         rendered = output.getvalue()
         self.assertLess(rendered.index("Boss:"), rendered.index("NOW:"))
         self.assertLess(rendered.index("Vocations:"), rendered.index("NOW:"))
-        self.assertIn("CONFLICT: Cautery Sword — precise location description disputed", rendered)
+        self.assertNotIn("CONFLICT: Cautery Sword — precise location description disputed", rendered)
         self.assertNotIn("CONFLICT: Iron Shield — purchase price disputed", rendered)
         self.assertNotIn("Source A:", rendered)
         sourced = io.StringIO()
         with redirect_stdout(sourced):
             print_walkthrough(report, include_sources=True)
-        self.assertIn("Source A:", sourced.getvalue())
-        self.assertIn("Source B:", sourced.getvalue())
         self.assertIn("https://", sourced.getvalue())
 
     def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):
@@ -1743,11 +1775,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         update_progress(state_path, self.db_path, "medal-found", ["1", "2", "1"])
         state = json.loads(state_path.read_text())
         self.assertEqual(state["completion"]["mini_medals_found"], [1, 2])
+        update_progress(state_path, self.db_path, "medal-undo", ["1"])
+        state = json.loads(state_path.read_text())
+        self.assertEqual(state["completion"]["mini_medals_found"], [2])
         self.assertIsNone(state["completion"]["mini_medal_count"])
         update_progress(state_path, self.db_path, "medal-count", ["5"])
         state = json.loads(state_path.read_text())
         self.assertEqual(state["completion"]["mini_medal_count"], 5)
-        self.assertEqual(state["completion"]["mini_medals_found"], [1, 2])
+        self.assertEqual(state["completion"]["mini_medals_found"], [2])
 
     def test_player_progress_done_is_stable_idempotent_and_reversible(self):
         state_path = Path(self.tempdir.name) / "explicit-done.json"

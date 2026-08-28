@@ -31,7 +31,7 @@ DEFAULT_STATE = ROOT / "player" / "ryan-save-state.json"
 DEFAULT_STATIC = ROOT / "web"
 MAX_BODY_BYTES = 64 * 1024
 ALLOWED_PROGRESS_COMMANDS = {
-    "checkpoint", "medal-found", "medal-count", "done", "undo",
+    "checkpoint", "medal-found", "medal-undo", "medal-count", "done", "undo",
     "achievement-unlocked", "achievement-undo", "item-obtained", "item-undo",
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
     "vocation-mastered", "vocation-undo",
@@ -532,9 +532,9 @@ def _record_ui_progress(db_path: Path, state_path: Path, payload: dict) -> str:
             raise ValueError("Unknown action")
         return update_progress(state_path, db_path, "done" if completed else "undo", [row[0], str(row[1])])
     if kind == "medal":
-        if not completed:
-            raise ValueError("Mini Medal removal is not supported; correct the state file explicitly")
-        return update_progress(state_path, db_path, "medal-found", [str(identifier)])
+        return update_progress(state_path, db_path,
+                               "medal-found" if completed else "medal-undo",
+                               [str(identifier)])
     if kind == "monster":
         return update_progress(state_path, db_path, "monster-defeated" if completed else "monster-undo", [str(identifier)])
     raise ValueError("Unsupported progress kind")

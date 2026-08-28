@@ -62,6 +62,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b"Run Guide", page)
             self.assertLess(page.index(b'id="checkpointStop"'), page.index(b'id="advice"'))
             self.assertLess(page.index(b'id="advice"'), page.index(b'id="safeCondition"'))
+        with urlopen(self.base + "/app.js") as response:
+            app = response.read()
+            self.assertNotIn(b'checked disabled', app)
+            self.assertNotIn(b'state.domain === "medals" && entry.completed', app)
 
     def test_checkpoint_and_domain_endpoints(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
@@ -112,6 +116,12 @@ class GuideServerTests(unittest.TestCase):
             sum(claim["is_resolution"] for claim in row["claims"]) == 1
             for row in all_conflicts if row["status"] == "resolved"
         ))
+        cautery = next(row for row in all_conflicts
+                       if row["resolution_claim_id"] ==
+                       "claim_cautery_sword_rpgsite_location")
+        self.assertEqual(cautery["status"], "resolved")
+        self.assertIn("dedicated Cautery Sword acquisition page",
+                      cautery["rationale"])
         _, sources = self.get_json("/api/sources?q=walkthrough&publisher=Game8&limit=2")
         self.assertGreater(sources["total"], 0)
         self.assertLessEqual(len(sources["sources"]), 2)
@@ -274,6 +284,13 @@ class GuideServerTests(unittest.TestCase):
                 self.assertEqual(response.status, 200)
         saved = json.loads(self.state.read_text())
         self.assertNotIn(action["id"], saved["completion"]["obligations_completed"])
+
+        for completed in (True, False):
+            self.patch_json("/api/progress", {
+                "kind": "medal", "id": 1, "completed": completed,
+            })
+        saved = json.loads(self.state.read_text())
+        self.assertNotIn(1, saved["completion"]["mini_medals_found"])
 
     def test_state_aware_search_pagination_and_resource_patch_mappings(self):
         _, items = self.get_json("/api/items?q=shield&limit=2&offset=0")

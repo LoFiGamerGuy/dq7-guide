@@ -132,7 +132,7 @@ def update_progress(
                 raise ValueError(f"Unknown checkpoint: {checkpoint_id}")
             state["story"]["checkpoint_id"] = checkpoint_id
             message = f"Checkpoint set to {checkpoint_id}."
-        elif command == "medal-found":
+        elif command in ("medal-found", "medal-undo"):
             numbers = [int(value) for value in values]
             known = {
                 row[0] for row in connection.execute(
@@ -147,8 +147,14 @@ def update_progress(
                 not isinstance(number, int) or isinstance(number, bool) for number in current
             ):
                 raise ValueError("completion.mini_medals_found must be a list of integers")
-            state["completion"]["mini_medals_found"] = sorted(set(current) | set(numbers))
-            message = f"Recorded Mini Medal number(s): {', '.join(map(str, numbers))}."
+            found = set(current)
+            if command == "medal-found":
+                found.update(numbers)
+                message = f"Recorded Mini Medal number(s): {', '.join(map(str, numbers))}."
+            else:
+                found.difference_update(numbers)
+                message = f"Reopened Mini Medal number(s): {', '.join(map(str, numbers))}."
+            state["completion"]["mini_medals_found"] = sorted(found)
         elif command == "medal-count":
             count = int(values[0])
             if count < 0:
@@ -303,6 +309,8 @@ def main() -> None:
     checkpoint.add_argument("values", nargs=1)
     medal_found = subparsers.add_parser("medal-found")
     medal_found.add_argument("values", nargs="+")
+    medal_undo = subparsers.add_parser("medal-undo")
+    medal_undo.add_argument("values", nargs="+")
     medal_count = subparsers.add_parser("medal-count")
     medal_count.add_argument("values", nargs=1)
     for name in ("done", "undo"):

@@ -936,6 +936,39 @@
     "retrieved_at": "2026-08-27"
   },
   {
+    "source_id": "game8_hairband",
+    "title": "How to Get Hairband",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581079",
+    "source_class": "guide_wiki",
+    "role": "item_identity_and_acquisition_route",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-28"
+  },
+  {
+    "source_id": "game8_rabbit_ears",
+    "title": "How to Get Rabbit Ears",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581073",
+    "source_class": "guide_wiki",
+    "role": "item_identity_and_acquisition_route",
+    "published_at": null,
+    "updated_at": "2026-02-19",
+    "retrieved_at": "2026-08-28"
+  },
+  {
+    "source_id": "game8_coagulant",
+    "title": "How to Get Coagulant and Effects",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582291",
+    "source_class": "guide_wiki",
+    "role": "item_identity_and_acquisition_route",
+    "published_at": null,
+    "updated_at": "2026-02-23",
+    "retrieved_at": "2026-08-28"
+  },
+  {
     "source_id": "game8_slime_earrings",
     "title": "How to Get Slime Earrings",
     "publisher": "Game8",
@@ -1613,5 +1646,6 @@
   {"source_id":"game8_monster_franticore","title":"Franticore Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582742","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
   {"source_id":"game8_monster_atlas","title":"Atlas Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582741","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
   {"source_id":"game8_monster_gourdzilla","title":"Gourdzilla Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582748","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-28","retrieved_at":"2026-08-28"},
-  {"source_id":"game8_monster_bird_of_terrordise","title":"Bird of Terrordise Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582746","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-28"}
+  {"source_id":"game8_monster_bird_of_terrordise","title":"Bird of Terrordise Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582746","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-28"},
+  {"source_id":"game8_monster_robber_baron","title":"Robber Baron Location and Drops","publisher":"Game8","url":"https://game8.co/games/Dragon-Quest-7-Reimagined/archives/582761","source_class":"guide_wiki","role":"monster_encounter_and_drop","published_at":null,"updated_at":"2026-02-25","retrieved_at":"2026-08-28"}
 ]
