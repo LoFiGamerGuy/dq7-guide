@@ -140,6 +140,14 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(vocation["skills"])
         self.assertIn("source_url", vocation["skills"][0])
         self.assertIn("locator", vocation["skills"][0])
+        moon = vocation["moonlighting"]
+        self.assertEqual(moon["unlock"]["value"]["earliest_checkpoint_id"], "cp_012_roamer_return")
+        self.assertEqual(moon["venue_status"], "conflicting_sources")
+        self.assertEqual(len(moon["unlock_claims"]), 2)
+        self.assertIn("Exact proficiency-point split per battle",
+                      moon["mechanics"]["value"]["unknown_restrictions"])
+        _, moon_endpoint = self.get_json("/api/moonlighting")
+        self.assertEqual(moon_endpoint["mechanics"]["value"]["simultaneous_vocations"], 2)
         _, items = self.get_json("/api/items")
         item_id = items["items"][0]["item_id"]
         _, item = self.get_json("/api/items/" + item_id)

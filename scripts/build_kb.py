@@ -159,6 +159,11 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 "prerequisites": {
                     "panel_version": int(game_version),
                     "rank": int(panel_rank),
+                    **(
+                        {"source_qualifier": row["source_qualifier"]}
+                        if row.get("source_qualifier")
+                        else {}
+                    ),
                 },
                 "quantity": 1,
                 "supply_type": "renewable",
@@ -168,13 +173,23 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 "locator": row.get("locator") or (
                     f"Lucky Panel (Version {game_version}) > Rank {panel_rank} > "
                     f"{row['source_name']}"
+                    + (
+                        f" [{row['source_qualifier']}]"
+                        if row.get("source_qualifier")
+                        else ""
+                    )
                 ),
                 "confidence": row.get("confidence", "high"),
                 "verification_status": row.get("verification_status") or (
                     "source_checked_typographic_name_resolution_"
                     "probability_and_cost_unknown"
                     if row.get("name_resolution")
-                    else "source_checked_probability_and_cost_unknown"
+                    else (
+                        "source_checked_exclusivity_qualifier_"
+                        "probability_and_cost_unknown"
+                        if row.get("source_qualifier")
+                        else "source_checked_probability_and_cost_unknown"
+                    )
                 ),
             })
             normalized_panel_matrix_rewards.append({

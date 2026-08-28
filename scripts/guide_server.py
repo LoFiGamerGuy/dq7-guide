@@ -324,6 +324,24 @@ def _seeds(db_path: Path, query: dict) -> dict:
     return page
 
 
+def _moonlighting(db_path: Path) -> dict:
+    rows = _rows(db_path, """SELECT c.claim_id, c.predicate, c.value_json,
+        c.confidence, c.verification_status, c.locator, c.source_id,
+        s.title AS source_title, s.url AS source_url
+        FROM claims c JOIN sources s USING(source_id)
+        WHERE c.subject_key='system:moonlighting' AND c.claim_kind='fact'
+        ORDER BY c.predicate""")
+    facts = [{**row, "value": json.loads(row["value_json"])} for row in rows]
+    for row in facts:
+        del row["value_json"]
+    unlocks = [row for row in facts if row["predicate"] == "unlocks_when"]
+    mechanics = next((row for row in facts if row["predicate"] == "effect"), None)
+    return {"unlock": next((row for row in unlocks if row["source_id"] == "game8_moonlighting"), unlocks[0] if unlocks else None),
+            "unlock_claims": unlocks, "venue_status": "conflicting_sources" if len(unlocks) > 1 else "single_source",
+            "mechanics": mechanics,
+            "recommendation_notice": "Pairing suggestions are attributed recommendations, not legal-pairing rules."}
+
+
 def _medals(db_path: Path, state_path: Path) -> dict:
     state = json.loads(state_path.read_text(encoding="utf-8"))
     found = set(state.get("completion", {}).get("mini_medals_found", []))
@@ -661,7 +679,9 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._json({"tablet_id": tablet_id,
                         "tablet_name": rows[0]["tablet_name"], "fragments": rows})
                 if parsed.path == "/api/vocations":
-                    return self._json(_vocations(db_path, state_path, parse_qs(parsed.query)))
+                    payload = _vocations(db_path, state_path, parse_qs(parsed.query))
+                    payload["moonlighting"] = _moonlighting(db_path)
+                    return self._json(payload)
                 if parsed.path.startswith("/api/vocations/"):
                     query = unquote(parsed.path.removeprefix("/api/vocations/"))
                     report = load_vocation_details(db_path, query)
@@ -669,7 +689,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     report["mastered_by"] = next(row["mastered_by"] for row in
                         _vocations(db_path, state_path, {})["vocations"]
                         if row["vocation_id"] == vocation_id)
+                    report["moonlighting"] = _moonlighting(db_path)
                     return self._json(report)
+                if parsed.path == "/api/moonlighting":
+                    return self._json(_moonlighting(db_path))
                 if parsed.path == "/api/items":
                     return self._json(_items(db_path, state_path, parse_qs(parsed.query)))
                 if parsed.path.startswith("/api/items/"):
