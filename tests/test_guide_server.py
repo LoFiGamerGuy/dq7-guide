@@ -101,6 +101,10 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(iron["status"], "resolved")
         self.assertEqual(sum(claim["is_resolution"] for claim in iron["claims"]), 1)
         self.assertIn("dedicated Alltrades Abbey map shop table", iron["rationale"])
+        self.assertTrue(all(
+            sum(claim["is_resolution"] for claim in row["claims"]) == 1
+            for row in all_conflicts if row["status"] == "resolved"
+        ))
         _, sources = self.get_json("/api/sources?q=walkthrough&publisher=Game8&limit=2")
         self.assertGreater(sources["total"], 0)
         self.assertLessEqual(len(sources["sources"]), 2)

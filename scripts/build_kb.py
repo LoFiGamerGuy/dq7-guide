@@ -898,6 +898,11 @@ def _build_database(db_path: Path) -> dict[str, int]:
         detect_conflicts(connection)
         for resolution in seed.get("conflict_resolutions", []):
             claim_a, claim_b = sorted((resolution["claim_a_id"], resolution["claim_b_id"]))
+            if resolution["resolution_claim_id"] not in (claim_a, claim_b):
+                raise ValueError(
+                    "Conflict resolution claim must be one of the conflicting claims: "
+                    f"{claim_a}, {claim_b}"
+                )
             cursor = connection.execute(
                 """UPDATE conflicts
                 SET status='resolved', resolution_claim_id=?, rationale=?, detection_method=?

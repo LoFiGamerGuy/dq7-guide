@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 344)
+        self.assertEqual(self.counts["sources"], 348)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,14 +70,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
-        self.assertEqual(self.counts["item_acquisition_paths"], 681)
+        self.assertEqual(self.counts["item_acquisition_paths"], 692)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 271)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 282)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -427,13 +427,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (314, 174))
+        self.assertEqual(tuple(counts), (317, 175))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (210, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (213, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -560,8 +560,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 210)
-        self.assertEqual(report["drops"], 154)
+        self.assertEqual(report["routed"], 213)
+        self.assertEqual(report["drops"], 155)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -725,17 +725,25 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIsNone(typed_route)
 
     def test_ice_shield_treasure_conflict_is_visible(self):
-        conflict = self.connection.execute(
-            """SELECT status FROM conflicts
+        conflicts = self.connection.execute(
+            """SELECT status, resolution_claim_id, detection_method FROM conflicts
             WHERE claim_a_id LIKE 'claim_ice_shield_%'
                OR claim_b_id LIKE 'claim_ice_shield_%'"""
-        ).fetchone()
-        self.assertIsNotNone(conflict)
-        self.assertEqual(conflict["status"], "unresolved")
+        ).fetchall()
+        self.assertEqual(len(conflicts), 2)
+        self.assertTrue(all(row["status"] == "resolved" for row in conflicts))
+        self.assertEqual(
+            {row["resolution_claim_id"] for row in conflicts},
+            {"claim_ice_shield_rpgsite_past_chest",
+             "claim_ice_shield_game8_hardlypool_map_chest"},
+        )
+        self.assertTrue(all(row["detection_method"] ==
+                            "manual_direct_location_map_adjudication"
+                            for row in conflicts))
         _, _, verdict = load_purchase_advice(
             self.db_path, "Ice Shield", "cp_013_flying_carpet"
         )
-        self.assertIn("acquisition evidence conflict", verdict)
+        self.assertNotIn("acquisition evidence conflict", verdict)
 
     def test_tempest_shield_location_conflict_is_visible(self):
         conflict = self.connection.execute(
@@ -1166,6 +1174,32 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         self.assertNotIn("Scale Armour", by_name)
         self.assertIn("Slime Earring", by_name)
+        self.assertTrue(all(row["time_period"] == "Past" for row in rows))
+        self.assertTrue(all(
+            row["available_from_checkpoint_id"] == "cp_009_alltrades"
+            for row in rows
+        ))
+        self.assertTrue(all(row["unavailable_after_checkpoint_id"] is None for row in rows))
+        self.assertTrue(all(row["probability_text"] is None for row in rows))
+        self.assertTrue(all(row["entry_cost"] is None for row in rows))
+
+    def test_lucky_panel_version_1_rank_3_preserves_names_and_timing(self):
+        rows = self.connection.execute(
+            """SELECT i.name, a.time_period, a.available_from_checkpoint_id,
+                a.unavailable_after_checkpoint_id, lr.probability_text,
+                lp.entry_cost
+            FROM lucky_panel_pools lp
+            JOIN lucky_panel_rewards lr USING(pool_id)
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            JOIN items i USING(item_id)
+            WHERE lp.pool_id = 'lp_pilgrims_rest_v1_rank_3_standard'
+            ORDER BY i.name"""
+        ).fetchall()
+        self.assertEqual(len(rows), 17)
+        names = {row["name"] for row in rows}
+        self.assertIn("Stellar Fan", names)
+        self.assertIn("Steel Fangs", names)
+        self.assertNotIn("Magic Vetment", names)
         self.assertTrue(all(row["time_period"] == "Past" for row in rows))
         self.assertTrue(all(
             row["available_from_checkpoint_id"] == "cp_009_alltrades"
