@@ -30,7 +30,11 @@ from early_walkthrough import (  # noqa: E402
 )
 from medal_report import medals_available_through  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
-from monster_report import load_monster_report, print_monster_report  # noqa: E402
+from monster_report import (  # noqa: E402
+    load_checkpoint_monsters,
+    load_monster_report,
+    print_monster_report,
+)
 from hoarder_report import load_hoarder_report  # noqa: E402
 from player_progress import update_progress  # noqa: E402
 from query_kb import search  # noqa: E402
@@ -54,13 +58,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 211)
+        self.assertEqual(self.counts["sources"], 254)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 63)
+        self.assertEqual(self.counts["checkpoint_advice"], 69)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
@@ -268,13 +272,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (120, 71))
+        self.assertEqual(tuple(counts), (183, 111))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (70, "cp_003_ballymolloy", 0))
+        self.assertEqual(tuple(early), (104, "cp_003_ballymolloy", 0))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -310,7 +314,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             1,
         )
 
-    def test_cp015_through_cp019_monsters_exclude_later_area_routes(self):
+    def test_cp015_through_cp019_monsters_keep_later_routes_later_gated(self):
         checkpoints = dict(
             self.connection.execute(
                 """SELECT available_from_checkpoint_id, COUNT(*)
@@ -323,17 +327,44 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             checkpoints,
             {
-                "cp_015_greenthumb": 2,
+                "cp_015_greenthumb": 3,
                 "cp_016_hubble": 13,
-                "cp_019_aeolus": 5,
+                "cp_019_aeolus": 11,
             },
         )
-        excluded = self.connection.execute(
-            """SELECT COUNT(*) FROM monster_encounters
-            WHERE location_text IN ('Buccanham Region', 'Coral Cave',
-                'Heavy Metal Hole')"""
-        ).fetchone()[0]
-        self.assertEqual(excluded, 0)
+        later_routes = dict(
+            self.connection.execute(
+                """SELECT location_text, available_from_checkpoint_id
+                FROM monster_encounters
+                WHERE location_text IN ('Buccanham Region', 'Coral Cave',
+                    'Heavy Metal-Hole')
+                GROUP BY location_text, available_from_checkpoint_id"""
+            ).fetchall()
+        )
+        self.assertEqual(
+            set(later_routes.values()), {"cp_020_buccanham"}
+        )
+
+    def test_cp020_through_cp025_monsters_use_explicit_area_gates(self):
+        checkpoints = dict(
+            self.connection.execute(
+                """SELECT available_from_checkpoint_id, COUNT(*)
+                FROM monster_encounters
+                WHERE available_from_checkpoint_id IN (
+                    'cp_020_buccanham', 'cp_021_malign_shrine',
+                    'cp_023_fire_spirit', 'cp_025_wind_spirit'
+                ) GROUP BY available_from_checkpoint_id"""
+            ).fetchall()
+        )
+        self.assertEqual(
+            checkpoints,
+            {
+                "cp_020_buccanham": 25,
+                "cp_021_malign_shrine": 6,
+                "cp_023_fire_spirit": 2,
+                "cp_025_wind_spirit": 1,
+            },
+        )
 
     def test_monster_report_resolves_name_id_and_ordinal(self):
         by_name = load_monster_report(self.db_path, "Cactiball")
@@ -349,6 +380,21 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("#9 Cactiball", output.getvalue())
         self.assertIn("Find:", output.getvalue())
         self.assertIn("Drops:", output.getvalue())
+
+    def test_checkpoint_monsters_hide_explicitly_completed_entries(self):
+        state_path = Path(self.tempdir.name) / "monster-checkpoint.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["monster_entries"] = ["monster_009"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        remaining = load_checkpoint_monsters(
+            self.db_path, state_path, "cp_003_ballymolloy"
+        )
+        self.assertNotIn("monster_009", [row["monster_id"] for row in remaining["monsters"]])
+        complete = load_checkpoint_monsters(
+            self.db_path, state_path, "cp_003_ballymolloy", include_completed=True
+        )
+        cactiball = next(row for row in complete["monsters"] if row["monster_id"] == "monster_009")
+        self.assertTrue(cactiball["completed"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
         state_path = Path(self.tempdir.name) / "tablet-progress.json"
@@ -1415,6 +1461,46 @@ class KnowledgeBaseTests(unittest.TestCase):
             ORDER BY skill_name"""
         ).fetchall()
         self.assertEqual([row[0] for row in hero_rank_five], ["Kazing", "Sword Dance"])
+
+    def test_character_exclusive_vocations_match_direct_sources(self):
+        expected = {
+            "vocation_fledgling_fisherman": ("Hero", list(range(2, 9))),
+            "vocation_heir_apparent": ("Kiefer", list(range(2, 9))),
+            "vocation_mini_mayoress": ("Maribel", list(range(2, 9))),
+            "vocation_wolf_boy": ("Ruff", list(range(4, 9))),
+            "vocation_destinys_dancer": ("Aishe", list(range(1, 9))),
+            "vocation_chevalier": ("Sir Mervyn", list(range(1, 9))),
+        }
+        for vocation_id, (character, ranks) in expected.items():
+            vocation = self.connection.execute(
+                "SELECT exclusive_character FROM vocations WHERE vocation_id=?",
+                (vocation_id,),
+            ).fetchone()
+            self.assertEqual(vocation[0], character)
+            rows = self.connection.execute(
+                """SELECT proficiency_rank, locator, source_id
+                FROM vocation_rank_skills WHERE vocation_id=?""",
+                (vocation_id,),
+            ).fetchall()
+            self.assertEqual(sorted({row[0] for row in rows}), ranks)
+            self.assertTrue(all("★" in row[1] for row in rows))
+            self.assertTrue(all(row[2].startswith("game8_vocation_") for row in rows))
+            perk = self.connection.execute(
+                """SELECT locator FROM vocation_perks
+                WHERE vocation_id=? AND perk_type='let_loose'""",
+                (vocation_id,),
+            ).fetchone()
+            self.assertIsNotNone(perk)
+            self.assertIn("Overview > Type and Loose Ability", perk[0])
+
+        destiny_rank_eight = self.connection.execute(
+            """SELECT skill_name FROM vocation_rank_skills
+            WHERE vocation_id='vocation_destinys_dancer' AND proficiency_rank=8
+            ORDER BY skill_name"""
+        ).fetchall()
+        self.assertEqual(
+            [row[0] for row in destiny_rank_eight], ["Death Dance", "Kerplunk Dance"]
+        )
 
 
 if __name__ == "__main__":

@@ -8,8 +8,8 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 211 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
-| Vocations | 26/26 names; 200 rank skills and 20 Let Loose perks complete for beginner, intermediate, and advanced vocations | High for normalized slices | Continue character-exclusive vocation ranks, stats, and perks |
+| Source registry | 254 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Vocations | 26/26 names; 250 sourced rank skills and 26 Let Loose perks cover all vocations | High for normalized skills/perks | Add rank stat modifiers and derived mastery costs |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges | High | Add derived shortest paths and mastery cost |
 | Moonlighting | Unlock and system summary | High | Normalize exact unlock checkpoint and legal skill access |
 | Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware | High for the full main-story and postgame chronology/safety spine; optimization remains partial | Deepen item, achievement, and combat coverage |
@@ -18,12 +18,12 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Missables / choices | 7 named records | Mixed; only Fish Bits is fully windowed | Normalize exact windows, consequences, and resolution evidence |
 | Heroic Hoarder items | 353/353 identities / 444 acquisition paths; all items have routes | High for identities and explicit routes; Stella/Stellar spelling conflict remains visible | Expand alternate free routes and finite-supply evidence |
 | Lucky Panel | 12 normalized pools / 43 reward paths plus system summary | High for normalized rows; entry costs remain unknown | Ingest every version/rank/chest item and preserve exclusivity conflicts |
-| Equipment | 63 ready-for-play gear, boss, grind, and vocation advice rows across cp001–cp032 | Medium/High, attributed | Fill unsupported checkpoint/type combinations with verified advice |
+| Equipment | 69 ready-for-play gear, boss, grind, and vocation advice rows across cp001–cp033 | Medium/High, attributed | Fill unsupported checkpoint/type combinations with verified advice |
 | Farming | Roamer Metal Slime and cp009 Lucky Panel advice normalized without invented rates | Medium/High | Verify proficiency, gold, and heart farms before adding ceilings |
 | Monster Hearts | Representative high-value roles | Medium | Complete registry, effects, and acquisition |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 120 gated locations across 70 monsters and 71 drops; 10 Vicious species / 11 encounters | High for normalized rows | Continue encounter and drop ingestion after Aeolus Vale |
+| Monster List / Vicious | 333/333 ordinals and English names; 183 gated locations across 104 monsters and 111 drops; 10 Vicious species / 11 encounters | High for normalized rows | Continue encounter and drop ingestion after the Wind Spirit |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 7 unresolved source conflicts | Conservative coverage | Resolve location disputes and Stella/Stellar spelling with direct in-game evidence |
 
@@ -31,10 +31,10 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 211
+- sources: 254
 - vocations/entities: 26
 - prerequisite relationships: 27
-- vocation rank skills / perks: 200 / 20
+- vocation rank skills / perks: 250 / 26
 - claims: 28
 - medal rewards: 19
 - missables: 7
@@ -46,9 +46,9 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 120 / 71
+- monster encounters / drops: 183 / 111
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 63
+- ready-for-play checkpoint advice: 69
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 353
 - item aliases / acquisition paths: 1 / 444
@@ -101,6 +101,8 @@ The second combat-engine batch completes rank skills and Let Loose perks for all
 The third combat-engine batch completes rank skills and Let Loose perks for all seven intermediate vocations, extends monster encounter/drop coverage through Sir Mervyn, adds six midgame vocation/grind recommendations, and exposes exact vocation skill ladders through `vocation_report.py`.
 
 The fourth combat-engine batch completes all three advanced vocation skill ladders and perks, extends gated monster/drop coverage through Aeolus Vale, adds five later-midgame vocation-role recommendations, and adds prerequisite summaries to vocation lookup.
+
+The fifth combat-engine batch completes sourced rank skills and Let Loose perks for all six character-exclusive vocations, extends monster/drop coverage through the Wind Spirit slice, adds six late/postgame vocation recommendations, and adds checkpoint-based remaining-monster lookup.
 
 The Phase 2 equipment batches established typed item, shop, and Lucky Panel acquisition routes for 30 Heroic Hoarder items, including the shield sequence through Shield of Shame. Unspecified containers and pool ranks remain explicit evidence gaps. The Tempest Shield location disagreement is preserved alongside the five earlier unresolved conflicts.
 
