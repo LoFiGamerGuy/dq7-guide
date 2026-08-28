@@ -59,18 +59,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 358)
+        self.assertEqual(self.counts["sources"], 362)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 98)
+        self.assertEqual(self.counts["checkpoint_advice"], 104)
         self.assertEqual(self.counts["mini_medal_evidence"], 86)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 354)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 704)
+        self.assertEqual(self.counts["item_acquisition_paths"], 705)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -268,6 +268,20 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
+
+    def test_kamikazee_bracer_has_cp011_fixed_free_alternative(self):
+        row = self.connection.execute(
+            """SELECT method, location_text, time_period,
+                available_from_checkpoint_id, supply_type, finite_total,
+                is_free, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id = 'acq_kamikazee_bracer_likeness_great_evil_past'"""
+        ).fetchone()
+        self.assertEqual(tuple(row[:7]), (
+            "chest", "Likeness of the Great Evil", "Past",
+            "cp_011_la_bravoure", "finite", 1, 1,
+        ))
+        self.assertIn("container_unknown", row[7])
 
     def test_missables_have_precise_provenance_and_preserve_unknown_cutoffs(self):
         rows = self.connection.execute(
@@ -506,19 +520,27 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (324, 180))
+        self.assertEqual(tuple(counts), (330, 185))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (218, "cp_001_prologue", 57))
+        self.assertEqual(tuple(early), (221, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
             )
         }
         self.assertEqual(cactiball_drops, {"Medicinal Herb", "Thorn Whip"})
+        late_cleanup = self.connection.execute(
+            """SELECT COUNT(*), COUNT(DISTINCT monster_id)
+            FROM monster_encounters
+            WHERE source_id IN ('game8_monster_blightcrawler',
+                'game8_monster_mad_moai', 'game8_monster_terrorhawk')
+              AND available_from_checkpoint_id='cp_026_elemental_cleanup_nottagen'"""
+        ).fetchone()
+        self.assertEqual(tuple(late_cleanup), (6, 3))
 
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(
@@ -639,8 +661,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 218)
-        self.assertEqual(report["drops"], 159)
+        self.assertEqual(report["routed"], 221)
+        self.assertEqual(report["drops"], 162)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
     def test_player_progress_tracks_tablet_fragment_ids(self):
@@ -1797,6 +1819,33 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertTrue(all(row["source_id"].startswith("game8_boss_")
                                 for row in rows))
             self.assertTrue(all(row["locator"] for row in rows))
+
+    def test_late_game_missing_boss_sequences_are_normalized(self):
+        expected = {
+            "cp_021_malign_shrine": ["The Time Being", "Orgodemir first fight"],
+            "cp_026_elemental_cleanup_nottagen": ["Moostapha", "Malign Vine"],
+            "cp_027_deja_vous_rucker": ["Lourgh and Disorder"],
+            "cp_030_postgame_another_world": ["The Almighty"],
+            "cp_032_yet_another_world": [
+                "Xenlon", "The Almighty and Four Spirits"
+            ],
+        }
+        for checkpoint_id, subjects in expected.items():
+            rows = self.connection.execute(
+                """SELECT subject, source_id, locator, verification_status
+                FROM checkpoint_advice
+                WHERE checkpoint_id=? AND advice_type='boss'
+                ORDER BY display_order, advice_id""", (checkpoint_id,)
+            ).fetchall()
+            self.assertEqual([row["subject"] for row in rows], subjects)
+            self.assertTrue(all(row["source_id"].startswith("game8_boss_")
+                                for row in rows))
+            self.assertTrue(all(row["locator"] for row in rows))
+            self.assertTrue(all("no_level_claim" in row["verification_status"]
+                                or row["subject"] in {
+                                    "Orgodemir first fight",
+                                    "The Almighty and Four Spirits",
+                                } for row in rows))
 
     def test_medal_tracking_preserves_unknown_and_inconsistent_states(self):
         self.assertEqual(classify_medal_tracking(None, set()), ("unknown", None))

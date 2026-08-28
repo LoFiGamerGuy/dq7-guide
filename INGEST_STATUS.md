@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 358 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
+| Source registry | 362 high-value pages | High metadata / mixed page freshness | Add official and in-game evidence sources |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 7 progression rules, and 220 stat modifiers across all non-default vocations | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators | High | Add derived shortest paths and mastery cost |
 | Moonlighting | cp012-after-Aishe gate, Career Sphere flow, simultaneous two-vocation learning, and dual skill/stat access normalized | High for published behavior; Alltrades-vs-Shrine activation venue conflict and unpublished restrictions remain open | Resolve venue conflict and legal-pair/skill-retention restrictions from in-game evidence |
@@ -16,7 +16,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates | 86 cross-source verified; 13 indexed-source checked; 1 Game8-only indexed row | Directly refresh Game8 when accessible and resolve the medal 78 locator conflict |
 | Missables / choices | 7/7 direct-source records with precise locators; 6 exact choice/window cutoffs and Little Blue Button explicitly unresolved | High for documented consequences; medium where the source omits a cutoff | Resolve Little Blue Button's story cutoff; it is not STOP-eligible until then |
-| Heroic Hoarder items | 353/353 required identities / 704 acquisition paths across 354 shared items; all required items have routes; direct finite pickups now provide free alternatives for Hairband, Rabbit Ears, Coagulant, Pretty Betsy, and Prayer Ring in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
+| Heroic Hoarder items | 353/353 required identities / 705 acquisition paths across 354 shared items; all required items have routes; direct finite pickups now provide free alternatives for Hairband, Rabbit Ears, Coagulant, Pretty Betsy, Prayer Ring, and Kamikazee Bracer in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 288 reward paths; all standard matrices are normalized: Version 1 Ranks 1–3 link 23/23, 30/31, and 18/19 published names; Version 2 Ranks 1–3 link 30/32, 29/31, and 31/33; Version 3 Ranks 1–4 link 23/25, 33/36, 29/31, and 21/21 | High for normalized rows; three dedicated current-version item pages resolve Slime Earrings, Magic Vestment, and Faerie Foil spelling/number variants; Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; the source says its lists may be non-exhaustive, and entry costs/probabilities remain unknown | Resolve remaining exact-name gaps and the legacy row; verify costs/probabilities if published |
 | Equipment | 86 ready-for-play gear, boss, grind, vocation, and tactical rows across cp001–cp033 | Medium/High, attributed | Continue direct boss-strategy coverage |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
@@ -24,7 +24,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 now surface acquisition routes after adding the finite Vicious Meowgician reward at cp005 | High for effects and linked routes; five DLC identities/routes remain outside the shared item registry, and numeric drop rates remain unknown | Normalize the five dedicated-page DLC routes without implying base-game or Heroic Hoarder scope |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 324 gated locations across 218 monsters and 180 drops across 159 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
+| Monster List / Vicious | 333/333 ordinals and English names; 330 gated locations across 221 monsters and 185 drops across 162 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows | Continue remaining encounter and drop ingestion |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; Iron Shield price, Ice Shield chest, and Cautery Sword's Tunnel route are manually resolved from dedicated current-version pages; 5 source conflicts remain unresolved and expose required evidence | High for resolved location rows; conservative elsewhere; Tempest may represent two valid routes rather than a single-value disagreement | Verify Tempest Shield's Sanctum and Ventus chests in-game under one patch before adjudicating; resolve spelling with direct UI evidence |
 
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 358
+- sources: 362
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -51,12 +51,12 @@ Expected after `python scripts/build_kb.py`:
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
 - monsters: 333
-- monster encounters / drops: 324 / 180
+- monster encounters / drops: 330 / 185
 - Vicious species / encounters: 10 / 11
 - ready-for-play checkpoint advice: 86
 - Mini Medal corroborating evidence rows: 86
 - Heroic Hoarder items: 353
-- item aliases / acquisition paths: 4 / 704
+- item aliases / acquisition paths: 4 / 705
 - shops / inventory rows: 47 / 115
 - Lucky Panel pools / reward rows: 14 / 288
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
@@ -117,9 +117,11 @@ The seventh combat-engine batch adds direct tactics for five midgame bosses, 33 
 
 The eighth combat-engine batch extends qualitative modifiers to all non-default vocations, adds six later/postgame boss tactics, adds five Vicious/postgame monster pages, and lets progress commands accept Monster List ordinals or unambiguous English names.
 
+The late/postgame boss-sequence audit adds six direct current-version tactics: optional The Time Being before the first Orgodemir fight, Moostapha then Malign Vine in Nottagen, Lourgh and Disorder, the first postgame Almighty fight, and Xenlon before the Almighty-and-Spirits encounter. Each row retains its exact checkpoint/period gate and role tradeoff; published suggested levels were deliberately not normalized.
+
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The current monster expansion has 324 checkpoint-gated encounter routes across 218 of 333 monsters and 180 verified drop rows across 159 monsters. The latest nearest chronological batch adds Enormoose in Present Frobisher Region at cp007 and Present Roamer Encampment Region at cp012. Its direct page publishes no available drop, so no synthetic drop row was added.
+The current monster expansion has 330 checkpoint-gated encounter routes across 221 of 333 monsters and 185 verified drop rows across 162 monsters. The latest chronological-gap batch adds Blightcrawler (Present Al-Balad and Buccanham Regions), Mad Moai (Present Ballymolloy and Frobisher Regions), and Terrorhawk (Past Nottagen Cavern and Present Emberdale Region), all conservatively gated to cp026 when late-world cleanup opens. Their direct pages verify Antidotal Herb / Tortoise Shell, Dieamend / Stone Axe, and Stellar Fan drops respectively; published rates remain unknown.
 
 The item-route normalization batch links 44 existing source-verified monster drops into checkpoint-aware acquisition paths. This gives 19 Heroic Hoarder items a renewable enemy-drop alternative to Lucky Panel and reduces items represented only by Lucky Panel paths from 40 to 21; each route retains the direct monster-page drop and location locator.
 
@@ -160,6 +162,8 @@ The exact-name audit adds three provenance-backed aliases from dedicated current
 The alternate-route batch adds three direct current-version finite, free treasures for items otherwise represented only by Lucky Panel: Hairband in L'Arca Past and Rabbit Ears in L'Arca Present at `cp_005_larca`, plus Coagulant in Hubble Castle Past at `cp_016_hubble`. The dedicated pages publish the area and period but not the exact container, which remains explicit in verification status rather than inferred.
 
 The next early-game route batch adds two fixed alternatives from the direct current-version walkthrough: Pretty Betsy in the northern L'Arca Region Present at `cp_005_larca` (requiring direct boat landing), and Prayer Ring in the Tunnel to Alltrades Abbey Past at `cp_009_alltrades` after obtaining the Alltrades Key. Both are finite and free; the source does not publish an exact container for either, so no container detail was invented.
+
+The cp010–cp020 audit adds Kamikazee Bracer as a finite, free treasure in Likeness of the Great Evil Past at `cp_011_la_bravoure`, backed by its dedicated current-version item page; the exact container remains unpublished. Potential Pillager's Helmet and Slime Earrings fixed pickups were not normalized because the direct dedicated pages conflict with or do not support the walkthrough wording, so those source differences remain unresolved.
 
 The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
 
