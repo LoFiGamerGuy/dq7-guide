@@ -727,6 +727,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                              if row["subject_key"] == "item:tempest_shield" else
                              "A current-version capture or continuous video showing the post-Aishe Career Sphere message and the complete Jacqui activation interaction, including the displayed venue name."
                              if row["subject_key"] == "system:moonlighting" else
+                             "A direct current-version English in-game Item List, inventory, shop, or acquisition-result capture with the full fan name legible; guide page titles alone are insufficient."
+                             if row["subject_key"] == "item:stella_fan" else
                              "Direct current-version in-game or location-specific evidence that addresses the same scope and distinguishes the two claims.")),
                         "claims": [{
                             "id": row[f"claim_{side}_id"],

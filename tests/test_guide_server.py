@@ -111,6 +111,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("post-Aishe Career Sphere message",
                       moonlighting["required_evidence"])
         self.assertIn("displayed venue name", moonlighting["required_evidence"])
+        stellar = next(row for row in conflicts if "stella fan" in row["subject"])
+        self.assertIn("English in-game Item List", stellar["required_evidence"])
+        self.assertIn("full fan name legible", stellar["required_evidence"])
+        self.assertEqual(stellar["status"], "unresolved")
+        _, stella_item = self.get_json("/api/items/Stella%20Fan")
+        _, stellar_item = self.get_json("/api/items/Stellar%20Fan")
+        self.assertEqual(stella_item["item"]["item_id"],
+                         stellar_item["item"]["item_id"])
+        self.assertEqual(stellar_item["item"]["name"], "Stellar Fan")
         _, all_conflicts = self.get_json("/api/conflicts?include_resolved=1")
         iron = next(row for row in all_conflicts
                     if row["resolution_claim_id"] ==
