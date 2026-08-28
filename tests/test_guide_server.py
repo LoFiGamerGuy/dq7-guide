@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import _vocation_unlock_progress, create_server
+from guide_server import _equipment_readiness, _vocation_unlock_progress, create_server
 
 
 class GuideServerTests(unittest.TestCase):
@@ -47,6 +47,29 @@ class GuideServerTests(unittest.TestCase):
                           headers={"Content-Type": "application/json"}, method="PATCH")
         with urlopen(request) as response:
             return response.status, json.load(response)
+
+    def test_equipment_readiness_refuses_unvalidated_editor_and_compares_advice(self):
+        state_path = Path(self.temp.name) / "equipment-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_009_alltrades"
+        state["party"]["members"]["Hero"]["equipment"] = {
+            "weapon": "item_cautery_sword"
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = _equipment_readiness(ROOT / "data" / "dq7_reimagined.sqlite",
+                                      state_path)
+        self.assertFalse(report["editor_supported"])
+        self.assertTrue(any("equipability matrix" in gap for gap in report["gaps"]))
+        cautery = next(row for row in report["recommendations"]
+                       if row["item_name"] == "Cautery Sword")
+        self.assertEqual(cautery["character"], "Hero")
+        self.assertEqual(cautery["slot"], "weapon")
+        self.assertEqual(cautery["comparison_status"], "matches_recommendation")
+        self.assertEqual(cautery["ownership_status"], "unknown")
+
+        status, endpoint = self.get_json("/api/equipment")
+        self.assertEqual(status, 200)
+        self.assertFalse(endpoint["editor_supported"])
 
     def test_health_checkpoints_dashboard_and_static_assets(self):
         launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")

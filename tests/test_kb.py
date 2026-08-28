@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 418)
+        self.assertEqual(self.counts["sources"], 428)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 739)
+        self.assertEqual(self.counts["item_acquisition_paths"], 741)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
@@ -327,6 +327,31 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             by_id["acq_hardwood_headwear_ballymolloy_present"]["available_from_checkpoint_id"],
             "cp_003_ballymolloy",
+        )
+        self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
+        self.assertTrue(all(row["finite_total"] == 1 for row in rows))
+        self.assertTrue(all(row["is_free"] == 1 for row in rows))
+        self.assertTrue(all("exact_container_unknown" in row["verification_status"] for row in rows))
+
+    def test_early_armour_pages_add_finite_free_routes(self):
+        rows = self.connection.execute(
+            """SELECT acquisition_id, available_from_checkpoint_id, supply_type,
+                finite_total, is_free, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_noble_garb_institute_past',
+                'acq_silk_robe_bandits_base_present'
+            ) ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        by_id = {row["acquisition_id"]: row for row in rows}
+        self.assertEqual(
+            by_id["acq_noble_garb_institute_past"]["available_from_checkpoint_id"],
+            "cp_007_frobisher",
+        )
+        self.assertEqual(
+            by_id["acq_silk_robe_bandits_base_present"]["available_from_checkpoint_id"],
+            "cp_010_alltrades_present",
         )
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
@@ -724,13 +749,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (391, 213))
+        self.assertEqual(tuple(counts), (399, 213))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (261, "cp_001_prologue", 65))
+        self.assertEqual(tuple(early), (269, "cp_001_prologue", 65))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -788,7 +813,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE location_text LIKE 'Rampage Roads (Buccanham Arena;%'
               AND available_from_checkpoint_id='cp_031_testy_road_gold_gate'"""
         ).fetchone()
-        self.assertEqual(tuple(rampage_completion_routes), (8, 8))
+        self.assertEqual(tuple(rampage_completion_routes), (16, 16))
         completion_special_routes = self.connection.execute(
             """SELECT COUNT(*), COUNT(DISTINCT monster_id)
             FROM monster_encounters
@@ -924,7 +949,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 261)
+        self.assertEqual(report["routed"], 269)
         self.assertEqual(report["drops"], 185)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 

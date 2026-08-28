@@ -221,6 +221,107 @@ def _monsters(db_path: Path, state_path: Path, query: dict) -> dict:
     return page
 
 
+def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
+    """Compare explicit gear state with sourced checkpoint advice without validating it."""
+    state = _state(state_path)
+    checkpoint_id = state.get("story", {}).get("checkpoint_id")
+    members = state.get("party", {}).get("members", {})
+    result = {
+        "editor_supported": False,
+        "comparison_scope": "current_checkpoint_attributed_recommendations",
+        "checkpoint_id": checkpoint_id,
+        "gaps": [
+            "No current-version character-by-item equipability matrix is normalized.",
+            "Accessory slot count and duplicate-equip rules are not normalized.",
+            "Item categories identify nominal slots, but do not prove a character can equip an item.",
+        ],
+        "members": [],
+        "recommendations": [],
+    }
+    for name, member in members.items():
+        equipment = member.get("equipment", {})
+        result["members"].append({
+            "name": name,
+            "status": "unknown" if not equipment else "unvalidated_record",
+            "recorded_equipment": equipment if isinstance(equipment, dict) else {},
+            "note": ("No equipment explicitly recorded." if not equipment else
+                     "Recorded values are displayed only; compatibility has not been validated."),
+        })
+    if not checkpoint_id:
+        result["status"] = "unknown_checkpoint"
+        return result
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        checkpoint = connection.execute(
+            "SELECT sequence_no FROM checkpoints WHERE checkpoint_id=?", (checkpoint_id,)
+        ).fetchone()
+        if checkpoint is None:
+            result["status"] = "unknown_checkpoint"
+            return result
+        advice_rows = connection.execute(
+            """SELECT a.advice_id, a.subject, a.advice_text, a.applicability_json,
+                a.recommendation_goal, a.confidence, a.verification_status,
+                s.source_id, s.title AS source_title, s.url AS source_url, a.locator
+            FROM checkpoint_advice a JOIN sources s USING(source_id)
+            WHERE a.checkpoint_id=? AND a.advice_type='gear' AND a.ready_for_play=1
+            ORDER BY a.display_order, a.advice_id""", (checkpoint_id,)
+        ).fetchall()
+        item_rows = connection.execute(
+            """SELECT i.item_id, i.name, c.name AS category FROM items i
+            JOIN item_categories c USING(category_id)"""
+        ).fetchall()
+        aliases = connection.execute("SELECT alias, item_id FROM item_aliases").fetchall()
+        available = {row[0] for row in connection.execute(
+            """SELECT DISTINCT a.item_id FROM item_acquisition_paths a
+            JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
+            WHERE c.sequence_no <= ?""", (checkpoint["sequence_no"],)
+        )}
+    by_name = {row["name"].casefold(): dict(row) for row in item_rows}
+    by_id = {row["item_id"]: dict(row) for row in item_rows}
+    for alias, item_id in aliases:
+        by_name[alias.casefold()] = by_id[item_id]
+    obtained = set(state.get("completion", {}).get("items_obtained", []))
+    slot_for_category = {"weapons": "weapon", "armour": "armour",
+                         "shields": "shield", "head": "helmet",
+                         "accessories": "accessory"}
+    for advice in advice_rows:
+        applicability = json.loads(advice["applicability_json"])
+        character = applicability.get("party_member")
+        candidates = []
+        if isinstance(applicability.get("item"), str):
+            candidates.append((None, applicability["item"]))
+        if isinstance(applicability.get("items"), dict):
+            candidates.extend(applicability["items"].items())
+        for stated_slot, stated_name in candidates:
+            if not isinstance(stated_name, str):
+                continue
+            item = by_name.get(stated_name.casefold())
+            if item is None:
+                continue
+            slot = stated_slot or slot_for_category.get(item["category"].casefold())
+            recorded = members.get(character, {}).get("equipment", {}) if character else {}
+            recorded_value = recorded.get(slot) if isinstance(recorded, dict) and slot else None
+            matches = recorded_value in (item["item_id"], item["name"])
+            result["recommendations"].append({
+                "advice_id": advice["advice_id"], "character": character,
+                "slot": slot, "item_id": item["item_id"], "item_name": item["name"],
+                "category": item["category"],
+                "availability_status": "route_available" if item["item_id"] in available else "route_not_proven_by_checkpoint",
+                "ownership_status": "recorded" if item["item_id"] in obtained else "unknown",
+                "comparison_status": "matches_recommendation" if matches else "current_equipment_unknown" if recorded_value is None else "different_recorded_value",
+                "recorded_value": recorded_value,
+                "recommendation": advice["advice_text"],
+                "goal": advice["recommendation_goal"],
+                "source": {"id": advice["source_id"], "title": advice["source_title"],
+                           "url": advice["source_url"], "locator": advice["locator"]},
+                "confidence": advice["confidence"],
+                "verification_status": advice["verification_status"],
+                "compatibility_basis": "Attributed recommendation for this character and item; not a universal equipability rule.",
+            })
+    result["status"] = "recommendations_available" if result["recommendations"] else "no_checkpoint_gear_recommendations"
+    return result
+
+
 def _monster_hearts(db_path: Path, query: dict) -> dict:
     rows = _rows(db_path, """SELECT h.heart_id, h.name, h.effect_text,
         h.available_from_checkpoint_id, c.name AS available_checkpoint,
@@ -662,6 +763,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._json(_checkpoint_view(db_path, state_path, checkpoint_id))
                 if parsed.path == "/api/progress":
                     return self._json(_progress(db_path, state_path))
+                if parsed.path == "/api/equipment":
+                    return self._json(_equipment_readiness(db_path, state_path))
                 if parsed.path == "/api/walkthrough":
                     query = parse_qs(parsed.query)
                     start = query.get("from", [DEFAULT_FROM])[0]

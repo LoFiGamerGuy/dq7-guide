@@ -121,6 +121,16 @@ remain `unknown`, not zero; an explicit `mini_medal_count: 0` is an exact zero.
 has not itself been recorded. This distinction applies to Heroic Hoarder, Monster
 List, Vicious encounters, tablets, vocations, and medals.
 
+`GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
+It returns `editor_supported: false`, the exact normalization `gaps`, each party
+member's raw explicitly recorded equipment with an `unvalidated_record` warning,
+and gear recommendations for the saved checkpoint. Recommendation rows resolve
+canonical item IDs and nominal category slots, route availability, explicit
+ownership, the recorded-value comparison, provenance, and an attributed
+compatibility basis. They do not form a universal equipability matrix. Clients
+must not offer equipment writes until character-by-item compatibility, accessory
+slot count, and duplicate-equip rules are normalized and validated.
+
 The Python server derives these endpoints from the generated database and explicitly selected state file. Vocation mastery and whole-tablet status need dedicated workflows and remain read-only in the generic catalog.
 
 ## Writes

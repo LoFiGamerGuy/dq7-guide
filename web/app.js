@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, conflicts: [], vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0 };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0 };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -126,6 +126,8 @@ function renderProgress() {
   syncVocationChoices();
   syncPartyDetails();
   $("#partyState").innerHTML = members.map(member => `<div><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml([member.level ? `Lv ${member.level}` : "level unknown", member.primary_vocation || "vocation unknown", member.secondary_vocation ? `+ ${member.secondary_vocation}` : null, `${member.mastered_vocations.length} mastered`].filter(Boolean).join(" · "))}</span></div>`).join("");
+  const equipment = state.equipment || {}, recommendations = equipment.recommendations || [];
+  $("#equipmentReadiness").innerHTML = `<div class="uncertain-banner"><strong>Equipment editing unavailable</strong><span>${escapeHtml((equipment.gaps || ["Character/item compatibility is not normalized."])[0])}</span></div>${recommendations.length ? `<h4>Strongest-now comparison</h4><div class="detail-list">${recommendations.map(row => `<div><strong>${escapeHtml([row.character, row.slot, row.item_name].filter(Boolean).join(" · "))}</strong><span>${escapeHtml(row.comparison_status.replaceAll("_", " "))} · ownership ${escapeHtml(row.ownership_status)} · ${escapeHtml(row.availability_status.replaceAll("_", " "))}</span><span>${escapeHtml(row.recommendation)}</span>${sourceLink({source_url: row.source?.url, source_title: row.source?.title, locator: row.source?.locator})}</div>`).join("")}</div><p class="muted">These are attributed checkpoint recommendations, not a complete equipability matrix.</p>` : '<p class="muted">No sourced gear recommendation is normalized for the saved checkpoint.</p>'}`;
 }
 function syncVocationChoices() {
   const character = $("#partyMemberSelect")?.value, select = $("#masteryVocationSelect");
@@ -288,9 +290,9 @@ async function stepCheckpoint(delta) {
 async function loadAll() {
   setStatus("Loading guide…");
   const vocationRequest = state.vocations.length ? Promise.resolve(null) : api("/vocations?limit=200");
-  const loaded = await Promise.all([api("/dashboard"), api("/checkpoints"), api("/progress"), api("/conflicts?include_resolved=1"), vocationRequest]);
-  [state.dashboard, state.checkpoints, state.progress, state.conflicts] = loaded;
-  if (loaded[4]) state.vocations = loaded[4].vocations || [];
+  const loaded = await Promise.all([api("/dashboard"), api("/checkpoints"), api("/progress"), api("/equipment"), api("/conflicts?include_resolved=1"), vocationRequest]);
+  [state.dashboard, state.checkpoints, state.progress, state.equipment, state.conflicts] = loaded;
+  if (loaded[5]) state.vocations = loaded[5].vocations || [];
   renderDashboard(); renderProgress();
   const savedCheckpoint = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
   const select = $("#checkpointSelect"); select.innerHTML = state.checkpoints.map(c => `<option value="${escapeHtml(c.id)}">${String(c.sequence).padStart(2,"0")} · ${escapeHtml(c.name)}${c.id === savedCheckpoint ? " (saved)" : ""}</option>`).join("");
