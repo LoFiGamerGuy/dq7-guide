@@ -1727,6 +1727,37 @@
     {"acquisition_id":"acq_tortoise_shell_lucky_panel_v3_rank1","pool_id":"lp_pilgrims_rest_v3_rank_1_standard","reward_quantity":1,"slot_count":null,"probability_text":null},
     {"acquisition_id":"acq_trailblazing_bandanna_lucky_panel_v3_rank1","pool_id":"lp_pilgrims_rest_v3_rank_1_standard","reward_quantity":1,"slot_count":null,"probability_text":null}
   ],
+  "lucky_panel_standard_matrix_rows": [
+    {"item_id":"item_agility_ring","source_name":"Agility Ring"},
+    {"item_id":"item_assassins_dagger","source_name":"Assassin’s Dagger","name_resolution":"typographic_apostrophe"},
+    {"item_id":"item_battleaxe","source_name":"Battleaxe"},
+    {"item_id":"item_butterfly_baton","source_name":"Butterfly Baton"},
+    {"item_id":"item_chimaera_wing","source_name":"Chimaera Wing"},
+    {"item_id":"item_dragontail_whip","source_name":"Dragontail Whip"},
+    {"item_id":"item_ferocious_fangs","source_name":"Ferocious Fangs"},
+    {"item_id":"item_fire_claws","source_name":"Fire Claws"},
+    {"item_id":"item_full_plate_armour","source_name":"Full Plate Armour"},
+    {"item_id":"item_icicle_dirk","source_name":"Icicle Dirk"},
+    {"item_id":"item_garter","source_name":"Garter"},
+    {"item_id":"item_lunar_fan","source_name":"Lunar Fan"},
+    {"item_id":"item_magical_skirt","source_name":"Magical Skirt"},
+    {"item_id":"item_pillagers_helmet","source_name":"Pillager’s Helmet","name_resolution":"typographic_apostrophe"},
+    {"item_id":"item_pillagers_platemail","source_name":"Pillager’s Platemail","name_resolution":"typographic_apostrophe"},
+    {"item_id":"item_platinum_headgear","source_name":"Platinum Headgear"},
+    {"item_id":"item_platinum_lance","source_name":"Platinum Lance"},
+    {"item_id":"item_platinum_sword","source_name":"Platinum Sword"},
+    {"item_id":"item_spangled_dress","source_name":"Spangled Dress"},
+    {"item_id":"item_shiverstick","source_name":"Shiverstick"},
+    {"item_id":"item_silver_cuirass","source_name":"Silver Cuirass"},
+    {"item_id":"item_single_phial","source_name":"Single Phial"},
+    {"item_id":"item_spiked_steel_whip","source_name":"Spiked Steel Whip"},
+    {"item_id":"item_staff_of_salvation","source_name":"Staff of Salvation"},
+    {"item_id":"item_staff_of_sentencing","source_name":"Staff of Sentencing"},
+    {"item_id":"item_steel_broadsword","source_name":"Steel Broadsword"},
+    {"item_id":"item_steel_helmet","source_name":"Steel Helmet"},
+    {"item_id":"item_tin_pot","source_name":"Tin Pot"},
+    {"item_id":"item_war_hammer","source_name":"War Hammer"}
+  ],
   "mini_medal_evidence": [
     {"evidence_id":"medal_001_rpgsite_order_001","medal_number":1,"source_id":"rpgsite_walkthrough","locator":"Prologue - Pilchard Bay and Estard Castle > Estard Castle King's Bedroom drawers","source_ordinal":1,"ordinal_scheme":"walkthrough_acquisition_order","notes":"RPG Site ordinal is route order, not Game8 list number."},
     {"evidence_id":"medal_002_rpgsite_order_004","medal_number":2,"source_id":"rpgsite_walkthrough","locator":"Ballymolloy and Estard (Present) > Estard Castle west raft barrels","source_ordinal":4,"ordinal_scheme":"walkthrough_acquisition_order","notes":"RPG Site ordinal is route order, not Game8 list number."},
@@ -4046,6 +4077,10 @@
     ,{"encounter_id":"enc_orgodemir_final_phase_4_cathedral_present","monster_id":"monster_274","location_text":"Cathedral of Blight","time_period":"Present","available_from_checkpoint_id":"cp_028_cathedral_of_blight","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_orgodemir","locator":"Orgodemir Boss Information > Orgodemir Final Boss Details > Final > Locations > Cathedral of Blight (Present)","confidence":"high","verification_status":"source_checked_checkpoint_gated_form_specific"}
     ,{"encounter_id":"enc_almighty_another_world_shrine_present","monster_id":"monster_284","location_text":"Another World: Shrine","time_period":"Present","available_from_checkpoint_id":"cp_030_postgame_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_almighty","locator":"The Almighty Boss Information > The Almighty Details > Locations > Another World: Shrine (Present)","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
     ,{"encounter_id":"enc_xenlon_yet_another_world_shrine_present","monster_id":"monster_295","location_text":"Yet Another World: Shrine","time_period":"Present","available_from_checkpoint_id":"cp_032_yet_another_world","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_xenlon","locator":"Xenlon Boss Information > Xenlon Details > Locations > Yet Another World: Shrine (Present)","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
+    ,{"encounter_id":"enc_automatrist_automaton_stronghold_past","monster_id":"monster_041","location_text":"Automaton Stronghold","time_period":"Past","available_from_checkpoint_id":"cp_007_frobisher","unavailable_after_checkpoint_id":null,"source_id":"game8_frobisher_walkthrough","locator":"Frobisher Bosses > All Frobisher Bosses > The Automatrist > Location: Automaton Stronghold (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated"}
+    ,{"encounter_id":"enc_metal_slime_roamer_region_past","monster_id":"monster_045","location_text":"Roamer Encampment Region","time_period":"Past","available_from_checkpoint_id":"cp_008_roamer","unavailable_after_checkpoint_id":null,"source_id":"game8_metal_farming","locator":"Metal Slime Locations > Roamer Encampment Region (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated_bonus_enemy_not_overworld"}
+    ,{"encounter_id":"enc_rashers_western_cave_past","monster_id":"monster_056","location_text":"Western Cave / Cave Leading to the Dungeon","time_period":"Past","available_from_checkpoint_id":"cp_009_alltrades","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_rashers_stripes","locator":"Rashers and Stripes Boss Information > Rashers Details > Locations > Western Cave (Past); Cave Leading to the Dungeon (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated_first_encounter_scripted_loss"}
+    ,{"encounter_id":"enc_stripes_western_cave_past","monster_id":"monster_057","location_text":"Western Cave / Cave Leading to the Dungeon","time_period":"Past","available_from_checkpoint_id":"cp_009_alltrades","unavailable_after_checkpoint_id":null,"source_id":"game8_boss_rashers_stripes","locator":"Rashers and Stripes Boss Information > Stripes Details > Locations > Western Cave (Past); Cave Leading to the Dungeon (Past)","confidence":"high","verification_status":"source_checked_checkpoint_gated_first_encounter_scripted_loss"}
   ],
   "monster_drops": [
     {"drop_id":"drop_slime_medicinal_herb","monster_id":"monster_002","item_name":"Medicinal Herb","drop_rate_text":null,"source_id":"game8_monster_slime","locator":"Slime Overview > Available Drops > Medicinal Herb","confidence":"high","verification_status":"source_checked_rate_unpublished"},

@@ -35,6 +35,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "achievement-unlocked", "achievement-undo", "item-obtained", "item-undo",
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
     "vocation-mastered", "vocation-undo",
+    "party-level", "party-vocations",
 }
 
 
@@ -415,7 +416,9 @@ def _progress(db_path: Path, state_path: Path) -> dict:
         "vocations": {"display": f"{len(mastered)} / 26"},
         "achievements": {"display": f"{achievements['unlocked_count']} / {achievements['total']}"},
         "saved_checkpoint": state.get("story", {}).get("checkpoint_id"),
-        "party": [{"name": name,
+        "party": [{"name": name, "level": member.get("level"),
+                   "primary_vocation": member.get("primary_vocation"),
+                   "secondary_vocation": member.get("secondary_vocation"),
                    "mastered_vocations": sorted(vocation_id for vocation_id, value
                                                 in member.get("vocation_mastery", {}).items()
                                                 if value is True)}

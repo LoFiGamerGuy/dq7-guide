@@ -27,11 +27,11 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with acquisition routes surfaced for 40 and six link gaps left explicit;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 322-page source registry with browser search and retrieval-freshness metadata;
+- a 324-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
-- 288 checkpoint-gated encounters across 187 monsters and 153 verified drops across 134 monsters;
+- 292 checkpoint-gated encounters across 191 monsters and 153 verified drops across 134 monsters;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
 - verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules;
 - verified qualitative stat modifiers for all non-default vocations;
@@ -51,7 +51,7 @@ On Windows, double-click `start-guide.bat`. Or run:
 python scripts/guide_server.py --open-browser
 ```
 
-Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only explicit changes through the same validation as the CLI.
+Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. Its first-use editor records an explicit checkpoint, medal count, party levels, current vocations, and mastery while preserving unknowns. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only validated changes.
 
 ```powershell
 python scripts/build_kb.py

@@ -75,9 +75,11 @@
         <article class="panel state-editor"><div class="panel-heading"><div><h3>Record known state</h3><p class="muted">Explicit entries only. Nothing else is inferred.</p></div><span id="savedCheckpoint" class="tag">Checkpoint unknown</span></div>
           <div class="state-forms">
             <form id="medalCountForm"><label class="select-label">Mini Medal count <input id="medalCountInput" type="number" min="0" step="1" inputmode="numeric" required></label><button class="secondary" type="submit">Save count</button></form>
+            <form id="partyDetailsForm"><label class="select-label">Party member <select id="partyDetailsMember" required></select></label><label class="select-label">Level <input id="partyLevelInput" type="number" min="1" step="1" inputmode="numeric" placeholder="Unknown"></label><label class="select-label">Current vocation <select id="primaryVocationSelect"></select></label><label class="select-label">Secondary vocation <select id="secondaryVocationSelect"></select></label><button class="secondary" type="submit">Save roles</button></form>
             <form id="vocationMasteryForm"><label class="select-label">Party member <select id="partyMemberSelect" required></select></label><label class="select-label">Vocation <select id="masteryVocationSelect" required></select></label><label class="select-label">Change <select id="masteryAction"><option value="vocation-mastered">Record mastered</option><option value="vocation-undo">Remove mastery</option></select></label><button class="secondary" type="submit">Save mastery</button></form>
           </div>
           <div id="partyState" class="party-state" aria-live="polite"></div>
+          <p class="muted state-gap">Equipment stays unknown here until slot and character compatibility can be validated.</p>
         </article>
         <article class="panel"><h3>Open completion work</h3><div id="openWork"></div></article>
       </section>

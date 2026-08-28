@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 322)
+        self.assertEqual(self.counts["sources"], 324)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -70,14 +70,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 353)
         self.assertEqual(self.counts["item_aliases"], 1)
-        self.assertEqual(self.counts["item_acquisition_paths"], 518)
+        self.assertEqual(self.counts["item_acquisition_paths"], 547)
         self.assertEqual(self.counts["monster_hearts"], 46)
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
         self.assertEqual(self.counts["shop_inventory"], 115)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 108)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 137)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -393,13 +393,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             "SELECT (SELECT COUNT(*) FROM monster_encounters), "
             "(SELECT COUNT(*) FROM monster_drops)"
         ).fetchone()
-        self.assertEqual(tuple(counts), (288, 153))
+        self.assertEqual(tuple(counts), (292, 153))
         early = self.connection.execute(
             """SELECT COUNT(DISTINCT monster_id), MIN(available_from_checkpoint_id),
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (187, "cp_001_prologue", 53))
+        self.assertEqual(tuple(early), (191, "cp_001_prologue", 57))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -526,7 +526,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         report = load_monster_coverage(self.db_path, state_path)
         self.assertEqual(report["total"], 333)
         self.assertEqual(report["defeated"], 1)
-        self.assertEqual(report["routed"], 187)
+        self.assertEqual(report["routed"], 191)
         self.assertEqual(report["drops"], 134)
         self.assertEqual(report["unknown_state_ids"], ["unknown_monster"])
 
@@ -567,6 +567,31 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertNotIn(
             "vocation_warrior", state["party"]["members"]["Hero"]["vocation_mastery"]
         )
+
+    def test_player_progress_tracks_explicit_level_and_current_vocations(self):
+        state_path = Path(self.tempdir.name) / "party-details.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        update_progress(state_path, self.db_path, "party-level", ["Hero", "17"])
+        update_progress(state_path, self.db_path, "party-vocations",
+                        ["Hero", "vocation_warrior", "vocation_priest"])
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        hero = state["party"]["members"]["Hero"]
+        self.assertEqual((hero["level"], hero["primary_vocation"], hero["secondary_vocation"]),
+                         (17, "vocation_warrior", "vocation_priest"))
+        update_progress(state_path, self.db_path, "party-level", ["Hero", "unknown"])
+        update_progress(state_path, self.db_path, "party-vocations",
+                        ["Hero", "unknown", "unknown"])
+        hero = json.loads(state_path.read_text(encoding="utf-8"))["party"]["members"]["Hero"]
+        self.assertEqual((hero["level"], hero["primary_vocation"], hero["secondary_vocation"]),
+                         (None, None, None))
+        with self.assertRaisesRegex(ValueError, "positive integer"):
+            update_progress(state_path, self.db_path, "party-level", ["Hero", "0"])
+        with self.assertRaisesRegex(ValueError, "unavailable"):
+            update_progress(state_path, self.db_path, "party-vocations",
+                            ["Ruff", "vocation_fledgling_fisherman", "unknown"])
 
     def test_player_progress_tracks_monster_ordinals(self):
         state_path = Path(self.tempdir.name) / "monster-progress.json"
@@ -906,6 +931,27 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Stellar Fan", {row["name"] for row in rows})
         self.assertTrue(all(
             "Version 3" in row["locator"] and "Rank 1" in row["locator"]
+            for row in rows
+        ))
+        self.assertTrue(all(row["probability_text"] is None for row in rows))
+        self.assertTrue(all(row["entry_cost"] is None for row in rows))
+
+    def test_lucky_panel_version_3_rank_2_preserves_published_scope(self):
+        rows = self.connection.execute(
+            """SELECT i.name, a.locator, a.verification_status,
+                lr.probability_text, lp.entry_cost
+            FROM lucky_panel_pools lp
+            JOIN lucky_panel_rewards lr USING(pool_id)
+            JOIN item_acquisition_paths a USING(acquisition_id)
+            JOIN items i USING(item_id)
+            WHERE lp.pool_id = 'lp_pilgrims_rest_v3_rank_2_standard'
+            ORDER BY i.name"""
+        ).fetchall()
+        self.assertEqual(len(rows), 32)
+        self.assertIn("Assassin's Dagger", {row["name"] for row in rows})
+        self.assertIn("Pillager's Helmet", {row["name"] for row in rows})
+        self.assertTrue(all(
+            "Version 3" in row["locator"] and "Rank 2" in row["locator"]
             for row in rows
         ))
         self.assertTrue(all(row["probability_text"] is None for row in rows))

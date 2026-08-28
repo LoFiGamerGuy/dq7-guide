@@ -260,7 +260,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(dashboard["checkpoint"]["is_saved"])
         self.assertEqual(dashboard["checkpoint"]["name"], "Estard Castle and Shrine of Mysteries")
         for command, values in (("medal-count", [7]),
-                                ("vocation-mastered", ["Hero", vocation_id])):
+                                ("vocation-mastered", ["Hero", vocation_id]),
+                                ("party-level", ["Hero", 17]),
+                                ("party-vocations", ["Hero", "vocation_warrior", "vocation_priest"])):
             request = Request(self.base + "/api/progress",
                               data=json.dumps({"command": command, "values": values}).encode(),
                               headers={"Content-Type": "application/json"}, method="POST")
@@ -271,6 +273,8 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(progress["mini_medal_count"], 7)
         hero = next(member for member in progress["party"] if member["name"] == "Hero")
         self.assertIn(vocation_id, hero["mastered_vocations"])
+        self.assertEqual((hero["level"], hero["primary_vocation"], hero["secondary_vocation"]),
+                         (17, "vocation_warrior", "vocation_priest"))
         self.patch_json("/api/vocations/" + vocation_id,
                         {"character": "Hero", "completed": False})
         saved = json.loads(self.state.read_text())

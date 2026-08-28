@@ -115,16 +115,28 @@ function renderProgress() {
   $("#savedCheckpoint").textContent = saved ? `Saved: ${saved.sequence} · ${saved.name}` : "Checkpoint not recorded";
   const members = p.party || [];
   $("#partyMemberSelect").innerHTML = members.map(member => `<option value="${escapeHtml(member.name)}">${escapeHtml(member.name)}</option>`).join("");
+  $("#partyDetailsMember").innerHTML = members.map(member => `<option value="${escapeHtml(member.name)}">${escapeHtml(member.name)}</option>`).join("");
   $("#masteryVocationSelect").innerHTML = state.vocations.map(vocation => `<option value="${escapeHtml(vocation.vocation_id)}" data-exclusive="${escapeHtml(vocation.exclusive_character || "")}">${escapeHtml(vocation.name)}</option>`).join("");
   $("#medalCountInput").value = p.mini_medal_count ?? "";
   syncVocationChoices();
-  $("#partyState").innerHTML = members.map(member => `<div><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml(member.mastered_vocations.length ? `${member.mastered_vocations.length} mastered` : "No mastery recorded")}</span></div>`).join("");
+  syncPartyDetails();
+  $("#partyState").innerHTML = members.map(member => `<div><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml([member.level ? `Lv ${member.level}` : "level unknown", member.primary_vocation || "vocation unknown", member.secondary_vocation ? `+ ${member.secondary_vocation}` : null, `${member.mastered_vocations.length} mastered`].filter(Boolean).join(" · "))}</span></div>`).join("");
 }
 function syncVocationChoices() {
   const character = $("#partyMemberSelect")?.value, select = $("#masteryVocationSelect");
   if (!select) return;
   [...select.options].forEach(option => { option.disabled = Boolean(option.dataset.exclusive && option.dataset.exclusive !== character); });
   if (select.selectedOptions[0]?.disabled) select.value = [...select.options].find(option => !option.disabled)?.value || "";
+}
+function syncPartyDetails() {
+  const character = $("#partyDetailsMember")?.value;
+  if (!character) return;
+  const member = (state.progress?.party || []).find(row => row.name === character) || {};
+  const options = `<option value="unknown">Unknown</option>${state.vocations.filter(vocation => !vocation.exclusive_character || vocation.exclusive_character === character).map(vocation => `<option value="${escapeHtml(vocation.vocation_id)}">${escapeHtml(vocation.name)}</option>`).join("")}`;
+  $("#primaryVocationSelect").innerHTML = options; $("#secondaryVocationSelect").innerHTML = options;
+  $("#primaryVocationSelect").value = member.primary_vocation || "unknown";
+  $("#secondaryVocationSelect").value = member.secondary_vocation || "unknown";
+  $("#partyLevelInput").value = member.level ?? "";
 }
 function renderSources(sources = state.checkpoint?.sources || []) {
   const target = $("#sourceList"); target.innerHTML = sources.map(s => `<div class="source-item"><a href="${escapeHtml(s.url)}" target="_blank" rel="noreferrer">${escapeHtml(s.title)}</a><br><span class="muted">${escapeHtml(s.locator || "")}</span></div>`).join(""); if (!target.children.length) target.append(empty());
@@ -294,8 +306,10 @@ $("#setCheckpointButton").addEventListener("click", async () => {
 });
 $("#hideCompleted").addEventListener("change", renderCheckpoint);
 $("#partyMemberSelect").addEventListener("change", syncVocationChoices);
+$("#partyDetailsMember").addEventListener("change", syncPartyDetails);
 $("#medalCountForm").addEventListener("submit", event => { event.preventDefault(); recordCommand("medal-count", [$("#medalCountInput").value]).catch(handleError); });
 $("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
+$("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
 document.addEventListener("change", event => {
   if (event.target.id === "sourcePublisher") { state.sourcePublisher = event.target.value; renderCatalog(); return; }
   if (event.target.id === "sourceFreshness") { state.sourceFreshness = event.target.value; renderCatalog(); return; }

@@ -133,6 +133,60 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         "verification_status": "source_checked",
                     })
 
+        normalized_panel_matrix_paths = []
+        normalized_panel_matrix_rewards = []
+        for row in seed.get("lucky_panel_standard_matrix_rows", []):
+            game_version = str(row.get("game_version", "3"))
+            panel_rank = str(row.get("panel_rank", "2"))
+            acquisition_id = (
+                f"acq_{row['item_id'].removeprefix('item_')}"
+                f"_lucky_panel_v{game_version}_rank{panel_rank}"
+            )
+            normalized_panel_matrix_paths.append({
+                "acquisition_id": acquisition_id,
+                "item_id": row["item_id"],
+                "method": "lucky_panel",
+                "route_label": (
+                    f"Lucky Panel Version {game_version} Rank {panel_rank}"
+                ),
+                "location_text": "Pilgrim's Rest well",
+                "time_period": row.get("time_period", "Present"),
+                "available_from_checkpoint_id": row.get(
+                    "available_from_checkpoint_id",
+                    "cp_026_elemental_cleanup_nottagen",
+                ),
+                "unavailable_after_checkpoint_id": row.get("unavailable_after_checkpoint_id"),
+                "prerequisites": {
+                    "panel_version": int(game_version),
+                    "rank": int(panel_rank),
+                },
+                "quantity": 1,
+                "supply_type": "renewable",
+                "finite_total": None,
+                "is_free": None,
+                "source_id": row.get("source_id", "rpgsite_lucky_panel"),
+                "locator": row.get("locator") or (
+                    f"Lucky Panel (Version {game_version}) > Rank {panel_rank} > "
+                    f"{row['source_name']}"
+                ),
+                "confidence": row.get("confidence", "high"),
+                "verification_status": row.get("verification_status") or (
+                    "source_checked_typographic_name_resolution_"
+                    "probability_and_cost_unknown"
+                    if row.get("name_resolution")
+                    else "source_checked_probability_and_cost_unknown"
+                ),
+            })
+            normalized_panel_matrix_rewards.append({
+                "acquisition_id": acquisition_id,
+                "pool_id": row.get("pool_id") or (
+                    f"lp_pilgrims_rest_v{game_version}_rank_{panel_rank}_standard"
+                ),
+                "reward_quantity": 1,
+                "slot_count": None,
+                "probability_text": None,
+            })
+
         connection.executemany(
             """INSERT INTO sources(
                 source_id, title, publisher, url, source_class, role,
@@ -715,7 +769,10 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         item.get("prerequisites", {}), sort_keys=True
                     ),
                 }
-                for item in seed.get("item_acquisition_paths", [])
+                for item in (
+                    seed.get("item_acquisition_paths", [])
+                    + normalized_panel_matrix_paths
+                )
             ],
         )
         connection.executemany(
@@ -734,7 +791,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 :acquisition_id, :pool_id, :reward_quantity, :slot_count,
                 :probability_text
             )""",
-            seed.get("lucky_panel_rewards", []),
+            seed.get("lucky_panel_rewards", []) + normalized_panel_matrix_rewards,
         )
 
         invalid_shop_details = connection.execute(

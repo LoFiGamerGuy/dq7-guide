@@ -50,6 +50,13 @@ def _load_state(state_path: Path) -> dict:
             raise ValueError(
                 f"party.members.{character}.vocation_mastery must map vocation IDs to true"
             )
+        level = member.get("level")
+        if level is not None and (not isinstance(level, int) or isinstance(level, bool) or level < 1):
+            raise ValueError(f"party.members.{character}.level must be a positive integer or null")
+        for field in ("primary_vocation", "secondary_vocation"):
+            value = member.get(field)
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"party.members.{character}.{field} must be a vocation ID or null")
     return state
 
 
@@ -238,6 +245,39 @@ def update_progress(
                 for vocation_id in vocation_ids:
                     mastery.pop(vocation_id, None)
                 message = f"Reopened {character} mastery: {', '.join(vocation_ids)}."
+        elif command == "party-level":
+            character, level_text = values
+            members = state["party"]["members"]
+            if character not in members:
+                raise ValueError(f"Unknown party member: {character}")
+            if str(level_text).casefold() == "unknown":
+                members[character]["level"] = None
+                message = f"Cleared {character} level to unknown."
+            else:
+                level = int(level_text)
+                if level < 1:
+                    raise ValueError("Level must be a positive integer or unknown")
+                members[character]["level"] = level
+                message = f"Recorded {character} level: {level}."
+        elif command == "party-vocations":
+            character, primary_text, secondary_text = values
+            members = state["party"]["members"]
+            if character not in members:
+                raise ValueError(f"Unknown party member: {character}")
+            known = {row["vocation_id"]: row["exclusive_character"] for row in
+                     connection.execute("SELECT vocation_id, exclusive_character FROM vocations")}
+            selected = [value for value in (primary_text, secondary_text)
+                        if str(value).casefold() != "unknown"]
+            invalid = sorted(set(selected) - set(known))
+            if invalid:
+                raise ValueError(f"Unknown vocation ID(s): {invalid}")
+            ineligible = sorted(value for value in selected
+                                if known[value] not in (None, character))
+            if ineligible:
+                raise ValueError(f"Vocation(s) unavailable to {character}: {ineligible}")
+            members[character]["primary_vocation"] = (None if str(primary_text).casefold() == "unknown" else primary_text)
+            members[character]["secondary_vocation"] = (None if str(secondary_text).casefold() == "unknown" else secondary_text)
+            message = f"Recorded {character} current vocations."
         elif command in ("monster-defeated", "monster-undo"):
             monster_ids = _resolve_monsters(connection, values)
             entries = set(state["completion"]["monster_entries"])
