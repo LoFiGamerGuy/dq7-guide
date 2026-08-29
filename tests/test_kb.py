@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 643)
+        self.assertEqual(self.counts["sources"], 645)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1258,6 +1258,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             or "no proficiency-per-time rate is published" in row[2]
             or "no gold-per-time or prize-value rate is published" in row[2]
             or "no cross-platform reset guarantee" in row[2]
+            or "selection weights and reward-per-time remain unpublished" in row[2]
             for row in rows
         ))
         gold = next(row for row in rows
@@ -1272,7 +1273,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(proficiency[6], "game8_proficiency_farming")
         seed = next(row for row in rows if row[0] == "farm_super_seeds_almighty")
         self.assertEqual(seed[1], "cp_032_yet_another_world")
-        self.assertEqual(seed[4], "game8_boss_almighty_spirits")
+        self.assertEqual(seed[4], "gamewith_super_seed_pool")
         self.assertEqual(seed[6], "game8_party_builds")
 
     def test_no_finite_monster_heart_reward_is_mislabeled_as_a_farm(self):
@@ -1288,7 +1289,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual({row[0] for row in heart_drops}, {"finite"})
 
-    def test_seed_effects_are_fixed_and_reward_membership_stays_unknown(self):
+    def test_seed_effects_and_reward_membership_are_verified_but_weights_unknown(self):
         rows = self.connection.execute(
             """SELECT item_id, stat_key, increase_amount, locator
             FROM seed_effects ORDER BY item_id"""
@@ -1307,9 +1308,20 @@ class KnowledgeBaseTests(unittest.TestCase):
             FROM seed_reward_rules
             WHERE seed_reward_rule_id = 'seed_reward_almighty_spirits_rematch'"""
         ).fetchone()
-        self.assertEqual(
-            tuple(reward), ("cp_032_yet_another_world", 1, "random", None, 1)
-        )
+        self.assertEqual(tuple(reward[:3]),
+                         ("cp_032_yet_another_world", 1, "random"))
+        eligible = json.loads(reward[3])
+        self.assertEqual(len(eligible), 9)
+        self.assertIn("item_super_pretty_betsy", eligible)
+        self.assertEqual(reward[4], 1)
+        pool_claims = self.connection.execute(
+            """SELECT DISTINCT s.publisher FROM claims c
+            JOIN sources s USING(source_id)
+            WHERE c.subject_key='reward:almighty_spirits_rematch'
+              AND c.predicate='eligible_reward_pool'"""
+        ).fetchall()
+        self.assertEqual({row[0] for row in pool_claims},
+                         {"GameWith", "Game8 Japan"})
 
     def test_priority_source_tables_expose_locator_completeness(self):
         for table in ("medal_rewards", "vocations", "vocation_requirements"):

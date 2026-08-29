@@ -23,5 +23,6 @@
   "equipment_compatible_characters": {"comparison": "single"},
   "vocation_rank_progression": {"comparison": "single"},
     "lucky_panel_pool_rank": {"comparison": "single"},
-    "tablet_unlock_behavior": {"comparison": "single"}
+    "tablet_unlock_behavior": {"comparison": "single"},
+    "eligible_reward_pool": {"comparison": "single"}
 }

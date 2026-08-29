@@ -369,8 +369,8 @@ class GuideServerTests(unittest.TestCase):
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
-        self.assertEqual(audit["total"], 9)
-        self.assertEqual(audit["single_source"], 2)
+        self.assertEqual(audit["total"], 8)
+        self.assertEqual(audit["single_source"], 1)
         self.assertEqual(audit["unsupported"], 2)
         self.assertEqual(audit["corroborated_but_unresolved"], 5)
         self.assertEqual(audit["unresolved_conflicts"], sum(
@@ -385,6 +385,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertNotIn("gap_legacy_slime_earring_rank2", by_id)
         self.assertNotIn("gap_scarewell_exact_route", by_id)
         self.assertNotIn("gap_final_tablet_unlock", by_id)
+        self.assertNotIn("gap_super_seed_reward_pool", by_id)
         self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
         self.assertNotIn("gap_shell_shield_identity", by_id)
         stellar = by_id["gap_stellar_fan_ui_name"]
@@ -613,8 +614,9 @@ class GuideServerTests(unittest.TestCase):
         _, rewards = self.get_json("/api/seeds?variant=reward")
         self.assertEqual(rewards["total"], 1)
         reward = rewards["seeds"][0]
-        self.assertEqual(reward["eligible_pool_status"], "unknown")
-        self.assertIsNone(reward["eligible_items"])
+        self.assertEqual(reward["eligible_pool_status"], "known")
+        self.assertEqual(len(reward["eligible_items"]), 9)
+        self.assertIn("item_super_pretty_betsy", reward["eligible_items"])
         _, progress = self.get_json("/api/progress")
         self.assertIn("achievements", progress)
         _, hoarder = self.get_json("/api/hoarder?gaps=1")

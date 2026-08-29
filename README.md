@@ -24,10 +24,10 @@ The seed includes:
 - all 19 Mini Medal reward thresholds, including the major power spikes;
 - early gear power-spike notes;
 - confirmed Metal Slime farming locations;
-- 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
+- 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with a verified nine-item pool and unpublished selection weights;
 - all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 643-page source registry with browser search and retrieval-freshness metadata;
+- a 645-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
@@ -153,7 +153,7 @@ the guide does not claim offline installation in that mode.
 The Dashboard and Phone Setup screens both expose one-tap progress backup; restore
 stays under Progress to prevent an accidental replacement during play.
 
-The Sources view also provides a dated nine-item audit of the maintained
+The Sources view also provides a dated eight-item audit of the maintained
 single-source, unsupported, and corroborated-but-unresolved evidence queue.
 
 ```powershell
