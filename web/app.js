@@ -1001,7 +1001,7 @@ $("#catalogSearch").addEventListener("input", renderCatalog);
 function handleError(error) { console.error(error); const target = $("#status"); target.classList.add("error"); target.innerHTML = `Could not load guide. <button class="secondary" type="button" data-retry>Retry</button>`; }
 document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("#restoreConfirm").hidden) { event.preventDefault(); cancelRestore(); return; } if (event.key === "Escape" && $("#primaryNav").classList.contains("open")) { $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false"); $("#menuButton").focus(); } });
 window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
-window.addEventListener("offline", () => renderConnectionState(false));
+window.addEventListener("offline", () => { state.hostReachable = false; renderConnectionState(false); });
 window.addEventListener("online", () => loadAll().catch(handleError));
 document.addEventListener("visibilitychange", () => { if (!document.hidden && (state.hostReachable === false || state.usingCachedData)) loadAll().catch(handleError); });
 const initialRoute = location.hash.slice(1) || "dashboard";

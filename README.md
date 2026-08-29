@@ -48,6 +48,10 @@ Direct current-version English gameplay now identifies the individual postgame
 chests for Ruinous Shield, Super Seed of Magic, Gigant Armour, Day Off Dress,
 and Goddess Ring. Video-source records preserve uploader-title versus in-game
 time-period wording where they differ; platform and patch remain unstated.
+Additional continuous English PC footage resolves six Yet Another World seed
+chests, L'Arca's isolated-north Pretty Betsy sparkle, Temple Palace's Gold Bracer
+chest, and Hubble's Silk Tuxedo dresser. Ruby of Protection's individual Faraday
+drawer is the only remaining `container_unspecified` route.
 
 The browser's item details support optional exact copy totals. Missing totals remain unknown; explicit totals enable global equipment-allocation checks without changing identity-based Heroic Hoarder progress. Same-item double accessories additionally require item-specific legality from two independent publishers.
 

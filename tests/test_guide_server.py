@@ -344,8 +344,8 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v17', worker)
-            self.assertIn(b'dq7-guide-data-v17', worker)
+            self.assertIn(b'dq7-guide-shell-v18', worker)
+            self.assertIn(b'dq7-guide-data-v18', worker)
             self.assertNotIn(b'dq7-guide-shell-v16', worker)
             self.assertNotIn(b'dq7-guide-data-v16', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
@@ -560,10 +560,11 @@ class GuideServerTests(unittest.TestCase):
         duplicates = by_id["gap_duplicate_equipment_stacking"]
         self.assertEqual(duplicates["verification_tier"],
                          "corroborated_but_unresolved")
-        self.assertEqual(duplicates["source_count"], 6)
-        self.assertEqual(len(duplicates["supporting_claims"]), 9)
+        self.assertEqual(duplicates["source_count"], 8)
+        self.assertEqual(len(duplicates["supporting_claims"]), 13)
         self.assertIn("Meteorite Bracer", duplicates["summary"])
         self.assertIn("3 Strength Seeds", duplicates["summary"])
+        self.assertIn("reserve-member copies do not apply", duplicates["summary"])
         self.assertIn("Monster Hearts", duplicates["acceptance_condition"])
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])

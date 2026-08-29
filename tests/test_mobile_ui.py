@@ -408,6 +408,7 @@ class MobileUiContractTests(unittest.TestCase):
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
         self.assertIn("hostReachable: null", js)
         self.assertIn("state.hostReachable = false", js)
+        self.assertIn('window.addEventListener("offline", () => { state.hostReachable = false;', js)
         failure_guard = js.index("if (response.status >= 500)")
         reachable = js.index("state.hostReachable = true", failure_guard)
         self.assertLess(failure_guard, reachable)

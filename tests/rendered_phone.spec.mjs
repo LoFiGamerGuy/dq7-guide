@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { spawn } from "node:child_process";
-import { mkdtemp, copyFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, copyFile, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -29,6 +29,36 @@ async function waitForURL(child) {
     });
   });
 }
+
+test("phone restore and reconnect flow stays explicit and recoverable", async ({ page, context }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto(pairedURL);
+  await expect(page.locator("#status")).toHaveText("", { timeout: 10_000 });
+  await page.evaluate(() => { location.hash = "progress"; });
+  await expect(page.locator("#progress")).toBeVisible();
+
+  const backup = await readFile(path.join(ROOT, "player", "ryan-save-state.json"));
+  await page.locator("#restoreFile").setInputFiles({
+    name: "phone-smoke-backup.json",
+    mimeType: "application/json",
+    buffer: backup,
+  });
+  await expect(page.locator("#restoreConfirm")).toBeVisible();
+  await expect(page.locator("#confirmRestoreButton")).toBeFocused();
+  await page.locator("#confirmRestoreButton").click();
+  await expect(page.locator("#status")).toContainText("Previous state saved as");
+  const recoveryFiles = (await readdir(runtime)).filter(name => name.includes("before-restore"));
+  expect(recoveryFiles).toHaveLength(1);
+
+  await context.setOffline(true);
+  await expect(page.locator("#connectionBanner")).toContainText(
+    "changes are disabled and never queued",
+  );
+  await context.setOffline(false);
+  await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(true);
+  await expect.poll(() => page.evaluate(async () => (await fetch("/api/health")).status)).toBe(200);
+  await expect(page.locator("#connectionBanner")).toBeHidden();
+});
 
 test.beforeAll(async () => {
   runtime = await mkdtemp(path.join(tmpdir(), "dq7-phone-render-"));
@@ -112,7 +142,7 @@ for (const viewport of [
         }))).flat().map(request => new URL(request.url).pathname);
         return { keys, apiRequests: requests.filter(pathname => pathname.startsWith("/api/")) };
       });
-      expect(cacheState.keys).toContain("dq7-guide-shell-v17");
+      expect(cacheState.keys).toContain("dq7-guide-shell-v18");
       expect(cacheState.apiRequests).toEqual([]);
     }
   });

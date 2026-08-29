@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 687)
+        self.assertEqual(self.counts["sources"], 693)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2655,23 +2655,29 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"other": 10})
+                         {"other": 1})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("10 acquisition rows", status)
-        self.assertIn("10 broad or grouped-container `other` routes",
+        self.assertIn("1 acquisition row", status)
+        self.assertIn("sole grouped-container `other` route",
                       status)
-        self.assertIn("10 broader acquisition rows", handoff)
+        self.assertIn("one broader acquisition row", handoff)
 
-    def test_walkthrough_refines_four_broad_routes_without_inventing_containers(self):
+    def test_lordfenton_resolves_nine_residual_routes_without_ruby_inference(self):
         expected = {
-            "acq_gold_bracer_temple_palace_past": (
-                "Temple Palace hidden room behind Queen Fertiti's throne",
-                "hidden room behind throne"),
+            "acq_gold_bracer_temple_palace_past": "third chest result",
+            "acq_silk_tuxedo_hubble_castle_past": "east/right",
+            "acq_pretty_betsy_larca_region_present": "gold sparkle",
+            "acq_super_pretty_betsy_yet_another_world": "beside pond",
+            "acq_super_seed_of_life_yet_another_world": "narrow corridor",
+            "acq_super_seed_of_strength_yet_another_world": "lava-surrounded",
+            "acq_super_seed_of_deftness_yet_another_world": "southern dead end",
+            "acq_super_seed_of_resilience_yet_another_world": "east/right chest",
+            "acq_super_seed_of_therapeusis_yet_another_world": "water-bordered",
         }
         placeholders = ",".join("?" for _ in expected)
         rows = self.connection.execute(
-            f"""SELECT acquisition_id, location_text, source_id, locator,
+            f"""SELECT acquisition_id, method, source_id, locator,
                 verification_status
             FROM item_acquisition_paths
             WHERE acquisition_id IN ({placeholders})""",
@@ -2679,11 +2685,15 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(len(rows), len(expected))
         for row in rows:
-            location, locator_fragment = expected[row["acquisition_id"]]
-            self.assertEqual(row["location_text"], location)
-            self.assertEqual(row["source_id"], "rpgsite_walkthrough")
-            self.assertIn(locator_fragment, row["locator"])
-            self.assertIn("container_unspecified", row["verification_status"])
+            self.assertTrue(row["source_id"].startswith("lordfenton_"))
+            self.assertIn(expected[row["acquisition_id"]], row["locator"])
+            self.assertNotIn("container_unspecified", row["verification_status"])
+        claim_count = self.connection.execute(
+            """SELECT COUNT(*) FROM claims
+            WHERE claim_id LIKE '%_lordfenton'
+              AND subject_key LIKE 'acquisition:%'"""
+        ).fetchone()[0]
+        self.assertGreaterEqual(claim_count, 9)
 
     def test_early_container_pass_resolves_fishnet_and_mermaid_but_not_ruby_member(self):
         fishnet = self.connection.execute(
@@ -2773,7 +2783,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(claim_count, 4)
 
-    def test_hubble_container_semantics_keep_group_member_unknown(self):
+    def test_hubble_princess_and_tuxedo_routes_are_exact(self):
         princess = self.connection.execute(
             """SELECT method, source_id, locator, prerequisite_json,
                 verification_status FROM item_acquisition_paths
@@ -2792,33 +2802,12 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE acquisition_id='acq_silk_tuxedo_hubble_castle_past'"""
         ).fetchone()
         self.assertEqual(tuxedo["method"], "other")
-        self.assertEqual(tuxedo["source_id"], "neoseeker_hubble_castle")
+        self.assertEqual(tuxedo["source_id"], "lordfenton_hubble_past_video")
         details = json.loads(tuxedo["prerequisite_json"])
-        self.assertEqual(details["container_group"], "dressers")
-        self.assertEqual(details["individual_member"], "unknown")
-        self.assertIn("container_unspecified", tuxedo["verification_status"])
-
-    def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
-        expected = {
-            "acq_super_seed_of_resilience_yet_another_world": "Underground Level 1 (Well)",
-            "acq_super_seed_of_life_yet_another_world": "Dock; Tower",
-            "acq_super_seed_of_deftness_yet_another_world": "Underground Level 1 (Stairs)",
-            "acq_super_pretty_betsy_yet_another_world": "Forest Area",
-            "acq_super_seed_of_strength_yet_another_world": "SW building / Interior (fire)",
-            "acq_super_seed_of_therapeusis_yet_another_world": "N house / Interior (water)",
-        }
-        placeholders = ",".join("?" for _ in expected)
-        rows = self.connection.execute(
-            f"""SELECT acquisition_id, source_id, locator, verification_status
-            FROM item_acquisition_paths
-            WHERE acquisition_id IN ({placeholders})""",
-            tuple(expected),
-        ).fetchall()
-        self.assertEqual(len(rows), len(expected))
-        for row in rows:
-            self.assertEqual(row["source_id"], "rpgsite_walkthrough")
-            self.assertIn(expected[row["acquisition_id"]], row["locator"])
-            self.assertIn("container_unspecified", row["verification_status"])
+        self.assertEqual(details["container"],
+                         "east/right dresser of the adjacent north-wall pair")
+        self.assertEqual(details["alternate_area_label"], "NW Tower 3F")
+        self.assertNotIn("container_unspecified", tuxedo["verification_status"])
 
     def test_trophylink_resolves_five_exact_postgame_chests(self):
         expected = {
@@ -2998,8 +2987,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("10 broader acquisition rows", handoff)
-        self.assertIn("10 acquisition rows still deliberately carry",
+        self.assertIn("one broader acquisition row", handoff)
+        self.assertIn("1 acquisition row still deliberately carries",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
@@ -4058,6 +4047,22 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Only equip copies explicitly owned",
                       rabbit_scope["quantity_guard"])
         self.assertIn("per-copy drop increase", rabbit_scope["unknowns"])
+        self.assertIn("reserve-member copies do not apply",
+                      rabbit_scope["single_source_constraint"])
+        claim_rows = self.connection.execute(
+            """SELECT c.predicate, c.value_json, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.claim_id IN (
+                'claim_rabbit_tail_effect_stacking_appmedia',
+                'claim_rabbit_tail_effect_stacking_gamewith',
+                'claim_rabbit_tail_reserve_inactive_appmedia')"""
+        ).fetchall()
+        self.assertEqual(len(claim_rows), 3)
+        self.assertEqual({row["publisher"] for row in claim_rows},
+                         {"AppMedia", "GameWith"})
+        reserve = next(row for row in claim_rows
+                       if row["predicate"] == "effect_party_position_scope")
+        self.assertIn("reserve members do not", json.loads(reserve["value_json"]))
 
     def test_checkpoint_advice_requires_object_applicability(self):
         normalized = normalize_checkpoint_advice([
