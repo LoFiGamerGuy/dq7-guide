@@ -1888,11 +1888,16 @@ def _progress(db_path: Path, state_path: Path) -> dict:
             "total": 100, "unknown_state_ids": sorted(invalid_medals, key=str)}
     completed_missables = set(completion.get("missables_completed", []))
     missed_missables = set(completion.get("missables_missed", []))
+    canonical_missables = {
+        row["missable_id"] for row in _rows(db_path, "SELECT missable_id FROM missables")
+    }
     missables = identity_ledger(sorted(completed_missables | missed_missables),
         "SELECT missable_id FROM missables", 7)
-    missables["completed_count"] = len(completed_missables)
-    missables["missed_count"] = len(missed_missables)
-    if missed_missables:
+    valid_completed_missables = completed_missables & canonical_missables
+    valid_missed_missables = missed_missables & canonical_missables
+    missables["completed_count"] = len(valid_completed_missables)
+    missables["missed_count"] = len(valid_missed_missables)
+    if valid_missed_missables:
         missables["status"] = "missed"
     ledgers["missables"] = missables
 

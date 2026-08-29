@@ -662,6 +662,16 @@ class GuideServerTests(unittest.TestCase):
                          ["stale_item"])
         self.assertEqual(progress["ledger_audit"]["missables"]["status"], "missed")
 
+        state["completion"]["missables_missed"] = ["retired_missable_id"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        progress = _progress(ROOT / "data" / "dq7_reimagined.sqlite", state_path)
+        missable_ledger = progress["ledger_audit"]["missables"]
+        self.assertEqual(missable_ledger["status"], "partial")
+        self.assertEqual(missable_ledger["known_count"], 0)
+        self.assertEqual(missable_ledger["missed_count"], 0)
+        self.assertEqual(missable_ledger["unknown_state_ids"],
+                         ["retired_missable_id"])
+
     def test_checkpoint_and_domain_endpoints(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertEqual(checkpoint["id"], "cp_001_prologue")

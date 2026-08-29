@@ -2611,6 +2611,22 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(missing_shop, [])
         self.assertEqual(missing_panel, [])
 
+    def test_container_unspecified_residual_is_explicit(self):
+        rows = self.connection.execute(
+            """SELECT method, COUNT(*) AS row_count
+            FROM item_acquisition_paths
+            WHERE verification_status LIKE '%container_unspecified%'
+            GROUP BY method ORDER BY method"""
+        ).fetchall()
+        self.assertEqual({row["method"]: row["row_count"] for row in rows},
+                         {"chest": 5, "other": 23})
+        status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
+        handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
+        self.assertIn("28 acquisition rows", status)
+        self.assertIn("23 broad area/reward-style `other` routes and five chest routes",
+                      status)
+        self.assertIn("28 broader acquisition rows", handoff)
+
     def test_previously_unknown_shop_prices_are_typed_and_sourced(self):
         rows = self.connection.execute(
             """SELECT a.acquisition_id, a.method, a.source_id, si.price
@@ -2682,9 +2698,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("all maintained finite-container member gaps are resolved",
-                      handoff)
-        self.assertIn("all maintained finite-container member gaps are resolved",
+        self.assertIn("28 broader acquisition rows", handoff)
+        self.assertIn("28 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
