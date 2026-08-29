@@ -6,15 +6,23 @@ is the only runtime dependency.
 
 For Steam Deck + phone play, run `start-guide-phone.sh` in Desktop Mode and open
 the printed pairing URL. LAN access is opt-in, uses no external service, and ends
-when its Konsole process is stopped. A random per-launch pairing cookie prevents
-other unpaired Wi-Fi clients from reading or editing the guide; restart the launcher
-to invalidate an old pairing. Still use trusted Wi-Fi and keep the pairing URL private.
+when its Konsole process is stopped. A random private pairing identity stored outside
+the repository prevents unpaired Wi-Fi clients from reading or editing the guide and
+keeps the phone bookmark useful across restarts. Run the phone launcher with
+`--rotate-pairing` to revoke all prior pairings. Still use trusted Wi-Fi and keep the
+pairing URL private.
 The ordinary LAN URL is online-to-host only. Offline installation/caching requires
 localhost or a secure HTTPS origin due to browser rules; cached data is visibly
 read-only, and changes are never queued. Progress JSON can be exported from and
 explicitly restored in the Progress view, with a pre-restore recovery copy retained.
 The Phone Setup view diagnoses those conditions from the active browser rather than
 claiming that manifest presence alone makes insecure LAN HTTP installable.
+An optional repo-contained Steam Deck manager supports background start, status,
+stop, restart, and an explicitly installed/removable Desktop shortcut. It makes no
+root, service, or autostart changes. It is only guaranteed within the current
+Desktop Mode session; suspend, reboot, network changes, and Gaming Mode transitions
+may require a restart and new pairing URL. Backup is linked from Dashboard, Phone
+Setup, and Progress; restore remains confirmation-gated under Progress.
 
 ## Verified surface
 
@@ -34,7 +42,9 @@ claiming that manifest presence alone makes insecure LAN HTTP installable.
   details wrap safely and restore confirmation is keyboard reachable. Failed
   checkbox saves roll back visibly.
 - Player writes are validated, serialized, and atomic. Checkpoint advancement
-  always requires an explicit action.
+  and STOP clearance require explicit confirmation. Reversible live-play writes
+  offer a compact Undo action, ignore duplicate taps while saving, and retain the
+  viewed checkpoint, scroll position, and focus.
 - Install metadata, cache versioning, explicit offline/read-only behavior, and
   confirmed backup restore are covered by static/API tests.
 - A clean-state HTTP workflow verifies the Prologue preview, early STOPs and

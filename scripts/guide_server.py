@@ -10,6 +10,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
+import os
 from pathlib import Path
 import secrets
 import socket
@@ -46,6 +47,48 @@ ALLOWED_PROGRESS_COMMANDS = {
     "missable-completed", "missable-undo",
     "accessory-set",
 }
+
+
+def _default_pairing_file() -> Path:
+    config_root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return config_root / "dq7-guide" / "phone-pairing-token"
+
+
+def _load_or_create_pairing_token(path: Path, rotate: bool = False) -> str:
+    """Load a private durable LAN credential, creating or rotating atomically."""
+    path = Path(path)
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    try:
+        path.parent.chmod(0o700)
+    except OSError:
+        pass
+    if path.is_symlink():
+        raise ValueError(f"Pairing token path must not be a symlink: {path}")
+    if path.exists() and not rotate:
+        token = path.read_text(encoding="ascii").strip()
+        if len(token) < 24 or any(not (char.isalnum() or char in "-_") for char in token):
+            raise ValueError("Stored phone pairing token is invalid; restart with --rotate-pairing")
+        try:
+            path.chmod(0o600)
+        except OSError:
+            pass
+        return token
+    token = secrets.token_urlsafe(24)
+    temporary = None
+    try:
+        descriptor, name = tempfile.mkstemp(prefix=".phone-pairing-", dir=path.parent)
+        temporary = Path(name)
+        with os.fdopen(descriptor, "w", encoding="ascii") as handle:
+            handle.write(token + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.chmod(0o600)
+        temporary.replace(path)
+        path.chmod(0o600)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+    return token
 
 
 def _lan_addresses() -> list[str]:
@@ -1417,7 +1460,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.send_header("Location", "/")
             self.send_header(
                 "Set-Cookie",
-                f"dq7_pair={pairing_token}; Path=/; HttpOnly; SameSite=Strict",
+                f"dq7_pair={pairing_token}; Path=/; Max-Age=315360000; HttpOnly; SameSite=Strict",
             )
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
@@ -1749,6 +1792,10 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--lan", action="store_true",
                         help="Let trusted devices on the local network open and edit the guide")
+    parser.add_argument("--rotate-pairing", action="store_true",
+                        help="Replace the saved phone credential and revoke previously paired phones")
+    parser.add_argument("--pairing-file", type=Path, default=_default_pairing_file(),
+                        help=argparse.SUPPRESS)
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
@@ -1760,20 +1807,25 @@ def main():
         if args.host != "127.0.0.1":
             parser.error("--lan cannot be combined with --host")
         args.host = "0.0.0.0"
-    pairing_token = secrets.token_urlsafe(18) if args.lan else None
+    elif args.rotate_pairing:
+        parser.error("--rotate-pairing requires --lan")
+    pairing_token = (_load_or_create_pairing_token(args.pairing_file, args.rotate_pairing)
+                     if args.lan else None)
     server = create_server(args.host, args.port, args.db, args.state, args.static,
                            pairing_token)
     local_url, phone_urls = _access_urls(args.host, server.server_port, pairing_token)
     print(f"DQ7 guide (this device): {local_url}", flush=True)
     if args.lan:
-        print("PHONE MODE: only a browser opened with this launch's private pairing URL can edit progress.",
+        print("PHONE MODE: only a browser paired with this Deck's private URL can edit progress.",
               flush=True)
         if phone_urls:
             for phone_url in phone_urls:
                 print(f"DQ7 guide (phone): {phone_url}", flush=True)
         else:
             print("Phone address unavailable. Connect the Deck to Wi-Fi, then restart.", flush=True)
-        print("Keep the pairing URL private. Restart to invalidate it. Ctrl+C stops sharing.",
+        print("Bookmark the pairing URL and keep it private. Use --rotate-pairing to revoke it.",
+              flush=True)
+        print("Keep this window open. Ctrl+C stops sharing.",
               flush=True)
     if args.open_browser:
         webbrowser.open(local_url)

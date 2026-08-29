@@ -17,7 +17,8 @@ from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps, _progress,
+from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps,
+                          _load_or_create_pairing_token, _progress,
                           _vocation_unlock_progress, create_server, make_handler)
 
 
@@ -204,6 +205,26 @@ class GuideServerTests(unittest.TestCase):
                             url.endswith(":8765/?pair=launch-secret")
                             for url in phone))
 
+    def test_live_play_mutations_support_server_round_trip_undo(self):
+        _, original = self.get_json("/api/state-backup")
+        try:
+            self.assertEqual(self.patch_json(
+                "/api/items/item_pilchard_crackers", {"completed": True}
+            )[0], 200)
+            self.assertTrue(self.get_json(
+                "/api/items/item_pilchard_crackers"
+            )[1]["item"]["obtained"])
+            self.assertEqual(self.patch_json(
+                "/api/items/item_pilchard_crackers", {"completed": False}
+            )[0], 200)
+            self.assertFalse(self.get_json(
+                "/api/items/item_pilchard_crackers"
+            )[1]["item"]["obtained"])
+        finally:
+            self.post_json("/api/state-restore", {
+                "confirmation": "RESTORE", "state": original,
+            })
+
     def test_lan_pairing_rejects_unpaired_client_then_sets_session_cookie(self):
         handler = make_handler(ROOT / "data" / "dq7_reimagined.sqlite", self.state,
                                ROOT / "web", "one-launch-token")
@@ -232,6 +253,23 @@ class GuideServerTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=2)
+
+    def test_pairing_identity_persists_privately_and_rotation_revokes_it(self):
+        pairing_file = Path(self.temp.name) / "private-config" / "phone-token"
+        original = _load_or_create_pairing_token(pairing_file)
+        self.assertGreaterEqual(len(original), 24)
+        self.assertEqual(_load_or_create_pairing_token(pairing_file), original)
+        if sys.platform != "win32":
+            self.assertEqual(pairing_file.stat().st_mode & 0o777, 0o600)
+            self.assertEqual(pairing_file.parent.stat().st_mode & 0o777, 0o700)
+        replacement = _load_or_create_pairing_token(pairing_file, rotate=True)
+        self.assertNotEqual(replacement, original)
+        self.assertEqual(pairing_file.read_text(encoding="ascii").strip(), replacement)
+
+        pairing_file.unlink()
+        pairing_file.symlink_to(Path(self.temp.name) / "elsewhere")
+        with self.assertRaisesRegex(ValueError, "must not be a symlink"):
+            _load_or_create_pairing_token(pairing_file)
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")

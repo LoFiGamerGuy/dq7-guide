@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=DQ7 Phone Guide
+Comment=Start the local phone companion and show its private pairing URL
+Exec=konsole --hold -e "@REPO@/manage-steam-deck-guide.sh" start
+Icon=@REPO@/web/icons/guide-icon.svg
+Terminal=false
+Categories=Game;Utility;

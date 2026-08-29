@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +36,20 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("overflow-wrap: anywhere", css)
         self.assertIn("scrollIntoView", js)
 
+    def test_active_play_writes_are_guarded_reversible_and_context_preserving(self):
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('id="undoSnackbar"', html)
+        self.assertIn('id="undoButton"', html)
+        self.assertIn(".undo-snackbar", css)
+        self.assertIn("async function oneMutation", js)
+        self.assertIn("async function refreshPreservingPlayContext", js)
+        self.assertIn('window.confirm("Mark this STOP cleared?")', js)
+        self.assertIn('window.confirm("Advance the saved checkpoint?")', js)
+        self.assertIn('showUndo("Accessory saved."', js)
+        self.assertIn('showUndo("Checkpoint saved."', js)
+
     def test_phone_setup_diagnoses_security_and_exposes_recovery(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
@@ -56,6 +71,26 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("--lan --open-browser", windows_launcher)
         self.assertIn('parser.add_argument("--lan"', server)
         self.assertIn('args.host = "0.0.0.0"', server)
+
+    def test_steam_deck_manager_is_explicit_reversible_and_repo_contained(self):
+        manager = ROOT / "manage-steam-deck-guide.sh"
+        template = ROOT / "steam-deck" / "DQ7 Guide.desktop.in"
+        script = manager.read_text(encoding="utf-8")
+        desktop = template.read_text(encoding="utf-8")
+        subprocess.run(["sh", "-n", str(manager)], check=True)
+        result = subprocess.run(["sh", str(manager), "status"], check=True,
+                                capture_output=True, text=True)
+        self.assertRegex(result.stdout, r"(running|stopped)")
+        self.assertIn("nohup python3 -u scripts/guide_server.py --lan", script)
+        self.assertIn('--pairing-file "$runtime_dir/phone-pairing-token"', script)
+        self.assertIn("rotate)", script)
+        self.assertIn("install-shortcut", script)
+        self.assertIn("remove-shortcut", script)
+        self.assertNotIn("sudo", script)
+        self.assertNotIn("systemctl", script)
+        self.assertIn("@REPO@/manage-steam-deck-guide.sh", desktop)
+        self.assertIn('href="/api/state-backup"',
+                      (ROOT / "web" / "index.html").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

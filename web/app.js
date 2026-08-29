@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false, mutations: new Set(), undoAction: null, undoTimer: null };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -21,6 +21,27 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 const mobileLayout = () => matchMedia("(max-width: 900px) and (pointer: coarse), (max-width: 520px)").matches;
 function focusMainAtTop() { scrollToTop(); $("#main").focus({ preventScroll: true }); }
+function showUndo(message, action) {
+  window.clearTimeout(state.undoTimer);
+  state.undoAction = action;
+  $("#undoMessage").textContent = message;
+  $("#undoSnackbar").hidden = false;
+  state.undoTimer = window.setTimeout(() => { $("#undoSnackbar").hidden = true; state.undoAction = null; }, 7000);
+}
+function hideUndo() { window.clearTimeout(state.undoTimer); $("#undoSnackbar").hidden = true; state.undoAction = null; }
+async function oneMutation(key, operation) {
+  if (state.mutations.has(key)) return false;
+  state.mutations.add(key);
+  try { await operation(); return true; }
+  finally { state.mutations.delete(key); }
+}
+function controlSelector(control) {
+  const key = ["actionId","medal","tabletId","itemId","achievementId","missableId","monsterId","catalogProgress"].find(name => control.dataset[name] !== undefined);
+  if (!key) return null;
+  const attribute = key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+  const value = CSS.escape(control.dataset[key]);
+  return `[data-${attribute}="${value}"]`;
+}
 
 async function api(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
@@ -394,19 +415,37 @@ async function loadAll() {
   if (!$("#phone-setup").hidden) renderPhoneSetup();
   setStatus("");
 }
-async function updateProgress(payload) {
+async function refreshPreservingPlayContext(focusSelector = null) {
+  const top = window.scrollY, viewedCheckpoint = state.checkpoint?.id, activeDomain = state.domain;
+  if (activeDomain) delete state.catalogs[activeDomain];
+  await loadAll();
+  if (viewedCheckpoint && state.checkpoint?.id !== viewedCheckpoint && state.checkpoints.some(row => row.id === viewedCheckpoint)) {
+    $("#checkpointSelect").value = viewedCheckpoint;
+    await loadCheckpoint(viewedCheckpoint);
+  }
+  if (activeDomain) await loadDomain(activeDomain);
+  window.scrollTo({ top, behavior: "auto" });
+  const focusTarget = focusSelector ? document.querySelector(focusSelector) : null;
+  (focusTarget || $("#main")).focus({ preventScroll: true });
+}
+async function updateProgress(payload, focusSelector = null) {
   setStatus("Saving…");
   const resources = { item: "items", tablet: "tablets", achievement: "achievements", missable: "missables", heart: "monster-hearts" };
   const endpoint = resources[payload.kind] ? `/${resources[payload.kind]}/${encodeURIComponent(payload.id)}` : "/progress";
   const body = endpoint === "/progress" ? payload : { completed: payload.completed };
   await api(endpoint, { method: "PATCH", body: JSON.stringify(body) });
-  const activeDomain = state.domain; if (activeDomain) delete state.catalogs[activeDomain];
-  await loadAll(); if (activeDomain) await loadDomain(activeDomain); setStatus("Saved");
+  await refreshPreservingPlayContext(focusSelector); setStatus("Saved");
 }
 async function saveToggle(control, payload) {
   const requested = control.checked;
+  if (requested && control.closest("#checkpointStop") && !window.confirm("Mark this STOP cleared?")) { control.checked = false; return; }
+  const mutationKey = `${payload.kind}:${payload.id}`, focusSelector = controlSelector(control);
+  if (state.mutations.has(mutationKey)) { control.checked = !requested; return; }
   control.disabled = true;
-  try { await updateProgress(payload); }
+  try {
+    const saved = await oneMutation(mutationKey, () => updateProgress(payload, focusSelector));
+    if (saved) showUndo("Saved.", async () => { await oneMutation(`undo:${mutationKey}`, () => updateProgress({ ...payload, completed: !requested }, focusSelector)); setStatus("Undone"); });
+  }
   catch (error) {
     console.error(error);
     if (control.isConnected) control.checked = !requested;
@@ -416,9 +455,11 @@ async function saveToggle(control, payload) {
   } finally { if (control.isConnected) control.disabled = false; }
 }
 async function recordCommand(command, values) {
-  setStatus("Saving explicit state…");
-  await api("/progress", { method: "POST", body: JSON.stringify({ command, values }) });
-  await loadAll(); setStatus("Saved");
+  await oneMutation(`command:${command}:${values.join(":")}`, async () => {
+    setStatus("Saving explicit state…");
+    await api("/progress", { method: "POST", body: JSON.stringify({ command, values }) });
+    await refreshPreservingPlayContext(); setStatus("Saved");
+  });
 }
 
 document.addEventListener("click", event => {
@@ -445,14 +486,15 @@ $("#mobileCurrent").addEventListener("click", () => {
   loadCheckpoint(id).then(scrollToTop).catch(handleError);
 });
 $("#setCheckpointButton").addEventListener("click", async () => {
-  const id = $("#checkpointSelect").value;
-  try { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint saved"); }
+  const id = $("#checkpointSelect").value, previous = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
+  try { const saved = await oneMutation("checkpoint", async () => { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await refreshPreservingPlayContext("#setCheckpointButton"); setStatus("Checkpoint saved"); }); if (saved && previous && previous !== id) showUndo("Checkpoint saved.", async () => { await oneMutation("undo:checkpoint", async () => { await api(`/checkpoints/${encodeURIComponent(previous)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await refreshPreservingPlayContext("#setCheckpointButton"); }); }); }
   catch (error) { handleError(error); }
 });
 $("#advanceCheckpointButton").addEventListener("click", async event => {
-  const id = event.currentTarget.dataset.nextCheckpoint;
+  const id = event.currentTarget.dataset.nextCheckpoint, previous = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
   if (!id || !state.checkpoint?.advancement_readiness?.can_confirm_and_save_next) return;
-  try { setStatus("Saving explicit advancement…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint advanced"); }
+  if (!window.confirm("Advance the saved checkpoint?")) return;
+  try { const saved = await oneMutation("checkpoint", async () => { setStatus("Saving explicit advancement…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); focusMainAtTop(); setStatus("Checkpoint advanced"); }); if (saved && previous) showUndo("Checkpoint advanced.", async () => { await oneMutation("undo:checkpoint", async () => { await api(`/checkpoints/${encodeURIComponent(previous)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); focusMainAtTop(); }); }); }
   catch (error) { handleError(error); }
 });
 $("#hideCompleted").addEventListener("change", renderCheckpoint);
@@ -481,18 +523,24 @@ $("#cancelRestoreButton").addEventListener("click", cancelRestore);
 $("#confirmRestoreButton").addEventListener("click", async () => {
   if (!state.pendingRestore) return;
   try {
-    setStatus("Restoring progress…");
-    const result = await api("/state-restore", { method: "POST", body: JSON.stringify({ confirmation: "RESTORE", state: state.pendingRestore }) });
-    state.pendingRestore = null; $("#restoreFile").value = ""; $("#restoreConfirm").hidden = true;
-    await loadAll(); setStatus(`${result.message} Previous state saved as ${result.recovery_file}.`);
+    await oneMutation("state-restore", async () => {
+      setStatus("Restoring progress…");
+      const result = await api("/state-restore", { method: "POST", body: JSON.stringify({ confirmation: "RESTORE", state: state.pendingRestore }) });
+      state.pendingRestore = null; $("#restoreFile").value = ""; $("#restoreConfirm").hidden = true;
+      await loadAll(); setStatus(`${result.message} Previous state saved as ${result.recovery_file}.`);
+    });
   } catch (error) { handleError(error); }
 });
 document.addEventListener("change", event => {
   if (event.target.dataset.accessoryCharacter) {
-    const path = `/equipment/accessories/${encodeURIComponent(event.target.dataset.accessoryCharacter)}/${event.target.dataset.accessorySlot}`;
-    setStatus("Saving accessory…");
-    api(path, { method: "PATCH", body: JSON.stringify({ item_id: event.target.value || null }) })
-      .then(() => loadAll()).then(() => setStatus("Saved")).catch(handleError);
+    const control = event.target, character = control.dataset.accessoryCharacter, slot = control.dataset.accessorySlot;
+    const path = `/equipment/accessories/${encodeURIComponent(character)}/${slot}`, requested = control.value || null;
+    const member = (state.equipment?.members || []).find(row => row.name === character), previous = member?.accessory_slots?.[slot] || null;
+    const key = `accessory:${character}:${slot}`, selector = `[data-accessory-character="${CSS.escape(character)}"][data-accessory-slot="${CSS.escape(slot)}"]`;
+    if (state.mutations.has(key)) { control.value = previous || ""; return; }
+    oneMutation(key, async () => { setStatus("Saving accessory…"); await api(path, { method: "PATCH", body: JSON.stringify({ item_id: requested }) }); await refreshPreservingPlayContext(selector); setStatus("Saved"); })
+      .then(saved => { if (saved) showUndo("Accessory saved.", async () => { await oneMutation(`undo:${key}`, async () => { await api(path, { method: "PATCH", body: JSON.stringify({ item_id: previous }) }); await refreshPreservingPlayContext(selector); setStatus("Undone"); }); }); })
+      .catch(error => { control.value = previous || ""; handleError(error); });
     return;
   }
   if (event.target.id === "sourcePublisher") { state.sourcePublisher = event.target.value; renderCatalog(); return; }
@@ -505,6 +553,15 @@ document.addEventListener("change", event => {
   if (event.target.dataset.missableId) saveToggle(event.target, { kind: "missable", id: event.target.dataset.missableId, completed: event.target.checked });
   if (event.target.dataset.monsterId) saveToggle(event.target, { kind: "monster", id: event.target.dataset.monsterId, completed: event.target.checked });
   if (event.target.dataset.catalogProgress) { const kind = event.target.dataset.catalogProgress; const raw = event.target.dataset.progressId; saveToggle(event.target, { kind, id: kind === "medal" ? Number(raw) : raw, completed: event.target.checked }); }
+});
+$("#undoButton").addEventListener("click", async () => {
+  const action = state.undoAction;
+  if (!action) return;
+  hideUndo();
+  $("#undoButton").disabled = true;
+  try { await action(); }
+  catch (error) { handleError(error); }
+  finally { $("#undoButton").disabled = false; }
 });
 $("#catalogSearch").addEventListener("input", renderCatalog);
 function handleError(error) { console.error(error); const target = $("#status"); target.classList.add("error"); target.innerHTML = `Could not load guide. <button class="secondary" type="button" data-retry>Retry</button>`; }

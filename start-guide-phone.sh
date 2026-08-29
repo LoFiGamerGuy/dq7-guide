@@ -13,4 +13,4 @@ if ! python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 10))'; then
   exit 1
 fi
 
-exec python3 scripts/guide_server.py --lan --open-browser
+exec python3 scripts/guide_server.py --lan --open-browser "$@"

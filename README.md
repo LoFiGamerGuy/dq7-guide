@@ -62,18 +62,49 @@ Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, c
 2. On Windows, double-click `start-guide-phone.bat`. On SteamOS Desktop Mode,
    macOS, or Linux, run `start-guide-phone.sh` (right-click it and choose
    **Run In Konsole** on SteamOS if prompted).
-3. Open the printed `DQ7 guide (phone)` pairing address on the phone. After the
-   first load, bookmark the clean address shown by the browser.
+3. Open the printed `DQ7 guide (phone)` pairing address on the phone and bookmark
+   that address. It remains valid across guide restarts.
 4. Keep the Konsole window open while playing. Press `Ctrl+C` there to stop.
 
-Phone mode is an explicit opt-in. Each launch creates a random pairing address;
-only browsers opened through that address receive access, and restarting invalidates
-the old pairing. Keep the printed address private and do not use public Wi-Fi. The
+For day-to-day Steam Deck use, the optional manager keeps phone mode running after
+its terminal closes (while the Desktop Mode user session stays alive):
+
+```sh
+./manage-steam-deck-guide.sh start
+./manage-steam-deck-guide.sh status
+./manage-steam-deck-guide.sh restart
+./manage-steam-deck-guide.sh rotate
+./manage-steam-deck-guide.sh stop
+```
+
+`start` prints the private pairing URL; `status` shows it again. Normal restarts
+retain the bookmarked credential. Use `rotate` to issue a new URL and revoke the
+old one. To deliberately add a Desktop Mode
+shortcut, run `./manage-steam-deck-guide.sh install-shortcut`; undo it with
+`remove-shortcut`. This creates only `DQ7 Phone Guide.desktop` in the current
+user's Desktop folder. It installs no service, autostart entry, package, or root
+change. Runtime PID/log/credential files stay in the ignored `.guide-runtime/`
+folder; the manager does not write its credential into a system configuration path.
+
+SteamOS can stop or disconnect ordinary user processes when the Deck suspends,
+reboots, changes network, or switches sessions (including a Desktop/Gaming Mode
+transition). Background mode is dependable for switching between windows/apps in
+the same Desktop Mode session, not a promise of persistence across those events.
+Run `status`, then `restart` if necessary. The existing bookmark remains valid
+unless you deliberately used `rotate`.
+
+Phone mode is an explicit opt-in. The Deck creates one random pairing identity in
+the user's private configuration directory (outside this repository and save file),
+and reuses it so the phone bookmark keeps working. Only browsers opened through that
+address receive access. To revoke every paired phone, stop the guide and run
+`./start-guide-phone.sh --rotate-pairing`, then replace the old bookmark. Keep the
+printed address private and do not use public Wi-Fi. The
 ordinary launchers remain private to the computer. If the phone cannot
 connect, allow Python through the Steam Deck firewall for the private/local network,
 disable phone VPN or cellular fallback temporarily, and confirm both devices are on
 the same Wi-Fi. No cloud account, internet service, QR provider, or third-party Python
-package is involved. A QR code is intentionally not generated: robust QR encoding is
+package is involved. If the Deck's Wi-Fi address changes, open the newly printed URL;
+the private pairing identity itself remains the same. A QR code is intentionally not generated: robust QR encoding is
 not available in Python's standard library, and sending the private pairing address
 to a third-party QR service would weaken this local-only design.
 
@@ -88,6 +119,8 @@ The in-app **Phone Setup** screen shows the current address, connection/write
 status, secure-origin/offline-cache availability, launcher steps, and recovery
 links. Treat browser “Add to Home Screen” on ordinary LAN HTTP as a bookmark only;
 the guide does not claim offline installation in that mode.
+The Dashboard and Phone Setup screens both expose one-tap progress backup; restore
+stays under Progress to prevent an accidental replacement during play.
 
 The Sources view also provides a dated audit of the remaining single-source,
 unsupported, and corroborated-but-unresolved evidence gaps.
