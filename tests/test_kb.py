@@ -1920,6 +1920,31 @@ class KnowledgeBaseTests(unittest.TestCase):
                          ("available_now", "free"))
         self.assertTrue(aeras_verdict.startswith("DON'T BUY FOR COMPLETION"))
 
+    def test_sledgehammer_early_power_tradeoff_is_two_source_verified(self):
+        claims = self.connection.execute(
+            """SELECT predicate, value_json, source_id, confidence
+            FROM claims
+            WHERE subject_key = 'item:sledgehammer'
+              AND predicate IN ('attack_bonus', 'agility_bonus')
+            ORDER BY predicate, source_id"""
+        ).fetchall()
+        self.assertEqual(len(claims), 4)
+        self.assertEqual({row["source_id"] for row in claims}, {
+            "game8_sledgehammer", "gamewith_sledgehammer"
+        })
+        self.assertTrue(all(row["confidence"] == "verified" for row in claims))
+        values = {(row["predicate"], json.loads(row["value_json"])) for row in claims}
+        self.assertEqual(values, {("attack_bonus", 26), ("agility_bonus", -20)})
+
+        advice = self.connection.execute(
+            """SELECT advice_text, applicability_json, confidence
+            FROM checkpoint_advice WHERE advice_id = 'advice_cp005_fixed_weapon_sweep'"""
+        ).fetchone()
+        self.assertIn("+26 Attack, -20 Agility", advice["advice_text"])
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertEqual(json.loads(advice["applicability_json"])["sledgehammer_stats"],
+                         {"attack_bonus": 26, "agility_bonus": -20})
+
     def test_sourced_documents_have_locators(self):
         rows = self.connection.execute(
             """SELECT document_id FROM documents

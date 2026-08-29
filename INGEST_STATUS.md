@@ -208,6 +208,8 @@ Three further direct-page routes add Hardwood Headwear in Past Faraday Castle (`
 
 The direct L'Arca walkthrough also upgrades Sledgehammer from a generic Grotta del Sigillo chest to the exact Level 4 route: climb the stairs before going outside and open the exterior chest. This preserves the existing `cp_005_larca` gate while making the free alternative actionable before purchase decisions.
 
+The early-power stat audit independently corroborates Sledgehammer's +26 Attack and -20 Agility through dedicated current-version Game8 and GameWith pages. The cp005 phone advice now presents it as a free high-attack option with a clear turn-order tradeoff, rather than implying it is universally strongest.
+
 The current Roamer walkthrough refines Past Poolside Cave Fur Cape to the Underground Level 2 northern-corner chest pair reached by falling through the northwest pits. The page identifies the pair's two rewards but not which individual chest contains the cape, so that remaining ambiguity is explicit.
 
 The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
