@@ -522,7 +522,9 @@ function renderRichDetail(detail, summary) {
   } else if (state.domain === "hearts") {
     const routes = detail.routes || [];
     const ownershipNote = detail.ownership_status === "unknown" ? "Ownership unreported. Checking this starts the explicit Heart ledger; it does not infer other Hearts." : "Only explicit saved ownership is shown.";
-    const dlcWarning = detail.dlc_ownership_status === "unknown" ? `<div class="uncertain-banner"><strong>DLC ownership unconfirmed</strong><span>${escapeHtml(detail.dlc_scope)} is required. This Heart is not shown as currently obtainable until ownership is explicitly reported.</span></div>` : "";
+    let dlcWarning = detail.dlc_ownership_status === "unknown" ? `<div class="uncertain-banner"><strong>DLC ownership unconfirmed</strong><span>${escapeHtml(detail.dlc_scope)} is required. This Heart is not shown as currently obtainable until ownership is explicitly reported.</span></div>` : "";
+    const dlcControl = detail.dlc_scope ? `<label class="select-label">DLC access for ${escapeHtml(detail.dlc_scope)}<select data-dlc-entitlement="${escapeHtml(detail.dlc_scope)}"><option value="unknown" ${detail.dlc_ownership_status === "unknown" ? "selected" : ""}>Not reported</option><option value="owned" ${detail.dlc_ownership_status === "owned" ? "selected" : ""}>Owned / installed</option><option value="not-owned" ${detail.dlc_ownership_status === "not_owned" ? "selected" : ""}>Not owned</option></select></label>` : "";
+    dlcWarning += dlcControl;
     target.innerHTML = `<p class="eyebrow">Monster Heart</p><h3>${escapeHtml(detail.name)}</h3>${dlcWarning}<div class="callout"><strong>Effect</strong><span>${escapeHtml(detail.effect_text)}</span></div><h4>Earliest verified gate</h4><p>${escapeHtml(detail.available_checkpoint || "Unknown")}${detail.availability_notes ? `<br><span class="muted">${escapeHtml(detail.availability_notes)}</span>` : ""}</p><h4>Get it</h4><div class="detail-list">${routes.map(route => `<div><strong>${escapeHtml(route.route_label)}</strong><span>${escapeHtml([route.location_text, route.time_period, route.available_checkpoint].filter(Boolean).join(" · "))}</span><span>${escapeHtml(heartRouteSafety(route))}</span><small class="tag">${escapeHtml(heartRouteEvidence(route))}</small>${sourceLink(route)}${route.dlc_scope_status === "unknown" ? '<span>DLC scope unknown</span>' : ""}</div>`).join("") || '<p class="empty">No normalized non-DLC acquisition route.</p>'}</div><h4>Effect source</h4><p>${sourceLink(detail)}</p><label class="progress-toggle"><input type="checkbox" data-catalog-progress="heart" data-progress-id="${escapeHtml(detail.heart_id)}" ${detail.owned === true ? "checked" : ""}> Explicitly mark owned</label><p class="muted">${escapeHtml(ownershipNote)} Unknown rates and DLC ownership are not inferred.</p>`;
   } else if (state.domain === "missables") {
     const unresolved = detail.window_status !== "verified";
@@ -875,6 +877,16 @@ $("#confirmRestoreButton").addEventListener("click", async () => {
   } catch (error) { handleError(error); }
 });
 document.addEventListener("change", event => {
+  if (event.target.dataset.dlcEntitlement) {
+    const control = event.target, scope = control.dataset.dlcEntitlement;
+    const previous = state.selectedEntry?.dlc_ownership_status === "not_owned" ? "not-owned" : state.selectedEntry?.dlc_ownership_status || "unknown";
+    const key = `dlc:${scope}`, selector = `[data-dlc-entitlement="${CSS.escape(scope)}"]`;
+    if (state.mutations.has(key)) { control.value = previous; return; }
+    oneMutation(key, async () => { setStatus("Saving DLC access…"); await api(`/dlc-entitlements/${encodeURIComponent(scope)}`, { method: "PATCH", body: JSON.stringify({ status: control.value }) }); await refreshPreservingPlayContext(selector); setStatus("Saved"); })
+      .then(saved => { if (saved) showUndo("DLC access saved.", async () => { await oneMutation(`undo:${key}`, async () => { await api(`/dlc-entitlements/${encodeURIComponent(scope)}`, { method: "PATCH", body: JSON.stringify({ status: previous }) }); await refreshPreservingPlayContext(selector); setStatus("Undone"); }); }); })
+      .catch(error => { control.value = previous; handleError(error); });
+    return;
+  }
   if (event.target.dataset.accessoryCharacter) {
     const control = event.target, character = control.dataset.accessoryCharacter, slot = control.dataset.accessorySlot;
     const path = `/equipment/accessories/${encodeURIComponent(character)}/${slot}`, requested = control.value || null;

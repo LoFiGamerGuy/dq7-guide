@@ -802,6 +802,33 @@ class GuideServerTests(unittest.TestCase):
         self.assertFalse(rows["heart_dragonlord"]["available_now"])
         self.assertEqual(rows["heart_dragonlord"]["dlc_ownership_status"], "not_owned")
 
+    def test_dlc_entitlement_endpoint_drives_heart_availability_and_clears(self):
+        scope = "Jam-Packed Swag Bag"
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state.pop("dlc_entitlements", None)
+        state["story"]["checkpoint_id"] = "cp_001_prologue"
+        self.state.write_text(json.dumps(state), encoding="utf-8")
+        try:
+            status, result = self.patch_json(
+                "/api/dlc-entitlements/Jam-Packed%20Swag%20Bag", {"status": "owned"}
+            )
+            self.assertEqual(status, 200)
+            self.assertIn("owned", result["message"])
+            _, heart = self.get_json("/api/monster-hearts/heart_metal_slime")
+            self.assertTrue(heart["available_now"])
+            self.assertEqual(heart["dlc_ownership_status"], "owned")
+            self.patch_json(
+                "/api/dlc-entitlements/Jam-Packed%20Swag%20Bag", {"status": "unknown"}
+            )
+            _, heart = self.get_json("/api/monster-hearts/heart_metal_slime")
+            self.assertIsNone(heart["available_now"])
+            self.assertEqual(heart["dlc_ownership_status"], "unknown")
+            self.assertNotIn("dlc_entitlements", json.loads(self.state.read_text()))
+        finally:
+            state.pop("dlc_entitlements", None)
+            state["story"]["checkpoint_id"] = None
+            self.state.write_text(json.dumps(state), encoding="utf-8")
+
     def test_power_plan_uses_only_explicit_party_state_and_saved_checkpoint_gear(self):
         state_path = Path(self.temp.name) / "power-plan-state.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())

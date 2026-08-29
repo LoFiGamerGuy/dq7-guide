@@ -59,6 +59,13 @@ def _load_state(state_path: Path) -> dict:
         or any(not isinstance(value, str) for value in hearts)
     ):
         raise ValueError("completion.monster_hearts_owned must be a list of strings when present")
+    entitlements = state.get("dlc_entitlements")
+    if entitlements is not None and (
+        not isinstance(entitlements, dict)
+        or any(not isinstance(scope, str) or not isinstance(owned, bool)
+               for scope, owned in entitlements.items())
+    ):
+        raise ValueError("dlc_entitlements must map DLC scope names to booleans when present")
     for field in ("missables_completed", "missables_missed"):
         values = state.get("completion", {}).get(field)
         if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
@@ -584,6 +591,29 @@ def update_progress(
                 owned.difference_update(values)
                 message = f"Reopened Monster Heart(s): {', '.join(values)}."
             state["completion"]["monster_hearts_owned"] = sorted(owned)
+        elif command == "dlc-entitlement":
+            if len(values) != 2 or values[1] not in ("owned", "not-owned", "unknown"):
+                raise ValueError("dlc-entitlement requires DLC_SCOPE and owned, not-owned, or unknown")
+            scope, status = values
+            known = {
+                row[0] for row in connection.execute(
+                    "SELECT DISTINCT dlc_scope FROM monster_hearts WHERE dlc_scope IS NOT NULL"
+                )
+            }
+            if scope not in known:
+                raise ValueError(f"Unknown DLC scope: {scope}")
+            entitlements = dict(state.get("dlc_entitlements", {}))
+            if status == "unknown":
+                entitlements.pop(scope, None)
+                if entitlements:
+                    state["dlc_entitlements"] = entitlements
+                else:
+                    state.pop("dlc_entitlements", None)
+                message = f"Cleared DLC entitlement report: {scope}."
+            else:
+                entitlements[scope] = status == "owned"
+                state["dlc_entitlements"] = entitlements
+                message = f"Recorded DLC entitlement {scope}: {status}."
         else:
             raise ValueError(f"Unknown progress command: {command}")
     _save_state(state_path, state)
@@ -629,6 +659,8 @@ def main() -> None:
     for name in ("heart-obtained", "heart-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="HEART_ID")
+    progress = subparsers.add_parser("dlc-entitlement")
+    progress.add_argument("values", nargs=2, metavar=("DLC_SCOPE", "OWNED_NOT_OWNED_OR_UNKNOWN"))
     progress = subparsers.add_parser("accessory-set")
     progress.add_argument("values", nargs=3, metavar=("CHARACTER", "SLOT", "ITEM_ID_OR_UNKNOWN"))
     progress = subparsers.add_parser("equipment-set")

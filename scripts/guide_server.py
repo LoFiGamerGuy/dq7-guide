@@ -44,6 +44,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "item-quantity",
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
     "heart-obtained", "heart-undo",
+    "dlc-entitlement",
     "vocation-mastered", "vocation-undo",
     "party-level", "party-vocations", "party-setup",
     "missable-completed", "missable-undo",
@@ -1858,6 +1859,12 @@ def _record_ui_progress(db_path: Path, state_path: Path, payload: dict) -> str:
 
 
 def _record_resource_progress(db_path: Path, state_path: Path, path: str, payload: dict) -> str:
+    if path.startswith("/api/dlc-entitlements/"):
+        scope = unquote(path.removeprefix("/api/dlc-entitlements/"))
+        status = payload.get("status")
+        if status not in ("owned", "not-owned", "unknown"):
+            raise ValueError("status must be owned, not-owned, or unknown")
+        return update_progress(state_path, db_path, "dlc-entitlement", [scope, status])
     if path.startswith("/api/items/") and path.endswith("/quantity"):
         item_id = unquote(path.removeprefix("/api/items/").removesuffix("/quantity"))
         quantity = payload.get("quantity")
@@ -2395,6 +2402,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                         "/api/items/", "/api/tablets/", "/api/achievements/",
                         "/api/vocations/", "/api/checkpoints/",
                         "/api/missables/", "/api/monster-hearts/",
+                        "/api/dlc-entitlements/",
                     )):
                         message = _record_resource_progress(db_path, state_path, path, payload)
                     else:

@@ -2098,6 +2098,22 @@ class KnowledgeBaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown Monster Heart"):
             update_progress(state_path, self.db_path, "heart-obtained", ["heart_fake"])
 
+    def test_player_progress_tracks_dlc_entitlement_three_states_reversibly(self):
+        state_path = Path(self.tempdir.name) / "dlc-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        scope = "Jam-Packed Swag Bag"
+        update_progress(state_path, self.db_path, "dlc-entitlement", [scope, "owned"])
+        self.assertEqual(json.loads(state_path.read_text())["dlc_entitlements"], {scope: True})
+        update_progress(state_path, self.db_path, "dlc-entitlement", [scope, "not-owned"])
+        self.assertEqual(json.loads(state_path.read_text())["dlc_entitlements"], {scope: False})
+        update_progress(state_path, self.db_path, "dlc-entitlement", [scope, "unknown"])
+        self.assertNotIn("dlc_entitlements", json.loads(state_path.read_text()))
+        with self.assertRaisesRegex(ValueError, "Unknown DLC scope"):
+            update_progress(state_path, self.db_path, "dlc-entitlement", ["Fake DLC", "owned"])
+
     def test_player_progress_tracks_party_wide_vocation_mastery(self):
         state_path = Path(self.tempdir.name) / "vocation-progress.json"
         state_path.write_text(

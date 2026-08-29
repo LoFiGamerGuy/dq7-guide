@@ -46,6 +46,11 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertLess(warning, detail)
         self.assertIn('detail.dlc_ownership_status === "unknown"', js)
         self.assertIn("not shown as currently obtainable", js)
+        self.assertIn('data-dlc-entitlement=', js)
+        self.assertIn("Owned / installed", js)
+        self.assertIn("Not owned", js)
+        self.assertIn("Not reported", js)
+        self.assertIn("/dlc-entitlements/", js)
 
     def test_verified_seed_pool_and_achievement_conflicts_are_visible(self):
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")

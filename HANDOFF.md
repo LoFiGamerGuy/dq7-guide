@@ -77,7 +77,9 @@ Metal Slime and Gold Golem Hearts have a structured Jam-Packed Swag Bag gate at
 first player control. Contents and Claim Special Rewards are independently
 corroborated; exact earliest timing remains single-source. Because Ryan has not
 reported DLC ownership, the API and phone deliberately keep all five DLC Hearts
-out of “available” until entitlement is explicit.
+out of “available” until entitlement is explicit. Heart detail now provides a
+reversible three-state DLC-access control; “Not reported” removes the optional
+state key and restores conservative unknown availability.
 
 The final three unpublished purchase prices are now typed shop inventory:
 Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
