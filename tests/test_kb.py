@@ -2620,15 +2620,15 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 5, "other": 21})
+                         {"chest": 5, "other": 17})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("26 acquisition rows", status)
-        self.assertIn("21 broad area/reward-style `other` routes and five chest routes",
+        self.assertIn("22 acquisition rows", status)
+        self.assertIn("17 broad area/reward-style `other` routes and five chest routes",
                       status)
-        self.assertIn("26 broader acquisition rows", handoff)
+        self.assertIn("22 broader acquisition rows", handoff)
 
-    def test_walkthrough_refines_five_broad_routes_without_inventing_containers(self):
+    def test_walkthrough_refines_four_broad_routes_without_inventing_containers(self):
         expected = {
             "acq_gold_bracer_temple_palace_past": (
                 "Temple Palace hidden room behind Queen Fertiti's throne",
@@ -2638,8 +2638,6 @@ class KnowledgeBaseTests(unittest.TestCase):
             "acq_mermaid_moon_wetlock_treasure": (
                 "Wetlock west treasure room", "west treasure room"),
             "acq_day_off_dress_another_world": (
-                "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
-            "acq_drakulard_heart_another_world": (
                 "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
         }
         placeholders = ",".join("?" for _ in expected)
@@ -2682,6 +2680,36 @@ class KnowledgeBaseTests(unittest.TestCase):
                 'claim_healslime_heart_exact_chest_ngb')"""
         ).fetchone()[0]
         self.assertEqual(claim_count, 2)
+
+    def test_direct_heart_guide_resolves_four_later_exact_routes(self):
+        expected = {
+            "acq_hypothermion_heart_malign_shrine": ("chest", "southeastern"),
+            "acq_wight_watchman_heart_the_beacon": ("other", "gold item"),
+            "acq_goodybag_heart_the_sea_dragon": ("chest", "Below Decks"),
+            "acq_drakulard_heart_another_world": ("chest", "Ultimate Key"),
+        }
+        placeholders = ",".join("?" for _ in expected)
+        rows = self.connection.execute(
+            f"""SELECT acquisition_id, method, source_id, locator,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id IN ({placeholders})""",
+            tuple(expected),
+        ).fetchall()
+        self.assertEqual(len(rows), 4)
+        for row in rows:
+            method, locator_fragment = expected[row["acquisition_id"]]
+            self.assertEqual(row["method"], method)
+            self.assertEqual(row["source_id"], "ngb_monster_hearts")
+            self.assertIn(locator_fragment, row["locator"])
+            self.assertNotIn("container_unspecified", row["verification_status"])
+        claim_count = self.connection.execute(
+            """SELECT COUNT(*) FROM claims WHERE claim_id IN (
+                'claim_hypothermion_heart_exact_chest_ngb',
+                'claim_wight_watchman_heart_exact_pickup_ngb',
+                'claim_goodybag_heart_exact_chest_ngb',
+                'claim_drakulard_heart_exact_chest_ngb')"""
+        ).fetchone()[0]
+        self.assertEqual(claim_count, 4)
 
     def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
         expected = {
@@ -2784,8 +2812,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("26 broader acquisition rows", handoff)
-        self.assertIn("26 acquisition rows still deliberately carry",
+        self.assertIn("22 broader acquisition rows", handoff)
+        self.assertIn("22 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
