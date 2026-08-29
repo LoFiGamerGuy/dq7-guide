@@ -2620,13 +2620,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 3, "other": 18})
+                         {"chest": 2, "other": 18})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("21 acquisition rows", status)
-        self.assertIn("18 broad or grouped-container `other` routes and three chest routes",
+        self.assertIn("20 acquisition rows", status)
+        self.assertIn("18 broad or grouped-container `other` routes and two chest routes",
                       status)
-        self.assertIn("21 broader acquisition rows", handoff)
+        self.assertIn("20 broader acquisition rows", handoff)
 
     def test_walkthrough_refines_four_broad_routes_without_inventing_containers(self):
         expected = {
@@ -2738,7 +2738,6 @@ class KnowledgeBaseTests(unittest.TestCase):
 
     def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
         expected = {
-            "acq_great_helm_another_world": "1F, 2F, 3F, and 3F W stairs",
             "acq_sun_crown_another_world": "Outside (Precipice Pass)",
             "acq_ruinous_shield_yet_another_world": "Underground Level 1 (Well)",
             "acq_super_seed_of_resilience_yet_another_world": "Underground Level 1 (Well)",
@@ -2765,6 +2764,26 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertEqual(row["source_id"], "rpgsite_walkthrough")
             self.assertIn(expected[row["acquisition_id"]], row["locator"])
             self.assertIn("container_unspecified", row["verification_status"])
+
+    def test_game8_postgame_resolves_great_helm_exact_chest(self):
+        row = self.connection.execute(
+            """SELECT method, location_text, source_id, locator,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id='acq_great_helm_another_world'"""
+        ).fetchone()
+        self.assertEqual(row["method"], "chest")
+        self.assertEqual(row["location_text"],
+                         "Another World 4F northern side")
+        self.assertEqual(row["source_id"], "game8_postgame")
+        self.assertIn("north chest contains Great Helm", row["locator"])
+        self.assertEqual(row["verification_status"],
+                         "source_checked_exact_chest")
+        claim = self.connection.execute(
+            """SELECT locator FROM claims
+            WHERE claim_id='claim_great_helm_another_world_4f_north_chest_game8'"""
+        ).fetchone()
+        self.assertIsNotNone(claim)
+        self.assertIn("left stairs from 3F", claim["locator"])
 
     def test_previously_unknown_shop_prices_are_typed_and_sourced(self):
         rows = self.connection.execute(
@@ -2837,8 +2856,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("21 broader acquisition rows", handoff)
-        self.assertIn("21 acquisition rows still deliberately carry",
+        self.assertIn("20 broader acquisition rows", handoff)
+        self.assertIn("20 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
