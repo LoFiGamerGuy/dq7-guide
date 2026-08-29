@@ -53,7 +53,7 @@ Expected after `python scripts/build_kb.py`:
 - monsters: 333
 - monster encounters / drops: 476 / 227
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 111
+- ready-for-play checkpoint advice: 112
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
 - item aliases / acquisition paths: 4 / 747
