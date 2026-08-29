@@ -42,6 +42,7 @@ Advancement-readiness handoff: verified STOP obligations remain the first and st
 
 Phone-cache handoff: shell and API caches use the v14 namespace. The activating worker removes older namespaces, and `controllerchange` reloads once, so full checkpoint advice, vocation recommendations, boss preparation, and Heart routes all expose structured evidence links on already-paired phones. Paired API responses remain excluded from caching.
 Evidence-gap badges count independent publishers behind locator-linked atomic claims, not pages or source IDs. A synthetic regression now fixes the boundary: two separately registered Game8 Japan pages and two linked claims still yield a single-source tier.
+The database builder now enforces the same boundary for every checkpoint-advice row: any declared two-source status must link existing atomic claims from at least two distinct publishers, so a future seed edit cannot rely on page count or a free-form label.
 The achievement detail now shows the resolved lifetime-total rule with its source,
 while keeping the losing simultaneous-balance claim visible in counter evidence and
 the conflict registry. It no longer asks the player to bank 300,000 gold at once.

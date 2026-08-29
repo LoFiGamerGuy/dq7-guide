@@ -17,6 +17,7 @@ from build_kb import (  # noqa: E402
     build_database,
     detect_conflicts,
     normalize_checkpoint_advice,
+    validate_checkpoint_advice_evidence,
 )
 from achievement_report import load_achievement_report  # noqa: E402
 from checkpoint_report import load_report  # noqa: E402
@@ -3771,6 +3772,48 @@ class KnowledgeBaseTests(unittest.TestCase):
             normalize_checkpoint_advice([
                 {"advice_id": "bad", "applicability": ["normal"]}
             ])
+
+    def test_checkpoint_advice_two_source_requires_independent_publishers(self):
+        connection = sqlite3.connect(":memory:")
+        connection.executescript(
+            """CREATE TABLE sources(source_id TEXT PRIMARY KEY, publisher TEXT);
+            CREATE TABLE claims(
+                claim_id TEXT PRIMARY KEY,
+                source_id TEXT REFERENCES sources(source_id)
+            );
+            CREATE TABLE checkpoint_advice(
+                advice_id TEXT PRIMARY KEY,
+                applicability_json TEXT NOT NULL,
+                verification_status TEXT NOT NULL
+            );"""
+        )
+        connection.executemany(
+            "INSERT INTO sources VALUES (?, ?)",
+            [("page_a", "Same Publisher"), ("page_b", "Same Publisher")],
+        )
+        connection.executemany(
+            "INSERT INTO claims VALUES (?, ?)",
+            [("claim_a", "page_a"), ("claim_b", "page_b")],
+        )
+        connection.execute(
+            "INSERT INTO checkpoint_advice VALUES (?, ?, ?)",
+            ("advice_same_publisher",
+             json.dumps({"evidence_claim_ids": ["claim_a", "claim_b"]}),
+             "two_source_verified"),
+        )
+        with self.assertRaisesRegex(ValueError, "without two claim publishers"):
+            validate_checkpoint_advice_evidence(connection)
+        connection.execute(
+            "UPDATE sources SET publisher='Independent Publisher' WHERE source_id='page_b'"
+        )
+        validate_checkpoint_advice_evidence(connection)
+        connection.execute(
+            "UPDATE checkpoint_advice SET applicability_json=?",
+            (json.dumps({"evidence_claim_ids": ["claim_a", "missing_claim"]}),),
+        )
+        with self.assertRaisesRegex(ValueError, "missing evidence claims"):
+            validate_checkpoint_advice_evidence(connection)
+        connection.close()
 
     def test_meteorite_bracer_duplicate_power_is_item_specific_and_quantity_guarded(self):
         claims = self.connection.execute(

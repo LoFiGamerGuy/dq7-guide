@@ -51,6 +51,41 @@ def normalize_checkpoint_advice(rows: list[dict]) -> list[dict]:
     return normalized
 
 
+def validate_checkpoint_advice_evidence(connection: sqlite3.Connection) -> None:
+    """Require declared two-source advice to resolve to independent claim publishers."""
+    missing_claims = connection.execute(
+        """SELECT DISTINCT a.advice_id, e.value AS claim_id
+        FROM checkpoint_advice a
+        JOIN json_each(a.applicability_json, '$.evidence_claim_ids') e
+        LEFT JOIN claims c ON c.claim_id=e.value
+        WHERE c.claim_id IS NULL
+        ORDER BY a.advice_id, e.value"""
+    ).fetchall()
+    if missing_claims:
+        raise ValueError(
+            "Checkpoint advice references missing evidence claims: "
+            + ", ".join(f"{row[0]}->{row[1]}" for row in missing_claims)
+        )
+    mismatched_tiers = connection.execute(
+        """SELECT a.advice_id
+        FROM checkpoint_advice a
+        WHERE (a.verification_status LIKE '%two_source%'
+               OR a.verification_status LIKE '%two_independent%')
+          AND 2 > (
+              SELECT COUNT(DISTINCT s.publisher)
+              FROM json_each(a.applicability_json, '$.evidence_claim_ids') e
+              JOIN claims c ON c.claim_id=e.value
+              JOIN sources s USING(source_id)
+          )
+        ORDER BY a.advice_id"""
+    ).fetchall()
+    if mismatched_tiers:
+        raise ValueError(
+            "Checkpoint advice declared two-source without two claim publishers: "
+            + ", ".join(row[0] for row in mismatched_tiers)
+        )
+
+
 def detect_conflicts(
     connection: sqlite3.Connection,
     predicate_registry: dict | None = None,
@@ -1493,6 +1528,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     claim.get("notes"),
                 ),
             )
+
+        validate_checkpoint_advice_evidence(connection)
 
         connection.executemany(
             """INSERT INTO boss_skill_recommendation_evidence(

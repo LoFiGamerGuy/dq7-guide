@@ -878,3 +878,9 @@ locator in collapsed detail, falling back to the primary source only when no
 claim bundle exists. This changes presentation only: mixed-core and single-source
 tiers remain intact, and no recommendation is promoted. Cache v14 refreshes the
 corrected shell on paired phones.
+
+The checkpoint-advice build guard extends publisher independence from runtime
+badges to ingestion. Every declared two-source advice row must now reference
+existing atomic claim IDs from at least two distinct registered publishers.
+A synthetic same-publisher regression proves that two pages and two claims from
+one publisher fail the build boundary; a missing claim ID fails separately.
