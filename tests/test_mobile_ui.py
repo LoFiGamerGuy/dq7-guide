@@ -299,6 +299,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('href="/api/state-backup"', html)
         self.assertIn("window.isSecureContext", js)
         self.assertIn("Unavailable on this LAN HTTP address", js)
+        self.assertIn("Shell only · paired data requires host", js)
+        self.assertIn("Unpaired host-local data available", js)
         self.assertIn("Disabled — never queued", js)
         self.assertIn('"display": "standalone"', manifest)
 

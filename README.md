@@ -143,9 +143,11 @@ to a third-party QR service would weaken this local-only design.
 
 The normal phone URL uses local HTTP, so the Deck host must remain running and
 reachable. Browsers only enable installable/offline service workers on localhost or
-a secure HTTPS origin; when served that way, visited guide/API pages can reopen from
-cache. Cached pages are always read-only: offline progress edits are rejected and
-never queued, preventing hidden divergence from the canonical player file. The
+a secure HTTPS origin; when served that way, unpaired host-local guide/API pages can
+reopen from cache. Responses authorized by a private phone-pairing header are never
+cached and require the live host, so rotating the pairing identity cannot leave an
+authorized snapshot available offline. Cached pages are always read-only: offline
+progress edits are rejected and never queued, preventing hidden divergence from the canonical player file. The
 Progress view can download a JSON backup and restore one with an explicit
 confirmation; the host preserves the pre-restore state as a recovery file.
 The in-app **Phone Setup** screen shows the current address, connection/write

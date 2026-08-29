@@ -1,6 +1,6 @@
 "use strict";
-const SHELL_CACHE = "dq7-guide-shell-v3";
-const DATA_CACHE = "dq7-guide-data-v3";
+const SHELL_CACHE = "dq7-guide-shell-v4";
+const DATA_CACHE = "dq7-guide-data-v4";
 const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.webmanifest", "/icons/guide-icon.svg"];
 self.addEventListener("install", event => { event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => ![SHELL_CACHE, DATA_CACHE].includes(key)).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
@@ -9,6 +9,12 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (url.pathname === "/api/state-backup") return;
   if (url.pathname.startsWith("/api/")) {
+    // Pairing is an authorization boundary. Cache matching does not partition on
+    // the private header, so paired responses must never enter or leave a cache.
+    if (request.headers.has("X-DQ7-Pair")) {
+      event.respondWith(fetch(request));
+      return;
+    }
     event.respondWith(fetch(request).then(response => { if (response.ok) caches.open(DATA_CACHE).then(cache => cache.put(request, response.clone())); return response; }).catch(async () => {
       const cached = await caches.match(request);
       if (!cached) return new Response(JSON.stringify({error: "Not available in offline cache"}), {status: 503, headers: {"Content-Type": "application/json"}});

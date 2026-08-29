@@ -110,7 +110,7 @@ function renderPhoneSetup() {
     ["Connection", online ? "Fresh host data loaded" : "Offline / cached / not loaded", online ? "ok" : "warning"],
     ["Mode", mode, secure ? "ok" : "warning"],
     ["Address", `${location.protocol}//${location.host}`, secure ? "ok" : "warning"],
-    ["Offline cache", workerCapable ? "Available on this secure origin" : "Unavailable on this LAN HTTP address", workerCapable ? "ok" : "warning"],
+    ["Offline cache", workerCapable ? (pairingToken ? "Shell only · paired data requires host" : "Unpaired host-local data available") : "Unavailable on this LAN HTTP address", workerCapable && !pairingToken ? "ok" : "warning"],
     ["Display", standalone ? "Opened as installed app" : "Browser tab / bookmark", standalone ? "ok" : "neutral"],
     ["Progress writes", online ? "Direct to host" : "Disabled — never queued", online ? "ok" : "warning"]
   ];

@@ -38,7 +38,7 @@ Expected after `python scripts/build_kb.py`:
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,831
+- claims: 1,832
 - medal rewards: 19
 - missables: 7
 - farming spots: 11

@@ -280,7 +280,12 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v3', worker)
+            self.assertIn(b'dq7-guide-shell-v4', worker)
+            self.assertIn(b'dq7-guide-data-v4', worker)
+            paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
+            data_cache = worker.index(b'caches.open(DATA_CACHE)')
+            self.assertLess(paired_guard, data_cache)
+            self.assertIn(b'event.respondWith(fetch(request));', worker)
             self.assertIn(b'fetch(request).then', worker)
         with urlopen(self.base + "/api/state-backup") as response:
             backup = json.load(response)
@@ -473,8 +478,11 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(len(hearts["supporting_claims"]), 2)
         self.assertIn("verified finite", hearts["acceptance_condition"])
         counters = by_id["gap_achievement_counter_semantics"]
-        self.assertEqual(counters["source_count"], 3)
-        self.assertEqual(len(counters["supporting_claims"]), 7)
+        self.assertEqual(counters["source_count"], 4)
+        self.assertEqual(len(counters["supporting_claims"]), 8)
+        self.assertIn("Two independent firsthand publishers", counters["summary"])
+        self.assertIn("claim_winning_machine_excludes_quick_wins_platinum_hunter",
+                      {row["claim_id"] for row in counters["supporting_claims"]})
         self.assertIn("four-member metal-family roster", counters["summary"])
         self.assertIn("quick-win", counters["acceptance_condition"])
         status, endpoint = self.get_json("/api/evidence-gaps")
