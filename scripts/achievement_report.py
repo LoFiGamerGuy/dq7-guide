@@ -46,7 +46,7 @@ def load_achievement_report(
             """SELECT c.claim_id, c.subject_key, c.predicate, c.value_json,
                 c.scope_json, c.confidence, c.verification_status,
                 c.locator, c.source_id, s.title AS source_title,
-                s.url AS source_url
+                s.url AS source_url, s.publisher AS source_publisher
             FROM claims c JOIN sources s USING(source_id)
             WHERE c.subject_key LIKE 'achievement:%'
               AND c.predicate LIKE 'achievement_counter_%'
@@ -98,6 +98,7 @@ def load_achievement_report(
         result_rows = []
         semantics_by_achievement: dict[str, list[dict]] = {}
         semantic_claims: dict[str, dict] = {}
+        semantic_groups: dict[tuple[str, str, str], list[dict]] = {}
         for semantic_row in semantic_rows:
             semantic = dict(semantic_row)
             semantic["value"] = json.loads(semantic.pop("value_json"))
@@ -106,6 +107,18 @@ def load_achievement_report(
             achievement_id = subject_id if subject_id.startswith("ach_") else f"ach_{subject_id}"
             semantics_by_achievement.setdefault(achievement_id, []).append(semantic)
             semantic_claims[semantic["claim_id"]] = semantic
+            group_key = (semantic["subject_key"], semantic["predicate"],
+                         json.dumps(semantic["value"], sort_keys=True))
+            semantic_groups.setdefault(group_key, []).append(semantic)
+        for group in semantic_groups.values():
+            publisher_count = len({row["source_publisher"] for row in group})
+            evidence = {
+                "tier": "two_source" if publisher_count >= 2 else "single_source",
+                "source_count": len({row["source_id"] for row in group}),
+                "publisher_count": publisher_count,
+            }
+            for semantic in group:
+                semantic["evidence"] = evidence
         conflicts_by_achievement: dict[str, list[dict]] = {}
         for conflict_row in counter_conflict_rows:
             conflict = dict(conflict_row)

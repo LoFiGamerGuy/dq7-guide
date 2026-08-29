@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 679 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 681 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -22,7 +22,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame reward rule with all nine eligible Super-stat items | High for fixed effects, one-per-victory reward, and two-publisher pool membership; selection weights remain unknown | Preserve unknown probabilities until a draw algorithm or reproducible measurements are published |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible Heart and three-state DLC-entitlement ledgers in CLI/API/browser | High for effects and published routes; unreported entitlement/Heart ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
-| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking; individual-monster units, in-battle wins, lifetime-gold semantics, and the four-member metal-family roster normalized | High for identities, thresholds, and verified units; four exact counter questions remain | Resolve quick-win overlaps/units and save/reset scope through controlled deltas or direct documentation |
+| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking; successful quick-win event units, individual-monster units, in-battle wins, lifetime-gold semantics, and the four-member metal-family roster normalized | High for identities, thresholds, and verified units; cross-counter overlap and persistence remain unknown | Resolve quick-win overlap and save/reset scope through controlled deltas or direct documentation |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; Scarewell's exact fixed Past route has two independent current-version sources | Preserve the PS5-only scope on its separately sourced reset method; do not infer numeric rates |
 | Player state | Schema and empty Ryan state; optional exact item-copy totals with quantity-safe global equipment allocation | Ready, no user data; missing totals remain unknown and duplicate legality is item-specific | Fill only from Ryan's reports; never infer quantities |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 679
+- sources: 681
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,840
+- claims: 1,842
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -75,16 +75,16 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. Metal Slime and Gold Golem have two-source Jam-Packed Swag Bag contents/claim evidence and a single-source first-control gate. Missing entitlement remains unknown, so none of these DLC Hearts is labeled currently available. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
-- **Achievements:** no identity or structured non-story requirement gap remains. Massively Minted's lifetime-total semantics and the exact four-member metal-family roster are independently corroborated. Four questions remain: quick-win overlap with Field Day, quick-win victims in Monster Masher/Metal Mangler, multi-enemy quick-win units, and save/reset scope.
+- **Achievements:** no identity or structured non-story requirement gap remains. Massively Minted's lifetime-total semantics, the exact four-member metal-family roster, and one count per successful no-battle quick-win event are independently corroborated. Three questions remain: quick-win overlap with Field Day, quick-win inclusion in Monster Masher/Metal Mangler, and save/reset scope.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** all 413 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired because GameWith, Game8 Japan, and Altema publish the same explicit cumulative condition and independently match Maestros del Mando; the isolated simultaneous-balance instruction remains visible as losing evidence. Troll Heart is resolved to the Aeolus Vale Past field sparkle by two dedicated current-version pages; the isolated respawning-drop claim remains visible and does not establish a farm. `Stellar Fan` is resolved by a legible launch-period English acquisition toast. Fourteen pairwise equipment conflicts use two-publisher consensus claims. Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 679 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 681 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Seek explicit repeat evidence for a non-Vicious Heart route; defeated Vicious/strong encounters are verified finite.
-2. Resolve the four exact remaining achievement-counter questions, additional named accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence. Meteorite Bracer and Rabbit Tail are already item-specific verified cases.
+2. Resolve the three remaining achievement-counter questions, additional named accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence. Meteorite Bracer and Rabbit Tail are already item-specific verified cases.
 3. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors this complete six-item evidence-blocked
@@ -413,7 +413,7 @@ The Phase 2 equipment batches established typed item, shop, and Lucky Panel acqu
 
 The achievement-readiness batch makes all 29 structured completion dependencies state-aware in the API and browser. Heroic Hoarder, Monster List, Vicious, tablet, vocation, and medal progress now distinguishes explicit partial counts, met counters with an unrecorded unlock, and unknown tracking. Empty identity arrays are no longer presented as zero; only a deliberately saved numeric Mini Medal count can establish exact zero.
 
-The achievement-semantics audit originally narrowed the cumulative-counter residual to six explicit questions. Altema and the platform registry establish individual-monster units for Monster Masher and Metal Mangler and in-battle wins for Winning Machine; Maestros attributes successful pre-battle strikes, no-combat quick wins, and party-wide Let Loose aggregation. GameFAQs and Platinum Hunter now independently agree that field-attack instant kills do not increment Winning Machine's battle-win counter. Later evidence resolves lifetime-gold semantics and the metal-family roster as summarized above. No quick-win overlap, defeated-monster telemetry, multi-enemy unit, or save/reset behavior is inferred.
+The achievement-semantics audit originally narrowed the cumulative-counter residual to six explicit questions. Altema and the platform registry establish individual-monster units for Monster Masher and Metal Mangler and in-battle wins for Winning Machine; Maestros attributes successful pre-battle strikes, no-combat quick wins, and party-wide Let Loose aggregation. GameFAQs and Platinum Hunter independently agree that field-attack instant kills do not increment Winning Machine. Torokichi and GIGA now independently define one Straight to the Point count as one successful no-battle quick-win event. Later evidence resolves lifetime-gold semantics and the metal-family roster as summarized above. No cross-counter overlap or save/reset behavior is inferred.
 
 The equipment-readiness audit confirms that item categories provide nominal slots and checkpoint advice provides a bounded set of attributed character/item recommendations, but the KB has no complete current-version character equipability matrix, accessory slot count, or duplicate-equip rules. The browser therefore keeps equipment writes disabled and exposes a read-only saved-checkpoint comparison with canonical items, route availability, explicit ownership, raw recorded gear, and the precise validation gaps instead of accepting potentially invalid loadouts.
 
@@ -507,7 +507,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 679 source records currently have retrieval dates within 180
+- **Freshness:** all 681 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

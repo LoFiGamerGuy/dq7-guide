@@ -258,6 +258,11 @@ Massively Minted is resolved to lifetime total gold acquired from four independe
 current-version publishers. The exact metal-family roster is independently
 corroborated as Metal Slime, Liquid Metal Slime, Metal King Slime, and Platinum
 King; quick-win inclusion remains a separate unknown.
+Straight to the Point's counter unit is independently corroborated as one successful
+field-attack instant-kill event that avoids the battle screen. Semantic rows expose
+an exact-value publisher/source evidence tier. Whether that event also increments
+Field Day, Monster Masher, or Metal Mangler—and whether counters persist across
+save slots, New Game, demo transfer, or reset—remains explicitly unknown.
 
 `GET /api/equipment` is an equipment-readiness and comparison endpoint with a narrow accessory editor.
 It includes independently corroborated `mechanics` rows for the two accessory

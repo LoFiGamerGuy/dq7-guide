@@ -192,6 +192,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("previousObtained", js)
         self.assertIn("currently Rabbit Tail and Meteorite Bracer qualify", js)
         self.assertIn("Monster Heart duplicates remain unsupported", js)
+        self.assertIn('Evidence: ${row.evidence?.tier === "two_source" ? "2-source" : "1-source"}', js)
+        self.assertIn("Whether quick wins also increment Field Day, Monster Masher, or Metal Mangler", js)
         self.assertIn(".callout [data-item-quantity-input]", css)
         self.assertIn("[data-item-quantity-clear] { min-height: 2.75rem", css)
 

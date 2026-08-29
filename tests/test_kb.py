@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 679)
+        self.assertEqual(self.counts["sources"], 681)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -932,6 +932,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                       statuses["metal_monsters_defeated"])
         self.assertIn("quick_win_exclusion_two_publishers",
                       statuses["battles_won"])
+        self.assertIn("successful_quick_win_event_unit_two_publishers",
+                      statuses["quick_wins_earned"])
         self.assertIn("lifetime_total_semantics", statuses["gold_acquired"])
         self.assertIn("roster_verified", statuses["metal_monsters_defeated"])
 
@@ -990,6 +992,19 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND c.value_json='"field-attack instant kills do not count as battle wins"'"""
         ).fetchone()[0]
         self.assertEqual(exclusion_publishers, 2)
+
+        quick_units = self.connection.execute(
+            """SELECT c.value_json, c.locator, s.publisher, s.url
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:straight_to_the_point'
+              AND c.predicate='achievement_counter_unit'"""
+        ).fetchall()
+        self.assertEqual(len(quick_units), 2)
+        self.assertEqual(len({row["publisher"] for row in quick_units}), 2)
+        self.assertEqual({json.loads(row["value_json"]) for row in quick_units},
+                         {"successful field-attack instant-kill events"})
+        self.assertTrue(all(row["locator"] and row["url"].startswith("https://")
+                            for row in quick_units))
 
         detailed = self.connection.execute(
             """SELECT c.value_json, c.locator, s.url

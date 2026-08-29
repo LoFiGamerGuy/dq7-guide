@@ -499,15 +499,19 @@ class GuideServerTests(unittest.TestCase):
         self.assertNotEqual(route["method"], "drop")
         self.assertIn("two_independent", route["verification_status"])
         counters = by_id["gap_achievement_counter_semantics"]
-        self.assertEqual(counters["source_count"], 5)
-        self.assertEqual(len(counters["supporting_claims"]), 9)
+        self.assertEqual(counters["source_count"], 7)
+        self.assertEqual(len(counters["supporting_claims"]), 11)
         self.assertIn("Two independent firsthand publishers", counters["summary"])
         self.assertIn("Detailed Records", counters["summary"])
         self.assertIn("immediately before and after", counters["acceptance_condition"])
         self.assertIn("claim_winning_machine_excludes_quick_wins_platinum_hunter",
                       {row["claim_id"] for row in counters["supporting_claims"]})
         self.assertIn("four-member metal-family roster", counters["summary"])
-        self.assertIn("quick win", counters["acceptance_condition"])
+        self.assertIn("one count per successful", counters["summary"])
+        self.assertIn("successful-event unit is already resolved",
+                      counters["acceptance_condition"])
+        self.assertIn("Monster Masher", counters["acceptance_condition"])
+        self.assertNotIn("multi-enemy", counters["acceptance_condition"])
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])
@@ -1808,6 +1812,19 @@ class GuideServerTests(unittest.TestCase):
             gold_detail["counter_conflicts"][0]["resolution"]["value"],
             "lifetime total gold acquired",
         )
+        _, quick_detail = self.get_json(
+            "/api/achievements/ach_straight_to_the_point"
+        )
+        quick_units = [row for row in quick_detail["counter_semantics"]
+                       if row["predicate"] == "achievement_counter_unit"]
+        self.assertEqual(len(quick_units), 2)
+        self.assertEqual({row["source_id"] for row in quick_units},
+                         {"torokichi_trophy_guide", "giga_trophy_guide"})
+        self.assertEqual({row["value"] for row in quick_units},
+                         {"successful field-attack instant-kill events"})
+        self.assertTrue(all(row["evidence"] == {
+            "tier": "two_source", "source_count": 2, "publisher_count": 2,
+        } for row in quick_units))
         self.assertIn("lifetime_total_semantics",
                       gold_detail["requirement_verification_status"])
         for completed in (True, False):

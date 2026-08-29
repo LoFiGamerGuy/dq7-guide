@@ -111,6 +111,25 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         for row in roster_claims:
             self.assert_current_version_source(row["source_id"], row["locator"])
 
+        quick_units = self.connection.execute(
+            """SELECT c.value_json, c.locator, s.source_id, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:straight_to_the_point'
+              AND c.predicate='achievement_counter_unit'"""
+        ).fetchall()
+        self.assertEqual(len({row["publisher"] for row in quick_units}), 2)
+        self.assertEqual({json.loads(row["value_json"]) for row in quick_units},
+                         {"successful field-attack instant-kill events"})
+        for row in quick_units:
+            self.assert_current_version_source(row["source_id"], row["locator"])
+        unsupported_overlap = self.connection.execute(
+            """SELECT COUNT(*) FROM claims
+            WHERE subject_key='achievement:straight_to_the_point'
+              AND predicate IN ('field_day_overlap', 'monster_counter_overlap',
+                                'counter_persistence')"""
+        ).fetchone()[0]
+        self.assertEqual(unsupported_overlap, 0)
+
     def test_duplicate_accessory_bundle_requires_evidence_and_exact_quantity(self):
         question = self.questions["duplicate_accessory_power"]
         with tempfile.TemporaryDirectory() as temp:
