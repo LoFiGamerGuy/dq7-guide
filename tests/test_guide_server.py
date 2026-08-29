@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import (_checkpoint_view, _equipment_readiness,
+from guide_server import (_checkpoint_view, _equipment_readiness, _evidence_gaps,
                           _vocation_unlock_progress, create_server)
 
 
@@ -69,10 +69,18 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(accessory["confidence"], "verified")
         coverage = report["compatibility_coverage"]
         self.assertEqual(coverage["status"], "partial_two_source_matrix")
-        self.assertEqual(coverage["audited_item_rows"], 237)
-        self.assertEqual(coverage["verified_item_rows"], 230)
-        self.assertEqual(coverage["conflicted_item_rows"], 5)
+        self.assertEqual(coverage["catalog_item_rows"], 312)
+        self.assertEqual(coverage["audited_item_rows"], 311)
+        self.assertEqual(coverage["verified_item_rows"], 299)
+        self.assertEqual(coverage["conflicted_item_rows"], 10)
         self.assertEqual(coverage["single_source_item_rows"], 2)
+        self.assertEqual(coverage["unaudited_item_rows"], 1)
+        accessories = next(row for row in coverage["by_category"]
+                           if row["category"] == "Accessories")
+        self.assertEqual(accessories["catalog_item_rows"], 75)
+        self.assertEqual(accessories["verified_item_rows"], 69)
+        self.assertEqual(accessories["conflicted_item_rows"], 5)
+        self.assertEqual(accessories["unaudited_item_rows"], 1)
         cautery = next(row for row in report["recommendations"]
                        if row["item_name"] == "Cautery Sword")
         self.assertEqual(cautery["character"], "Hero")
@@ -114,6 +122,26 @@ class GuideServerTests(unittest.TestCase):
             self.assertNotIn(b'state.domain === "medals" && entry.completed', app)
             self.assertIn(b"Save failed. Change was not recorded.", app)
             self.assertIn(b"saveToggle(event.target", app)
+
+    def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
+        audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
+        self.assertEqual(audit["total"], 5)
+        self.assertEqual(audit["single_source"], 2)
+        self.assertEqual(audit["unsupported"], 1)
+        self.assertEqual(audit["corroborated_but_unresolved"], 2)
+        by_id = {row["gap_id"]: row for row in audit["gaps"]}
+        self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
+        self.assertEqual(by_id["gap_shell_shield_identity"]["source_count"], 1)
+        self.assertIn(by_id["gap_shell_shield_identity"]["freshness_status"],
+                      ("current_retrieval", "stale", "unknown"))
+        self.assertIn("retrieval_age_days",
+                      by_id["gap_shell_shield_identity"]["sources"][0])
+        stellar = by_id["gap_stellar_fan_ui_name"]
+        self.assertEqual(stellar["verification_tier"], "corroborated_but_unresolved")
+        self.assertIn("English", stellar["acceptance_condition"])
+        status, endpoint = self.get_json("/api/evidence-gaps")
+        self.assertEqual(status, 200)
+        self.assertEqual(endpoint["gaps"], audit["gaps"])
 
     def test_checkpoint_and_domain_endpoints(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
@@ -529,9 +557,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(hero["groups"][0]["needed_if_unknowns_are_unmastered"], 0)
         self.assertEqual(maribel["status"], "unknown")
         self.assertEqual(maribel["groups"][0]["needed_if_unknowns_are_unmastered"], 2)
-        self.assertEqual(gladiator["cost_status"], "unknown")
-        self.assertIn("absent mastery records remain unknown",
-                      gladiator["cost_note"])
+        self.assertEqual(gladiator["cost_status"], "verified")
+        self.assertEqual(gladiator["cost_profile"]["normalized_total_points"], 570)
+        self.assertIn("arithmetic sum", gladiator["cost_note"])
 
         champion = _vocation_unlock_progress(
             ROOT / "data" / "dq7_reimagined.sqlite", state_path,
@@ -540,6 +568,9 @@ class GuideServerTests(unittest.TestCase):
                          if row["character"] == "Hero")
         next_ids = {row["vocation_id"] for row in hero_plan["next_options"]}
         self.assertIn("vocation_gladiator", next_ids)
+        gladiator_option = next(row for row in hero_plan["next_options"]
+                                if row["vocation_id"] == "vocation_gladiator")
+        self.assertEqual(gladiator_option["progression"]["normalized_total_points"], 570)
         self.assertIn("vocation_priest", next_ids)
         self.assertNotIn("vocation_paladin", next_ids)
         champion_group = hero_plan["target"]["groups"][0]

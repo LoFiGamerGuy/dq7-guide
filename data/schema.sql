@@ -249,6 +249,24 @@ CREATE TABLE vocation_rank_costs (
     UNIQUE(vocation_id, proficiency_rank)
 );
 
+CREATE TABLE vocation_progression_profiles (
+    vocation_id TEXT PRIMARY KEY REFERENCES vocations(vocation_id),
+    progression_mode TEXT NOT NULL CHECK(progression_mode IN (
+        'full_points', 'story_then_points', 'story_granted'
+    )),
+    normalized_total_points INTEGER NOT NULL CHECK(normalized_total_points >= 0),
+    first_numeric_rank INTEGER CHECK(first_numeric_rank IS NULL OR first_numeric_rank BETWEEN 2 AND 8),
+    last_numeric_rank INTEGER CHECK(last_numeric_rank IS NULL OR last_numeric_rank BETWEEN 2 AND 8),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    corroborating_source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    corroborating_locator TEXT NOT NULL CHECK(length(trim(corroborating_locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    notes TEXT,
+    CHECK((first_numeric_rank IS NULL) = (last_numeric_rank IS NULL))
+);
+
 CREATE TABLE vocation_stat_modifiers (
     vocation_stat_modifier_id TEXT PRIMARY KEY,
     vocation_id TEXT NOT NULL REFERENCES vocations(vocation_id),

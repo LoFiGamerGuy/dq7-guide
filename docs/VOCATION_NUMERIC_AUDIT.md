@@ -7,6 +7,9 @@ Scope: Dragon Quest VII Reimagined; platform and patch unknown
 
 - 163 rank-cost cells across 24 vocations match between the dq_st vocation
   compendium and the individually named Dragon Quest Wiki Reimagined tables.
+- All 26 vocations now have a progression profile. Twenty-three use complete
+  ranks 2–8 point ladders; each total is the arithmetic sum of its seven
+  independently matching increments.
 - All 234 numeric stat-modifier cells are independently matched by dq_st and
   hyperWiki and normalized as percentages. Dragon Quest Wiki matches 162 of
   them and differs on 72.
@@ -26,12 +29,17 @@ Scope: Dragon Quest VII Reimagined; platform and patch unknown
 
 ## Single-source or no numeric ladder
 
-- **Partial ladder:** Wolf Boy ranks 7 and 8 match at 70 and 80 points in dq_st
-  and Dragon Quest Wiki, with a 150 cumulative total. Those two cells are
-  promoted; ranks 2–6 remain unnormalized because HyperWiki's numeric costs
-  conflict with the other sources' no-cost/story progression presentation.
-- **No positive-cost ladder:** Destiny's Dancer and Chevalier use zero/no-cost
-  personal progress tables, so no positive rank-cost ladder applies.
+- **Wolf Boy:** dq_st and Dragon Quest Wiki independently agree on
+  story-granted ranks 2–6 followed by 70 and 80 points for ranks 7–8. The
+  normalized point total is 150. hyperWiki's complete 360-point ladder remains
+  as a resolved dissenting claim rather than being discarded.
+- **Destiny's Dancer and Chevalier:** dq_st and Dragon Quest Wiki independently
+  present story-granted progression with no positive point costs. Their point
+  totals are therefore zero. hyperWiki's 385- and 350-point ladders remain as
+  resolved dissenting claims.
+- Six cell-level conflicts connect each accepted personal-vocation claim to the
+  corresponding hyperWiki claim. All remain visible with the explicit
+  two-source adjudication rationale.
 
 ## Evidence caveat
 

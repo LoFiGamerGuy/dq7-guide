@@ -26,6 +26,8 @@ is the only runtime dependency.
   two-source-agreeing rows and exposes every disputed or single-source row.
 - Monster Heart ownership is editable through a dedicated reversible ledger. An absent ledger remains unknown; route or checkpoint availability never implies ownership.
 - Unknown rates, mastery costs, and unresolved evidence remain unknown.
+- The Sources view exposes a dated five-gap audit with single-source, unsupported,
+  and corroborated-but-unresolved tiers plus the exact evidence needed to close each gap.
 - First use does not infer an existing save; enter only known state.
 
 ## Validation

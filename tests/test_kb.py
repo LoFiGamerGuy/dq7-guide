@@ -59,10 +59,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 523)
+        self.assertEqual(self.counts["sources"], 527)
         self.assertEqual(self.counts["equipment_rules"], 2)
-        self.assertEqual(self.counts["equipment_compatibility_audits"], 237)
-        self.assertEqual(self.counts["equipment_compatibility"], 1380)
+        self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
+        self.assertEqual(self.counts["equipment_compatibility"], 1794)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -135,6 +135,21 @@ class KnowledgeBaseTests(unittest.TestCase):
                          ["item_metal_king_armour", "item_party_dress"])
         self.assertTrue(all(row["source_b_id"] is None for row in singles))
         self.assertTrue(all(row["source_c_id"] is None for row in singles))
+
+        accessory_rows = self.connection.execute(
+            """SELECT a.agreement_status, COUNT(*) AS row_count
+            FROM equipment_compatibility_audits a JOIN items i USING(item_id)
+            JOIN item_categories c USING(category_id)
+            WHERE c.name='Accessories' GROUP BY a.agreement_status"""
+        ).fetchall()
+        self.assertEqual({row["agreement_status"]: row["row_count"] for row in accessory_rows},
+                         {"two_source_agreement": 69, "source_disagreement": 5})
+        self.assertEqual(self.connection.execute(
+            "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_slime_heart'"
+        ).fetchone()[0], 6)
+        self.assertIsNone(self.connection.execute(
+            "SELECT audit_id FROM equipment_compatibility_audits WHERE item_id='item_meowgiican_heart'"
+        ).fetchone())
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
@@ -151,6 +166,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["achievement_aliases"], 1)
         self.assertEqual(self.counts["achievement_requirements"], 29)
         self.assertEqual(self.counts["vocation_rank_costs"], 163)
+        self.assertEqual(self.counts["vocation_progression_profiles"], 26)
 
     def test_achievement_registry_is_complete_and_checkpoint_scoped(self):
         counts = dict(
@@ -2731,6 +2747,38 @@ class KnowledgeBaseTests(unittest.TestCase):
             for row in ladder:
                 cumulative += row[2]
                 self.assertEqual(row[3], cumulative)
+
+    def test_all_vocations_have_two_source_progression_profiles(self):
+        rows = self.connection.execute(
+            """SELECT vocation_id, progression_mode, normalized_total_points,
+                first_numeric_rank, last_numeric_rank, source_id,
+                corroborating_source_id, verification_status
+            FROM vocation_progression_profiles ORDER BY vocation_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 26)
+        self.assertTrue(all(row[5] != row[6] for row in rows))
+        self.assertTrue(all(
+            row[7] == "two_independent_current_version_progression_tables"
+            for row in rows
+        ))
+        profiles = {row[0]: tuple(row[1:5]) for row in rows}
+        self.assertEqual(profiles["vocation_wolf_boy"],
+                         ("story_then_points", 150, 7, 8))
+        self.assertEqual(profiles["vocation_destinys_dancer"],
+                         ("story_granted", 0, None, None))
+        self.assertEqual(profiles["vocation_chevalier"],
+                         ("story_granted", 0, None, None))
+        full = [row for row in rows if row[1] == "full_points"]
+        self.assertEqual(len(full), 23)
+        self.assertTrue(all(row[3:5] == (2, 8) for row in full))
+        conflicts = self.connection.execute(
+            """SELECT status, detection_method FROM conflicts
+            WHERE conflict_key LIKE '%|vocation_rank_progression|%'"""
+        ).fetchall()
+        self.assertEqual(len(conflicts), 6)
+        self.assertTrue(all(tuple(row) == (
+            "resolved", "two_source_personal_vocation_adjudication"
+        ) for row in conflicts))
 
     def test_numeric_stat_cells_separate_matches_from_conflicts(self):
         verified = self.connection.execute(

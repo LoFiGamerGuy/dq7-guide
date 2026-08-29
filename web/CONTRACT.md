@@ -118,6 +118,13 @@ Tempest Shield is intentionally absent from the conflict registry. Its Present S
 
 ## Domain registries
 
+`GET /api/evidence-gaps` returns the maintained residual research audit. Every row
+is explicitly tiered as `single_source`, `unsupported`, or
+`corroborated_but_unresolved`, carries its last-audited date and exact acceptance
+condition, and expands every registered `source_id` to current source metadata. Two
+guide texts do not resolve a row whose acceptance condition requires direct UI or
+save-tested evidence.
+
 The first-class domain routes call:
 
 - `GET /api/items`
@@ -129,7 +136,16 @@ The first-class domain routes call:
 - `GET /api/sources`
 - `GET /api/seeds`
 
-`GET /api/vocations/{id-or-name}` includes `unlock_progress`. `groups` preserves the sourced direct rule (`all_of` or `any_n_of`), required count, candidate vocation IDs/names, and provenance. `party_progress` evaluates only explicit `vocation_mastery: true` records: a satisfied threshold is `satisfied`, while absent records remain `unknown`, never unmet. `needed_if_unknowns_are_unmastered` is a conditional planning count, not an assertion about saved state. `cost_status: "unknown"` remains explicit because numeric proficiency/battle cost is not derived from the rank-skill tables.
+`GET /api/vocations/{id-or-name}` includes `rank_costs`, a two-source
+`progression` profile, numeric stat modifiers, and `unlock_progress`. `groups`
+preserves the sourced direct rule (`all_of` or `any_n_of`), required count,
+candidate vocation IDs/names, and provenance. `party_progress` evaluates only
+explicit `vocation_mastery: true` records: a satisfied threshold is `satisfied`,
+while absent records remain `unknown`, never unmet.
+`needed_if_unknowns_are_unmastered` is a conditional planning count, not an
+assertion about saved state. Progression profiles distinguish full point ladders,
+story-granted personal vocations, and Wolf Boy's story-granted early ranks plus
+the verified 70/80-point final ranks.
 
 `unlock_progress.recursive_plans` expands the complete sourced prerequisite DAG for
 each party member. Every nested group retains `all_of`/`any_n_of`, its threshold,
@@ -137,8 +153,8 @@ candidate tree, direct provenance, explicit mastery status, and character-exclus
 eligibility. `next_options` contains base vocations or higher vocations whose direct
 requirements are explicitly satisfied; it is an unranked planning menu, not a
 shortest-cost recommendation. Missing mastery remains unknown, alternative branches
-are never silently selected, and numeric battles/proficiency/mastery costs remain
-unknown.
+are never silently selected. Each next option carries its verified progression
+profile; absent player mastery remains unknown.
 - `GET /api/medals`
 - `GET /api/tablets`
 - `GET /api/achievements`
@@ -199,7 +215,7 @@ List, Vicious encounters, tablets, vocations, and medals.
 `GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
-reports a 237-row weapon/shield/head/torso audit separately. Only rows where at
+reports a 311-row weapon/shield/head/torso/accessory/Heart audit separately. Only rows where at
 least two independent publishers agree are expanded into six explicit character
 decisions. `compatibility_audits` retains every agreeing,
 disputed, and single-source row with both character lists and exact source

@@ -113,6 +113,9 @@ def _build_database(db_path: Path) -> dict[str, int]:
     equipment_matrix = load_json(
         ROOT / "data" / "seed" / "equipment_compatibility.json"
     )
+    accessory_matrix = load_json(
+        ROOT / "data" / "seed" / "accessory_compatibility.json"
+    )
 
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
@@ -330,6 +333,78 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "verification_status": "source_checked_row_level_compatibility",
                     "notes": "Source-specific character list retained for automatic conflict detection.",
                 })
+        accessory_sources = (
+            ("game8jp", "game8_jp_equipment_matrix"),
+            ("game8en", "game8_accessories"),
+            ("gamershigh", "gamers_high_accessories"),
+        )
+        for item_id, source_name, game8_jp, game8_en, gamers_high in accessory_matrix["ordinary"]:
+            lists = [[character_codes[code] for code in value]
+                     for value in (game8_jp, game8_en, gamers_high)]
+            consensus = next((row for row in lists if lists.count(row) >= 2), None)
+            status = "two_source_agreement" if consensus is not None else "source_disagreement"
+            audit_id = f"equipcompat_{item_id.removeprefix('item_')}"
+            equipment_compatibility_audits.append({
+                "audit_id": audit_id, "item_id": item_id,
+                "source_display_name": source_name, "mapping_status": "mapped",
+                "agreement_status": status, "allowed_characters": consensus,
+                "source_a_characters": lists[0], "source_b_characters": lists[1],
+                "source_c_characters": lists[2],
+                "source_a_id": accessory_sources[0][1], "source_b_id": accessory_sources[1][1],
+                "source_c_id": accessory_sources[2][1], "mapping_source_id": "game8_accessories",
+                "source_a_locator": f"Equipment list > {source_name} > compatible characters",
+                "source_b_locator": f"Accessories > {source_name} > Usable By",
+                "source_c_locator": f"Accessories > {source_name} > compatible characters",
+                "mapping_locator": f"List of All Accessories > corresponding English row for {source_name}",
+                "confidence": "verified" if consensus else "high",
+                "verification_status": ("two_independent_current_version_rows_match" if consensus else
+                                        "three_current_version_rows_disagree_not_normalized"),
+                "notes": "Game8's Japanese and English editions establish identity; compatibility requires agreement by two independent publishers.",
+            })
+            for (suffix, source_id), characters in zip(accessory_sources, lists):
+                equipment_compatibility_claims.append({
+                    "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_{suffix}",
+                    "subject_key": f"item:{item_id.removeprefix('item_')}",
+                    "predicate": "equipment_compatible_characters",
+                    "value": {"characters": characters}, "claim_kind": "fact",
+                    "scope": {"game": "DQ7 Reimagined", "platform": "unknown", "patch": "patch_unknown"},
+                    "source_id": source_id,
+                    "locator": (f"Accessories > {source_name} > Usable By" if suffix == "game8en" else
+                                f"Equipment list > {source_name} > compatible characters"),
+                    "confidence": "high", "verification_status": "source_checked_row_level_compatibility",
+                    "notes": "Source-specific character list retained for automatic conflict detection.",
+                })
+        all_characters = list(character_codes.values())
+        for item_id, source_name in accessory_matrix["hearts"]:
+            audit_id = f"equipcompat_{item_id.removeprefix('item_')}"
+            equipment_compatibility_audits.append({
+                "audit_id": audit_id, "item_id": item_id,
+                "source_display_name": source_name, "mapping_status": "mapped",
+                "agreement_status": "two_source_agreement", "allowed_characters": all_characters,
+                "source_a_characters": all_characters, "source_b_characters": all_characters,
+                "source_c_characters": None,
+                "source_a_id": "game8_jp_equipment_matrix", "source_b_id": "gamedeep_monster_hearts",
+                "source_c_id": None, "mapping_source_id": "game8_hearts_all",
+                "source_a_locator": f"Equipment list > {source_name} > compatible characters",
+                "source_b_locator": f"Monster Hearts table > {source_name} > compatible characters: all characters",
+                "source_c_locator": None,
+                "mapping_locator": f"List of All Monster Hearts > corresponding English heart row for {source_name}",
+                "confidence": "verified", "verification_status": "two_independent_current_version_rows_match",
+                "notes": "The Japanese equipment matrix and GameDeep independently list every mapped Heart as usable by all characters.",
+            })
+            for suffix, source_id, locator in (
+                ("game8jp", "game8_jp_equipment_matrix", f"Equipment list > {source_name} > compatible characters"),
+                ("gamedeep", "gamedeep_monster_hearts", f"Monster Hearts table > {source_name} > compatible characters"),
+            ):
+                equipment_compatibility_claims.append({
+                    "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_{suffix}",
+                    "subject_key": f"item:{item_id.removeprefix('item_')}",
+                    "predicate": "equipment_compatible_characters", "value": {"characters": all_characters},
+                    "claim_kind": "fact", "scope": {"game": "DQ7 Reimagined", "platform": "unknown", "patch": "patch_unknown"},
+                    "source_id": source_id, "locator": locator, "confidence": "high",
+                    "verification_status": "source_checked_row_level_compatibility",
+                    "notes": "Source-specific character list retained for independent corroboration.",
+                })
         connection.executemany(
             """INSERT INTO sources(
                 source_id, title, publisher, url, source_class, role,
@@ -494,6 +569,90 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             vocation_rank_costs,
         )
+        vocation_progression_profiles = []
+        vocation_progression_claims = []
+        vocation_progression_resolutions = []
+        personal_exceptions = {
+            "vocation_wolf_boy": {
+                "mode": "story_then_points", "total": 150, "first": 7, "last": 8,
+                "accepted": {"ranks_2_to_6": "story_granted_no_positive_cost",
+                             "rank_costs_7_to_8": [70, 80], "total_points": 150},
+                "hyper": {"rank_costs_2_to_8": [25, 35, 40, 45, 65, 70, 80],
+                          "total_points": 360},
+                "hyper_source": "hyperwiki_vocation_wolf_boy",
+            },
+            "vocation_destinys_dancer": {
+                "mode": "story_granted", "total": 0, "first": None, "last": None,
+                "accepted": {"ranks_2_to_8": "story_granted_no_positive_cost",
+                             "total_points": 0},
+                "hyper": {"rank_costs_2_to_8": [25, 35, 40, 50, 65, 75, 95],
+                          "total_points": 385},
+                "hyper_source": "hyperwiki_vocation_destinys_dancer",
+            },
+            "vocation_chevalier": {
+                "mode": "story_granted", "total": 0, "first": None, "last": None,
+                "accepted": {"ranks_2_to_8": "story_granted_no_positive_cost",
+                             "total_points": 0},
+                "hyper": {"rank_costs_2_to_8": [25, 35, 40, 50, 50, 55, 95],
+                          "total_points": 350},
+                "hyper_source": "hyperwiki_vocation_chevalier",
+            },
+        }
+        for vocation_id, page, costs, _dqst, _dqorg, _reported_total in vocation_numeric_audit["rows"]:
+            exception = personal_exceptions.get(vocation_id)
+            if exception:
+                mode, total = exception["mode"], exception["total"]
+                first, last = exception["first"], exception["last"]
+                notes = "Two matching tables treat early personal-vocation ranks as story-granted; hyperWiki's differing positive costs remain retained."
+                slug = vocation_id.removeprefix("vocation_")
+                for suffix, value, source_id, locator in (
+                    ("dqst", exception["accepted"], "dqst_vocation_tables", f"{page} > Proficiency"),
+                    ("dqorg", exception["accepted"], "dragonquestorg_vocation_pages", f"{page} > Dragon Quest VII Reimagined > Abilities"),
+                    ("hyperwiki", exception["hyper"], exception["hyper_source"], "Level-up proficiency requirements table"),
+                ):
+                    vocation_progression_claims.append({
+                        "id": f"claim_{slug}_rank_progression_{suffix}",
+                        "subject_key": f"vocation:{slug}", "predicate": "vocation_rank_progression",
+                        "value": value, "claim_kind": "fact",
+                        "scope": {"game": "DQ7 Reimagined", "platform": "unknown", "patch": "patch_unknown"},
+                        "source_id": source_id, "locator": locator, "confidence": "high",
+                        "verification_status": "source_checked_personal_vocation_progression",
+                    })
+                for accepted_suffix in ("dqst", "dqorg"):
+                    accepted_claim = f"claim_{slug}_rank_progression_{accepted_suffix}"
+                    vocation_progression_resolutions.append({
+                        "claim_a_id": accepted_claim,
+                        "claim_b_id": f"claim_{slug}_rank_progression_hyperwiki",
+                        "resolution_claim_id": accepted_claim,
+                        "rationale": "dq_st and Dragon Quest Wiki independently agree on story-granted/no-positive-cost progression; hyperWiki's numeric thresholds are retained as the dissenting claim.",
+                        "detection_method": "two_source_personal_vocation_adjudication",
+                    })
+            else:
+                mode, total, first, last = "full_points", sum(costs), 2, 8
+                notes = "All seven rank increments match independently; total is their arithmetic sum."
+            vocation_progression_profiles.append({
+                "vocation_id": vocation_id, "progression_mode": mode,
+                "normalized_total_points": total, "first_numeric_rank": first,
+                "last_numeric_rank": last, "source_id": "dqst_vocation_tables",
+                "corroborating_source_id": "dragonquestorg_vocation_pages",
+                "locator": f"{page} > Proficiency",
+                "corroborating_locator": f"{page} > Dragon Quest VII Reimagined > Abilities",
+                "confidence": "verified",
+                "verification_status": "two_independent_current_version_progression_tables",
+                "notes": notes,
+            })
+        connection.executemany(
+            """INSERT INTO vocation_progression_profiles(
+                vocation_id,progression_mode,normalized_total_points,
+                first_numeric_rank,last_numeric_rank,source_id,
+                corroborating_source_id,locator,corroborating_locator,
+                confidence,verification_status,notes
+            ) VALUES (
+                :vocation_id,:progression_mode,:normalized_total_points,
+                :first_numeric_rank,:last_numeric_rank,:source_id,
+                :corroborating_source_id,:locator,:corroborating_locator,
+                :confidence,:verification_status,:notes
+            )""", vocation_progression_profiles)
         vocation_stat_modifiers = list(seed.get("vocation_stat_modifiers", []))
         stat_labels = {
             "max_hp": "Max HP", "max_mp": "Max MP", "attack": "Atk",
@@ -1199,6 +1358,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             raise ValueError("Typed acquisition detail does not match its parent method")
 
         for claim in [*seed["claims"], *numeric_stat_claims,
+                      *vocation_progression_claims,
                       *equipment_compatibility_claims]:
             connection.execute(
                 """INSERT INTO claims(
@@ -1253,7 +1413,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
                          conflict["conflict_id"]),
                     )
         for resolution in [*seed.get("conflict_resolutions", []),
-                           *numeric_conflict_resolutions]:
+                           *numeric_conflict_resolutions,
+                           *vocation_progression_resolutions]:
             claim_a, claim_b = sorted((resolution["claim_a_id"], resolution["claim_b_id"]))
             if resolution["resolution_claim_id"] not in (claim_a, claim_b):
                 raise ValueError(
@@ -1350,7 +1511,9 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "sources", "entities", "relationships", "claims", "documents", "equipment_rules",
             "equipment_compatibility_audits", "equipment_compatibility",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
-            "vocation_progression_rules", "vocation_rank_costs", "vocation_stat_modifiers", "medal_rewards", "missables",
+            "vocation_progression_rules", "vocation_rank_costs",
+            "vocation_progression_profiles", "vocation_stat_modifiers",
+            "medal_rewards", "missables",
             "farming_spots", "seed_effects", "seed_reward_rules",
             "monster_hearts", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"

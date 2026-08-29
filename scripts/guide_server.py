@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
 DEFAULT_STATE = ROOT / "player" / "ryan-save-state.json"
 DEFAULT_STATIC = ROOT / "web"
+DEFAULT_EVIDENCE_GAPS = ROOT / "data" / "evidence_gaps.json"
 MAX_BODY_BYTES = 64 * 1024
 ALLOWED_PROGRESS_COMMANDS = {
     "checkpoint", "medal-found", "medal-undo", "medal-count", "done", "undo",
@@ -167,10 +168,21 @@ def _vocation_unlock_progress(db_path: Path, state_path: Path,
             JOIN entities e ON e.entity_id=r.prerequisite_vocation_id
             JOIN sources s USING(source_id)
             WHERE r.vocation_id=? ORDER BY r.group_id, e.name""", (vocation_id,))]
+        progression = connection.execute(
+            """SELECT progression_mode, normalized_total_points,
+                first_numeric_rank, last_numeric_rank, notes
+            FROM vocation_progression_profiles WHERE vocation_id=?""",
+            (vocation_id,),
+        ).fetchone()
+    cost_summary = ({"cost_status": "verified", "cost_profile": dict(progression),
+                     "cost_note": progression["notes"]}
+                    if progression else
+                    {"cost_status": "unknown", "cost_profile": None,
+                     "cost_note": "No verified progression profile."})
     recursive_plans = _vocation_recursive_plans(db_path, state_path, vocation_id)
     if not requirements:
         return {"status": "no_prerequisites", "groups": [], "party_progress": [],
-                "cost_status": "not_applicable", "recursive_plans": recursive_plans}
+                "recursive_plans": recursive_plans, **cost_summary}
     groups = []
     for group_id in dict.fromkeys(row["group_id"] for row in requirements):
         rows = [row for row in requirements if row["group_id"] == group_id]
@@ -206,8 +218,7 @@ def _vocation_unlock_progress(db_path: Path, state_path: Path,
     return {"status": "sourced_direct_prerequisites", "groups": groups,
         "party_progress": progress,
         "recursive_plans": recursive_plans,
-        "cost_status": "unknown",
-        "cost_note": "Numeric proficiency or battle cost is not published here; absent mastery records remain unknown.",
+        **cost_summary,
         "direct_prerequisite_ids": sorted(direct_ids)}
 
 
@@ -227,12 +238,18 @@ def _vocation_recursive_plans(db_path: Path, state_path: Path,
             FROM vocation_requirements r JOIN sources s USING(source_id)
             ORDER BY r.group_id, r.prerequisite_vocation_id"""
         ).fetchall()
+        progression_rows = connection.execute(
+            """SELECT vocation_id, progression_mode, normalized_total_points,
+                first_numeric_rank, last_numeric_rank
+            FROM vocation_progression_profiles"""
+        ).fetchall()
     vocations = {row["vocation_id"]: dict(row) for row in vocation_rows}
     if target_id not in vocations:
         raise ValueError(f"Unknown vocation: {target_id}")
     grouped: dict[str, list[dict]] = {}
     for row in requirement_rows:
         grouped.setdefault(row["vocation_id"], []).append(dict(row))
+    progression = {row["vocation_id"]: dict(row) for row in progression_rows}
     members = _state(state_path).get("party", {}).get("members", {})
     plans = []
     for character, member in members.items():
@@ -275,7 +292,8 @@ def _vocation_recursive_plans(db_path: Path, state_path: Path,
                     "name": vocation["name"], "tier": vocation["tier"],
                     "readiness": ("base_candidate" if not rows else
                                   "direct_prerequisites_explicitly_mastered"),
-                    "caveat": "Mastery cost and unrecorded game progress remain unknown."}
+                    "progression": progression.get(vocation_id),
+                    "caveat": "Unrecorded game progress remains unknown."}
             return {"vocation_id": vocation_id, "name": vocation["name"],
                 "tier": vocation["tier"], "eligible_for_character": eligible,
                 "mastery_status": mastery_status,
@@ -288,7 +306,8 @@ def _vocation_recursive_plans(db_path: Path, state_path: Path,
             "target": tree,
             "next_options": sorted(next_options.values(), key=lambda row: (row["tier"], row["name"])),
             "choice_policy": "All legal next options are shown; any_n_of branches are not ranked or silently selected.",
-            "cost_status": "unknown"})
+            "cost_status": "verified" if target_id in progression else "unknown",
+            "cost_profile": progression.get(target_id)})
     return plans
 
 
@@ -318,8 +337,9 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         "checkpoint_id": checkpoint_id,
         "gaps": [
             "Only two-source-agreeing compatibility rows are normalized; disputed and single-source rows remain read-only.",
-            "Duplicate accessory equip and effect-stacking rules are not verified.",
-            "Accessory compatibility is not covered by the audited weapon, shield, head, and torso catalogs.",
+            "Duplicate accessory/Heart equip and effect-stacking behavior has only one current-version source and is not normalized.",
+            "One-each weapon, shield, head, and torso slot counts lack direct two-source evidence.",
+            "Five accessory rows conflict and one legacy duplicate Heart identity has no deterministic source row.",
         ],
         "mechanics": [],
         "compatibility_coverage": {
@@ -386,7 +406,20 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         result["compatibility_audits"] = audit_rows
         states = {status: sum(row["agreement_status"] == status for row in audit_rows)
                   for status in ("two_source_agreement", "source_disagreement", "single_source")}
+        catalog_rows = [dict(row) for row in connection.execute(
+            """SELECT c.name AS category, COUNT(*) AS catalog_item_rows,
+                SUM(CASE WHEN a.item_id IS NOT NULL THEN 1 ELSE 0 END) AS audited_item_rows,
+                SUM(CASE WHEN a.agreement_status='two_source_agreement' THEN 1 ELSE 0 END) AS verified_item_rows,
+                SUM(CASE WHEN a.agreement_status='source_disagreement' THEN 1 ELSE 0 END) AS conflicted_item_rows,
+                SUM(CASE WHEN a.agreement_status='single_source' THEN 1 ELSE 0 END) AS single_source_item_rows,
+                SUM(CASE WHEN a.item_id IS NULL THEN 1 ELSE 0 END) AS unaudited_item_rows
+            FROM item_categories c JOIN items i USING(category_id)
+            LEFT JOIN equipment_compatibility_audits a USING(item_id)
+            WHERE c.name IN ('Weapons','Shields','Head','Armour','Accessories')
+            GROUP BY c.category_id ORDER BY c.heroic_hoarder_order"""
+        )]
         result["compatibility_coverage"] = {
+            "catalog_item_rows": sum(row["catalog_item_rows"] for row in catalog_rows),
             "audited_item_rows": len(audit_rows),
             "verified_item_rows": states["two_source_agreement"],
             "verified_item_character_pairs": states["two_source_agreement"] * 6,
@@ -395,6 +428,8 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             ).fetchone()[0],
             "conflicted_item_rows": states["source_disagreement"],
             "single_source_item_rows": states["single_source"],
+            "unaudited_item_rows": sum(row["unaudited_item_rows"] for row in catalog_rows),
+            "by_category": catalog_rows,
             "status": "partial_two_source_matrix",
         }
     if not checkpoint_id:
@@ -656,6 +691,52 @@ def _sources(db_path: Path, query: dict) -> dict:
     page["sources"] = page.pop("results")
     page["publishers"] = publishers
     return page
+
+
+def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> dict:
+    gaps = json.loads(audit_path.read_text(encoding="utf-8"))
+    source_rows = {row["source_id"]: row for row in _rows(db_path, """SELECT
+        source_id, title, publisher, url, source_class, updated_at, retrieved_at
+        FROM sources""")}
+    today = date.today()
+    for source in source_rows.values():
+        try:
+            age = (today - date.fromisoformat(source["retrieved_at"][:10])).days
+        except (TypeError, ValueError):
+            age = None
+        source["retrieval_age_days"] = age
+        source["retrieval_band"] = ("unknown" if age is None else
+                                    "over_180_days" if age > 180 else
+                                    "within_180_days")
+    for gap in gaps:
+        missing = [source_id for source_id in gap["source_ids"]
+                   if source_id not in source_rows]
+        if missing:
+            raise ValueError(f"Unknown evidence-gap source ID(s): {missing}")
+        gap["sources"] = [source_rows[source_id] for source_id in gap["source_ids"]]
+        gap["source_count"] = len(gap["sources"])
+        gap["verification_tier"] = (
+            "unsupported" if gap["status"] == "no_publishable_source" else
+            "single_source" if gap["source_count"] < 2 else
+            "corroborated_but_unresolved"
+        )
+        gap["freshness_status"] = (
+            "no_sources" if not gap["sources"] else
+            "unknown" if any(source["retrieval_band"] == "unknown"
+                             for source in gap["sources"]) else
+            "stale" if any(source["retrieval_band"] == "over_180_days"
+                           for source in gap["sources"]) else
+            "current_retrieval"
+        )
+    return {
+        "total": len(gaps),
+        "single_source": sum(gap["verification_tier"] == "single_source" for gap in gaps),
+        "unsupported": sum(gap["verification_tier"] == "unsupported" for gap in gaps),
+        "corroborated_but_unresolved": sum(
+            gap["verification_tier"] == "corroborated_but_unresolved" for gap in gaps
+        ),
+        "gaps": gaps,
+    }
 
 
 def _seeds(db_path: Path, query: dict) -> dict:
@@ -1155,6 +1236,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._json(_progress(db_path, state_path))
                 if parsed.path == "/api/equipment":
                     return self._json(_equipment_readiness(db_path, state_path))
+                if parsed.path == "/api/evidence-gaps":
+                    return self._json(_evidence_gaps(db_path))
                 if parsed.path == "/api/walkthrough":
                     query = parse_qs(parsed.query)
                     start = query.get("from", [DEFAULT_FROM])[0]

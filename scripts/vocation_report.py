@@ -50,11 +50,43 @@ def load_vocation_details(db_path: Path, query: str) -> dict:
             ORDER BY vr.group_id, e.name""",
             (vocation["vocation_id"],),
         ).fetchall()
+        rank_costs = connection.execute(
+            """SELECT rc.*, s.title AS source_title, s.url AS source_url,
+                cs.title AS corroborating_source_title,
+                cs.url AS corroborating_source_url
+            FROM vocation_rank_costs rc
+            JOIN sources s ON s.source_id=rc.source_id
+            JOIN sources cs ON cs.source_id=rc.corroborating_source_id
+            WHERE rc.vocation_id=? ORDER BY rc.proficiency_rank""",
+            (vocation["vocation_id"],),
+        ).fetchall()
+        progression = connection.execute(
+            """SELECT p.*, s.title AS source_title, s.url AS source_url,
+                cs.title AS corroborating_source_title,
+                cs.url AS corroborating_source_url
+            FROM vocation_progression_profiles p
+            JOIN sources s ON s.source_id=p.source_id
+            JOIN sources cs ON cs.source_id=p.corroborating_source_id
+            WHERE p.vocation_id=?""", (vocation["vocation_id"],),
+        ).fetchone()
+        numeric_modifiers = connection.execute(
+            """SELECT m.*, s.title AS source_title, s.url AS source_url,
+                cs.title AS corroborating_source_title,
+                cs.url AS corroborating_source_url
+            FROM vocation_stat_modifiers m
+            JOIN sources s ON s.source_id=m.source_id
+            JOIN sources cs ON cs.source_id=m.corroborating_source_id
+            WHERE m.vocation_id=? AND m.modifier_value IS NOT NULL
+            ORDER BY m.stat_key""", (vocation["vocation_id"],),
+        ).fetchall()
         return {
             "vocation": dict(vocation),
             "skills": [dict(row) for row in skills],
             "perks": [dict(row) for row in perks],
             "requirements": [dict(row) for row in requirements],
+            "rank_costs": [dict(row) for row in rank_costs],
+            "progression": dict(progression) if progression else None,
+            "numeric_stat_modifiers": [dict(row) for row in numeric_modifiers],
         }
     finally:
         connection.close()
@@ -83,6 +115,21 @@ def print_vocation_details(report: dict, include_sources: bool = False) -> None:
                 print(f"  Source: {row['source_title']} — {row['source_url']} ({row['locator']})")
     else:
         print("Skills: not normalized yet")
+    progression = report.get("progression")
+    if progression:
+        print(f"Progression: {progression['progression_mode']} — "
+              f"{progression['normalized_total_points']} total points")
+    if report.get("rank_costs"):
+        print("Rank costs: " + ", ".join(
+            f"{row['proficiency_rank']}★ {row['proficiency_points']} "
+            f"({row['cumulative_points']} cumulative)"
+            for row in report["rank_costs"]
+        ))
+    if report.get("numeric_stat_modifiers"):
+        print("Stat modifiers: " + ", ".join(
+            f"{row['stat_key']} {row['modifier_value']:+g}%"
+            for row in report["numeric_stat_modifiers"]
+        ))
     for row in report["perks"]:
         print(f"Let Loose: {row['perk_name']} — {row['perk_description']}")
         if include_sources:

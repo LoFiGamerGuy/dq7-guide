@@ -34,7 +34,7 @@ The seed includes:
 - 476 checkpoint-gated encounters covering all 333 monsters and 227 verified drops;
 - all directly published Lucky Panel standard-rank matrices normalized with exact-name gaps retained, plus independently verified free entry;
 - all sourced rank skills and Let Loose perks for all 26 vocations;
-- verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules, including Normal-setting 1/5/10 point awards and the first two-source numeric mastery ladder;
+- verified vocation proficiency earning, Seed, Moonlighting, and difficulty-setting rules, including Normal-setting 1/5/10 point awards and two-source progression profiles for all 26 vocations;
 - verified qualitative stat modifiers for all non-default vocations;
 - independently corroborated two-accessory-slot and Monster-Heart slot-use rules;
 - an empty, user-editable player save-state.
@@ -55,6 +55,9 @@ python scripts/guide_server.py --open-browser
 ```
 
 Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, read-only equipment comparison, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. Its first-use editor records an explicit checkpoint, medal count, party levels, current vocations, and mastery while preserving unknowns. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only validated changes.
+
+The Sources view also provides a dated audit of the remaining single-source,
+unsupported, and corroborated-but-unresolved evidence gaps.
 
 ```powershell
 python scripts/build_kb.py
