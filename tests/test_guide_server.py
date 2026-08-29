@@ -478,13 +478,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(len(hearts["supporting_claims"]), 2)
         self.assertIn("verified finite", hearts["acceptance_condition"])
         counters = by_id["gap_achievement_counter_semantics"]
-        self.assertEqual(counters["source_count"], 4)
-        self.assertEqual(len(counters["supporting_claims"]), 8)
+        self.assertEqual(counters["source_count"], 5)
+        self.assertEqual(len(counters["supporting_claims"]), 9)
         self.assertIn("Two independent firsthand publishers", counters["summary"])
+        self.assertIn("Detailed Records", counters["summary"])
+        self.assertIn("immediately before and after", counters["acceptance_condition"])
         self.assertIn("claim_winning_machine_excludes_quick_wins_platinum_hunter",
                       {row["claim_id"] for row in counters["supporting_claims"]})
         self.assertIn("four-member metal-family roster", counters["summary"])
-        self.assertIn("quick-win", counters["acceptance_condition"])
+        self.assertIn("quick win", counters["acceptance_condition"])
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])

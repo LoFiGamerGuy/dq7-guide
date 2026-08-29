@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 668)
+        self.assertEqual(self.counts["sources"], 669)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -990,6 +990,18 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND c.value_json='"field-attack instant kills do not count as battle wins"'"""
         ).fetchone()[0]
         self.assertEqual(exclusion_publishers, 2)
+
+        detailed = self.connection.execute(
+            """SELECT c.value_json, c.locator, s.url
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.claim_id='claim_detailed_records_counter_registry_dq_dictionary'"""
+        ).fetchone()
+        self.assertEqual(set(json.loads(detailed["value_json"])), {
+            "battle wins", "monsters defeated", "field attacks", "quick wins",
+            "metal-family monsters defeated",
+        })
+        self.assertIn("lines 117-134", detailed["locator"])
+        self.assertTrue(detailed["url"].startswith("https://"))
 
     def test_achievement_report_uses_only_explicit_player_progress(self):
         report = load_achievement_report(
