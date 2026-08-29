@@ -289,10 +289,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v10', worker)
-            self.assertIn(b'dq7-guide-data-v10', worker)
-            self.assertNotIn(b'dq7-guide-shell-v9', worker)
-            self.assertNotIn(b'dq7-guide-data-v9', worker)
+            self.assertIn(b'dq7-guide-shell-v11', worker)
+            self.assertIn(b'dq7-guide-data-v11', worker)
+            self.assertNotIn(b'dq7-guide-shell-v10', worker)
+            self.assertNotIn(b'dq7-guide-data-v10', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -531,6 +531,16 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(route["quantity"], 1)
         self.assertNotEqual(route["method"], "drop")
         self.assertIn("two_independent", route["verification_status"])
+        self.assertEqual(route["route_evidence"]["source_count"], 2)
+        self.assertEqual(route["route_evidence"]["publisher_count"], 2)
+        self.assertEqual(route["route_evidence"]["tier"], "two_source")
+        self.assertEqual(
+            {claim["publisher"] for claim in route["route_evidence"]["claims"]},
+            {"Game8 Japan", "GAME攻略BOX"},
+        )
+        self.assertTrue(all(claim["source_url"].startswith("https://")
+                            and claim["locator"]
+                            for claim in route["route_evidence"]["claims"]))
         counters = by_id["gap_achievement_counter_semantics"]
         self.assertEqual(counters["source_count"], 7)
         self.assertEqual(len(counters["supporting_claims"]), 11)
@@ -896,6 +906,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(drop["drop_rate_status"], "unknown")
         self.assertIsNone(drop["drop_rate"])
         self.assertEqual(drop["dlc_scope_status"], "unknown")
+        self.assertEqual(drop["route_evidence"]["tier"], "single_source")
         _, troll_heart = self.get_json("/api/monster-hearts/heart_troll")
         self.assertEqual(troll_heart["availability_source_title"],
                          "Troll Heart Acquisition and Performance")

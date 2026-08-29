@@ -447,6 +447,10 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("detail.availability_source_url", js)
         self.assertIn("detail.availability_locator", js)
         self.assertIn("function heartRouteEvidence(route)", js)
+        self.assertIn('route.route_evidence?.tier === "two_source"', js)
+        self.assertIn("function heartRouteEvidenceLinks(route)", js)
+        self.assertIn('claims.length >= 2 ? claims.map(sourceLink).join("")', js)
+        self.assertNotIn('status.includes("two_")', js)
         self.assertIn("Two-source route", js)
 
     def test_steam_deck_manager_full_isolated_lifecycle(self):

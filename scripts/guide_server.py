@@ -942,7 +942,8 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
 def _heart_routes(db_path: Path, heart_name: str) -> list[dict]:
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row
-        rows = [dict(row) for row in connection.execute("""SELECT a.acquisition_id, a.method,
+        rows = [dict(row) for row in connection.execute("""SELECT a.acquisition_id, i.item_id,
+            a.method,
             a.route_label, a.location_text, a.time_period,
             a.available_from_checkpoint_id, c.name AS available_checkpoint,
             a.unavailable_after_checkpoint_id, a.prerequisite_json,
@@ -954,12 +955,34 @@ def _heart_routes(db_path: Path, heart_name: str) -> list[dict]:
             LEFT JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
             WHERE lower(i.name)=lower(?)
             ORDER BY COALESCE(c.sequence_no, 999), a.acquisition_id""", (heart_name,))]
+        for row in rows:
+            subject_key = "item:" + row["item_id"].removeprefix("item_")
+            row["route_evidence_claims"] = [dict(claim) for claim in connection.execute(
+                """SELECT cl.claim_id, cl.source_id, cs.publisher,
+                    cs.title AS source_title, cs.url AS source_url, cl.locator
+                FROM claims cl JOIN sources cs USING(source_id)
+                WHERE cl.subject_key=? AND cl.predicate='acquisition_method'
+                  AND json_extract(cl.value_json, '$')=?
+                ORDER BY cs.publisher, cl.claim_id""",
+                (subject_key, row["route_label"]),
+            )]
     for row in rows:
+        row.pop("item_id")
         row["prerequisites"] = json.loads(row.pop("prerequisite_json"))
         row["drop_rate"] = None
         row["drop_rate_status"] = "unknown" if row["method"] == "drop" else "not_applicable"
         row["dlc_scope"] = None
         row["dlc_scope_status"] = "unknown"
+        evidence_claims = row.pop("route_evidence_claims")
+        source_count = len({claim["source_id"] for claim in evidence_claims})
+        publisher_count = len({claim["publisher"] for claim in evidence_claims})
+        row["route_evidence"] = {
+            "tier": "two_source" if publisher_count >= 2 else "single_source",
+            "predicate": "acquisition_method",
+            "source_count": source_count,
+            "publisher_count": publisher_count,
+            "claims": evidence_claims,
+        }
     return rows
 
 

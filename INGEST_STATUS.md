@@ -94,6 +94,15 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The Heart-route badge audit removes the last free-form verification-string
+heuristic from those cards. The API now matches each normalized route to atomic
+`acquisition_method` claims, counts distinct registered publishers, and exposes
+the supporting claim URLs and locators. Troll Heart remains the only currently
+two-publisher route badge, correctly backed by Game8 Japan and GAME攻略BOX; every
+other Heart route remains simply sourced. Repeatability stays separate and
+unknown. Phone cache v11 forces the structured evidence card onto previously
+paired devices.
+
 The evidence-independence regression uses two separately registered pages and two
 atomic claims from the same publisher and requires the phone/API tier to remain
 `single_source`. Page count and source-ID count therefore cannot accidentally
