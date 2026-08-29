@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 590)
+        self.assertEqual(self.counts["sources"], 592)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -479,6 +479,46 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["verification_status"] ==
                             "single_independent_source"
                             for row in envoy_extras))
+
+    def test_gasputin_verified_silence_response_preserves_lockout_dispute(self):
+        advice = self.connection.execute(
+            """SELECT applicability_json, confidence, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id='advice_cp018_gasputin'"""
+        ).fetchone()
+        applicability = json.loads(advice["applicability_json"])
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertIn("two_source_verified_physical_silence_response",
+                      advice["verification_status"])
+        self.assertEqual(applicability["verified_core"]["response"],
+                         "Use physical attacks during Silence")
+        self.assertEqual(set(applicability["source_mechanism_note"]),
+                         {"game8", "intoindiegames_and_korosenai"})
+        self.assertIn("source-disputed", applicability["unknowns"])
+
+        core = self.connection.execute(
+            """SELECT source_id, value_json, confidence, verification_status
+            FROM claims WHERE subject_key='boss:gasputin'
+              AND predicate='recommended_silence_response'"""
+        ).fetchall()
+        self.assertEqual(
+            {row["source_id"] for row in core},
+            {"intoindiegames_vogograd", "korosenai_gasputin"},
+        )
+        self.assertEqual(len({row["value_json"] for row in core}), 1)
+        self.assertTrue(all(row["confidence"] == "verified" and
+                            row["verification_status"] ==
+                            "two_independent_current_version_guides"
+                            for row in core))
+
+        extras = self.connection.execute(
+            """SELECT source_id, verification_status FROM claims
+            WHERE subject_key='boss:gasputin'
+              AND predicate='recommended_source_specific_extra'"""
+        ).fetchall()
+        self.assertEqual(len(extras), 4)
+        self.assertTrue(all(row["verification_status"].startswith("single_")
+                            for row in extras))
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -2914,7 +2954,8 @@ class KnowledgeBaseTests(unittest.TestCase):
             row["verification_status"] == "source_checked" or
             row["verification_status"].startswith("single_independent_source") or
             row["verification_status"].startswith("two_independent_current_version_sources") or
-            row["verification_status"].startswith("core_plan_two_source_verified")
+            row["verification_status"].startswith("core_") and
+            "two_source_verified" in row["verification_status"]
             for row in rows
         ))
 
@@ -2941,6 +2982,26 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual({row["predicate"] for row in provisional},
                          {"elemental_weakness", "dazzle_susceptibility"})
         self.assertTrue(all(row["confidence"] == "high" for row in provisional))
+        advice = self.connection.execute(
+            """SELECT advice_id, applicability_json, confidence,
+                      verification_status
+               FROM checkpoint_advice WHERE advice_id IN (
+                 'advice_cp003_golem',
+                 'advice_cp003_crabble_maeve_sequence',
+                 'advice_cp007_tinpot_dictator')"""
+        ).fetchall()
+        self.assertEqual(len(advice), 3)
+        self.assertTrue(all(row["confidence"] == "verified" for row in advice))
+        self.assertTrue(all("two_source_verified" in row["verification_status"]
+                            for row in advice))
+        notes = {row["advice_id"]:
+                 json.loads(row["applicability_json"])["evidence_note"]
+                 for row in advice}
+        self.assertIn("exact role split", notes["advice_cp003_golem"])
+        self.assertIn("Dazzle resistance",
+                      notes["advice_cp003_crabble_maeve_sequence"])
+        self.assertIn("Kiefer Let Loose",
+                      notes["advice_cp007_tinpot_dictator"])
 
     def test_glowering_inferno_phase_plan_is_corroborated_without_promoting_single_source_defend(self):
         claims = self.connection.execute(

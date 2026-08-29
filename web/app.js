@@ -210,11 +210,12 @@ function compactApplicability(value) {
 function renderPowerPlan(plan = {}) {
   const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [], bossTactics = plan.boss_tactics || [], bossPrep = plan.boss_skill_prep || [];
   const recommendationEvidence = row => {
-    const status = row.verification_status || "";
-    if (status === "componentwise_two_source_editorial_exact_trio_single_source") return "Roles 2-source · exact trio 1-source";
-    if (status.includes("two_independent_sources") && status.includes("single")) return "Core 2-source · extras 1-source";
-    if (status.includes("two_source") || status.includes("two_independent")) return "2-source";
-    return "1-source";
+    const tier = row.evidence?.tier || "audit_pending";
+    if (tier === "two_source_core_single_source_extras") return "Core 2-source · extras 1-source";
+    if (tier === "two_source") return "2-source";
+    if (tier === "single_source") return "1-source";
+    if (tier === "declared_two_source_audit_pending") return "2-source · link audit";
+    return "Evidence audit pending";
   };
   const brief = plan.play_brief || {};
   const briefRow = (label, row, fallback) => `<li><b>${escapeHtml(label)}</b><span>${escapeHtml(row ? row.subject : fallback)}</span>${row ? `<small class="evidence-strength">${escapeHtml(recommendationEvidence(row))}</small>` : ""}</li>`;

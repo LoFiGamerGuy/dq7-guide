@@ -247,6 +247,42 @@ def _advice_applicability(db_path: Path, state: dict, applicability: dict) -> di
     return {"status": status, "reason": "; ".join(reason for _, reason in checks)}
 
 
+def _advice_evidence(db_path: Path, applicability: dict,
+                     verification_status: str, primary_source_id: str) -> dict:
+    """Derive the phone badge from atomic claims, never from a status label alone."""
+    claim_ids = applicability.get("evidence_claim_ids")
+    claims = []
+    if isinstance(claim_ids, list) and claim_ids and all(
+            isinstance(claim_id, str) and claim_id for claim_id in claim_ids):
+        placeholders = ",".join("?" for _ in claim_ids)
+        with sqlite3.connect(db_path) as connection:
+            connection.row_factory = sqlite3.Row
+            claims = [dict(row) for row in connection.execute(
+                f"""SELECT c.claim_id, c.source_id, c.locator, s.title, s.url
+                FROM claims c JOIN sources s USING(source_id)
+                WHERE c.claim_id IN ({placeholders}) ORDER BY c.claim_id""",
+                tuple(claim_ids),
+            )]
+        if len(claims) != len(set(claim_ids)):
+            return {"tier": "audit_pending", "source_count": len({
+                row["source_id"] for row in claims}), "claims": claims,
+                "reason": "One or more declared evidence claims are missing."}
+        source_count = len({row["source_id"] for row in claims})
+        tier = ("two_source_core_single_source_extras"
+                if source_count >= 2 and "single_source" in verification_status
+                else "two_source" if source_count >= 2 else "single_source")
+        return {"tier": tier, "source_count": source_count, "claims": claims,
+                "reason": "Badge verified from distinct atomic claim sources."}
+    claimed_two_source = ("two_source" in verification_status or
+                          "two_independent" in verification_status)
+    return {"tier": ("declared_two_source_audit_pending"
+                     if claimed_two_source else "single_source"),
+            "source_count": 1, "claims": [],
+            "reason": ("Two-source status lacks explicit atomic claim links."
+                       if claimed_two_source else
+                       f"Only the primary advice source is linked: {primary_source_id}.")}
+
+
 def _page(rows: list[dict], query: dict, searchable: tuple[str, ...]) -> dict:
     term = query.get("q", [""])[0].strip().casefold()
     if term:
@@ -1305,6 +1341,9 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                    "url": row["source_url"], "locator": row["locator"]},
         "confidence": row["confidence"],
         "verification_status": row["verification_status"],
+        "evidence": _advice_evidence(
+            db_path, json.loads(row["applicability_json"]),
+            row["verification_status"], row["source_id"]),
         "saved_state_applicability": _advice_applicability(
             db_path, player_state, json.loads(row["applicability_json"])),
     } for row in block["advice"]]

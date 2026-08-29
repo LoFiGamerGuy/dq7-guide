@@ -977,6 +977,36 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(arena["applicability"]["arena_scope"],
                          "Standard solo Bronze, Silver, and Gold cups only")
 
+    def test_phone_evidence_badges_require_distinct_atomic_claim_sources(self):
+        db_path = Path(self.temp.name) / "advice-evidence.sqlite"
+        build_database(db_path)
+        cp026 = _checkpoint_view(
+            db_path, self.state, "cp_026_elemental_cleanup_nottagen",
+        )
+        moostapha = next(row for row in cp026["advice"]
+                         if row["id"] == "advice_cp026_moostapha")
+        self.assertEqual(moostapha["evidence"]["tier"],
+                         "two_source_core_single_source_extras")
+        self.assertEqual(moostapha["evidence"]["source_count"], 2)
+        self.assertEqual(
+            {claim["source_id"] for claim in moostapha["evidence"]["claims"]},
+            {"game8_boss_moostapha", "neoseeker_nottagen_past"},
+        )
+
+        time_being = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_021_malign_shrine",
+        )["advice"] if row["id"] == "advice_cp021_time_being")
+        self.assertEqual(time_being["evidence"]["tier"], "single_source")
+        self.assertEqual(time_being["evidence"]["source_count"], 1)
+
+        orgodemir = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_028_cathedral_of_blight",
+        )["advice"] if row["id"] == "advice_cp028_orgodemir_final")
+        self.assertEqual(orgodemir["evidence"]["tier"],
+                         "declared_two_source_audit_pending")
+        self.assertIn("lacks explicit atomic claim links",
+                      orgodemir["evidence"]["reason"])
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"

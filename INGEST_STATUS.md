@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 590 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 592 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 590
+- sources: 592
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,643
+- claims: 1,649
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 590 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 592 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -336,7 +336,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 590 source records currently have retrieval dates within 180
+- **Freshness:** all 592 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -466,6 +466,14 @@ was found for the Tribulators tutorial plan, so Auto-Battle and Medicinal Herb
 advice stays explicitly single-source. Levels, numeric HP, and weakness tables
 were not promoted.
 
+The early boss evidence-label audit aligns Golem, the Crabble-Rouser/Maeve
+sequence, and Tinpot Dictator phone rows with their existing atomic claims. Each
+core plan now displays verified confidence because two independent current-
+version publishers agree. Applicability notes preserve the narrower one-source
+boundaries: Golem's exact role/resource note, Maeve's Dazzle resistance, and the
+Tinpot Dictator Kiefer Let Loose caution. No underlying tactics or player state
+were changed.
+
 The cp028 final Orgodemir pass matches Game8's Cathedral walkthrough and
 Korosenai's direct phase guide on sustained Magic Barrier coverage and group
 attacks against the phase-four hands. The phone plan leads with those verified
@@ -488,3 +496,10 @@ multi-target healing and Sleep cleansing remain source-specific extras. Vaipur's
 party spell resistance and offensive-buffer roles are two-source verified, while
 Hymn of Air/Let Loose, double Magic Barrier, and named rotations remain attributed
 to their individual guides.
+
+The cp018 Gasputin pass matches Into Indie Games and Korosenai on the safe
+Silence response: spells become unavailable, so switch to physical attacks.
+Game8 describes a broader skill lock instead; that scope remains explicitly
+disputed, and its healing/revival-item fallback, poison cures, and pre-lock
+debuff plan remain source-specific. Korosenai's Magic Barrier/Slow rotation is
+also retained only as a single-source extra.
