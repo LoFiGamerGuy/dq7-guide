@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 698 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 701 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -16,7 +16,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
 | Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources and a continuous walkthrough directly maps its trigger to end-cp022 before cp023 | Preserve player-unknown state; never infer that the Button sidequest was completed |
-| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; every finite route has an exact container or pickup description; Stellar Fan is resolved from direct English UI while Stella Fan remains a sourced losing alias | Preserve exact route provenance and reopen only if stronger current-version evidence conflicts |
+| Heroic Hoarder items | 353/353 required identities / 748 acquisition paths across 355 shared items; all required items have routes; Fire Blade now has its finite Burnmount chest alternative to Lucky Panel | High for identities and route existence; former `container_unspecified` rows are closed, but some older generic `source_checked` finite rows remain area-only; Stellar Fan is resolved from direct English UI while Stella Fan remains a sourced losing alias | Continue exact-container refinement without treating a status-tag audit as proof that every route is individually exact |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. The stale Version 1 Rank 2 Slime Earring route is preserved only as a contradicted historical claim; one source publishes raw numeric selection cells but no probability formula | Verify numerical probabilities only if directly published |
 | Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
 | Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
@@ -26,19 +26,19 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; final Gold-pedestal unlock has two independent current-version walkthroughs | Preserve exact fragment locators and final-unlock evidence |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; Scarewell's exact fixed Past route has two independent current-version sources | Preserve the PS5-only scope on its separately sourced reset method; do not infer numeric rates |
 | Player state | Schema and empty Ryan state; optional exact item-copy totals with quantity-safe global equipment allocation | Ready, no user data; missing totals remain unknown and duplicate legality is item-specific | Fill only from Ryan's reports; never infer quantities |
-| Conflicts | Automatic exact-scope detection active; all 413 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired by four-publisher agreement; the simultaneous-balance claim remains visible as losing evidence. Troll Heart's field-sparkle route overrides a contradicted respawning-drop claim; Stellar Fan is resolved by direct English UI, and fourteen compatibility pairs use linked two-publisher consensus claims | High; every losing claim and rationale remains visible | Preserve conflict visibility and reopen only if stronger same-scope evidence disagrees |
+| Conflicts | Automatic exact-scope detection active; all 415 claim-pairs are resolved. Fire Blade's isolated Lucky Panel-exclusive qualifier now loses to two independent Burnmount chest sources while its panel route remains valid. Massively Minted, Troll Heart, Stellar Fan, and fourteen compatibility pairs retain their prior visible resolutions | High; every losing claim and rationale remains visible | Preserve conflict visibility and reopen only if stronger same-scope evidence disagrees |
 
 ## Database seed counts
 
 No grouped-container acquisition residual remains. AppMedia's item table and Altema's independently labelled Present throne-room map resolve Ruby of Protection to the bedroom left drawer and 200 gold to the adjacent right drawer.
 
-- sources: 698
+- sources: 701
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,884
+- claims: 1,893
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -56,11 +56,11 @@ No grouped-container acquisition residual remains. AppMedia's item table and Alt
 - ready-for-play checkpoint advice: 116
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
-- item aliases / acquisition paths: 5 / 747
+- item aliases / acquisition paths: 5 / 748
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 413 total / 0 unresolved claim-pairs / 0 unresolved fact scopes
+- conflicts: 415 total / 0 unresolved claim-pairs / 0 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,9 +77,9 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
 - **Achievements:** no identity or structured non-story requirement gap remains. Massively Minted's lifetime-total semantics, the exact four-member metal-family roster, and one count per successful no-battle quick-win event are independently corroborated. Three questions remain: quick-win overlap with Field Day, quick-win inclusion in Monster Masher/Metal Mangler, and save/reset scope.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
-- **Conflicts:** all 413 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired because GameWith, Game8 Japan, and Altema publish the same explicit cumulative condition and independently match Maestros del Mando; the isolated simultaneous-balance instruction remains visible as losing evidence. Troll Heart is resolved to the Aeolus Vale Past field sparkle by two dedicated current-version pages; the isolated respawning-drop claim remains visible and does not establish a farm. `Stellar Fan` is resolved by a legible launch-period English acquisition toast. Fourteen pairwise equipment conflicts use two-publisher consensus claims. Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all losing claims beside their resolutions.
+- **Conflicts:** all 415 claim-pairs are resolved. Fire Blade's Lucky Panel route remains valid, but its isolated exclusive qualifier loses to the independently published Burnmount Present Level 5 Ultimate-Key chest. Massively Minted, Troll Heart, `Stellar Fan`, fourteen compatibility pairs, Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all prior losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 698 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 701 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -93,6 +93,17 @@ queue: 1 single-source, 0 unsupported, and 5 corroborated-but-unresolved rows.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The hidden-broadness audit adds Fire Blade's finite, free Burnmount Present Level 5
+Ultimate-Key chest from AppMedia and GameWith, resolving RPG Site's isolated Lucky
+Panel-exclusive qualifier without removing its valid Version 3 Rank 4 panel route.
+It also replaces three generic Cathedral of Blight acquisitions with the exact
+current-version elemental-vault interactions: Water Amulet for Okeanos Sword in
+Whitewater Cave, Fire Amulet for Pyros Helm in Hellfire Hollow, and Earth Amulet
+for Gaia Armour in Chasm of Chaos. Game8 Japan and Neoseeker independently support
+each route. The audit also corrects the documentation boundary: absence of the
+former `container_unspecified` tag is not proof that every older generic
+`source_checked` finite route has an individually identified container.
 
 The exact Ruby drawer batch closes the final grouped-container acquisition
 residual. AppMedia's current-version Faraday Present table explicitly maps Ruby
@@ -600,7 +611,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 698 source records currently have retrieval dates within 180
+- **Freshness:** all 701 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 698)
+        self.assertEqual(self.counts["sources"], 701)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -78,7 +78,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 5)
-        self.assertEqual(self.counts["item_acquisition_paths"], 747)
+        self.assertEqual(self.counts["item_acquisition_paths"], 748)
         self.assertEqual(self.counts["monster_hearts"], 46)
 
     def test_cp017_gladiator_burst_is_conditional_and_two_source_attributed(self):
@@ -2674,7 +2674,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         self.assertIn("no `container_unspecified` acquisition row remains", status)
-        self.assertIn("No grouped-container acquisition residual remains", handoff)
+        self.assertIn("No route retains the former `container_unspecified` status tag", handoff)
+        self.assertIn("This does not mean\nevery finite route is individually exact", handoff)
         ruby_claims = self.connection.execute(
             """SELECT c.value_json, c.locator, s.publisher
             FROM claims c JOIN sources s USING(source_id)
@@ -3014,7 +3015,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("No grouped-container acquisition residual remains", handoff)
+        self.assertIn("No route retains the former `container_unspecified` status tag", handoff)
         self.assertIn("no `container_unspecified` acquisition row remains",
                       status)
         self.assertIn("browser's six-item", status)
@@ -3342,6 +3343,57 @@ class KnowledgeBaseTests(unittest.TestCase):
             )
         self.assertTrue(all(row["probability_text"] is None for row in rows))
         self.assertTrue(all(row["entry_cost"] is None for row in rows))
+
+    def test_fire_blade_exclusive_label_loses_to_exact_finite_route(self):
+        route = self.connection.execute(
+            """SELECT method, location_text, available_from_checkpoint_id,
+                prerequisite_json, source_id, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_fire_blade_burnmount_present_ultimate_key'"""
+        ).fetchone()
+        self.assertEqual(route["method"], "chest")
+        self.assertIn("Level 5", route["location_text"])
+        self.assertEqual(route["available_from_checkpoint_id"],
+                         "cp_023_fire_spirit")
+        self.assertEqual(json.loads(route["prerequisite_json"])["key"],
+                         "Ultimate Key")
+        self.assertIn("two_independent", route["verification_status"])
+        conflicts = self.connection.execute(
+            """SELECT status, rationale FROM conflicts
+            WHERE claim_a_id='claim_fire_blade_lucky_panel_exclusive_rpgsite'
+               OR claim_b_id='claim_fire_blade_lucky_panel_exclusive_rpgsite'"""
+        ).fetchall()
+        self.assertEqual(len(conflicts), 2)
+        self.assertTrue(all(row["status"] == "resolved" for row in conflicts))
+        self.assertTrue(all("Lucky Panel route remains valid" in row["rationale"]
+                            for row in conflicts))
+
+    def test_elemental_vault_rewards_have_exact_two_source_interactions(self):
+        expected = {
+            "acq_okeanos_sword_cathedral_blight": "Water Amulet",
+            "acq_pyros_helm_cathedral_blight": "Fire Amulet",
+            "acq_gaia_armour_cathedral_blight": "Earth Amulet",
+        }
+        for acquisition_id, amulet in expected.items():
+            route = self.connection.execute(
+                """SELECT route_label, location_text, prerequisite_json,
+                    verification_status FROM item_acquisition_paths
+                WHERE acquisition_id=?""", (acquisition_id,)
+            ).fetchone()
+            self.assertIn("pedestal reward", route["route_label"])
+            self.assertIn("God's Treasure Vault", route["location_text"])
+            self.assertIn(amulet,
+                          json.loads(route["prerequisite_json"])["interaction"])
+            self.assertIn("two_independent", route["verification_status"])
+            publishers = self.connection.execute(
+                """SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.subject_key=?
+                  AND c.predicate='precise_acquisition_interaction'""",
+                (f"acquisition:{acquisition_id}",),
+            ).fetchall()
+            self.assertEqual({row["publisher"] for row in publishers},
+                             {"Game8 Japan", "Neoseeker"})
 
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
