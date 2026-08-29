@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 553 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 558 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 553
+- sources: 558
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,488
+- claims: 1,502
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 553 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 558 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -139,6 +139,21 @@ The first browser-interface batch adds a responsive dependency-free dashboard an
 The monster expansion now has 476 checkpoint-gated encounter routes covering all 333 monsters and 227 verified drop rows across 196 monsters. Independent current-version sources corroborate exact routes for Cannibox, Urnexpected, Vicious Fandangow, Vicious Kisser, Vicious Scrapper, Damned Well, Mothertoad, Dark Gryphon, Miry Hand, and Miry Mudraker. RPG Site's exact Silver/Gold Arena rosters for ten members are independently matched by a current-version Steam 100% achievement walkthrough. Only Scarewell's precise Neoseeker route remains explicitly `single_independent_source` and is not promoted to verified.
 
 The current boss-advice audit adds three directly sourced early-game tactics: the scripted-loss and item-only recovery rules for Rashers and Stripes, multi-target damage plus Fizzle control for the Mild Bunch, and Leg Sweep/Dazzle/support alternatives for the Mighty Pip. The Mighty Pip row explicitly preserves the source's incompatible Ruff role alternatives instead of presenting both vocations as one simultaneous build.
+
+The Alltrades boss corroboration pass independently verifies Cardinal Sin's
+Let Loose/Burst survival response between Game8 Japan and Altema: defend to reduce
+both incoming damage and the boss's damage-based healing. Sap and Dazzle remain
+clearly labeled single-publisher control options. Game8 and Altema also independently
+confirm that the first Rashers and Stripes encounter is an unwinnable story loss and
+that the rematch requires carried recovery items while spells and skills are sealed.
+The English Game8 target order remains explicitly single-source rather than being
+promoted with those verified core facts.
+
+The Alltrades party pass independently matches each recommended early role: Hero
+Warrior and Maribel Mage through GamerBlurb, and Ruff Priest through GamerHour.
+These are attributed editorial recommendations. Only Game8 publishes the exact
+three-person Arena composition, so the phone guide labels the individual roles as
+two-source while retaining the complete trio as single-source.
 
 The final combat audit adds three directly sourced late tactics: summon priority and poison preparation for the Slamphibians, the forced Sir Mervyn solo constraint for Smothers, and Water-Spirit-first priority plus Dieamend/Magic Barrier preparation for the Four Spirits. Later batches complete equipment compatibility and slot counts and establish Moonlighting's any-two-distinct-available-vocations rule. Residual evidence blocks include numeric farm/drop/encounter rates and a proven repeatable Heart route. No suggested level or inferred rate is normalized.
 
@@ -308,7 +323,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 553 source records currently have retrieval dates within 180
+- **Freshness:** all 558 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

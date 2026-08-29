@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 553)
+        self.assertEqual(self.counts["sources"], 558)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3151,6 +3151,76 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual({row[1] for row in structured}, {"gamewith_mighty_pip"})
         self.assertEqual({row[2] for row in structured}, {2})
         self.assertTrue(all(not row[3].startswith("two_") for row in structured))
+
+    def test_alltrades_arena_vocation_components_are_independently_attributed(self):
+        expected = {
+            ("character:hero", "Warrior"),
+            ("character:maribel", "Mage"),
+            ("character:ruff", "Priest"),
+        }
+        for subject_key, vocation in expected:
+            rows = self.connection.execute(
+                """SELECT value_json, source_id, claim_kind, confidence,
+                    verification_status
+                FROM claims
+                WHERE subject_key=? AND predicate='recommended_early_vocation'
+                  AND json_extract(value_json, '$')=?
+                ORDER BY source_id""",
+                (subject_key, vocation),
+            ).fetchall()
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(len({row[1] for row in rows}), 2)
+            self.assertTrue(all(row[2] == "recommendation" for row in rows))
+            self.assertTrue(all(row[3] == "verified" for row in rows))
+            self.assertTrue(all("editorial" in row[4] for row in rows))
+
+        advice = self.connection.execute(
+            """SELECT applicability_json, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id='advice_cp009_vocations_arena_power'"""
+        ).fetchone()
+        applicability = json.loads(advice[0])
+        self.assertEqual(set(applicability["component_corroboration"]), {
+            "Hero Warrior", "Maribel Mage", "Ruff Priest",
+        })
+        self.assertEqual(
+            advice[1],
+            "componentwise_two_source_editorial_exact_trio_single_source",
+        )
+        self.assertIn("only Game8", applicability["evidence_note"])
+
+    def test_alltrades_boss_core_tactics_preserve_source_strength(self):
+        verified = {
+            "recommended_burst_response": 2,
+            "first_encounter_outcome": 2,
+            "rematch_recovery_method": 2,
+        }
+        for predicate, expected_count in verified.items():
+            rows = self.connection.execute(
+                """SELECT source_id, confidence, verification_status
+                FROM claims WHERE predicate=? ORDER BY source_id""",
+                (predicate,),
+            ).fetchall()
+            self.assertEqual(len(rows), expected_count)
+            self.assertEqual(len({row[0] for row in rows}), expected_count)
+            self.assertTrue(all(row[1] == "verified" for row in rows))
+            self.assertTrue(
+                all(row[2] == "two_independent_current_version_sources" for row in rows)
+            )
+
+        single = self.connection.execute(
+            """SELECT confidence, verification_status FROM claims
+            WHERE subject_key='boss:rashers_and_stripes'
+              AND predicate='recommended_target_priority'"""
+        ).fetchone()
+        self.assertEqual(tuple(single), ("high", "single_independent_source"))
+
+        advice = self.connection.execute(
+            """SELECT advice_text, verification_status FROM checkpoint_advice
+            WHERE advice_id='advice_cp009_rashers_stripes'"""
+        ).fetchone()
+        self.assertIn("single-source target order", advice[0])
+        self.assertIn("two_independent_sources", advice[1])
 
     def test_early_recommended_gear_stats_have_two_source_agreement(self):
         expected = {
