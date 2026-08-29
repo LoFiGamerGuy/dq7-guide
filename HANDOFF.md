@@ -40,6 +40,12 @@ checkpoint medal availability assumptions, universal wearer rankings, and Heart
 repeatability remain explicitly unverified. Highendreigh Whistle use and the
 Neoseeker author's 4F observation are displayed only as source-specific extras.
 
+Late fixed-gear cards now independently corroborate Malign Shrine's Sunderbolt
+Blade and Dark Robe, Estard Castle's Ultimate-Key gear trio, and Burnmount's
+Magma Staff. Keep the Estard teleportal deadline and broader cleanup single-source;
+keep Sacred Armour visibly separate from the verified Magma Staff core. These
+route checks do not establish permanent missability or best-wearer rankings.
+
 Lucky Panel entry is independently verified as free. Its single-source numeric selection cells remain raw weights, not probabilities, because no denominator or draw algorithm is published.
 
 The final three unpublished purchase prices are now typed shop inventory:

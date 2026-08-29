@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 628)
+        self.assertEqual(self.counts["sources"], 631)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2389,6 +2389,39 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Ruff's Whistle", highendreigh['single_source_extras']['game8'])
         self.assertNotIn('repeatable',
                          by_id['advice_cp018_cyclops_heart'])
+
+    def test_late_fixed_gear_cards_preserve_verified_subsets(self):
+        advice_ids = {
+            'advice_cp021_malign_fixed_gear',
+            'advice_cp022_ultimate_key_gear',
+            'advice_cp023_fire_route_gear',
+        }
+        rows = self.connection.execute(
+            f"""SELECT advice_id, applicability_json, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id IN ({','.join('?' for _ in advice_ids)})""",
+            tuple(sorted(advice_ids)),
+        ).fetchall()
+        self.assertEqual({row['advice_id'] for row in rows}, advice_ids)
+        by_id = {row['advice_id']: (json.loads(row['applicability_json']),
+                                    row['verification_status'])
+                 for row in rows}
+        for advice_id, (applicability, status) in by_id.items():
+            claim_ids = applicability['evidence_claim_ids']
+            publishers = self.connection.execute(
+                f"""SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.claim_id IN ({','.join('?' for _ in claim_ids)})""",
+                tuple(claim_ids),
+            ).fetchall()
+            self.assertGreaterEqual(len(publishers), 2, advice_id)
+            self.assertIn('two_source_verified', status)
+        self.assertIn('teleportal', by_id[
+            'advice_cp022_ultimate_key_gear'][0]['single_source_extra'][
+                'rpgsite'].lower())
+        fire = by_id['advice_cp023_fire_route_gear'][0]
+        self.assertEqual(set(fire['verified_core']), {'Magma Staff'})
+        self.assertEqual(set(fire['single_source_extra']), {'Sacred Armour'})
 
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {
