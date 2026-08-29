@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 640)
+        self.assertEqual(self.counts["sources"], 643)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -69,13 +69,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
-        self.assertEqual(self.counts["checkpoint_advice"], 112)
+        self.assertEqual(self.counts["checkpoint_advice"], 113)
         self.assertEqual(self.counts["boss_skill_recommendations"], 9)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 5)
-        self.assertEqual(self.counts["item_acquisition_paths"], 748)
+        self.assertEqual(self.counts["item_acquisition_paths"], 747)
         self.assertEqual(self.counts["monster_hearts"], 46)
 
     def test_cp017_gladiator_burst_is_conditional_and_two_source_attributed(self):
@@ -873,7 +873,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["shop_inventory"], 118)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
         self.assertEqual(self.counts["lucky_panel_rules"], 1)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 303)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 302)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -1249,7 +1249,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 strategy_source_id, strategy_locator
             FROM farming_spots ORDER BY farming_id"""
         ).fetchall()
-        self.assertEqual(len(rows), 10)
+        self.assertEqual(len(rows), 11)
         self.assertTrue(all(row[1] for row in rows))
         self.assertTrue(all(row[4] and row[5] for row in rows))
         self.assertTrue(all(not row[3] or (row[6] and row[7]) for row in rows))
@@ -1257,6 +1257,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             row[2] is None or "no numeric encounter rate published" in row[2]
             or "no proficiency-per-time rate is published" in row[2]
             or "no gold-per-time or prize-value rate is published" in row[2]
+            or "no cross-platform reset guarantee" in row[2]
             for row in rows
         ))
         gold = next(row for row in rows
@@ -1725,7 +1726,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 'monster_165','monster_209','monster_211','monster_251',
                 'monster_275','monster_276')"""
         ).fetchone()
-        self.assertEqual(tuple(newly_routed), (21, 10, 1))
+        self.assertEqual(tuple(newly_routed), (21, 11, 0))
         corroborating_claims = self.connection.execute(
             """SELECT COUNT(*) FROM claims
             WHERE claim_id LIKE 'claim_enc_%'
@@ -1760,6 +1761,43 @@ class KnowledgeBaseTests(unittest.TestCase):
             ).fetchone()[0],
             1,
         )
+
+    def test_scarewell_fixed_route_and_ps5_reset_are_explicitly_scoped(self):
+        encounter = self.connection.execute(
+            """SELECT location_text, confidence, verification_status
+            FROM monster_encounters
+            WHERE encounter_id='enc_scarewell_hardlypool_region_past'"""
+        ).fetchone()
+        self.assertEqual(encounter["location_text"],
+                         "Hardlypool Region, a little southwest of Spliton-on-Sea")
+        self.assertEqual(encounter["confidence"], "verified")
+        self.assertIn("cross_source_checked", encounter["verification_status"])
+        route_claims = self.connection.execute(
+            """SELECT DISTINCT s.publisher FROM claims c
+            JOIN sources s USING(source_id)
+            WHERE c.subject_key='monster:scarewell'
+              AND c.predicate='fixed_encounter_route'"""
+        ).fetchall()
+        self.assertEqual(len(route_claims), 2)
+        reset = self.connection.execute(
+            """SELECT scope_json, verification_status FROM claims
+            WHERE claim_id='claim_scarewell_town_reset_reddit_ps5'"""
+        ).fetchone()
+        self.assertEqual(json.loads(reset["scope_json"])["platform"], "PS5")
+        self.assertIn("numeric_yield_excluded", reset["verification_status"])
+        farm = self.connection.execute(
+            """SELECT encounter_rate_text, verification_status FROM farming_spots
+            WHERE farming_id='farm_strength_seed_scarewell'"""
+        ).fetchone()
+        self.assertIn("no cross-platform", farm["encounter_rate_text"])
+        self.assertIn("numeric_rate_excluded", farm["verification_status"])
+        advice = self.connection.execute(
+            """SELECT applicability_json FROM checkpoint_advice
+            WHERE advice_id='advice_cp013_scarewell_strength_seed'"""
+        ).fetchone()
+        applicability = json.loads(advice["applicability_json"])
+        self.assertEqual(applicability["rate"], "unknown")
+        self.assertEqual(len(applicability["evidence_claim_ids"]), 3)
 
     def test_cp015_through_cp019_monsters_keep_later_routes_later_gated(self):
         checkpoints = dict(
@@ -2831,7 +2869,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE lp.pool_id = 'lp_pilgrims_rest_v1_rank_2_standard'
             ORDER BY i.name"""
         ).fetchall()
-        self.assertEqual(len(rows), 32)
+        self.assertEqual(len(rows), 31)
         by_name = {row["name"]: row for row in rows}
         self.assertIn("Iron Claws", by_name)
         self.assertIn("Lucky Panel exclusive", by_name["Cottontail Costume"]["locator"])
@@ -2840,7 +2878,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             "Lucky Panel exclusive",
         )
         self.assertIn("Scale Armour", by_name)
-        self.assertIn("Slime Earring", by_name)
+        self.assertNotIn("Slime Earring", by_name)
         self.assertTrue(all(row["time_period"] == "Past" for row in rows))
         self.assertTrue(all(
             row["available_from_checkpoint_id"] == "cp_009_alltrades"
@@ -2849,6 +2887,29 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["unavailable_after_checkpoint_id"] is None for row in rows))
         self.assertTrue(all(row["probability_text"] is None for row in rows))
         self.assertTrue(all(row["entry_cost"] is None for row in rows))
+
+        active_ranks = self.connection.execute(
+            """SELECT json_extract(a.prerequisite_json, '$.rank') AS rank
+            FROM item_acquisition_paths a
+            WHERE a.item_id='item_slime_earring'
+              AND a.method='lucky_panel' AND a.time_period='Past'
+              AND json_extract(a.prerequisite_json, '$.panel_version')=1"""
+        ).fetchall()
+        self.assertEqual([row["rank"] for row in active_ranks], [1])
+        historical = self.connection.execute(
+            """SELECT confidence, verification_status FROM claims
+            WHERE claim_id='claim_slime_earring_v1_rank2_legacy_seed'"""
+        ).fetchone()
+        self.assertEqual(historical["confidence"], "low")
+        self.assertIn("contradicted", historical["verification_status"])
+        resolutions = self.connection.execute(
+            """SELECT status, resolution_claim_id, rationale FROM conflicts
+            WHERE conflict_key LIKE
+              'item:slime_earring|lucky_panel_pool_rank|%'"""
+        ).fetchall()
+        self.assertEqual(len(resolutions), 3)
+        self.assertTrue(all(row["status"] == "resolved" for row in resolutions))
+        self.assertTrue(all("Rank 1" in row["rationale"] for row in resolutions))
 
     def test_lucky_panel_version_1_rank_3_preserves_names_and_timing(self):
         rows = self.connection.execute(

@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 640 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 643 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -16,15 +16,15 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
 | Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources and a continuous walkthrough directly maps its trigger to end-cp022 before cp023 | Preserve player-unknown state; never infer that the Button sidequest was completed |
-| Heroic Hoarder items | 353/353 required identities / 748 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
-| Lucky Panel | 14 normalized pools / 303 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify the legacy row and numerical probabilities only if directly published |
+| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
+| Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. The stale Version 1 Rank 2 Slime Earring route is preserved only as a contradicted historical claim; one source publishes raw numeric selection cells but no probability formula | Verify numerical probabilities only if directly published |
 | Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
-| Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
+| Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell remains explicitly single-independent-source | Seek independent confirmation for Scarewell's exact fixed route |
+| Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; Scarewell's exact fixed Past route has two independent current-version sources | Preserve the PS5-only scope on its separately sourced reset method; do not infer numeric rates |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 1 unresolved claim-pair/fact remains: Stella/Stellar Fan. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; every losing compatibility, Pirate's Hat, Fishnet Stockings, and Marshal Lourgh claim remains visible | Resolve the remaining fan name with legible current-version English UI evidence |
 
@@ -32,16 +32,16 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 640
+- sources: 643
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,788
+- claims: 1,795
 - medal rewards: 19
 - missables: 7
-- farming spots: 10
+- farming spots: 11
 - seed effects / reward rules: 18 / 1
 - monster hearts: 46
 - checkpoints: 33
@@ -53,14 +53,14 @@ Expected after `python scripts/build_kb.py`:
 - monsters: 333
 - monster encounters / drops: 476 / 227
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 112
+- ready-for-play checkpoint advice: 113
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
-- item aliases / acquisition paths: 5 / 748
+- item aliases / acquisition paths: 5 / 747
 - shops / inventory rows: 47 / 118
-- Lucky Panel pools / reward rows: 14 / 303
+- Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 406 total / 1 unresolved claim-pair / 1 unresolved fact scope
+- conflicts: 409 total / 1 unresolved claim-pair / 1 unresolved fact scope
 
 Treat these as build assertions, not completion percentages.
 
@@ -71,25 +71,25 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
 - **Items:** 6 finite acquisition rows retain an unknown exact container member of a published pair/group. These are route refinements, not Heroic Hoarder route gaps. Every grouped route now has an independent current-version walkthrough claim confirming the room, container group, and reward set without inventing a left/right member. Present Poolside Cave Fur Cape is resolved to the lone chest in the B2 section-1 northeast terminal alcove; Coagulant is corrected from Hubble Castle to the lower-roof barrel of Hubble Past's western Inquisitory. The three formerly untyped shop-like rows have direct prices and typed shop inventory records.
-- **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. Entry is independently verified as free. hyperWiki publishes source-native numeric selection cells (including 100, 50, 1, and 0), but no denominator or selection algorithm; they are retained as single-source weights and never displayed as item probabilities. All 303 normalized reward probabilities remain unknown.
+- **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The stale Version 1 Rank 2 Slime Earring route is removed from active normalization and preserved as a contradicted historical claim: RPG Site's current table, AppMedia, and GameWith independently place it in Version 1 Rank 1. Because RPG Site warns its tables may be non-exhaustive, the resolution does not assert Rank 2 impossibility. Entry is independently verified as free. hyperWiki's numeric selection cells remain weights, not probabilities. All 302 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** one automatically detected claim-pair remains unresolved: the `Stella Fan` / `Stellar Fan` display name. Fourteen pairwise conflicts across ten equipment identities are now explicitly resolved to the already-normalized two-independent-publisher consensus claims. When the supported complete character list is neither losing pair value, the conflict links and displays that third claim separately; both original claims remain auditable. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 640 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 643 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
-2. Verify the six individual finite-container members and the legacy Version 1 Rank 2 Slime Earring row without inferring positions or pool membership.
-3. Seek explicit rematch/respawn evidence for repeatable Hearts and independent exact-route evidence for Scarewell.
+2. Verify the six individual finite-container members without inferring positions within a published container group.
+3. Seek explicit rematch/respawn evidence for repeatable Hearts.
 4. Verify the Super Seed reward pool, final tablet unlock behavior, remaining achievement counters, and duplicate/stacking mechanics from direct evidence.
 5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
-The phone Sources view now mirrors this complete twelve-item evidence-blocked
-queue: 3 single-source, 2 unsupported, and 7 corroborated-but-unresolved rows.
+The phone Sources view now mirrors this complete ten-item evidence-blocked
+queue: 3 single-source, 2 unsupported, and 5 corroborated-but-unresolved rows.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
@@ -243,7 +243,7 @@ The late/postgame boss-sequence audit adds six direct current-version tactics: o
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The monster expansion now has 476 checkpoint-gated encounter routes covering all 333 monsters and 227 verified drop rows across 196 monsters. Independent current-version sources corroborate exact routes for Cannibox, Urnexpected, Vicious Fandangow, Vicious Kisser, Vicious Scrapper, Damned Well, Mothertoad, Dark Gryphon, Miry Hand, and Miry Mudraker. RPG Site's exact Silver/Gold Arena rosters for ten members are independently matched by a current-version Steam 100% achievement walkthrough. Only Scarewell's precise Neoseeker route remains explicitly `single_independent_source` and is not promoted to verified.
+The monster expansion now has 476 checkpoint-gated encounter routes covering all 333 monsters and 227 verified drop rows across 196 monsters. Independent current-version sources corroborate exact routes for Cannibox, Urnexpected, Vicious Fandangow, Vicious Kisser, Vicious Scrapper, Damned Well, Mothertoad, Dark Gryphon, Miry Hand, Miry Mudraker, and Scarewell. RPG Site's exact Silver/Gold Arena rosters for ten members are independently matched by a current-version Steam 100% achievement walkthrough. Scarewell's separate enter-town reset report remains PS5-scoped and single-firsthand evidence.
 
 The current boss-advice audit adds three directly sourced early-game tactics: the scripted-loss and item-only recovery rules for Rashers and Stripes, multi-target damage plus Fizzle control for the Mild Bunch, and Leg Sweep/Dazzle/support alternatives for the Mighty Pip. The Mighty Pip row explicitly preserves the source's incompatible Ruff role alternatives instead of presenting both vocations as one simultaneous build.
 
@@ -294,11 +294,11 @@ The Version 2 Rank 3 batch links 30 of 33 directly published names, adding 20 at
 
 The Version 1 Rank 1 batch links 22 of the direct source's 23 published names, adding 11 atomic Past routes beyond the 11 already normalized. Wayfarer's Clothes retains explicit typographic-apostrophe resolution. Plural `Slime Earrings` remains an exact-name gap rather than being silently merged with singular `Slime Earring`. Pool timing is inherited from the Version 1 Past pool at `cp_009_alltrades`; no unsupported cutoff was added. The source itself warns that its reward lists may not be exhaustive, and costs and probabilities remain unknown.
 
-The Version 1 Rank 2 batch links 30 of 31 directly published names, adding 17 atomic Past routes beyond 14 legacy rows (13 matching current published names plus one legacy singular `Slime Earring` row absent from the current table). Cottontail Costume preserves the source's `Lucky Panel exclusive` qualifier, while Dancer's Costume, Scholar's Specs, and Wizard's Staff retain explicit typographic-apostrophe resolution. The source spelling `Scake Armour` remains an unresolved exact-name gap rather than being silently mapped to `Scale Armour`; the legacy Slime Earring row is retained rather than silently discarded. Pool timing is inherited from `cp_009_alltrades`; costs and probabilities remain unknown, and the source describes its lists as potentially non-exhaustive.
+The Version 1 Rank 2 batch originally linked 30 of 31 directly published names, including a legacy singular `Slime Earring` row absent from the current table. A later adjudication removed that stale route from active normalization and retained it as a historical contradicted claim after three current tables independently placed Slime Earrings in Rank 1. Cottontail Costume preserves the source's `Lucky Panel exclusive` qualifier, while Dancer's Costume, Scholar's Specs, and Wizard's Staff retain explicit typographic-apostrophe resolution. Pool timing is inherited from `cp_009_alltrades`; costs and probabilities remain unknown, and the source describes its lists as potentially non-exhaustive.
 
 The Version 1 Rank 3 batch completes normalization of every directly published standard-rank table. It links 17 of 19 published names, adding 11 atomic Past routes beyond six legacy rows and refining those legacy locators to the exact table entries. `Stellar Fan` uses the existing adjudicated Stella/Stellar alias without erasing the visible spelling conflict. `Knuckledusters` and singular `Magic Vestment` remain exact-name gaps; the latter was not silently merged with canonical `Magic Vetment`. Pool timing is inherited from `cp_009_alltrades`; costs and probabilities remain unknown, and the source describes its lists as potentially non-exhaustive.
 
-The exact-name audit adds three provenance-backed aliases from dedicated current-version item pages: `Slime Earrings` to the retained `Slime Earring` identity, `Magic Vestment` to `Magic Vetment`, and `Faerie Foil` to `Fairie Foil`. Those aliases resolve six published matrix rows without changing canonical IDs. Other typos, plurals, punctuation differences, and reordered names remain unresolved because no dedicated page or in-game naming evidence directly proves equivalence. The Version 1 Rank 2 legacy singular Slime Earring row is still retained: the dedicated page proves the identity and generic Lucky Panel availability, but not that absent Rank 2 listing.
+The exact-name audit adds three provenance-backed aliases from dedicated current-version item pages: `Slime Earrings` to the retained `Slime Earring` identity, `Magic Vestment` to `Magic Vetment`, and `Faerie Foil` to `Fairie Foil`. Those aliases resolve six published matrix rows without changing canonical IDs. Other typos, plurals, punctuation differences, and reordered names remain unresolved because no dedicated page or in-game naming evidence directly proves equivalence. The former Version 1 Rank 2 Slime Earring route is now historical-only; current Rank 1 placement is normalized without turning non-exhaustive Rank 2 tables into proof of absence.
 
 The alternate-route batch adds three direct current-version finite, free treasures for items otherwise represented only by Lucky Panel: Hairband in L'Arca Past and Rabbit Ears in L'Arca Present at `cp_005_larca`, plus Coagulant in Hubble Castle Past at `cp_016_hubble`. The dedicated pages publish the area and period but not the exact container, which remains explicit in verification status rather than inferred.
 
@@ -434,7 +434,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 640 source records currently have retrieval dates within 180
+- **Freshness:** all 643 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -491,16 +491,16 @@ The Arena roster corroboration batch matches all ten Silver and Gold Cup members
 between RPG Site and Nerthing's independent current-version Steam achievement
 walkthrough. Each corroborating roster claim has an exact cup/challenge/member
 locator and the existing cp020 gate is unchanged. These ten routes are now
-verified; Scarewell remains the only single-independent-source encounter route.
+verified; a later batch also corroborates Scarewell's fixed route.
 
 The final-boss summon audit resolves Miry Mudraker's exact mechanism. Game no
 Monochrome's current-version Orgodemir strategy states that the flesh-flinging
 action summons one Miry Hand and one Miry Mudraker, independently matching the
 Dragon Quest Wiki's Cathedral of Blight boss listing. The route is now tied to
 the cp028 final Orgodemir battle; no unsupported turn or phase number is added.
-Searches found only area-level or generic farming corroboration for Scarewell,
-not a second source matching Neoseeker's exact fixed position west of Hardlypool,
-so that last route remains explicitly single-source.
+A later firsthand PS5 report independently matches Neoseeker's fixed Scarewell
+route southwest of Spliton-on-Sea and adds a narrowly scoped enter-town reset
+method; its numeric results are deliberately excluded.
 
 The early Hackrobat/Slaughtomaton pass adds two direct current-version NoobFeed
 full pages as independent corroboration for the existing Game8 plans. Hackrobat's

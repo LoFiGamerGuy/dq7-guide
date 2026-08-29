@@ -21,5 +21,6 @@
   "numeric_stat_modifier_deftness": {"comparison": "single"},
   "numeric_stat_modifier_charm": {"comparison": "single"},
   "equipment_compatible_characters": {"comparison": "single"},
-  "vocation_rank_progression": {"comparison": "single"}
+  "vocation_rank_progression": {"comparison": "single"},
+  "lucky_panel_pool_rank": {"comparison": "single"}
 }

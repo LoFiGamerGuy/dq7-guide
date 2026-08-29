@@ -369,10 +369,10 @@ class GuideServerTests(unittest.TestCase):
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
-        self.assertEqual(audit["total"], 12)
+        self.assertEqual(audit["total"], 10)
         self.assertEqual(audit["single_source"], 3)
         self.assertEqual(audit["unsupported"], 2)
-        self.assertEqual(audit["corroborated_but_unresolved"], 7)
+        self.assertEqual(audit["corroborated_but_unresolved"], 5)
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
@@ -382,6 +382,8 @@ class GuideServerTests(unittest.TestCase):
             for key in ("within_180_days", "over_180_days", "unknown")
         ))
         by_id = {row["gap_id"]: row for row in audit["gaps"]}
+        self.assertNotIn("gap_legacy_slime_earring_rank2", by_id)
+        self.assertNotIn("gap_scarewell_exact_route", by_id)
         self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
         self.assertNotIn("gap_shell_shield_identity", by_id)
         stellar = by_id["gap_stellar_fan_ui_name"]
@@ -1293,6 +1295,20 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(gold_farm["rate_status"], "numeric_unpublished")
         self.assertEqual(gold_farm["source_id"], "rpgsite_lucky_panel")
         self.assertEqual(gold_farm["strategy_source_id"], "game8_gold_farming")
+        _, scarewell_farms = self.get_json("/api/farms?q=scarewell")
+        self.assertEqual(scarewell_farms["total"], 1)
+        scarewell_farm = scarewell_farms["farms"][0]
+        self.assertEqual(scarewell_farm["farming_id"],
+                         "farm_strength_seed_scarewell")
+        self.assertEqual(scarewell_farm["available_from_checkpoint_id"],
+                         "cp_013_flying_carpet")
+        self.assertIn("southwest of Spliton-on-Sea",
+                      scarewell_farm["location"])
+        self.assertIn("PS5", scarewell_farm["encounter_rate_text"])
+        self.assertIn("no cross-platform reset guarantee",
+                      scarewell_farm["encounter_rate_text"])
+        self.assertEqual(scarewell_farm["rate_status"],
+                         "numeric_unpublished")
         self.assertFalse(farm["provenance_gap"])
         self.assertTrue(farm["available_from_checkpoint_id"])
         self.assertTrue(farm["encounter_rate_text"])
