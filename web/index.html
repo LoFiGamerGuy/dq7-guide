@@ -84,7 +84,7 @@
           <details class="panel secondary-ledger"><summary><strong>Missables</strong><span id="checkpointMissableCount" class="muted"></span></summary><div id="checkpointMissables"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Mini Medals</strong></summary><div id="medals"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Monsters</strong></summary><div id="monsters"></div></details>
-          <article id="advancePanel" class="panel"><div class="panel-heading"><h3>Safe to advance when</h3><span id="advanceStatus" class="tag"></span></div><p id="safeCondition"></p><p id="advanceReason" class="muted"></p><button id="advanceCheckpointButton" class="secondary" type="button" disabled>Confirm and set next current</button></article>
+          <article id="advancePanel" class="panel"><div class="panel-heading"><h3>Safe to advance when</h3><span id="advanceStatus" class="tag" role="status" aria-live="polite"></span></div><p id="safeCondition"></p><p id="advanceReason" class="muted"></p><button id="advanceCheckpointButton" class="secondary" type="button" aria-describedby="safeCondition advanceReason" disabled>Confirm and set next current</button></article>
         </div>
       </section>
 

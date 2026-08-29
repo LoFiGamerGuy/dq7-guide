@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 536)
+        self.assertEqual(self.counts["sources"], 537)
         self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -975,13 +975,13 @@ class KnowledgeBaseTests(unittest.TestCase):
                 'monster_165','monster_209','monster_211','monster_251',
                 'monster_275','monster_276')"""
         ).fetchone()
-        self.assertEqual(tuple(newly_routed), (21, 9, 2))
+        self.assertEqual(tuple(newly_routed), (21, 10, 1))
         corroborating_claims = self.connection.execute(
             """SELECT COUNT(*) FROM claims
             WHERE claim_id LIKE 'claim_enc_%'
               AND verification_status LIKE 'cross_source_checked%'"""
         ).fetchone()[0]
-        self.assertEqual(corroborating_claims, 19)
+        self.assertEqual(corroborating_claims, 20)
 
     def test_cp011_through_cp014_monsters_use_explicit_area_gates(self):
         checkpoints = dict(

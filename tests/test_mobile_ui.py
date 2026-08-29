@@ -99,12 +99,18 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("async function refreshPreservingPlayContext", js)
         self.assertIn('window.confirm("Mark this STOP cleared?")', js)
         self.assertIn('window.confirm("Advance the saved checkpoint?")', js)
+        self.assertIn("Required work clear · tap Advance when ready.", js)
+        self.assertIn("function focusPlayPriority()", js)
+        self.assertIn('classList.toggle("advance-ready"', js)
+        self.assertIn('aria-describedby="safeCondition advanceReason"', html)
+        self.assertIn('id="advanceStatus" class="tag" role="status"', html)
         self.assertIn('showUndo("Accessory saved."', js)
         self.assertIn('showUndo("Checkpoint saved."', js)
 
     def test_narrow_and_landscape_dom_contract_has_no_duplicate_controls(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
         parser = _MobileContractParser()
         parser.feed(html)
         self.assertEqual(len(parser.ids), len(set(parser.ids)))
@@ -113,7 +119,10 @@ class MobileUiContractTests(unittest.TestCase):
                           "mobileNext", "mobileTop"])
         self.assertIn("@media (max-width: 900px) and (pointer: coarse)", css)
         self.assertIn("bottom: calc(4.35rem + env(safe-area-inset-bottom))", css)
-        self.assertIn("#walkthrough > .section-heading { position: sticky", css)
+        self.assertNotIn("#walkthrough > .section-heading { position: sticky", css)
+        self.assertIn(".play-jumps { display: grid; grid-template-columns: repeat(3, 1fr); position: sticky; top: calc(3.8rem", css)
+        self.assertIn('heading.textContent = "Clear before advancing"', js)
+        self.assertNotIn('heading.textContent = "STOP', js)
 
     def test_play_view_prioritizes_stop_next_and_collapses_secondary_ledgers(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")

@@ -177,7 +177,7 @@ function renderStopActions(target, actions = []) {
   target.hidden = !actions.length;
   target.replaceChildren();
   if (!actions.length) return;
-  const heading = document.createElement("strong"); heading.textContent = "STOP — clear before advancing"; target.append(heading);
+  const heading = document.createElement("strong"); heading.textContent = "Clear before advancing"; target.append(heading);
   actions.forEach(action => {
     const label = document.createElement("label"); label.className = "check-row stop-check";
     label.innerHTML = `<input type="checkbox" data-action-id="${escapeHtml(action.id)}"><span class="check-text"><strong>${escapeHtml(action.title)}</strong><br>${escapeHtml(action.action)}</span>`;
@@ -189,6 +189,7 @@ function scrollToPlayPriority() {
   const target = (!$("#checkpointStop").hidden && $("#checkpointStop")) || $("#actions .next-action") || $("#actions") || $("#walkthrough");
   target.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
+function focusPlayPriority() { $("#main").focus({ preventScroll: true }); scrollToPlayPriority(); }
 
 function scrollToPlaySection(section) {
   const targets = {
@@ -292,6 +293,7 @@ function renderCheckpoint() {
   $("#advanceStatus").textContent = labels[readiness.status] || "Unknown";
   $("#advanceReason").textContent = readiness.reason || "Readiness is not machine-verifiable.";
   const advanceButton = $("#advanceCheckpointButton"); advanceButton.disabled = !readiness.can_confirm_and_save_next;
+  $("#advancePanel").classList.toggle("advance-ready", Boolean(readiness.can_confirm_and_save_next));
   advanceButton.dataset.nextCheckpoint = readiness.next_checkpoint?.id || "";
   advanceButton.textContent = readiness.next_checkpoint ? `Confirm and set ${readiness.next_checkpoint.name}` : "Final checkpoint";
   renderSources(c.sources || []);
@@ -524,13 +526,14 @@ async function updateProgress(payload, focusSelector = null) {
 }
 async function saveToggle(control, payload) {
   const requested = control.checked;
+  const wasReady = Boolean(state.checkpoint?.advancement_readiness?.can_confirm_and_save_next);
   if (requested && control.closest("#checkpointStop") && !window.confirm("Mark this STOP cleared?")) { control.checked = false; return; }
   const mutationKey = `${payload.kind}:${payload.id}`, focusSelector = controlSelector(control);
   if (state.mutations.has(mutationKey)) { control.checked = !requested; return; }
   control.disabled = true;
   try {
     const saved = await oneMutation(mutationKey, () => updateProgress(payload, focusSelector));
-    if (saved) showUndo("Saved.", async () => { await oneMutation(`undo:${mutationKey}`, () => updateProgress({ ...payload, completed: !requested }, focusSelector)); setStatus("Undone"); });
+    if (saved) { const becameReady = !wasReady && Boolean(state.checkpoint?.advancement_readiness?.can_confirm_and_save_next); showUndo(becameReady ? "Required work clear · tap Advance when ready." : "Saved.", async () => { await oneMutation(`undo:${mutationKey}`, () => updateProgress({ ...payload, completed: !requested }, focusSelector)); setStatus("Undone"); }); }
   }
   catch (error) {
     console.error(error);
@@ -582,7 +585,7 @@ $("#advanceCheckpointButton").addEventListener("click", async event => {
   const id = event.currentTarget.dataset.nextCheckpoint, previous = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
   if (!id || !state.checkpoint?.advancement_readiness?.can_confirm_and_save_next) return;
   if (!window.confirm("Advance the saved checkpoint?")) return;
-  try { const saved = await oneMutation("checkpoint", async () => { setStatus("Saving explicit advancement…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); focusMainAtTop(); setStatus("Checkpoint advanced"); }); if (saved && previous) showUndo("Checkpoint advanced.", async () => { await oneMutation("undo:checkpoint", async () => { await api(`/checkpoints/${encodeURIComponent(previous)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); focusMainAtTop(); }); }); }
+  try { const saved = await oneMutation("checkpoint", async () => { setStatus("Saving explicit advancement…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); focusPlayPriority(); setStatus("Checkpoint advanced"); }); if (saved && previous) showUndo("Checkpoint advanced.", async () => { await oneMutation("undo:checkpoint", async () => { await api(`/checkpoints/${encodeURIComponent(previous)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); focusPlayPriority(); }); }); }
   catch (error) { handleError(error); }
 });
 $("#hideCompleted").addEventListener("change", renderCheckpoint);
