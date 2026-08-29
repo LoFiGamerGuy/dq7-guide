@@ -811,6 +811,28 @@
     "retrieved_at": "2026-08-26"
   },
   {
+    "source_id": "game8_dragon_robe",
+    "title": "Dragon Robe Location and How to Get",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581102",
+    "source_class": "guide_wiki",
+    "role": "item_shop_price_and_location",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-29"
+  },
+  {
+    "source_id": "game8_enchanted_armour",
+    "title": "Enchanted Armour Location and How to Get",
+    "publisher": "Game8",
+    "url": "https://game8.co/games/Dragon-Quest-7-Reimagined/archives/581095",
+    "source_class": "guide_wiki",
+    "role": "item_shop_price_and_location",
+    "published_at": null,
+    "updated_at": null,
+    "retrieved_at": "2026-08-29"
+  },
+  {
     "source_id": "game8_estard_castle_map",
     "title": "Estard Castle Map and Location Guide",
     "publisher": "Game8",

@@ -35,6 +35,11 @@ Combat/optimization handoff: 112 checkpoint advice rows cover every checkpoint e
 
 Lucky Panel entry is independently verified as free. Its single-source numeric selection cells remain raw weights, not probabilities, because no denominator or draw algorithm is published.
 
+The final three unpublished purchase prices are now typed shop inventory:
+Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
+Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
+refinements remain separate evidence gaps.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.

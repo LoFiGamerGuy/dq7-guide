@@ -258,7 +258,8 @@ def _advice_evidence(db_path: Path, applicability: dict,
         with sqlite3.connect(db_path) as connection:
             connection.row_factory = sqlite3.Row
             claims = [dict(row) for row in connection.execute(
-                f"""SELECT c.claim_id, c.source_id, c.locator, s.title, s.url
+                f"""SELECT c.claim_id, c.source_id, c.locator, s.publisher,
+                    s.title, s.url
                 FROM claims c JOIN sources s USING(source_id)
                 WHERE c.claim_id IN ({placeholders}) ORDER BY c.claim_id""",
                 tuple(claim_ids),
@@ -267,12 +268,14 @@ def _advice_evidence(db_path: Path, applicability: dict,
             return {"tier": "audit_pending", "source_count": len({
                 row["source_id"] for row in claims}), "claims": claims,
                 "reason": "One or more declared evidence claims are missing."}
-        source_count = len({row["source_id"] for row in claims})
+        # A publisher can expose several pages/source IDs.  Those pages are useful
+        # evidence links, but they are not independent corroboration.
+        source_count = len({row["publisher"] for row in claims})
         tier = ("two_source_core_single_source_extras"
                 if source_count >= 2 and "single_source" in verification_status
                 else "two_source" if source_count >= 2 else "single_source")
         return {"tier": tier, "source_count": source_count, "claims": claims,
-                "reason": "Badge verified from distinct atomic claim sources."}
+                "reason": "Badge verified from distinct atomic-claim publishers."}
     claimed_two_source = ("two_source" in verification_status or
                           "two_independent" in verification_status)
     return {"tier": ("declared_two_source_audit_pending"

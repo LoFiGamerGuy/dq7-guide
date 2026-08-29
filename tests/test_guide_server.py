@@ -18,7 +18,8 @@ from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps,
+from guide_server import (_access_urls, _advice_evidence, _checkpoint_view,
+                          _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
                           _vocation_unlock_progress, create_server, make_handler)
 from build_kb import build_database
@@ -1006,6 +1007,35 @@ class GuideServerTests(unittest.TestCase):
                          "two_source_core_single_source_extras")
         self.assertEqual(orgodemir["evidence"]["source_count"], 2)
 
+    def test_phone_evidence_badges_require_independent_publishers(self):
+        db_path = Path(self.temp.name) / "advice-publisher-evidence.sqlite"
+        with sqlite3.connect(db_path) as connection:
+            connection.executescript("""
+                CREATE TABLE sources (
+                    source_id TEXT PRIMARY KEY, publisher TEXT, title TEXT, url TEXT
+                );
+                CREATE TABLE claims (
+                    claim_id TEXT PRIMARY KEY, source_id TEXT, locator TEXT
+                );
+                INSERT INTO sources VALUES
+                    ('game8_page_a', 'Game8', 'Page A', 'https://example.test/a'),
+                    ('game8_page_b', 'Game8', 'Page B', 'https://example.test/b');
+                INSERT INTO claims VALUES
+                    ('claim_a', 'game8_page_a', 'Table A'),
+                    ('claim_b', 'game8_page_b', 'Table B');
+            """)
+        evidence = _advice_evidence(
+            db_path,
+            {"evidence_claim_ids": ["claim_a", "claim_b"]},
+            "two_source_verified",
+            "unused_primary_source",
+        )
+        self.assertEqual(evidence["tier"], "single_source")
+        self.assertEqual(evidence["source_count"], 1)
+        self.assertEqual(
+            {claim["publisher"] for claim in evidence["claims"]}, {"Game8"},
+        )
+
     def test_late_and_postgame_two_source_advice_has_atomic_badge_evidence(self):
         db_path = Path(self.temp.name) / "late-advice-evidence.sqlite"
         build_database(db_path)
@@ -1029,7 +1059,7 @@ class GuideServerTests(unittest.TestCase):
                 self.assertGreaterEqual(row["evidence"]["source_count"], 2, row["id"])
                 self.assertEqual(
                     row["evidence"]["source_count"],
-                    len({claim["source_id"] for claim in row["evidence"]["claims"]}),
+                    len({claim["publisher"] for claim in row["evidence"]["claims"]}),
                     row["id"],
                 )
         self.assertGreaterEqual(len(audited), 11)

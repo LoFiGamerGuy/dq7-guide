@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 607)
+        self.assertEqual(self.counts["sources"], 609)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -846,7 +846,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
-        self.assertEqual(self.counts["shop_inventory"], 115)
+        self.assertEqual(self.counts["shop_inventory"], 118)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
         self.assertEqual(self.counts["lucky_panel_rules"], 1)
         self.assertEqual(self.counts["lucky_panel_rewards"], 302)
@@ -2247,6 +2247,26 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(missing_shop, [])
         self.assertEqual(missing_panel, [])
+
+    def test_previously_unknown_shop_prices_are_typed_and_sourced(self):
+        rows = self.connection.execute(
+            """SELECT a.acquisition_id, a.method, a.source_id, si.price
+            FROM item_acquisition_paths a
+            JOIN shop_inventory si USING(acquisition_id)
+            WHERE a.acquisition_id IN (
+                'acq_dragon_robe_shop_rucker_castle_past',
+                'acq_enchanted_armour_shop_rucker_castle_past',
+                'acq_pilchard_pie_shop_pilchard'
+            ) ORDER BY a.acquisition_id"""
+        ).fetchall()
+        self.assertEqual([tuple(row) for row in rows], [
+            ('acq_dragon_robe_shop_rucker_castle_past', 'shop',
+             'game8_dragon_robe', 19000),
+            ('acq_enchanted_armour_shop_rucker_castle_past', 'shop',
+             'game8_enchanted_armour', 21000),
+            ('acq_pilchard_pie_shop_pilchard', 'shop',
+             'game8_pilchard_bay_map', 10),
+        ])
 
     def test_route_level_supply_does_not_create_item_exclusivity(self):
         rows = self.connection.execute(
