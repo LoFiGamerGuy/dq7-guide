@@ -44,7 +44,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
     "heart-obtained", "heart-undo",
     "vocation-mastered", "vocation-undo",
-    "party-level", "party-vocations",
+    "party-level", "party-vocations", "party-setup",
     "missable-completed", "missable-undo",
     "accessory-set",
 }
@@ -1174,11 +1174,13 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             db_path, player_state, json.loads(row["applicability_json"])),
     } for row in block["advice"]]
     party_members = player_state.get("party", {}).get("members", {})
+    active_party = set(player_state.get("party", {}).get("active", []))
     explicit_party = [{
         "name": name, "level": member.get("level"),
         "primary_vocation": member.get("primary_vocation"),
         "secondary_vocation": member.get("secondary_vocation"),
-    } for name, member in party_members.items() if any((
+        "active": name in active_party,
+    } for name, member in party_members.items() if name in active_party or any((
         member.get("level") is not None, member.get("primary_vocation") is not None,
         member.get("secondary_vocation") is not None))]
     farm_options = _farms(db_path, {
@@ -1186,11 +1188,42 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
     })["farms"]
     equipment = (_equipment_readiness(db_path, state_path)
                  if saved_checkpoint_match else {"recommendations": []})
+    strongest_candidates = [
+        row for row in advice if row["decision_group"] == "strongest_now"
+        and row["saved_state_applicability"]["status"] != "unmet"
+    ]
+    concise_strongest = []
+    for advice_type in ("vocation", "gear", "boss", "grind"):
+        row = next((candidate for candidate in strongest_candidates
+                    if candidate["type"] == advice_type), None)
+        if row is not None and row not in concise_strongest:
+            concise_strongest.append(row)
+    for row in strongest_candidates:
+        if len(concise_strongest) >= 4:
+            break
+        if row not in concise_strongest:
+            concise_strongest.append(row)
+    safe_power_candidates = [
+        row for row in advice if row["goal"] == "both"
+        and row["type"] != "grind"
+        and row["saved_state_applicability"]["status"] != "unmet"
+    ]
+    party_status = ("unknown" if not explicit_party else
+                    "partial" if len(explicit_party) < len(party_members) else
+                    "recorded")
     power_plan = {
         "state_scope": "explicit_saved_state_only",
-        "state_status": "recorded" if explicit_party else "unknown",
+        "state_status": party_status,
+        "party_note": ("No party levels or vocations are recorded."
+                       if party_status == "unknown" else
+                       "Only explicitly recorded party entries are shown; omitted values remain unknown."
+                       if party_status == "partial" else
+                       "Every saved party member has at least one recorded level or vocation value."),
         "party": explicit_party,
-        "strongest_now": [row for row in advice if row["decision_group"] == "strongest_now"],
+        "strongest_now": concise_strongest,
+        "additional_strongest_count": len(strongest_candidates) - len(concise_strongest),
+        "safe_power": safe_power_candidates[:2],
+        "additional_safe_power_count": max(len(safe_power_candidates) - 2, 0),
         "grind_ceiling": [row for row in advice if row["decision_group"] == "optional_grind"],
         "gear_checks": equipment["recommendations"],
         "available_farms": farm_options,
@@ -1338,6 +1371,7 @@ def _progress(db_path: Path, state_path: Path) -> dict:
         "party": [{"name": name, "level": member.get("level"),
                    "primary_vocation": member.get("primary_vocation"),
                    "secondary_vocation": member.get("secondary_vocation"),
+                   "active": name in set(state.get("party", {}).get("active", [])),
                    "mastered_vocations": sorted(vocation_id for vocation_id, value
                                                 in member.get("vocation_mastery", {}).items()
                                                 if value is True)}

@@ -6,6 +6,7 @@ from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
 import shutil
+import sqlite3
 import sys
 import tempfile
 import threading
@@ -20,6 +21,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
                           _vocation_unlock_progress, create_server, make_handler)
+from player_progress import update_progress
 
 
 class GuideServerTests(unittest.TestCase):
@@ -80,8 +82,8 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(coverage["status"], "partial_two_source_matrix")
         self.assertEqual(coverage["catalog_item_rows"], 311)
         self.assertEqual(coverage["audited_item_rows"], 311)
-        self.assertEqual(coverage["verified_item_rows"], 310)
-        self.assertEqual(coverage["conflicted_item_rows"], 1)
+        self.assertEqual(coverage["verified_item_rows"], 311)
+        self.assertEqual(coverage["conflicted_item_rows"], 0)
         self.assertEqual(coverage["single_source_item_rows"], 0)
         self.assertEqual(coverage["unaudited_item_rows"], 0)
         accessories = next(row for row in coverage["by_category"]
@@ -374,6 +376,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(plan["state_status"], "unknown")
         self.assertEqual(plan["party"], [])
         self.assertTrue(plan["strongest_now"])
+        self.assertLessEqual(len(plan["strongest_now"]), 4)
+        self.assertGreater(plan["additional_strongest_count"], 0)
+        self.assertTrue(all(row["goal"] == "both" for row in plan["safe_power"]))
         self.assertTrue(plan["grind_ceiling"])
         self.assertTrue(all(row["availability_status"] == "available_by_checkpoint"
                             for row in plan["available_farms"]))
@@ -545,12 +550,115 @@ class GuideServerTests(unittest.TestCase):
         state_path.write_text(json.dumps(state), encoding="utf-8")
         plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
                                 state_path, "cp_009_alltrades")["power_plan"]
-        self.assertEqual(plan["state_status"], "recorded")
+        self.assertEqual(plan["state_status"], "partial")
+        self.assertIn("Only explicitly recorded", plan["party_note"])
         self.assertEqual(plan["party"], [{
             "name": "Hero", "level": 18,
             "primary_vocation": "vocation_warrior", "secondary_vocation": None,
+            "active": False,
         }])
         self.assertTrue(plan["gear_checks"])
+
+    def test_party_setup_atomically_records_checkpoint_active_party_and_unknowns(self):
+        state_path = Path(self.temp.name) / "quick-party-state.json"
+        shutil.copy(ROOT / "player" / "ryan-save-state.json", state_path)
+        payload = {"checkpoint_id": "cp_003_ballymolloy", "active": ["Hero", "Maribel"],
+                   "members": [
+                       {"name": "Hero", "level": 12, "primary_vocation": "unknown", "secondary_vocation": "unknown"},
+                       {"name": "Maribel", "level": "unknown", "primary_vocation": "unknown", "secondary_vocation": "unknown"},
+                   ]}
+        update_progress(state_path, ROOT / "data" / "dq7_reimagined.sqlite",
+                        "party-setup", [json.dumps(payload)])
+        saved = json.loads(state_path.read_text())
+        self.assertEqual(saved["story"]["checkpoint_id"], "cp_003_ballymolloy")
+        self.assertEqual(saved["party"]["active"], ["Hero", "Maribel"])
+        self.assertEqual(saved["party"]["members"]["Hero"]["level"], 12)
+        self.assertIsNone(saved["party"]["members"]["Maribel"]["level"])
+        restore = {"checkpoint_id": None, "active": [], "members": payload["members"]}
+        update_progress(state_path, ROOT / "data" / "dq7_reimagined.sqlite",
+                        "party-setup", [json.dumps(restore)])
+        self.assertIsNone(json.loads(state_path.read_text())["story"]["checkpoint_id"])
+        update_progress(state_path, ROOT / "data" / "dq7_reimagined.sqlite",
+                        "party-setup", [json.dumps(payload)])
+        before = state_path.read_text()
+        payload["members"][1]["primary_vocation"] = "not_a_vocation"
+        with self.assertRaisesRegex(ValueError, "Unknown vocation"):
+            update_progress(state_path, ROOT / "data" / "dq7_reimagined.sqlite",
+                            "party-setup", [json.dumps(payload)])
+        self.assertEqual(state_path.read_text(), before)
+
+    def test_party_setup_api_accepts_one_atomic_phone_write(self):
+        state_path = Path(self.temp.name) / "quick-party-api-state.json"
+        shutil.copy(ROOT / "player" / "ryan-save-state.json", state_path)
+        server = create_server("127.0.0.1", 0,
+                               ROOT / "data" / "dq7_reimagined.sqlite",
+                               state_path, ROOT / "web")
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            payload = {"checkpoint_id": "cp_003_ballymolloy", "active": ["Hero"],
+                       "members": [{"name": "Hero", "level": 11,
+                                    "primary_vocation": "unknown",
+                                    "secondary_vocation": "unknown"}]}
+            request = Request(f"http://127.0.0.1:{server.server_port}/api/progress",
+                              data=json.dumps({"command": "party-setup", "values": [json.dumps(payload)]}).encode(),
+                              headers={"Content-Type": "application/json"}, method="POST")
+            with urlopen(request) as response:
+                self.assertEqual(response.status, 200)
+                self.assertIn("1 active party", json.load(response)["message"])
+            saved = json.loads(state_path.read_text())
+            self.assertEqual(saved["party"]["active"], ["Hero"])
+            self.assertEqual(saved["party"]["members"]["Hero"]["level"], 11)
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=2)
+
+    def test_power_plan_is_bounded_gated_and_separates_safe_power_at_all_checkpoints(self):
+        with sqlite3.connect(ROOT / "data" / "dq7_reimagined.sqlite") as connection:
+            checkpoint_ids = [row[0] for row in connection.execute(
+                "SELECT checkpoint_id FROM checkpoints ORDER BY sequence_no"
+            )]
+        self.assertEqual(len(checkpoint_ids), 33)
+        for checkpoint_id in checkpoint_ids:
+            with self.subTest(checkpoint_id=checkpoint_id):
+                plan = _checkpoint_view(
+                    ROOT / "data" / "dq7_reimagined.sqlite", self.state,
+                    checkpoint_id,
+                )["power_plan"]
+                self.assertLessEqual(len(plan["strongest_now"]), 4)
+                self.assertTrue(all(
+                    row["saved_state_applicability"]["status"] != "unmet"
+                    for row in plan["strongest_now"]
+                ))
+                self.assertTrue(all(row["goal"] == "both"
+                                    for row in plan["safe_power"]))
+                self.assertLessEqual(len(plan["safe_power"]), 2)
+                self.assertTrue(all(
+                    row["availability_status"] == "available_by_checkpoint"
+                    for row in plan["available_farms"]
+                ))
+
+    def test_power_plan_hides_explicitly_unmet_medal_power_but_preserves_unknown(self):
+        state_path = Path(self.temp.name) / "power-plan-medals.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_015_greenthumb"
+        state["completion"]["mini_medal_count"] = 0
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        explicit = _checkpoint_view(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "cp_015_greenthumb",
+        )["power_plan"]
+        self.assertNotIn("Miracle Sword at 55 medals",
+                         {row["subject"] for row in explicit["safe_power"]})
+
+        state["completion"]["mini_medal_count"] = None
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        unknown = _checkpoint_view(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "cp_015_greenthumb",
+        )["power_plan"]
+        miracle = next(row for row in unknown["safe_power"]
+                       if row["subject"] == "Miracle Sword at 55 medals")
+        self.assertEqual(miracle["saved_state_applicability"]["status"], "unknown")
 
     def test_monster_heart_api_starts_explicit_ledger_and_reverses(self):
         state = json.loads(self.state.read_text(encoding="utf-8"))

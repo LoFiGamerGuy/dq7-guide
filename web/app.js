@@ -204,11 +204,30 @@ function compactApplicability(value) {
 }
 
 function renderPowerPlan(plan = {}) {
-  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [];
-  const partyText = party.length ? party.map(row => `${row.name}: ${row.level ? `Lv ${row.level}` : "level ?"} · ${row.primary_vocation || "vocation ?"}${row.secondary_vocation ? ` + ${row.secondary_vocation}` : ""}`).join(" / ") : "Party levels and vocations not recorded — recommendations remain source-only.";
+  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [];
+  const partyText = party.length ? party.map(row => `${row.name}: ${row.active ? "Active · " : ""}${row.level ? `Lv ${row.level}` : "level ?"} · ${row.primary_vocation || "vocation ?"}${row.secondary_vocation ? ` + ${row.secondary_vocation}` : ""}`).join(" / ") : "Party levels and vocations not recorded — recommendations remain source-only.";
   const conciseRows = strongest.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span>${row.saved_state_applicability?.reason !== "No supported saved-state gate" ? `<small class="applicability-${escapeHtml(row.saved_state_applicability?.status || "unknown")}">${escapeHtml(row.saved_state_applicability?.reason || "Saved-state fit unknown")}</small>` : ""}</li>`).join("");
+  const safeRows = safePower.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("");
   const gearRows = gear.filter(row => row.availability_status === "route_available").slice(0, 4).map(row => `<li><strong>${escapeHtml([row.character, row.item_name].filter(Boolean).join(" · "))}</strong><span>${escapeHtml(row.ownership_status === "recorded" ? "Owned" : "Ownership unknown")} · ${escapeHtml((row.compatibility_status || "compatibility unknown").replaceAll("_", " "))}</span></li>`).join("");
-  target.innerHTML = `<p class="power-party"><strong>Recorded party</strong><span>${escapeHtml(partyText)}</span></p>${conciseRows ? `<h4>Strongest now</h4><ol class="power-list">${conciseRows}</ol>` : '<p class="muted">No separate immediate-power recommendation is sourced here.</p>'}${gearRows ? `<h4>Gear checks</h4><ul class="power-list">${gearRows}</ul>` : ""}${grind.length ? `<h4>Optional grind ceiling</h4><ul class="power-list">${grind.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("")}</ul>` : '<p class="muted">No checkpoint-specific grind is recommended.</p>'}${farms.length ? `<details class="farm-options"><summary>Other farms available by now (${farms.length})</summary><p class="muted">${escapeHtml(plan.farm_note)}</p>${farms.map(row => `<div><strong>${escapeHtml(row.target)}</strong><span>${escapeHtml(row.location)}${row.time_period ? ` · ${escapeHtml(row.time_period)}` : ""}</span></div>`).join("")}</details>` : ""}`;
+  target.innerHTML = `<p class="power-party"><strong>Recorded party entries</strong><span>${escapeHtml(partyText)}</span><small>${escapeHtml(plan.party_note || "Unrecorded values remain unknown.")}</small></p>${conciseRows ? `<h4>Strongest now</h4><ol class="power-list">${conciseRows}</ol>${plan.additional_strongest_count ? `<p class="muted">${plan.additional_strongest_count} more sourced power notes in Full sourced advice.</p>` : ""}` : '<p class="muted">No separate immediate-power recommendation is sourced here.</p>'}${safeRows ? `<h4>Completion-safe power</h4><ul class="power-list">${safeRows}</ul>${plan.additional_safe_power_count ? `<p class="muted">${plan.additional_safe_power_count} more safe-power notes below.</p>` : ""}` : ""}${gearRows ? `<h4>Gear checks</h4><ul class="power-list">${gearRows}</ul>` : ""}${grind.length ? `<h4>Optional grind ceiling</h4><ul class="power-list">${grind.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("")}</ul>` : '<p class="muted">No checkpoint-specific grind is recommended.</p>'}${farms.length ? `<details class="farm-options"><summary>Other farms available by now (${farms.length})</summary><p class="muted">${escapeHtml(plan.farm_note)}</p>${farms.map(row => `<div><strong>${escapeHtml(row.target)}</strong><span>${escapeHtml(row.location)}${row.time_period ? ` · ${escapeHtml(row.time_period)}` : ""}</span></div>`).join("")}</details>` : ""}`;
+}
+
+function renderQuickSetup() {
+  const members = state.progress?.party || [], vocations = state.vocations || [];
+  $("#quickPartyRows").innerHTML = members.map(member => {
+    const options = `<option value="unknown">Unknown</option>${vocations.filter(row => !row.exclusive_character || row.exclusive_character === member.name).map(row => `<option value="${escapeHtml(row.vocation_id)}">${escapeHtml(row.name)}</option>`).join("")}`;
+    return `<fieldset class="quick-party-row" data-quick-member="${escapeHtml(member.name)}"><label class="quick-active"><input type="checkbox" data-quick-active ${member.active ? "checked" : ""}> <strong>${escapeHtml(member.name)}</strong></label><label>Level<input type="number" min="1" inputmode="numeric" data-quick-level value="${escapeHtml(member.level ?? "")}" placeholder="?"></label><label>Vocation<select data-quick-primary>${options}</select></label><label>Second<select data-quick-secondary>${options}</select></label></fieldset>`;
+  }).join("");
+  members.forEach(member => {
+    const row = document.querySelector(`[data-quick-member="${CSS.escape(member.name)}"]`);
+    row.querySelector("[data-quick-primary]").value = member.primary_vocation || "unknown";
+    row.querySelector("[data-quick-secondary]").value = member.secondary_vocation || "unknown";
+  });
+}
+
+function quickSetupPayload() {
+  const rows = [...document.querySelectorAll("[data-quick-member]")];
+  return { checkpoint_id: state.checkpoint?.id, active: rows.filter(row => row.querySelector("[data-quick-active]").checked).map(row => row.dataset.quickMember), members: rows.map(row => ({ name: row.dataset.quickMember, level: row.querySelector("[data-quick-level]").value || "unknown", primary_vocation: row.querySelector("[data-quick-primary]").value, secondary_vocation: row.querySelector("[data-quick-secondary]").value })) };
 }
 
 function renderDashboard() {
@@ -234,6 +253,7 @@ function renderCheckpoint() {
   renderStopActions($("#checkpointStop"), c.stop_actions || []);
   renderCheckpointActions($("#actions"), c.actions || [], $("#hideCompleted").checked);
   renderPowerPlan(c.power_plan || {});
+  renderQuickSetup();
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"), adviceGroups = [
     ["completion_safe", "Completion-safe"],
@@ -568,6 +588,17 @@ $("#partyDetailsMember").addEventListener("change", syncPartyDetails);
 $("#medalCountForm").addEventListener("submit", event => { event.preventDefault(); recordCommand("medal-count", [$("#medalCountInput").value]).catch(handleError); });
 $("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
 $("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
+$("#quickSetupForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const payload = quickSetupPayload();
+  if (!payload.active.length) return setStatus("Choose at least one active party member.");
+  const previous = { checkpoint_id: state.progress?.saved_checkpoint || null, active: (state.progress?.party || []).filter(row => row.active).map(row => row.name), members: (state.progress?.party || []).map(row => ({ name: row.name, level: row.level ?? "unknown", primary_vocation: row.primary_vocation || "unknown", secondary_vocation: row.secondary_vocation || "unknown" })) };
+  try {
+    await recordCommand("party-setup", [JSON.stringify(payload)]);
+    $("#quickSetup").open = false;
+    showUndo("Party plan personalized.", async () => { await recordCommand("party-setup", [JSON.stringify(previous)]); });
+  } catch (error) { handleError(error); }
+});
 $("#chooseRestoreButton").addEventListener("click", () => $("#restoreFile").click());
 $("#restoreFile").addEventListener("change", async event => {
   state.pendingRestore = null;

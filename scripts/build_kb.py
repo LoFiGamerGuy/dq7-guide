@@ -250,12 +250,16 @@ def _build_database(db_path: Path) -> dict[str, int]:
         equipment_compatibility_claims = []
         preserved_compatibility_claims = {
             "item_liquid_metal_sword": (
-                "HKMRAS", "hyperwiki_equipment_sword",
+                "HKMRAS", "hyperwiki", "hyperwiki_equipment_sword",
                 "Equipment list > はぐれメタルの剣 > equipment characters",
             ),
             "item_white_shield": (
-                "HMAS", "hyperwiki_equipment_shield",
+                "HMAS", "hyperwiki", "hyperwiki_equipment_shield",
                 "Equipment list > ホワイトシールド > equipment characters",
+            ),
+            "item_iron_lance": (
+                "HKMAS", "gamershigh", "gamers_high_equipment_weapon",
+                "Equipment list > てつのやり > compatible characters",
             ),
         }
         for (item_id, source_name, kind, hyper_page, game8_chars, hyper_chars,
@@ -283,6 +287,17 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 [character_codes[code] for code in gamers_high_chars]
                 if gamers_high_chars is not None else None
             )
+            source_c_id = (
+                "appmedia_iron_lance"
+                if item_id == "item_iron_lance"
+                else f"gamers_high_equipment_{kind}" if source_c_characters is not None else None
+            )
+            source_c_locator = (
+                "Iron Lance > compatible characters"
+                if item_id == "item_iron_lance"
+                else f"Equipment list > {source_name} > compatible characters"
+                if source_c_characters is not None else None
+            )
             character_lists = [row for row in (
                 source_a_characters, source_b_characters, source_c_characters
             ) if row is not None]
@@ -306,16 +321,11 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 "source_c_characters": source_c_characters,
                 "source_a_id": "game8_jp_equipment_matrix",
                 "source_b_id": source_b_id,
-                "source_c_id": (
-                    f"gamers_high_equipment_{kind}" if source_c_characters is not None else None
-                ),
+                "source_c_id": source_c_id,
                 "mapping_source_id": mapping_sources[kind],
                 "source_a_locator": f"Equipment list > {source_name} > compatible characters",
                 "source_b_locator": source_b_locator,
-                "source_c_locator": (
-                    f"Equipment list > {source_name} > compatible characters"
-                    if source_c_characters is not None else None
-                ),
+                "source_c_locator": source_c_locator,
                 "mapping_locator": f"All {kind} equipment > corresponding English row",
                 "confidence": "verified" if status == "agree" else "high" if status == "conflict" else "medium",
                 "verification_status": {
@@ -334,9 +344,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 ("gamewith" if hyper_page and hyper_page.startswith("gamewith_") else "hyperwiki",
                  source_b_characters,
                  source_b_id, source_b_locator),
-                ("gamershigh", source_c_characters,
-                 f"gamers_high_equipment_{kind}" if source_c_characters is not None else None,
-                 f"Equipment list > {source_name} > compatible characters"),
+                ("appmedia" if item_id == "item_iron_lance" else "gamershigh",
+                 source_c_characters, source_c_id, source_c_locator),
             ):
                 if characters is None or source_id is None:
                     continue
@@ -355,9 +364,9 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "notes": "Source-specific character list retained for automatic conflict detection.",
                 })
             if item_id in preserved_compatibility_claims:
-                codes, source_id, locator = preserved_compatibility_claims[item_id]
+                codes, suffix, source_id, locator = preserved_compatibility_claims[item_id]
                 equipment_compatibility_claims.append({
-                    "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_hyperwiki",
+                    "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_{suffix}",
                     "subject_key": f"item:{item_id.removeprefix('item_')}",
                     "predicate": "equipment_compatible_characters",
                     "value": {"characters": [character_codes[code] for code in codes]},

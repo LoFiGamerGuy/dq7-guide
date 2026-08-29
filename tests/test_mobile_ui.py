@@ -61,6 +61,10 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("function renderPowerPlan", js)
         self.assertIn("Optional grind ceiling", js)
         self.assertIn("Other farms available by now", js)
+        self.assertIn('id="quickSetupForm"', html)
+        self.assertIn("function quickSetupPayload", js)
+        self.assertIn('recordCommand("party-setup"', js)
+        self.assertIn("Party plan personalized.", js)
         self.assertIn("(max-width: 900px) and (pointer: coarse)", css)
 
     def test_mobile_restore_and_long_details_are_keyboard_and_overflow_safe(self):

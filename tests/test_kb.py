@@ -59,10 +59,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 534)
+        self.assertEqual(self.counts["sources"], 535)
         self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
-        self.assertEqual(self.counts["equipment_compatibility"], 1860)
+        self.assertEqual(self.counts["equipment_compatibility"], 1866)
         self.assertEqual(self.counts["item_identity_redirects"], 1)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
@@ -97,6 +97,22 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND status='unresolved'"""
         ).fetchone()
         self.assertIsNotNone(open_conflict)
+
+        iron_lance = self.connection.execute(
+            """SELECT agreement_status, allowed_characters_json, source_b_id, source_c_id
+            FROM equipment_compatibility_audits WHERE item_id='item_iron_lance'"""
+        ).fetchone()
+        self.assertEqual(iron_lance["agreement_status"], "two_source_agreement")
+        self.assertEqual(json.loads(iron_lance["allowed_characters_json"]),
+                         ["Hero", "Kiefer", "Ruff", "Aishe", "Sir Mervyn"])
+        self.assertEqual(iron_lance["source_b_id"], "hyperwiki_equipment_spear")
+        self.assertEqual(iron_lance["source_c_id"], "appmedia_iron_lance")
+        retained_sources = {row[0] for row in self.connection.execute(
+            """SELECT source_id FROM claims
+            WHERE subject_key='item:iron_lance'
+              AND predicate='equipment_compatible_characters'"""
+        )}
+        self.assertIn("gamers_high_equipment_weapon", retained_sources)
 
         cypress = self.connection.execute(
             """SELECT agreement_status FROM equipment_compatibility_audits

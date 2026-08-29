@@ -160,6 +160,57 @@ def update_progress(
                 raise ValueError(f"Unknown checkpoint: {checkpoint_id}")
             state["story"]["checkpoint_id"] = checkpoint_id
             message = f"Checkpoint set to {checkpoint_id}."
+        elif command == "party-setup":
+            payload = json.loads(values[0])
+            if not isinstance(payload, dict) or not isinstance(payload.get("members"), list):
+                raise ValueError("Party setup must contain a members list")
+            checkpoint_id = payload.get("checkpoint_id")
+            if checkpoint_id is not None and (not isinstance(checkpoint_id, str)
+                                               or not _checkpoint_exists(connection, checkpoint_id)):
+                raise ValueError(f"Unknown checkpoint: {checkpoint_id}")
+            members = state["party"]["members"]
+            known_vocations = {row["vocation_id"]: row["exclusive_character"] for row in
+                               connection.execute("SELECT vocation_id, exclusive_character FROM vocations")}
+            seen = set()
+            normalized = []
+            for row in payload["members"]:
+                if not isinstance(row, dict) or row.get("name") not in members:
+                    raise ValueError("Party setup contains an unknown member")
+                name = row["name"]
+                if name in seen:
+                    raise ValueError(f"Duplicate party member: {name}")
+                seen.add(name)
+                level = row.get("level")
+                if level in (None, "", "unknown"):
+                    level = None
+                else:
+                    level = int(level)
+                    if level < 1:
+                        raise ValueError("Level must be a positive integer or unknown")
+                primary = row.get("primary_vocation")
+                secondary = row.get("secondary_vocation")
+                primary = None if primary in (None, "", "unknown") else primary
+                secondary = None if secondary in (None, "", "unknown") else secondary
+                for vocation_id in (primary, secondary):
+                    if vocation_id is None:
+                        continue
+                    if vocation_id not in known_vocations:
+                        raise ValueError(f"Unknown vocation ID: {vocation_id}")
+                    if known_vocations[vocation_id] not in (None, name):
+                        raise ValueError(f"Vocation unavailable to {name}: {vocation_id}")
+                normalized.append((name, level, primary, secondary))
+            active = payload.get("active")
+            if not isinstance(active, list) or any(name not in seen for name in active):
+                raise ValueError("Active party must contain only submitted members")
+            if len(active) != len(set(active)):
+                raise ValueError("Active party contains a duplicate member")
+            state["story"]["checkpoint_id"] = checkpoint_id
+            state["party"]["active"] = active
+            for name, level, primary, secondary in normalized:
+                members[name]["level"] = level
+                members[name]["primary_vocation"] = primary
+                members[name]["secondary_vocation"] = secondary
+            message = f"Recorded checkpoint and {len(active)} active party members."
         elif command in ("medal-found", "medal-undo"):
             numbers = [int(value) for value in values]
             known = {
