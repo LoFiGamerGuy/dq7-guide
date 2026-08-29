@@ -62,16 +62,20 @@ Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, c
 2. On Windows, double-click `start-guide-phone.bat`. On SteamOS Desktop Mode,
    macOS, or Linux, run `start-guide-phone.sh` (right-click it and choose
    **Run In Konsole** on SteamOS if prompted).
-3. Open the printed `DQ7 guide (phone)` address on the phone and bookmark it.
+3. Open the printed `DQ7 guide (phone)` pairing address on the phone. After the
+   first load, bookmark the clean address shown by the browser.
 4. Keep the Konsole window open while playing. Press `Ctrl+C` there to stop.
 
-Phone mode is an explicit opt-in because it permits devices on the local network
-to view the guide and edit its selected player-state file. Do not use it on public
-Wi-Fi. The ordinary launchers remain private to the computer. If the phone cannot
+Phone mode is an explicit opt-in. Each launch creates a random pairing address;
+only browsers opened through that address receive access, and restarting invalidates
+the old pairing. Keep the printed address private and do not use public Wi-Fi. The
+ordinary launchers remain private to the computer. If the phone cannot
 connect, allow Python through the Steam Deck firewall for the private/local network,
 disable phone VPN or cellular fallback temporarily, and confirm both devices are on
 the same Wi-Fi. No cloud account, internet service, QR provider, or third-party Python
-package is involved.
+package is involved. A QR code is intentionally not generated: robust QR encoding is
+not available in Python's standard library, and sending the private pairing address
+to a third-party QR service would weaken this local-only design.
 
 The normal phone URL uses local HTTP, so the Deck host must remain running and
 reachable. Browsers only enable installable/offline service workers on localhost or
@@ -80,6 +84,10 @@ cache. Cached pages are always read-only: offline progress edits are rejected an
 never queued, preventing hidden divergence from the canonical player file. The
 Progress view can download a JSON backup and restore one with an explicit
 confirmation; the host preserves the pre-restore state as a recovery file.
+The in-app **Phone Setup** screen shows the current address, connection/write
+status, secure-origin/offline-cache availability, launcher steps, and recovery
+links. Treat browser “Add to Home Screen” on ordinary LAN HTTP as a bookmark only;
+the guide does not claim offline installation in that mode.
 
 The Sources view also provides a dated audit of the remaining single-source,
 unsupported, and corroborated-but-unresolved evidence gaps.

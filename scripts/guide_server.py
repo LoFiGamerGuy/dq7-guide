@@ -5,11 +5,13 @@ from __future__ import annotations
 
 import argparse
 from datetime import date, datetime, timezone
+import hmac
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
 from pathlib import Path
+import secrets
 import socket
 import sqlite3
 import threading
@@ -64,10 +66,11 @@ def _lan_addresses() -> list[str]:
                   if address and not address.startswith("127."))
 
 
-def _access_urls(host: str, port: int) -> tuple[str, list[str]]:
+def _access_urls(host: str, port: int, pairing_token: str | None = None) -> tuple[str, list[str]]:
     """Return the same-device URL and any practical phone URLs."""
     local_url = f"http://127.0.0.1:{port}"
-    phone_urls = ([f"http://{address}:{port}" for address in _lan_addresses()]
+    suffix = f"/?pair={pairing_token}" if pairing_token else ""
+    phone_urls = ([f"http://{address}:{port}{suffix}" for address in _lan_addresses()]
                   if host in {"0.0.0.0", "::"} else [])
     return local_url, phone_urls
 
@@ -1359,7 +1362,8 @@ def _record_accessory_progress(db_path: Path, state_path: Path, path: str, paylo
                            [parts[0], parts[1], item_id or "unknown"])
 
 
-def make_handler(db_path: Path, state_path: Path, static_dir: Path):
+def make_handler(db_path: Path, state_path: Path, static_dir: Path,
+                 pairing_token: str | None = None):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
     state_write_lock = threading.Lock()
 
@@ -1388,8 +1392,52 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
         def _error(self, status, message):
             self._json({"error": message}, status)
 
+        def _is_loopback(self):
+            return self.client_address[0] in {"127.0.0.1", "::1"}
+
+        def _paired(self):
+            if pairing_token is None or self._is_loopback():
+                return True
+            cookies = {}
+            for field in self.headers.get_all("Cookie", []):
+                for pair in field.split(";"):
+                    name, separator, value = pair.strip().partition("=")
+                    if separator:
+                        cookies[name] = value
+            supplied = cookies.get("dq7_pair", "")
+            return bool(supplied) and hmac.compare_digest(supplied, pairing_token)
+
+        def _accept_pairing(self, parsed):
+            if pairing_token is None or parsed.path != "/":
+                return False
+            supplied = parse_qs(parsed.query).get("pair", [""])[0]
+            if not supplied or not hmac.compare_digest(supplied, pairing_token):
+                return False
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/")
+            self.send_header(
+                "Set-Cookie",
+                f"dq7_pair={pairing_token}; Path=/; HttpOnly; SameSite=Strict",
+            )
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return True
+
+        def _require_pairing(self):
+            if self._paired():
+                return True
+            self._error(
+                HTTPStatus.UNAUTHORIZED,
+                "Phone not paired. Open the current DQ7 guide (phone) URL shown on the Steam Deck.",
+            )
+            return False
+
         def do_GET(self):
             parsed = urlparse(self.path)
+            if self._accept_pairing(parsed):
+                return
+            if not self._require_pairing():
+                return
             try:
                 if parsed.path == "/api/health":
                     return self._json({"status": "ok"})
@@ -1577,6 +1625,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 return self._error(_client_error_status(error), str(error))
 
         def do_POST(self):
+            if not self._require_pairing():
+                return
             path = urlparse(self.path).path
             if path not in ("/api/progress", "/api/state-restore"):
                 return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
@@ -1633,6 +1683,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 return self._error(_client_error_status(error), str(error))
 
         def do_PATCH(self):
+            if not self._require_pairing():
+                return
             path = urlparse(self.path).path
             try:
                 length = int(self.headers.get("Content-Length", "0"))
@@ -1685,8 +1737,11 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
 
 
 def create_server(host="127.0.0.1", port=8765, db_path=DEFAULT_DB,
-                  state_path=DEFAULT_STATE, static_dir=DEFAULT_STATIC):
-    return ThreadingHTTPServer((host, port), make_handler(db_path, state_path, static_dir))
+                  state_path=DEFAULT_STATE, static_dir=DEFAULT_STATIC,
+                  pairing_token: str | None = None):
+    return ThreadingHTTPServer(
+        (host, port), make_handler(db_path, state_path, static_dir, pairing_token)
+    )
 
 
 def main():
@@ -1705,18 +1760,21 @@ def main():
         if args.host != "127.0.0.1":
             parser.error("--lan cannot be combined with --host")
         args.host = "0.0.0.0"
-    server = create_server(args.host, args.port, args.db, args.state, args.static)
-    local_url, phone_urls = _access_urls(args.host, server.server_port)
+    pairing_token = secrets.token_urlsafe(18) if args.lan else None
+    server = create_server(args.host, args.port, args.db, args.state, args.static,
+                           pairing_token)
+    local_url, phone_urls = _access_urls(args.host, server.server_port, pairing_token)
     print(f"DQ7 guide (this device): {local_url}", flush=True)
     if args.lan:
-        print("PHONE MODE: progress editing is available to devices on this trusted local network.",
+        print("PHONE MODE: only a browser opened with this launch's private pairing URL can edit progress.",
               flush=True)
         if phone_urls:
             for phone_url in phone_urls:
                 print(f"DQ7 guide (phone): {phone_url}", flush=True)
         else:
             print("Phone address unavailable. Connect the Deck to Wi-Fi, then restart.", flush=True)
-        print("Keep this window open. Press Ctrl+C here to stop sharing.", flush=True)
+        print("Keep the pairing URL private. Restart to invalidate it. Ctrl+C stops sharing.",
+              flush=True)
     if args.open_browser:
         webbrowser.open(local_url)
     try:

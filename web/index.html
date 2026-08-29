@@ -31,6 +31,7 @@
       <a href="#dashboard" data-view="dashboard" aria-current="page">Dashboard</a>
       <a href="#walkthrough" data-view="walkthrough">Walkthrough</a>
       <a href="#progress" data-view="progress">Progress</a>
+      <a href="#phone-setup" data-view="phone-setup">Phone Setup</a>
       <a href="#items" data-domain="items">Items</a>
       <a href="#vocations" data-domain="vocations">Vocations</a>
       <a href="#monsters" data-domain="monsters">Monsters</a>
@@ -94,8 +95,16 @@
           <div id="partyState" class="party-state" aria-live="polite"></div>
           <div id="equipmentReadiness" class="state-gap" aria-live="polite"></div>
         </article>
-        <article class="panel"><div class="panel-heading"><div><h3>Backup & recovery</h3><p class="muted">Keep a copy on your phone. Restore requires confirmation and saves the prior file on the host.</p></div></div><div class="backup-tools"><a class="secondary button-link" href="/api/state-backup" download>Download progress backup</a><label class="secondary button-link">Choose backup to restore<input id="restoreFile" type="file" accept="application/json,.json" hidden></label></div><div id="restoreConfirm" class="restore-confirm" hidden><p><strong>Restore this backup?</strong> This replaces current guide progress. The host retains a recovery copy.</p><button id="confirmRestoreButton" class="secondary" type="button">Confirm restore</button><button id="cancelRestoreButton" class="secondary" type="button">Cancel</button></div></article>
+        <article class="panel"><div class="panel-heading"><div><h3>Backup & recovery</h3><p class="muted">Keep a copy on your phone. Restore requires confirmation and saves the prior file on the host.</p></div></div><div class="backup-tools"><a class="secondary button-link" href="/api/state-backup" download>Download progress backup</a><button id="chooseRestoreButton" class="secondary" type="button">Choose backup to restore</button><input id="restoreFile" type="file" accept="application/json,.json" hidden></div><div id="restoreConfirm" class="restore-confirm" role="alertdialog" aria-modal="false" aria-labelledby="restoreTitle" aria-describedby="restoreDescription" tabindex="-1" hidden><p id="restoreDescription"><strong id="restoreTitle">Restore this backup?</strong> This replaces current guide progress. The host retains a recovery copy.</p><button id="confirmRestoreButton" class="secondary" type="button">Confirm restore</button><button id="cancelRestoreButton" class="secondary" type="button">Cancel</button></div></article>
         <article class="panel"><h3>Open completion work</h3><div id="openWork"></div></article>
+      </section>
+
+      <section id="phone-setup" class="view" aria-labelledby="phoneSetupTitle" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Steam Deck companion</p><h2 id="phoneSetupTitle">Phone Setup</h2></div></div>
+        <div id="phoneSetupStatus" class="phone-status-grid" aria-live="polite"></div>
+        <article class="panel phone-steps"><h3>Use it while playing</h3><ol><li>Keep the phone and host on the same trusted Wi-Fi.</li><li>Start <code>start-guide-phone.sh</code> on Steam Deck Desktop Mode, or <code>start-guide-phone.bat</code> on Windows.</li><li>Open the printed phone address and keep the host terminal running.</li><li>Bookmark this page. Use <strong>Current</strong> to return to your saved checkpoint; Prev/Next only browse.</li></ol><div class="uncertain-banner"><strong>Local HTTP is online-to-host only</strong><span>Normal LAN phone addresses cannot use the offline service worker. Installation/offline caching requires localhost or a secure HTTPS origin. Never expose this write-enabled guide to public Wi-Fi or the internet.</span></div></article>
+        <article class="panel"><h3>Protect progress</h3><p>Changes save directly to the host. Offline changes are rejected and never queued.</p><div class="backup-tools"><a class="secondary button-link" href="/api/state-backup" download>Download progress backup</a><a class="secondary button-link" href="#progress" data-view="progress">Open restore controls</a></div><p class="muted">Restore validates the backup and requires confirmation. The host keeps the previous state as a timestamped recovery file.</p></article>
+        <article class="panel"><h3>If the phone disconnects</h3><ol><li>Keep the launcher terminal open.</li><li>Confirm both devices remain on the same Wi-Fi; disable phone VPN or cellular fallback temporarily.</li><li>Allow Python through the host firewall on private networks.</li><li>Reload this page after reconnecting. Do not repeat a change unless the guide shows it as unsaved.</li></ol></article>
       </section>
 
       <section id="sources" class="view" aria-labelledby="sourcesTitle" hidden>
@@ -121,9 +130,9 @@
 
   <nav id="playBar" class="play-bar" aria-label="Play controls">
     <button type="button" data-mobile-view="dashboard"><span aria-hidden="true">⌂</span><span>Home</span></button>
-    <button id="mobilePrevious" type="button"><span aria-hidden="true">‹</span><span>Prev</span></button>
-    <button type="button" data-mobile-view="walkthrough"><span aria-hidden="true">☑</span><span>Play</span></button>
-    <button id="mobileNext" type="button"><span aria-hidden="true">›</span><span>Next</span></button>
+    <button id="mobilePrevious" type="button" aria-label="Browse previous checkpoint"><span aria-hidden="true">‹</span><span>Prev</span></button>
+    <button id="mobileCurrent" type="button"><span aria-hidden="true">☑</span><span>Current</span></button>
+    <button id="mobileNext" type="button" aria-label="Browse next checkpoint"><span aria-hidden="true">›</span><span>Next</span></button>
     <button id="mobileTop" type="button"><span aria-hidden="true">↑</span><span>Top</span></button>
   </nav>
 

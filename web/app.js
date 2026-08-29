@@ -14,11 +14,13 @@ const domains = {
   tablets: { title: "Tablets", singular: "tablet", progressKind: "tablet", filters: ["all","tablet","fragment","found","open"] },
   achievements: { title: "Achievements", singular: "achievement", progressKind: "achievement", filters: ["all","story","completion","combat","unlocked","open"] }
 };
-const viewTitles = { dashboard: "Dashboard", walkthrough: "Walkthrough", progress: "Progress", sources: "Sources & conflicts" };
+const viewTitles = { dashboard: "Dashboard", walkthrough: "Walkthrough", progress: "Progress", "phone-setup": "Phone Setup", sources: "Sources & conflicts" };
 const $ = (selector) => document.querySelector(selector);
 const empty = () => document.importNode($("#emptyTemplate").content, true);
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+const mobileLayout = () => matchMedia("(max-width: 900px) and (pointer: coarse), (max-width: 520px)").matches;
+function focusMainAtTop() { scrollToTop(); $("#main").focus({ preventScroll: true }); }
 
 async function api(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
@@ -48,6 +50,25 @@ function renderConnectionState(reconnected = false) {
   } else {
     banner.hidden = true;
   }
+  if (!$("#phone-setup").hidden) renderPhoneSetup();
+}
+
+function renderPhoneSetup() {
+  const secure = window.isSecureContext;
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const localOnly = ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
+  const workerCapable = secure && "serviceWorker" in navigator;
+  const online = navigator.onLine && !state.usingCachedData && state.dashboard !== null;
+  const mode = secure ? (localOnly ? "Host-local secure context" : "Secure network origin") : "Local-network HTTP · online only";
+  const rows = [
+    ["Connection", online ? "Fresh host data loaded" : "Offline / cached / not loaded", online ? "ok" : "warning"],
+    ["Mode", mode, secure ? "ok" : "warning"],
+    ["Address", `${location.protocol}//${location.host}`, secure ? "ok" : "warning"],
+    ["Offline cache", workerCapable ? "Available on this secure origin" : "Unavailable on this LAN HTTP address", workerCapable ? "ok" : "warning"],
+    ["Display", standalone ? "Opened as installed app" : "Browser tab / bookmark", standalone ? "ok" : "neutral"],
+    ["Progress writes", online ? "Direct to host" : "Disabled — never queued", online ? "ok" : "warning"]
+  ];
+  $("#phoneSetupStatus").innerHTML = rows.map(([label, value, tone]) => `<div class="phone-status ${tone}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("") + (localOnly ? '<p class="muted span-all">This loopback address only works on the host itself. Use the phone address printed by the phone launcher.</p>' : "");
 }
 
 function setStatus(message = "") { const target = $("#status"); target.classList.remove("error"); target.textContent = message; }
@@ -61,6 +82,7 @@ function showView(name) {
   $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false");
   document.title = `${viewTitles[name] || "Guide"} · DQ7 Run Guide`;
   if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
+  if (name === "phone-setup") renderPhoneSetup();
 }
 function showDomain(name) {
   state.domain = name; state.filter = "all"; state.sourcePublisher = "all"; state.sourceFreshness = "all"; state.selectedEntry = null;
@@ -305,7 +327,7 @@ async function selectCatalogEntry(id) {
   state.selectedEntry = summary; renderCatalog();
   if (!["items", "vocations", "monsters", "hearts", "missables", "farms", "source_registry", "seeds", "achievements"].includes(domain)) return;
   const target = $("#catalogDetail"); target.setAttribute("aria-busy", "true"); target.innerHTML = '<p class="empty">Loading details…</p>';
-  try { const endpoint = domain === "hearts" ? "monster-hearts" : domain === "source_registry" ? "sources" : domain; const detail = await api(`/${endpoint}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) renderRichDetail(detail, summary); }
+  try { const endpoint = domain === "hearts" ? "monster-hearts" : domain === "source_registry" ? "sources" : domain; const detail = await api(`/${endpoint}/${encodeURIComponent(id)}`); if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) { renderRichDetail(detail, summary); if (mobileLayout()) target.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); } }
   catch (error) { target.innerHTML = '<p class="empty">Details unavailable. List data is still available.</p>'; console.error(error); }
   finally { if (state.domain === domain && String(state.selectedEntry?.id) === String(id)) target.removeAttribute("aria-busy"); }
 }
@@ -369,6 +391,7 @@ async function loadAll() {
   const savedCheckpoint = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
   const select = $("#checkpointSelect"); select.innerHTML = state.checkpoints.map(c => `<option value="${escapeHtml(c.id)}">${String(c.sequence).padStart(2,"0")} · ${escapeHtml(c.name)}${c.id === savedCheckpoint ? " (saved)" : ""}</option>`).join("");
   const current = state.dashboard?.checkpoint?.id || state.checkpoints[0]?.id; if (current) { select.value = current; await loadCheckpoint(current); }
+  if (!$("#phone-setup").hidden) renderPhoneSetup();
   setStatus("");
 }
 async function updateProgress(payload) {
@@ -399,13 +422,13 @@ async function recordCommand(command, values) {
 }
 
 document.addEventListener("click", event => {
-  const nav = event.target.closest("[data-view]"); if (nav) { event.preventDefault(); showView(nav.dataset.view); $("#main").focus(); }
-  const domain = event.target.closest("[data-domain]"); if (domain) { event.preventDefault(); showDomain(domain.dataset.domain); $("#main").focus(); }
+  const nav = event.target.closest("[data-view]"); if (nav) { event.preventDefault(); showView(nav.dataset.view); focusMainAtTop(); }
+  const domain = event.target.closest("[data-domain]"); if (domain) { event.preventDefault(); showDomain(domain.dataset.domain); focusMainAtTop(); }
   const filter = event.target.closest("[data-filter]"); if (filter) { state.filter = filter.dataset.filter; renderCatalog(); }
   const card = event.target.closest("[data-entry-id]"); if (card) selectCatalogEntry(card.dataset.entryId);
   if (event.target.closest("[data-retry]")) { if (state.domain) loadDomain(state.domain).catch(handleError); else loadAll().catch(handleError); }
 });
-$("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); });
+$("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); if (open) $("#primaryNav a").focus(); });
 $("#refreshButton").addEventListener("click", () => loadAll().catch(handleError));
 $("#checkpointSelect").addEventListener("change", event => loadCheckpoint(event.target.value).catch(handleError));
 $("#previousCheckpoint").addEventListener("click", () => stepCheckpoint(-1).catch(handleError));
@@ -414,6 +437,13 @@ $("#mobilePrevious").addEventListener("click", () => { showView("walkthrough"); 
 $("#mobileNext").addEventListener("click", () => { showView("walkthrough"); stepCheckpoint(1).then(scrollToTop).catch(handleError); });
 $("#mobileTop").addEventListener("click", scrollToTop);
 document.querySelectorAll("[data-mobile-view]").forEach(button => button.addEventListener("click", () => { showView(button.dataset.mobileView); scrollToTop(); }));
+$("#mobileCurrent").addEventListener("click", () => {
+  showView("walkthrough");
+  const id = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : state.checkpoints[0]?.id;
+  if (!id) return scrollToTop();
+  $("#checkpointSelect").value = id;
+  loadCheckpoint(id).then(scrollToTop).catch(handleError);
+});
 $("#setCheckpointButton").addEventListener("click", async () => {
   const id = $("#checkpointSelect").value;
   try { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint saved"); }
@@ -431,6 +461,7 @@ $("#partyDetailsMember").addEventListener("change", syncPartyDetails);
 $("#medalCountForm").addEventListener("submit", event => { event.preventDefault(); recordCommand("medal-count", [$("#medalCountInput").value]).catch(handleError); });
 $("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
 $("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
+$("#chooseRestoreButton").addEventListener("click", () => $("#restoreFile").click());
 $("#restoreFile").addEventListener("change", async event => {
   state.pendingRestore = null;
   $("#restoreConfirm").hidden = true;
@@ -441,10 +472,12 @@ $("#restoreFile").addEventListener("change", async event => {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Backup must contain a JSON object");
     state.pendingRestore = parsed;
     $("#restoreConfirm").hidden = false;
+    $("#confirmRestoreButton").focus();
     setStatus(`Backup selected: ${file.name}`);
   } catch (error) { state.pendingRestore = null; handleError(error); }
 });
-$("#cancelRestoreButton").addEventListener("click", () => { state.pendingRestore = null; $("#restoreFile").value = ""; $("#restoreConfirm").hidden = true; setStatus("Restore cancelled"); });
+function cancelRestore() { state.pendingRestore = null; $("#restoreFile").value = ""; $("#restoreConfirm").hidden = true; setStatus("Restore cancelled"); $("#chooseRestoreButton").focus(); }
+$("#cancelRestoreButton").addEventListener("click", cancelRestore);
 $("#confirmRestoreButton").addEventListener("click", async () => {
   if (!state.pendingRestore) return;
   try {
@@ -475,12 +508,12 @@ document.addEventListener("change", event => {
 });
 $("#catalogSearch").addEventListener("input", renderCatalog);
 function handleError(error) { console.error(error); const target = $("#status"); target.classList.add("error"); target.innerHTML = `Could not load guide. <button class="secondary" type="button" data-retry>Retry</button>`; }
-document.addEventListener("keydown", event => { if (event.key === "Escape" && $("#primaryNav").classList.contains("open")) { $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false"); $("#menuButton").focus(); } });
+document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("#restoreConfirm").hidden) { event.preventDefault(); cancelRestore(); return; } if (event.key === "Escape" && $("#primaryNav").classList.contains("open")) { $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false"); $("#menuButton").focus(); } });
 window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
 window.addEventListener("offline", () => renderConnectionState(false));
 window.addEventListener("online", () => { state.usingCachedData = false; renderConnectionState(true); loadAll().catch(handleError); });
 const initialRoute = location.hash.slice(1) || "dashboard";
 if (domains[initialRoute]) showDomain(initialRoute); else showView(initialRoute);
 renderConnectionState(false);
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("/service-worker.js").catch(error => console.warn("Offline shell unavailable", error));
+if (window.isSecureContext && "serviceWorker" in navigator) navigator.serviceWorker.register("/service-worker.js").catch(error => console.warn("Offline shell unavailable", error));
 loadAll().catch(handleError);

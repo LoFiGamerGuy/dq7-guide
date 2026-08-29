@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from http.cookiejar import CookieJar
+from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
 import shutil
@@ -9,14 +11,14 @@ import tempfile
 import threading
 import unittest
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps, _progress,
-                          _vocation_unlock_progress, create_server)
+                          _vocation_unlock_progress, create_server, make_handler)
 
 
 class GuideServerTests(unittest.TestCase):
@@ -196,10 +198,40 @@ class GuideServerTests(unittest.TestCase):
         local, phone = _access_urls("127.0.0.1", 8765)
         self.assertEqual(local, "http://127.0.0.1:8765")
         self.assertEqual(phone, [])
-        local, phone = _access_urls("0.0.0.0", 8765)
+        local, phone = _access_urls("0.0.0.0", 8765, "launch-secret")
         self.assertEqual(local, "http://127.0.0.1:8765")
-        self.assertTrue(all(url.startswith("http://") and url.endswith(":8765")
+        self.assertTrue(all(url.startswith("http://") and
+                            url.endswith(":8765/?pair=launch-secret")
                             for url in phone))
+
+    def test_lan_pairing_rejects_unpaired_client_then_sets_session_cookie(self):
+        handler = make_handler(ROOT / "data" / "dq7_reimagined.sqlite", self.state,
+                               ROOT / "web", "one-launch-token")
+        handler._is_loopback = lambda _self: False
+        server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_port}"
+        try:
+            with self.assertRaises(HTTPError) as context:
+                urlopen(base + "/api/health")
+            self.assertEqual(context.exception.code, 401)
+            self.assertIn("Phone not paired", context.exception.read().decode())
+
+            opener = build_opener(HTTPCookieProcessor(CookieJar()))
+            with opener.open(base + "/?pair=one-launch-token") as response:
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.geturl(), base + "/")
+            with opener.open(base + "/api/health") as response:
+                self.assertEqual(json.load(response), {"status": "ok"})
+
+            with self.assertRaises(HTTPError) as context:
+                urlopen(base + "/?pair=expired-token")
+            self.assertEqual(context.exception.code, 401)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")

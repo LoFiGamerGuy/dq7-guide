@@ -5,13 +5,16 @@ The local HTML guide is ready for an active playthrough. Launch it with
 is the only runtime dependency.
 
 For Steam Deck + phone play, run `start-guide-phone.sh` in Desktop Mode and open
-the printed phone URL. LAN access is opt-in, uses no external service, and ends
-when its Konsole process is stopped. Use it only on trusted Wi-Fi because phone
-mode includes the same validated progress-editing controls as the Deck browser.
+the printed pairing URL. LAN access is opt-in, uses no external service, and ends
+when its Konsole process is stopped. A random per-launch pairing cookie prevents
+other unpaired Wi-Fi clients from reading or editing the guide; restart the launcher
+to invalidate an old pairing. Still use trusted Wi-Fi and keep the pairing URL private.
 The ordinary LAN URL is online-to-host only. Offline installation/caching requires
 localhost or a secure HTTPS origin due to browser rules; cached data is visibly
 read-only, and changes are never queued. Progress JSON can be exported from and
 explicitly restored in the Progress view, with a pre-restore recovery copy retained.
+The Phone Setup view diagnoses those conditions from the active browser rather than
+claiming that manifest presence alone makes insecure LAN HTTP installable.
 
 ## Verified surface
 
@@ -26,7 +29,10 @@ explicitly restored in the Progress view, with a pre-restore recovery copy retai
 - STOP warnings precede normal actions; safe advancement comes last. Unresolved
   missable cutoffs never create a false STOP.
 - Loading, empty, and error states; keyboard focus, mobile layouts, and reduced
-  motion support. Failed checkbox saves roll back visibly.
+  motion support. Portrait and landscape phone layouts keep a thumb bar visible;
+  Current returns to the saved checkpoint while Prev/Next only browse. Long
+  details wrap safely and restore confirmation is keyboard reachable. Failed
+  checkbox saves roll back visibly.
 - Player writes are validated, serialized, and atomic. Checkpoint advancement
   always requires an explicit action.
 - Install metadata, cache versioning, explicit offline/read-only behavior, and
