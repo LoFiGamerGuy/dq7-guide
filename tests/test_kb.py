@@ -2660,6 +2660,36 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertIn(locator_fragment, row["locator"])
             self.assertIn("container_unspecified", row["verification_status"])
 
+    def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
+        expected = {
+            "acq_great_helm_another_world": "1F, 2F, 3F, and 3F W stairs",
+            "acq_sun_crown_another_world": "Outside (Precipice Pass)",
+            "acq_ruinous_shield_yet_another_world": "Underground Level 1 (Well)",
+            "acq_super_seed_of_resilience_yet_another_world": "Underground Level 1 (Well)",
+            "acq_gigant_armour_yet_another_world": "shop / Interior (jail)",
+            "acq_super_seed_of_magic_yet_another_world": "shop / Interior (jail)",
+            "acq_super_seed_of_agility_yet_another_world": "shop / Interior (jail)",
+            "acq_goddess_ring_yet_another_world": "Dock; Tower",
+            "acq_super_seed_of_life_yet_another_world": "Dock; Tower",
+            "acq_super_seed_of_deftness_yet_another_world": "Underground Level 1 (Stairs)",
+            "acq_super_pretty_betsy_yet_another_world": "Forest Area",
+            "acq_super_seed_of_strength_yet_another_world": "SW building / Interior (fire)",
+            "acq_super_seed_of_therapeusis_yet_another_world": "N house / Interior (water)",
+            "acq_super_seed_of_sorcery_yet_another_world": "N house / Interior (water)",
+        }
+        placeholders = ",".join("?" for _ in expected)
+        rows = self.connection.execute(
+            f"""SELECT acquisition_id, source_id, locator, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN ({placeholders})""",
+            tuple(expected),
+        ).fetchall()
+        self.assertEqual(len(rows), len(expected))
+        for row in rows:
+            self.assertEqual(row["source_id"], "rpgsite_walkthrough")
+            self.assertIn(expected[row["acquisition_id"]], row["locator"])
+            self.assertIn("container_unspecified", row["verification_status"])
+
     def test_previously_unknown_shop_prices_are_typed_and_sourced(self):
         rows = self.connection.execute(
             """SELECT a.acquisition_id, a.method, a.source_id, si.price

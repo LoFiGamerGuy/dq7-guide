@@ -128,6 +128,13 @@ right-hand wardrobe: Game8's dedicated Frobisher map agrees with Eliteguias and
 GuíasPSN, overriding the isolated Game8 item page's Past label while preserving
 that losing claim.
 
+Twenty broad finite-acquisition routes have now been narrowed using registered
+current-version walkthrough locators. The second batch covers Great Helm and Sun
+Crown in Another World plus twelve fixed items across Yet Another World's
+west-stairs, forest, well, fire, water, jail, and tower branches. This is a route
+precision improvement only: all affected rows retain `container_unspecified`,
+so the guide does not imply an unsupported chest, pot, wardrobe, or floor pickup.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.

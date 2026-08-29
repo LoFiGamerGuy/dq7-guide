@@ -904,3 +904,12 @@ Sigillo 2F, and Day Off Dress plus Drakulard Heart to Another World's northeast
 cave/Bandits' Base branch. Each row now carries the exact walkthrough locator.
 All six deliberately retain `container_unspecified`; room or branch evidence is
 not promoted to an individual chest, drawer, wardrobe, or pickup claim.
+
+The second residual route-refinement batch narrows fourteen postgame acquisitions
+to walkthrough-supported branches or rooms. Great Helm and Sun Crown now point
+to their Another World initial-floor and Precipice Pass branches. Yet Another
+World fixed items now point to the west-stairs, forest, well, fire, water, jail,
+or tower branch named by the registered RPG Site walkthrough. These refinements
+do not identify an individual container: every row still explicitly retains
+`container_unspecified` until direct chest, pot, wardrobe, or pickup evidence is
+available.
