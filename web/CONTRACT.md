@@ -143,13 +143,15 @@ is explicitly tiered as `single_source`, `unsupported`, or
 `corroborated_but_unresolved`, carries its last-audited date and exact acceptance
 condition, and expands every registered `source_id` to current source metadata. Two
 guide texts do not resolve a row whose acceptance condition requires direct UI or
-save-tested evidence.
+save-tested evidence. `source_count` reports pages, while `publisher_count` reports
+distinct publishers and exclusively determines single- versus multi-publisher tiering.
 
-The phone view renders `verification_tier` as evidence strength (`1 source`, `No
-publishable source`, or `2+ sources · still unresolved`) separately from the
-row's residual `status`. The open-question label, acceptance condition, source
-links, freshness, and audit date remain visible; corroboration is never presented
-as resolution.
+The phone view renders `verification_tier` as evidence strength (`1 publisher`, `No
+publishable source`, or `N publishers · still unresolved`) separately from the
+row's residual `status`. Cards start collapsed; the open-question label remains in
+the summary, while expansion shows the acceptance condition, supporting-claim URLs
+and locators, separately labelled additional audited pages, freshness, and audit
+date. Corroboration is never presented as resolution.
 
 The endpoint separately returns the complete unresolved-conflict count grouped by
 predicate and whole-registry source freshness totals. The five priority research

@@ -77,6 +77,7 @@ Setup, and Progress; restore remains confirmation-gated under Progress.
   stacking, and other unresolved evidence remain unknown.
 - The Sources view exposes a dated six-item audit with single-source, unsupported,
   and corroborated-but-unresolved tiers plus the exact evidence needed to close each gap.
+  Tier badges count distinct publishers, not pages from the same publisher.
   On phones, each evidence-labelled gap starts collapsed behind a large summary target;
   opening it reveals the full boundary, needed evidence, atomic supporting-claim
   URLs and locators, separately labelled additional audited pages, and audit date.

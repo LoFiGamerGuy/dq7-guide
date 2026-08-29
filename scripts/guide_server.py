@@ -1095,9 +1095,10 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
             gap["supporting_claims"].append(claim)
         gap["sources"] = [source_rows[source_id] for source_id in gap["source_ids"]]
         gap["source_count"] = len(gap["sources"])
+        gap["publisher_count"] = len({source["publisher"] for source in gap["sources"]})
         gap["verification_tier"] = (
             "unsupported" if gap["status"] == "no_publishable_source" else
-            "single_source" if gap["source_count"] < 2 else
+            "single_source" if gap["publisher_count"] < 2 else
             "corroborated_but_unresolved"
         )
         gap["freshness_status"] = (

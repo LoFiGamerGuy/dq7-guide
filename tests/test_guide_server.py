@@ -282,10 +282,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v8', worker)
-            self.assertIn(b'dq7-guide-data-v8', worker)
-            self.assertNotIn(b'dq7-guide-shell-v7', worker)
-            self.assertNotIn(b'dq7-guide-data-v7', worker)
+            self.assertIn(b'dq7-guide-shell-v9', worker)
+            self.assertIn(b'dq7-guide-data-v9', worker)
+            self.assertNotIn(b'dq7-guide-shell-v8', worker)
+            self.assertNotIn(b'dq7-guide-data-v8', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -450,6 +450,13 @@ class GuideServerTests(unittest.TestCase):
             for key in ("within_180_days", "over_180_days", "unknown")
         ))
         by_id = {row["gap_id"]: row for row in audit["gaps"]}
+        for gap in audit["gaps"]:
+            self.assertEqual(gap["publisher_count"],
+                             len({source["publisher"] for source in gap["sources"]}))
+            expected_tier = ("unsupported" if not gap["sources"] else
+                             "single_source" if gap["publisher_count"] < 2 else
+                             "corroborated_but_unresolved")
+            self.assertEqual(gap["verification_tier"], expected_tier)
         self.assertNotIn("gap_legacy_slime_earring_rank2", by_id)
         self.assertNotIn("gap_scarewell_exact_route", by_id)
         self.assertNotIn("gap_final_tablet_unlock", by_id)
@@ -464,6 +471,8 @@ class GuideServerTests(unittest.TestCase):
             "game8_jp_missables", "gamewith_little_blue_button",
             "game8_jp_post_temple_walkthrough",
         ])
+        self.assertEqual(blue_button["source_count"], 3)
+        self.assertEqual(blue_button["publisher_count"], 2)
         self.assertEqual(len(blue_button["supporting_claims"]), 3)
         self.assertTrue(all(row["locator"] and row["source"]["url"]
                             for row in blue_button["supporting_claims"]))

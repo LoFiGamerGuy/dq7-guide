@@ -443,7 +443,7 @@ function syncPartyDetails() {
   $("#partyLevelInput").value = member.level ?? "";
 }
 function renderSources(sources = state.checkpoint?.sources || []) {
-  const gapStrength = gap => ({ single_source: "1 source", unsupported: "No publishable source", corroborated_but_unresolved: "2+ sources · still unresolved" }[gap.verification_tier] || "Evidence status unknown");
+  const gapStrength = gap => ({ single_source: `${gap.publisher_count} publisher`, unsupported: "No publishable source", corroborated_but_unresolved: `${gap.publisher_count} publishers · still unresolved` }[gap.verification_tier] || "Evidence status unknown");
   const gapStatus = gap => ({ corroborated_inexact: "Exact observation still missing", single_source: "Independent corroboration missing", guide_text_conflict: "Direct UI needed to resolve conflict", no_publishable_source: "Reproducible evidence missing" }[gap.status] || gap.status.replaceAll("_", " "));
   const gapEvidence = gap => {
     const claims = (gap.supporting_claims || []).map(claim => `<div class="evidence-claim"><a href="${escapeHtml(claim.source?.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(claim.source?.title || claim.source_id)}</a><small>${escapeHtml(claim.locator)}</small></div>`).join("");
