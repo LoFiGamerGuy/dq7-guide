@@ -766,12 +766,17 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.connection.execute(
             "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_liquid_metal_sword'"
         ).fetchone()[0], 6)
-        open_conflict = self.connection.execute(
-            """SELECT status FROM conflicts
+        adjudicated_conflict = self.connection.execute(
+            """SELECT status, resolution_claim_id, detection_method FROM conflicts
             WHERE conflict_key LIKE 'item:liquid_metal_sword|equipment_compatible_characters|%'
-              AND status='unresolved'"""
+              AND detection_method='two_independent_source_consensus_external_claim'
+            """
         ).fetchone()
-        self.assertIsNotNone(open_conflict)
+        self.assertEqual(adjudicated_conflict["status"], "resolved")
+        self.assertEqual(adjudicated_conflict["resolution_claim_id"],
+                         "claim_equipcompat_liquid_metal_sword_gamershigh")
+        self.assertEqual(adjudicated_conflict["detection_method"],
+                         "two_independent_source_consensus_external_claim")
 
         iron_lance = self.connection.execute(
             """SELECT agreement_status, allowed_characters_json, source_b_id, source_c_id
@@ -1336,6 +1341,10 @@ class KnowledgeBaseTests(unittest.TestCase):
               AND a.predicate = 'item_display_name'"""
         ).fetchone()
         self.assertIsNotNone(conflict)
+        unresolved = self.connection.execute(
+            "SELECT COUNT(*) FROM conflicts WHERE status='unresolved'"
+        ).fetchone()[0]
+        self.assertEqual(unresolved, 1)
 
     def test_direct_item_pages_resolve_verified_panel_name_variants(self):
         aliases = dict(self.connection.execute(

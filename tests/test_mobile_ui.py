@@ -89,6 +89,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('guide_text_conflict: "Direct UI needed to resolve conflict"', js)
         self.assertIn("Open question · ${escapeHtml(gapStatus(gap))}", js)
         self.assertIn("<b>Needed:</b>", js)
+        self.assertIn("Consensus resolution · separate claim", js)
+        self.assertIn("c.resolution_is_external", js)
         self.assertIn("Party roles", js)
         self.assertIn("Fight plan", js)
         self.assertIn("Skill prep", js)

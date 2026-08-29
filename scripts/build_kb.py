@@ -1507,17 +1507,31 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 WHERE a.subject_key=? AND a.predicate='equipment_compatible_characters'""",
                 (subject_key,),
             ).fetchall()
+            consensus_claims = connection.execute(
+                """SELECT claim_id FROM claims
+                WHERE subject_key=? AND predicate='equipment_compatible_characters'
+                  AND value_json=? ORDER BY claim_id""",
+                (subject_key, consensus_value),
+            ).fetchall()
+            consensus_claim_id = (consensus_claims[0]["claim_id"]
+                                  if consensus_claims else None)
             for conflict in conflict_rows:
                 winner = (conflict["claim_a_id"] if conflict["value_a"] == consensus_value
                           else conflict["claim_b_id"] if conflict["value_b"] == consensus_value
-                          else None)
+                          else consensus_claim_id)
                 if winner:
+                    external = winner not in (conflict["claim_a_id"],
+                                              conflict["claim_b_id"])
                     connection.execute(
                         """UPDATE conflicts SET status='resolved', resolution_claim_id=?,
-                            rationale=?, detection_method='two_independent_source_consensus'
+                            rationale=?, detection_method=?
                         WHERE conflict_id=?""",
                         (winner,
-                         "Two independent current-version publishers agree on the complete character list; the outlying claim is retained.",
+                         ("Two independent current-version publishers agree on a third complete character list; both conflicting claims remain visible and the matching consensus claim is linked separately."
+                          if external else
+                          "Two independent current-version publishers agree on the complete character list; the outlying claim is retained."),
+                         ("two_independent_source_consensus_external_claim"
+                          if external else "two_independent_source_consensus"),
                          conflict["conflict_id"]),
                     )
         for resolution in [*seed.get("conflict_resolutions", []),

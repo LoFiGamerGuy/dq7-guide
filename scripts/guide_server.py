@@ -2115,6 +2115,25 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                         "resolution_claim_id": row["resolution_claim_id"],
                         "detection_method": row["detection_method"],
                         "rationale": row["rationale"],
+                        "resolution_is_external": bool(
+                            row["resolution_claim_id"] and
+                            row["resolution_claim_id"] not in
+                            (row["claim_a_id"], row["claim_b_id"])
+                        ),
+                        "resolution": ({
+                            "id": row["resolution_claim_id"],
+                            "value": json.loads(row["resolution_value"]),
+                            "scope": json.loads(row["resolution_scope"]),
+                            "confidence": row["resolution_confidence"],
+                            "verification_status": row["resolution_verification_status"],
+                            "locator": row["resolution_locator"],
+                            "source": {
+                                "title": row["resolution_source_title"],
+                                "url": row["resolution_source_url"],
+                                "updated_at": row["resolution_source_updated_at"],
+                                "retrieved_at": row["resolution_source_retrieved_at"],
+                            },
+                        } if row["resolution_claim_id"] else None),
                         "required_evidence": (None if row["status"] == "resolved" else
                             ("Direct in-game capture or patch-scoped map evidence confirming whether Tempest Shield exists in both Sanctum of the Cirrus and Ventus Tower, or which listed route is erroneous."
                              if row["subject_key"] == "item:tempest_shield" else

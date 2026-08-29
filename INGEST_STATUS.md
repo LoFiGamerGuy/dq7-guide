@@ -26,7 +26,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell remains explicitly single-independent-source | Seek independent confirmation for Scarewell's exact fixed route |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 15 unresolved claim-pairs represent 11 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities plus Stella/Stellar Fan | High for normalized compatibility where independent publishers agree; Pirate's Hat, Fishnet Stockings, and Marshal Lourgh chronology conflicts retain their losing claims after resolution | Resolve equipment/name conflicts with legible current-version UI or direct in-game evidence |
+| Conflicts | Automatic exact-scope detection active; 1 unresolved claim-pair/fact remains: Stella/Stellar Fan. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; every losing compatibility, Pirate's Hat, Fishnet Stockings, and Marshal Lourgh claim remains visible | Resolve the remaining fan name with legible current-version English UI evidence |
 
 ## Database seed counts
 
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 303
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 406 total / 15 unresolved claim-pairs / 11 unresolved fact scopes
+- conflicts: 406 total / 1 unresolved claim-pair / 1 unresolved fact scope
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,7 +77,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
-- **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. Fishnet Stockings is resolved to Present Frobisher and Marshal Lourgh to the Past Exposure Enclosure route; every losing isolated-page claim remains auditable. Pirate's Hat likewise remains resolved to Past with both losing Present pairs visible. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
+- **Conflicts:** one automatically detected claim-pair remains unresolved: the `Stella Fan` / `Stellar Fan` display name. Fourteen pairwise conflicts across ten equipment identities are now explicitly resolved to the already-normalized two-independent-publisher consensus claims. When the supported complete character list is neither losing pair value, the conflict links and displays that third claim separately; both original claims remain auditable. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
 - **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 640 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
@@ -138,8 +138,9 @@ Past chapter agree on the 2F bedroom wardrobe pair; both losing Present conflict
 pairs remain visible. GuíasPSN narrows Poolside Cave Fur Cape to the northeast
 double chest and separates Silver Platter into the west chest, reducing the
 finite-container residual to 12. Its Present Frobisher inn-wardrobe Fishnet
-Stockings claim conflicts with Game8's Past Frobisher route and remains unresolved
-with a translation/derivation caveat.
+Stockings claim initially conflicted with Game8's Past Frobisher route, with a
+translation/derivation caveat; the later map-based adjudication above resolves
+the route to Present while preserving the losing claim.
 
 The fixed-gear corroboration pass gives four more checkpoint cards explicit
 two-publisher cores: Hardlypool Tunnel's Ice Shield; Tallest Tower's Dragon
@@ -403,15 +404,14 @@ pairs.
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence. The Blue Button row now isolates only immediate pre-trigger
   presence; its cp022-to-cp023 event mapping is directly evidenced.
-- **Automatic conflicts:** 15 unresolved claim-pairs represent 11 distinct fact
-  scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts),
-  and one is the Stella/Stellar Fan display name. Fishnet Stockings and Marshal
+- **Automatic conflicts:** one unresolved claim-pair/fact scope remains: the
+  Stella/Stellar Fan display name. Fourteen equipment-compatible-character pairs
+  are resolved through separately linked two-publisher consensus claims when the
+  supported complete list is neither losing value. Fishnet Stockings and Marshal
   Lourgh chronology are now resolved from location-specific and continuous
   walkthrough evidence, with their losing claims preserved. Resolving the
-  remaining equipment/name facts requires a legible
-  current-version English equipment/inventory UI capture that shows the relevant
-  character list or full item name. Additional guide consensus is not treated as
-  equivalent to direct UI evidence.
+  remaining fan-name fact requires a legible current-version English Item List,
+  inventory, shop, or acquisition-result capture showing the full name.
 - **Little Blue Button:** Game8 Japan and GameWith independently name the
   late-game Cataclysm (`異変`) as the boundary. A separate continuous Game8
   Japan walkthrough places the trigger when leaving Estard Castle after the

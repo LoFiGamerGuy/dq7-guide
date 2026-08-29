@@ -36,12 +36,24 @@ def load_conflicts(db_path: Path, include_resolved: bool = False) -> list[dict]:
                 sb.source_id AS source_id_b,
                 sb.title AS source_title_b, sb.url AS source_url_b,
                 sb.updated_at AS source_updated_at_b,
-                sb.retrieved_at AS source_retrieved_at_b
+                sb.retrieved_at AS source_retrieved_at_b,
+                cr.value_json AS resolution_value,
+                cr.scope_json AS resolution_scope,
+                cr.confidence AS resolution_confidence,
+                cr.verification_status AS resolution_verification_status,
+                cr.locator AS resolution_locator,
+                sr.source_id AS resolution_source_id,
+                sr.title AS resolution_source_title,
+                sr.url AS resolution_source_url,
+                sr.updated_at AS resolution_source_updated_at,
+                sr.retrieved_at AS resolution_source_retrieved_at
             FROM conflicts cf
             JOIN claims ca ON ca.claim_id = cf.claim_a_id
             JOIN claims cb ON cb.claim_id = cf.claim_b_id
             JOIN sources sa ON sa.source_id = ca.source_id
             JOIN sources sb ON sb.source_id = cb.source_id
+            LEFT JOIN claims cr ON cr.claim_id = cf.resolution_claim_id
+            LEFT JOIN sources sr ON sr.source_id = cr.source_id
             {where}
             ORDER BY ca.subject_key, ca.predicate, cf.conflict_id"""
         ).fetchall()
@@ -63,6 +75,11 @@ def print_conflicts(rows: list[dict]) -> None:
         print(f"  {row['source_title_a']} — {row['source_url_a']} ({row['locator_a'] or 'no locator'})")
         print(f"B [{row['claim_b_id']}]: {row['value_b']}")
         print(f"  {row['source_title_b']} — {row['source_url_b']} ({row['locator_b'] or 'no locator'})")
+        if (row["resolution_claim_id"] and
+                row["resolution_claim_id"] not in (row["claim_a_id"], row["claim_b_id"])):
+            print(f"Resolution [{row['resolution_claim_id']}]: {row['resolution_value']}")
+            print(f"  {row['resolution_source_title']} — {row['resolution_source_url']} "
+                  f"({row['resolution_locator'] or 'no locator'})")
         if row["rationale"]:
             print(f"Rationale: {row['rationale']}")
         print()

@@ -549,10 +549,22 @@ class GuideServerTests(unittest.TestCase):
                       {claim["id"] for claim in iron["claims"]})
         self.assertIsNone(iron["required_evidence"])
         self.assertIn("dedicated Alltrades Abbey map shop table", iron["rationale"])
-        self.assertTrue(all(
-            sum(claim["is_resolution"] for claim in row["claims"]) == 1
-            for row in all_conflicts if row["status"] == "resolved"
-        ))
+        bow = next(row for row in all_conflicts
+                   if row["detection_method"] ==
+                   "two_independent_source_consensus_external_claim")
+        self.assertTrue(bow["resolution_is_external"])
+        self.assertIsNotNone(bow["resolution"])
+        self.assertNotIn(bow["resolution_claim_id"],
+                         {claim["id"] for claim in bow["claims"]})
+        self.assertTrue(bow["resolution"]["source"]["url"])
+        self.assertTrue(bow["resolution"]["locator"])
+        for row in all_conflicts:
+            if row["status"] != "resolved":
+                continue
+            pair_resolution_count = sum(claim["is_resolution"]
+                                        for claim in row["claims"])
+            self.assertEqual(pair_resolution_count,
+                             0 if row["resolution_is_external"] else 1)
         cautery = next(row for row in all_conflicts
                        if row["resolution_claim_id"] ==
                        "claim_cautery_sword_rpgsite_location")
