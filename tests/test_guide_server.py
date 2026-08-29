@@ -997,8 +997,19 @@ class GuideServerTests(unittest.TestCase):
         time_being = next(row for row in _checkpoint_view(
             db_path, self.state, "cp_021_malign_shrine",
         )["advice"] if row["id"] == "advice_cp021_time_being")
-        self.assertEqual(time_being["evidence"]["tier"], "single_source")
-        self.assertEqual(time_being["evidence"]["source_count"], 1)
+        self.assertEqual(time_being["evidence"]["tier"],
+                         "two_source_core_single_source_extras")
+        self.assertEqual(time_being["evidence"]["source_count"], 2)
+        self.assertEqual(
+            {claim["source_id"] for claim in time_being["evidence"]["claims"]},
+            {"game8_boss_time_being", "neoseeker_malign_shrine"},
+        )
+
+        lourgh = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_027_deja_vous_rucker",
+        )["advice"] if row["id"] == "advice_cp027_lourgh_disorder")
+        self.assertEqual(lourgh["evidence"]["tier"], "two_source")
+        self.assertIn("conflicted", lourgh["applicability"]["time_period"])
 
         orgodemir = next(row for row in _checkpoint_view(
             db_path, self.state, "cp_028_cathedral_of_blight",

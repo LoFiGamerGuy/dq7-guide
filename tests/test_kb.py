@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 631)
+        self.assertEqual(self.counts["sources"], 632)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2422,6 +2422,45 @@ class KnowledgeBaseTests(unittest.TestCase):
         fire = by_id['advice_cp023_fire_route_gear'][0]
         self.assertEqual(set(fire['verified_core']), {'Magma Staff'})
         self.assertEqual(set(fire['single_source_extra']), {'Sacred Armour'})
+
+    def test_time_being_and_lourgh_keep_shared_tactics_and_scope_limits(self):
+        rows = self.connection.execute(
+            """SELECT advice_id, applicability_json, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id IN ('advice_cp021_time_being',
+                                'advice_cp027_lourgh_disorder')
+            ORDER BY advice_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        by_id = {row['advice_id']: (json.loads(row['applicability_json']),
+                                    row['verification_status'])
+                 for row in rows}
+        for advice_id, (applicability, status) in by_id.items():
+            claim_ids = applicability['evidence_claim_ids']
+            publishers = self.connection.execute(
+                f"""SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.claim_id IN ({','.join('?' for _ in claim_ids)})""",
+                tuple(claim_ids),
+            ).fetchall()
+            self.assertGreaterEqual(len(publishers), 2, advice_id)
+            self.assertIn('two_source_verified', status)
+
+        time_being = by_id['advice_cp021_time_being'][0]
+        self.assertIn('multi-target healer',
+                      time_being['single_source_extras']['game8'])
+        self.assertNotIn('healing', time_being['verified_core'])
+
+        lourgh = by_id['advice_cp027_lourgh_disorder'][0]
+        self.assertIn('conflicted', lourgh['time_period'])
+        conflict_claims = set(lourgh['chronology_conflict_claim_ids'])
+        conflict = self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE claim_a_id IN (?, ?) AND claim_b_id IN (?, ?)""",
+            tuple(sorted(conflict_claims)) * 2,
+        ).fetchone()
+        self.assertIsNotNone(conflict)
+        self.assertEqual(conflict['status'], 'unresolved')
 
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {

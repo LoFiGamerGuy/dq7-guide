@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 631 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 632 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -26,19 +26,19 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell remains explicitly single-independent-source | Seek independent confirmation for Scarewell's exact fixed route |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 17 unresolved claim-pairs represent 12 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, Stella/Stellar Fan, and two independently published Fishnet Stockings Frobisher period pairs | High for normalized compatibility where independent publishers agree; Pirate's Hat is resolved to Past with both losing Present pairs retained | Resolve equipment/name conflicts with legible current-version UI evidence and Fishnet Stockings with current UI or direct in-game chronology |
+| Conflicts | Automatic exact-scope detection active; 18 unresolved claim-pairs represent 13 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, Stella/Stellar Fan, two Fishnet Stockings period pairs, and Marshal Lourgh's Past/Present encounter scope | High for normalized compatibility where independent publishers agree; Pirate's Hat is resolved to Past with both losing Present pairs retained | Resolve equipment/name conflicts and the two chronology disputes with legible current-version UI or direct in-game evidence |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 631
+- sources: 632
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,768
+- claims: 1,774
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 405 total / 17 unresolved claim-pairs / 12 unresolved fact scopes
+- conflicts: 406 total / 18 unresolved claim-pairs / 13 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,8 +77,8 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
-- **Conflicts:** 17 automatically detected claim-pairs remain unresolved, representing 12 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, one `Stella Fan` / `Stellar Fan` display-name fact, and two independent Fishnet Stockings Frobisher Past/Present pairs. Pirate's Hat is resolved to Past while both losing Present conflict pairs remain auditable. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 631 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** 18 automatically detected claim-pairs remain unresolved, representing 13 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, one `Stella Fan` / `Stellar Fan` display-name fact, two independent Fishnet Stockings Frobisher Past/Present pairs, and Marshal Lourgh's Rucker Present versus Exposure Enclosure Past placement. Pirate's Hat is resolved to Past while both losing Present conflict pairs remain auditable. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 632 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -89,6 +89,15 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The late-boss corroboration pass gives Time Being a two-publisher Side Winder
+group-pressure core while leaving multi-target-healer/item backup, resistance,
+and revival details source-specific. Lourgh/Disorder now has two-publisher support
+for Magic Barrier, elemental protection, magic damage during Barbatos physical
+impairment, and Kiefer's autonomous contribution. Game8's Rucker Region Present
+placement conflicts with Eliteguias's continuous Exposure Enclosure Past route;
+the phone card displays the conflict and follows the cp027 route rather than
+silently choosing either period.
 
 The late fixed-gear pass independently corroborates Malign Shrine's Sunderbolt
 Blade and Dark Robe, Estard Castle's Ultimate-Key Kingsblade/Pallium Regale/

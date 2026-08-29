@@ -46,6 +46,15 @@ Magma Staff. Keep the Estard teleportal deadline and broader cleanup single-sour
 keep Sacred Armour visibly separate from the verified Magma Staff core. These
 route checks do not establish permanent missability or best-wearer rankings.
 
+Time Being's shared phone core is limited to group pressure on the Side Winders
+and survival while Time Stop disables characters; healer composition, item backup,
+resistance, and revival behavior remain attributed extras. Lourgh/Disorder's
+Magic Barrier, elemental protection, magic-damage response, and autonomous Kiefer
+contribution are independently corroborated. Its encounter chronology is now an
+explicit unresolved conflict: Game8 says Rucker Region Present, while Eliteguias
+places the encounter in the continuous Exposure Enclosure Past route. Use the
+cp027 route gate and do not expose the disputed Present label as settled fact.
+
 Lucky Panel entry is independently verified as free. Its single-source numeric selection cells remain raw weights, not probabilities, because no denominator or draw algorithm is published.
 
 The final three unpublished purchase prices are now typed shop inventory:
