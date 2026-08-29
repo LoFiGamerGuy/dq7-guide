@@ -233,6 +233,16 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("ledger.open = !mobileLayout()", js)
         self.assertIn('$("#hideCompleted")', js)
 
+    def test_next_power_move_precedes_party_and_battle_detail(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        render_start = js.index('target.innerHTML = `${nextPowerSection}<p class="power-party"')
+        self.assertGreater(render_start, js.index('const nextPowerSection ='))
+        self.assertIn('class="next-power" aria-labelledby="nextPowerHeading"', js)
+        self.assertIn(".next-power {", css)
+        self.assertLess(js.index('id="checkpointStop"') if 'id="checkpointStop"' in js else 0,
+                        js.index('const nextPowerSection ='))
+
     def test_long_checkpoint_actions_show_next_three_before_later_work(self):
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
         css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")

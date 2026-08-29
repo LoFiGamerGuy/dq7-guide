@@ -1083,6 +1083,17 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(platinum["applicability"]["rate"], "unknown")
         self.assertEqual(platinum["applicability"]["time_to_level"], "unknown")
 
+        shield = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_030_postgame_another_world",
+        )["advice"] if row["id"] == "advice_cp030_metal_king_shield_95")
+        self.assertEqual(shield["evidence"]["tier"], "two_source")
+        self.assertGreaterEqual(shield["evidence"]["source_count"], 3)
+        self.assertEqual(shield["applicability"]["requires"]["mini_medals"], 95)
+        self.assertEqual(shield["applicability"]["stats"], {
+            "defence": 75, "block_chance_percent": 10,
+            "all_element_damage_reduction_percent": 10,
+        })
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"
