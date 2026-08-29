@@ -1,11 +1,12 @@
 # Retrieval quality audit
 
-Audit date: 2026-08-28
+Audit date: 2026-08-29
 
-`data/golden_questions.json` defines six representative playthrough questions:
+`data/golden_questions.json` defines 8 representative playthrough questions:
 safe advancement, strongest legal gear, vocation planning, available farming,
-Monster Hearts, and visible conflicts. `tests/test_retrieval_quality.py` verifies
-their structured evidence bundles against a clean rebuilt database.
+Monster Hearts, visible conflicts, duplicate-accessory power, and achievement-counter
+rules. `tests/test_retrieval_quality.py` verifies their structured evidence bundles
+against a clean rebuilt database.
 
 The suite requires:
 

@@ -67,6 +67,12 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
             "achievement_counter_rules",
         })
 
+    def test_retrieval_audit_count_tracks_golden_manifest(self):
+        audit = (ROOT / "docs" / "RETRIEVAL_QUALITY.md").read_text(encoding="utf-8")
+        self.assertIn(f"defines {len(self.questions)} representative playthrough questions", audit)
+        self.assertIn("duplicate-accessory power", audit)
+        self.assertIn("achievement-counter\nrules", audit)
+
     def test_achievement_counter_bundle_preserves_resolution_and_consensus(self):
         question = self.questions["achievement_counter_rules"]
         self.assertTrue(question["requires_source_diversity"])

@@ -73,7 +73,7 @@ the recovery banner. Golden retrieval coverage also locks the resolved lifetime-
 and exact metal-family achievement evidence to precise, multi-publisher claims.
 Paired API responses are network-only and never enter the service-worker cache.
 The server marks pairing-required responses, covering explicit headers and
-HttpOnly-cookie sessions; cache v5 purges older snapshots. Rotating the private
+HttpOnly-cookie sessions; cache v6 purges older snapshots. Rotating the private
 pairing identity therefore cannot leave an authorized player snapshot available
 offline. Troll Heart detail separately labels its cp019 route as a finite
 one-copy pickup with no proven repeatable route and two-source acquisition evidence.
