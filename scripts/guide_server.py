@@ -1623,6 +1623,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                 "choice_policy": recursive["choice_policy"],
                 "decision_group": row["decision_group"],
                 "recommendation": row["text"], "source": row["source"],
+                "evidence": row["evidence"],
             })
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row

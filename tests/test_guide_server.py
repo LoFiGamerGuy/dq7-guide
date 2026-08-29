@@ -289,10 +289,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v12', worker)
-            self.assertIn(b'dq7-guide-data-v12', worker)
-            self.assertNotIn(b'dq7-guide-shell-v11', worker)
-            self.assertNotIn(b'dq7-guide-data-v11', worker)
+            self.assertIn(b'dq7-guide-shell-v13', worker)
+            self.assertIn(b'dq7-guide-data-v13', worker)
+            self.assertNotIn(b'dq7-guide-shell-v12', worker)
+            self.assertNotIn(b'dq7-guide-data-v12', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -713,6 +713,12 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn(("Hero", "Warrior"), arena_paths)
         self.assertEqual(arena_paths[("Hero", "Warrior")]["decision_group"],
                          "strongest_now")
+        warrior_evidence = arena_paths[("Hero", "Warrior")]["evidence"]
+        self.assertTrue(warrior_evidence["tier"].startswith("two_source"))
+        self.assertGreaterEqual(len({claim["publisher"]
+                                     for claim in warrior_evidence["claims"]}), 2)
+        self.assertTrue(all(claim["url"] and claim["locator"]
+                            for claim in warrior_evidence["claims"]))
         self.assertEqual(arena_paths[("Hero", "Warrior")]["next_options"][0]["vocation_id"],
                          "vocation_warrior")
         warrior_payoff = arena_paths[("Hero", "Warrior")]["next_options"][0]["power_payoff"]

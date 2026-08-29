@@ -95,6 +95,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('class="power-more"', js)
         self.assertIn("More strongest-now advice", js)
         self.assertIn("Next vocation payoff", js)
+        self.assertIn("Recommendation evidence · ${escapeHtml(evidenceLabel)}", js)
+        self.assertIn("path.evidence?.claims", js)
         self.assertIn("Prepare for", js)
         self.assertIn("Single-source boss recommendation", js)
         self.assertIn("Two-source boss recommendation", js)

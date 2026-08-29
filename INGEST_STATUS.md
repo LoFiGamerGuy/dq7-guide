@@ -863,3 +863,10 @@ removed from structured skill preparation rather than inheriting evidence from
 broader checkpoint advice; its broader attributed tactic remains available.
 Exact vocation-rank cells remain separately labeled single-source. Phone cache
 v12 delivers the corrected badges and claim locators to existing installations.
+
+The vocation-path phone pass now carries each recommendation's atomic evidence
+bundle into the derived power route. The compact card keeps the evidence tier
+beside the recommendation and puts every publisher link and precise locator in
+collapsed detail. This closes the former mismatch where two-source framing was
+valid but only the primary publisher was visible. Cache v13 refreshes the phone
+shell without changing any recorded player state.
