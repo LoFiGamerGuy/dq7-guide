@@ -58,13 +58,12 @@ Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, c
 
 ### Use on a phone while playing on Steam Deck
 
-1. Put the Steam Deck and phone on the same trusted Wi-Fi network.
-2. On Windows, double-click `start-guide-phone.bat`. On SteamOS Desktop Mode,
-   macOS, or Linux, run `start-guide-phone.sh` (right-click it and choose
-   **Run In Konsole** on SteamOS if prompted).
-3. Open the printed `DQ7 guide (phone)` pairing address on the phone and bookmark
-   that address. It remains valid across guide restarts.
-4. Keep the Konsole window open while playing. Press `Ctrl+C` there to stop.
+1. In Steam Deck Desktop Mode, put the Deck and phone on the same trusted Wi-Fi.
+2. Open this folder in Konsole and run `./manage-steam-deck-guide.sh start`.
+3. Open the printed `DQ7 guide (phone)` address on the phone and bookmark it.
+
+That is the full normal setup. The server keeps running after Konsole closes while
+the same Desktop Mode session remains active.
 
 For day-to-day Steam Deck use, the optional manager keeps phone mode running after
 its terminal closes (while the Desktop Mode user session stays alive):
@@ -74,6 +73,8 @@ its terminal closes (while the Desktop Mode user session stays alive):
 ./manage-steam-deck-guide.sh status
 ./manage-steam-deck-guide.sh restart
 ./manage-steam-deck-guide.sh rotate
+./manage-steam-deck-guide.sh logs
+./manage-steam-deck-guide.sh doctor
 ./manage-steam-deck-guide.sh stop
 ```
 
@@ -85,6 +86,11 @@ shortcut, run `./manage-steam-deck-guide.sh install-shortcut`; undo it with
 user's Desktop folder. It installs no service, autostart entry, package, or root
 change. Runtime PID/log/credential files stay in the ignored `.guide-runtime/`
 folder; the manager does not write its credential into a system configuration path.
+`logs` shows recent server errors and may include the private pairing URL. `doctor`
+checks Python, the database, process status, and prints the shortest connection fixes.
+
+For a visible one-session launcher instead, run `./start-guide-phone.sh`; keep its
+Konsole open and press `Ctrl+C` to stop. On Windows, use `start-guide-phone.bat`.
 
 SteamOS can stop or disconnect ordinary user processes when the Deck suspends,
 reboots, changes network, or switches sessions (including a Desktop/Gaming Mode
@@ -93,9 +99,10 @@ the same Desktop Mode session, not a promise of persistence across those events.
 Run `status`, then `restart` if necessary. The existing bookmark remains valid
 unless you deliberately used `rotate`.
 
-Phone mode is an explicit opt-in. The Deck creates one random pairing identity in
-the user's private configuration directory (outside this repository and save file),
-and reuses it so the phone bookmark keeps working. Only browsers opened through that
+Phone mode is an explicit opt-in. The background manager stores one random pairing
+identity in ignored repo-local runtime data. The one-session launcher stores its
+identity in the user's private configuration directory. Both reuse their identity
+so the phone bookmark keeps working. Only browsers opened through that
 address receive access. To revoke every paired phone, stop the guide and run
 `./start-guide-phone.sh --rotate-pairing`, then replace the old bookmark. Keep the
 printed address private and do not use public Wi-Fi. The
@@ -204,6 +211,7 @@ python scripts/player_progress.py heart-obtained heart_slime
 - `HANDOFF.md` — architecture, decisions, current state, and first-session checklist.
 - `INGEST_STATUS.md` — coverage ledger and next concrete targets.
 - `docs/PRODUCT_READINESS.md` — verified interactive surface and intentional gaps.
+- `docs/PHONE_COMPANION_READINESS.md` — cold-start, recovery, and SteamOS residual audit.
 - `docs/INGESTION_ROADMAP.md` — phased roadmap with acceptance gates.
 - `docs/RETRIEVAL_QUALITY.md` — golden question/evidence audit and boundaries.
 - `docs/PROVENANCE_AND_CONFLICT_POLICY.md` — evidence, citation, confidence, and conflict rules.

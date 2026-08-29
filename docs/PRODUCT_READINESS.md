@@ -1,5 +1,8 @@
 # Interactive guide readiness
 
+See `PHONE_COMPANION_READINESS.md` for the requirement-level Steam Deck/phone
+cold-start, recovery, and platform-limit audit.
+
 The local HTML guide is ready for an active playthrough. Launch it with
 `start-guide.bat` on Windows or `./start-guide.sh` on macOS/Linux. Python 3.10+
 is the only runtime dependency.
@@ -70,3 +73,10 @@ Run `python scripts/build_kb.py` and
 The browser scopes farms to the checkpoint currently being viewed and classifies
 Hearts as available, later, or unknown from that checkpoint rather than treating
 every future-gated Heart as available now.
+
+Rendered mobile screenshots are not part of the current automated evidence: the
+workspace has no Chrome, Chromium, Edge, Firefox, Playwright, Puppeteer, Selenium,
+or equivalent browser runtime installed. Phone behavior is covered by HTTP tests,
+JavaScript syntax validation, and DOM/CSS contracts at the 360px portrait and
+coarse-pointer landscape breakpoints. A real-device visual pass remains useful;
+the repository does not claim pixel-level rendered verification.

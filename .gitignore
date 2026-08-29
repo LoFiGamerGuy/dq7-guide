@@ -6,3 +6,4 @@ data/*.sqlite-wal
 data/*.sqlite-shm
 sources/raw/
 .guide-runtime/
+player/*.before-restore-*.json

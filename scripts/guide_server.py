@@ -1406,7 +1406,7 @@ def _record_accessory_progress(db_path: Path, state_path: Path, path: str, paylo
 
 
 def make_handler(db_path: Path, state_path: Path, static_dir: Path,
-                 pairing_token: str | None = None):
+                 pairing_token: str | None = None, trust_loopback: bool = True):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
     state_write_lock = threading.Lock()
 
@@ -1439,7 +1439,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             return self.client_address[0] in {"127.0.0.1", "::1"}
 
         def _paired(self):
-            if pairing_token is None or self._is_loopback():
+            if pairing_token is None or (trust_loopback and self._is_loopback()):
                 return True
             cookies = {}
             for field in self.headers.get_all("Cookie", []):
@@ -1781,9 +1781,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
 
 def create_server(host="127.0.0.1", port=8765, db_path=DEFAULT_DB,
                   state_path=DEFAULT_STATE, static_dir=DEFAULT_STATIC,
-                  pairing_token: str | None = None):
+                  pairing_token: str | None = None, trust_loopback: bool = True):
     return ThreadingHTTPServer(
-        (host, port), make_handler(db_path, state_path, static_dir, pairing_token)
+        (host, port), make_handler(db_path, state_path, static_dir, pairing_token,
+                                  trust_loopback)
     )
 
 
@@ -1795,6 +1796,8 @@ def main():
     parser.add_argument("--rotate-pairing", action="store_true",
                         help="Replace the saved phone credential and revoke previously paired phones")
     parser.add_argument("--pairing-file", type=Path, default=_default_pairing_file(),
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--require-pairing-everywhere", action="store_true",
                         help=argparse.SUPPRESS)
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
@@ -1812,7 +1815,7 @@ def main():
     pairing_token = (_load_or_create_pairing_token(args.pairing_file, args.rotate_pairing)
                      if args.lan else None)
     server = create_server(args.host, args.port, args.db, args.state, args.static,
-                           pairing_token)
+                           pairing_token, not args.require_pairing_everywhere)
     local_url, phone_urls = _access_urls(args.host, server.server_port, pairing_token)
     print(f"DQ7 guide (this device): {local_url}", flush=True)
     if args.lan:
