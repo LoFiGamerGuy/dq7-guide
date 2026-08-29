@@ -122,8 +122,13 @@ def _access_urls(host: str, port: int, pairing_token: str | None = None) -> tupl
 
 
 def _client_error_status(error: Exception) -> HTTPStatus:
-    return (HTTPStatus.NOT_FOUND if str(error).startswith("Unknown ")
+    return (HTTPStatus.CONFLICT if isinstance(error, ProgressConflict)
+            else HTTPStatus.NOT_FOUND if str(error).startswith("Unknown ")
             else HTTPStatus.BAD_REQUEST)
+
+
+class ProgressConflict(ValueError):
+    """The requested write is valid in shape but unsafe for current progress."""
 
 
 def _checkpoints(db_path: Path) -> list[dict]:
@@ -1408,9 +1413,18 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             row["progress_status"] == "unknown" for row in checkpoint_missables),
     }
     open_ledger_count = sum(ledger_counts.values())
+    missed_checkpoint_missables = [
+        row for row in checkpoint_missables if row["progress_status"] == "missed"
+    ]
     if block["stops"]:
         readiness_status = "blocked_by_stop"
         readiness_reason = "Clear the STOP obligation before advancing."
+    elif missed_checkpoint_missables:
+        readiness_status = "completion_failed"
+        readiness_reason = (
+            "A checkpoint missable is recorded missed; 100% completion requires "
+            "recovery from an earlier save or correcting that record."
+        )
     elif open_required:
         readiness_status = "required_actions_open"
         readiness_reason = "Complete the remaining required actions first."
@@ -1430,6 +1444,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "open_optional_action_count": len(block["now"]) - len(open_required),
         **ledger_counts,
         "open_completion_ledger_count": open_ledger_count,
+        "missed_checkpoint_missable_count": len(missed_checkpoint_missables),
         "saved_checkpoint_match": saved_checkpoint_match,
         "safe_condition_requires_player_confirmation": True,
         "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],
@@ -1869,6 +1884,39 @@ def _record_ui_progress(db_path: Path, state_path: Path, payload: dict) -> str:
     raise ValueError("Unsupported progress kind")
 
 
+def _record_checkpoint_progress(db_path: Path, state_path: Path, target_id: str,
+                                intent: str) -> str:
+    checkpoints = _checkpoints(db_path)
+    by_id = {row["checkpoint_id"]: row for row in checkpoints}
+    if target_id not in by_id:
+        raise ValueError(f"Unknown checkpoint: {target_id}")
+    current_id = _load_state(state_path).get("story", {}).get("checkpoint_id")
+    if current_id is None:
+        if intent != "set":
+            raise ProgressConflict("Initialize the current checkpoint before using Advance.")
+        return update_progress(state_path, db_path, "checkpoint", [target_id])
+    if current_id not in by_id:
+        raise ProgressConflict("Saved checkpoint is not in the current guide build.")
+    current_sequence = by_id[current_id]["sequence_no"]
+    target_sequence = by_id[target_id]["sequence_no"]
+    if target_sequence <= current_sequence:
+        if intent != "set":
+            raise ProgressConflict("Advance must move to the immediate next checkpoint.")
+        return update_progress(state_path, db_path, "checkpoint", [target_id])
+    if intent != "advance":
+        raise ProgressConflict(
+            "Forward progress must use Advance after current STOP, action, and ledger review."
+        )
+    if target_sequence != current_sequence + 1:
+        raise ProgressConflict("Advance must move to the immediate next checkpoint.")
+    readiness = _checkpoint_view(db_path, state_path, current_id)["advancement_readiness"]
+    if not readiness["can_confirm_and_save_next"]:
+        raise ProgressConflict(readiness["reason"])
+    if readiness["next_checkpoint"]["id"] != target_id:
+        raise ProgressConflict("Advance target does not match the next checkpoint.")
+    return update_progress(state_path, db_path, "checkpoint", [target_id])
+
+
 def _record_resource_progress(db_path: Path, state_path: Path, path: str, payload: dict) -> str:
     if path.startswith("/api/dlc-entitlements/"):
         scope = unquote(path.removeprefix("/api/dlc-entitlements/"))
@@ -1896,8 +1944,13 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
     if path.startswith("/api/checkpoints/"):
         if payload.get("selected") is not True:
             raise ValueError("selected must be true")
-        return update_progress(state_path, db_path, "checkpoint",
-                               [unquote(path.removeprefix("/api/checkpoints/"))])
+        intent = payload.get("intent", "set")
+        if intent not in ("set", "advance"):
+            raise ValueError("intent must be set or advance")
+        return _record_checkpoint_progress(
+            db_path, state_path,
+            unquote(path.removeprefix("/api/checkpoints/")), intent,
+        )
     if not isinstance(completed, bool):
         raise ValueError("completed must be true or false")
     mappings = {
@@ -2393,7 +2446,12 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                 ):
                     raise ValueError("values must be a non-empty list of strings or integers")
                 with state_write_lock:
-                    message = update_progress(state_path, db_path, command, [str(v) for v in values])
+                    if command == "checkpoint":
+                        message = _record_checkpoint_progress(
+                            db_path, state_path, str(values[0]), "set"
+                        )
+                    else:
+                        message = update_progress(state_path, db_path, command, [str(v) for v in values])
                     dashboard = _dashboard(db_path, state_path)
                 return self._json({"message": message, "dashboard": dashboard})
             except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:

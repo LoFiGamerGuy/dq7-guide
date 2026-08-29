@@ -98,7 +98,6 @@ class FirstUseEarlyGameE2ETests(unittest.TestCase):
         self.assertEqual(heart["available_from_checkpoint_id"], "cp_003_ballymolloy")
         self.assertEqual(vocation["unlock_progress"]["cost_status"], "verified")
 
-        self.patch("/api/checkpoints/cp_009_alltrades", {"selected": True})
         farms = self.get("/api/farms?through_checkpoint=cp_009_alltrades")
         self.assertTrue(farms["farms"])
         self.assertTrue(all(row["availability_status"] == "available_by_checkpoint"

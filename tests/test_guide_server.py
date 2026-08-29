@@ -21,7 +21,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from guide_server import (_access_urls, _advice_evidence, _checkpoint_view,
                           _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
-                          _monster_hearts,
+                          _monster_hearts, _record_checkpoint_progress,
+                          ProgressConflict,
                           _validate_database, _vocation_unlock_progress,
                           create_server, make_handler)
 from build_kb import build_database
@@ -1619,6 +1620,46 @@ class GuideServerTests(unittest.TestCase):
         self.assertFalse(preview["advancement_readiness"]["saved_checkpoint_match"])
         self.assertFalse(preview["advancement_readiness"]["can_confirm_and_save_next"])
 
+    def test_checkpoint_mutation_cannot_bypass_server_readiness(self):
+        state_path = Path(self.temp.name) / "advancement-write-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_001_prologue"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        db_path = ROOT / "data" / "dq7_reimagined.sqlite"
+        with self.assertRaisesRegex(ProgressConflict, "Forward progress must use Advance"):
+            _record_checkpoint_progress(db_path, state_path,
+                                        "cp_002_estard_shrine", "set")
+        with self.assertRaisesRegex(ProgressConflict, "STOP"):
+            _record_checkpoint_progress(db_path, state_path,
+                                        "cp_002_estard_shrine", "advance")
+        with self.assertRaisesRegex(ProgressConflict, "immediate next"):
+            _record_checkpoint_progress(db_path, state_path,
+                                        "cp_003_ballymolloy", "advance")
+        self.assertEqual(json.loads(state_path.read_text())["story"]["checkpoint_id"],
+                         "cp_001_prologue")
+        _record_checkpoint_progress(db_path, state_path, "cp_001_prologue", "set")
+
+        state["story"]["checkpoint_id"] = None
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        _record_checkpoint_progress(db_path, state_path, "cp_003_ballymolloy", "set")
+        _record_checkpoint_progress(db_path, state_path, "cp_002_estard_shrine", "set")
+        self.assertEqual(json.loads(state_path.read_text())["story"]["checkpoint_id"],
+                         "cp_002_estard_shrine")
+
+    def test_recorded_missed_checkpoint_missable_blocks_advancement(self):
+        state_path = Path(self.temp.name) / "missed-readiness-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_001_prologue"
+        state["completion"]["obligations_completed"] = ["obl_prologue_fish_bits"]
+        state["completion"]["missables_missed"] = ["missable_fish_bits"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        view = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                state_path, "cp_001_prologue")
+        readiness = view["advancement_readiness"]
+        self.assertEqual(readiness["status"], "completion_failed")
+        self.assertEqual(readiness["missed_checkpoint_missable_count"], 1)
+        self.assertFalse(readiness["can_confirm_and_save_next"])
+
     def test_vocation_unlock_progress_uses_only_explicit_mastery(self):
         state_path = Path(self.temp.name) / "unlock-progress-state.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
@@ -1780,7 +1821,11 @@ class GuideServerTests(unittest.TestCase):
             self.patch_json("/api/vocations/" + vocation_id,
                             {"character": "Hero", "completed": completed})
 
-        self.patch_json("/api/checkpoints/cp_002_estard_shrine", {"selected": True})
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["story"]["checkpoint_id"] = None
+        self.state.write_text(json.dumps(state), encoding="utf-8")
+        self.patch_json("/api/checkpoints/cp_002_estard_shrine",
+                        {"selected": True, "intent": "set"})
         status, dashboard = self.get_json("/api/dashboard")
         self.assertEqual(status, 200)
         self.assertTrue(dashboard["checkpoint"]["is_saved"])
