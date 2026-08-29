@@ -124,6 +124,11 @@ Missing, unreadable, corrupt, empty, or wrong-schema databases fail startup with
 rebuild instruction, so `GET /api/health` cannot report ready while domain APIs are
 unable to query the required schema.
 
+`HEAD /api/health` returns the same status and representation headers as the GET
+health check with no body. In LAN mode it requires the same pairing cookie, query
+token, or `X-DQ7-Pair` authorization; an unpaired probe receives `401`, never a
+public readiness signal.
+
 The Stella/Stellar Fan spelling remains unresolved because the current direct evidence consists of conflicting guide text, not a legible English in-game name capture. Both spellings resolve to the same item detail/search result through the sourced alias, while the canonical display remains `Stellar Fan` without claiming that this adjudicates the conflict. Resolution requires a current-version English Item List, inventory, shop, or acquisition-result capture with the complete name visible.
 
 Tempest Shield is intentionally absent from the conflict registry. Its Present Sanctum of the Cirrus treasure and later Ventus Tower 2F chest are independent finite acquisition rows, not competing values: Game8's dedicated item/map tables support the Sanctum route, and both Game8's Wind Spirit walkthrough and RPG Site support Ventus Tower. Item detail therefore returns both chest routes with their separate checkpoint gates.

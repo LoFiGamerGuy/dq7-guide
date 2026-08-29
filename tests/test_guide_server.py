@@ -198,6 +198,13 @@ class GuideServerTests(unittest.TestCase):
         phone_launcher = (ROOT / "start-guide-phone.sh").read_text(encoding="utf-8")
         self.assertIn("guide_server.py --lan --open-browser", phone_launcher)
         self.assertEqual(self.get_json("/api/health"), (200, {"status": "ok"}))
+        head = Request(self.base + "/api/health", method="HEAD")
+        with urlopen(head) as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.headers["Content-Type"],
+                             "application/json; charset=utf-8")
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+            self.assertEqual(response.read(), b"")
         status, checkpoints = self.get_json("/api/checkpoints")
         self.assertEqual(status, 200)
         self.assertEqual(checkpoints[0]["id"], "cp_001_prologue")
@@ -310,6 +317,10 @@ class GuideServerTests(unittest.TestCase):
                 urlopen(base + "/api/health")
             self.assertEqual(context.exception.code, 401)
             self.assertIn("Phone not paired", context.exception.read().decode())
+            with self.assertRaises(HTTPError) as context:
+                urlopen(Request(base + "/api/health", method="HEAD"))
+            self.assertEqual(context.exception.code, 401)
+            self.assertEqual(context.exception.read(), b"")
 
             opener = build_opener(HTTPCookieProcessor(CookieJar()))
             with opener.open(base + "/?pair=one-launch-token") as response:
@@ -324,6 +335,12 @@ class GuideServerTests(unittest.TestCase):
             request = Request(base + "/api/health", headers={"X-DQ7-Pair": "one-launch-token"})
             with urlopen(request) as response:
                 self.assertEqual(json.load(response), {"status": "ok"})
+            head = Request(base + "/api/health",
+                           headers={"X-DQ7-Pair": "one-launch-token"},
+                           method="HEAD")
+            with urlopen(head) as response:
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.read(), b"")
 
             with self.assertRaises(HTTPError) as context:
                 urlopen(base + "/?pair=expired-token")

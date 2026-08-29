@@ -1883,6 +1883,15 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.end_headers()
             self.wfile.write(body)
 
+        def _head_json(self, payload, status=HTTPStatus.OK):
+            """Return GET-equivalent JSON headers without a response body."""
+            body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+
         def _download_json(self, payload, filename):
             body = (json.dumps(payload, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
             self.send_response(HTTPStatus.OK)
@@ -1940,6 +1949,20 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                 "Phone not paired. Open the current DQ7 guide (phone) URL shown on the Steam Deck.",
             )
             return False
+
+        def do_HEAD(self):
+            parsed = urlparse(self.path)
+            supplied_query = parse_qs(parsed.query).get("pair", [""])[0]
+            query_is_paired = bool(supplied_query) and hmac.compare_digest(
+                supplied_query, pairing_token or "")
+            if not query_is_paired and not self._paired():
+                return self._head_json(
+                    {"error": "Phone not paired. Open the current DQ7 guide (phone) URL shown on the Steam Deck."},
+                    HTTPStatus.UNAUTHORIZED,
+                )
+            if parsed.path == "/api/health":
+                return self._head_json({"status": "ok"})
+            return self._head_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
 
         def do_GET(self):
             parsed = urlparse(self.path)
