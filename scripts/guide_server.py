@@ -4,14 +4,16 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date
+from datetime import date, datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
 from pathlib import Path
+import socket
 import sqlite3
 import threading
+import tempfile
 from urllib.parse import parse_qs, unquote, urlparse
 import webbrowser
 
@@ -22,7 +24,7 @@ from early_walkthrough import DEFAULT_FROM, DEFAULT_THROUGH, load_walkthrough
 from hoarder_report import load_hoarder_report
 from item_report import load_item_routes
 from monster_report import load_monster_coverage, load_monster_report
-from player_progress import update_progress
+from player_progress import _load_state, _save_state, update_progress
 from vocation_report import load_vocation_details
 
 
@@ -42,6 +44,32 @@ ALLOWED_PROGRESS_COMMANDS = {
     "missable-completed", "missable-undo",
     "accessory-set",
 }
+
+
+def _lan_addresses() -> list[str]:
+    """Return usable local IPv4 addresses without sending network traffic."""
+    addresses: set[str] = set()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+            probe.connect(("192.0.2.1", 80))
+            addresses.add(probe.getsockname()[0])
+    except OSError:
+        pass
+    try:
+        for result in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            addresses.add(result[4][0])
+    except OSError:
+        pass
+    return sorted(address for address in addresses
+                  if address and not address.startswith("127."))
+
+
+def _access_urls(host: str, port: int) -> tuple[str, list[str]]:
+    """Return the same-device URL and any practical phone URLs."""
+    local_url = f"http://127.0.0.1:{port}"
+    phone_urls = ([f"http://{address}:{port}" for address in _lan_addresses()]
+                  if host in {"0.0.0.0", "::"} else [])
+    return local_url, phone_urls
 
 
 def _client_error_status(error: Exception) -> HTTPStatus:
@@ -1347,6 +1375,16 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
             self.end_headers()
             self.wfile.write(body)
 
+        def _download_json(self, payload, filename):
+            body = (json.dumps(payload, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
         def _error(self, status, message):
             self._json({"error": message}, status)
 
@@ -1365,6 +1403,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     return self._json(_checkpoint_view(db_path, state_path, checkpoint_id))
                 if parsed.path == "/api/progress":
                     return self._json(_progress(db_path, state_path))
+                if parsed.path == "/api/state-backup":
+                    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+                    return self._download_json(_load_state(state_path),
+                                               f"dq7-progress-{stamp}.json")
                 if parsed.path == "/api/equipment":
                     return self._json(_equipment_readiness(db_path, state_path))
                 if parsed.path == "/api/evidence-gaps":
@@ -1535,13 +1577,46 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 return self._error(_client_error_status(error), str(error))
 
         def do_POST(self):
-            if urlparse(self.path).path != "/api/progress":
+            path = urlparse(self.path).path
+            if path not in ("/api/progress", "/api/state-restore"):
                 return self._error(HTTPStatus.NOT_FOUND, "Unknown API endpoint")
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > MAX_BODY_BYTES:
                     return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "Invalid body size")
                 payload = json.loads(self.rfile.read(length))
+                if path == "/api/state-restore":
+                    if payload.get("confirmation") != "RESTORE":
+                        raise ValueError("Restore requires explicit RESTORE confirmation")
+                    restored = payload.get("state")
+                    if not isinstance(restored, dict):
+                        raise ValueError("state must be a JSON object")
+                    with state_write_lock:
+                        current = _load_state(state_path)
+                        for key in ("schema_version", "player", "game"):
+                            if restored.get(key) != current.get(key):
+                                raise ValueError(f"Backup {key} does not match this guide")
+                        temporary = None
+                        try:
+                            with tempfile.NamedTemporaryFile(
+                                mode="w", encoding="utf-8", dir=state_path.parent,
+                                prefix=".dq7-restore-", suffix=".json", delete=False,
+                            ) as handle:
+                                json.dump(restored, handle, ensure_ascii=False)
+                                temporary = Path(handle.name)
+                            validated = _load_state(temporary)
+                        finally:
+                            if temporary is not None and temporary.exists():
+                                temporary.unlink()
+                        recovery = state_path.with_name(
+                            f"{state_path.stem}.before-restore-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}.json"
+                        )
+                        recovery.write_bytes(state_path.read_bytes())
+                        _save_state(state_path, validated)
+                        dashboard = _dashboard(db_path, state_path)
+                    return self._json({"message": "Progress restored.",
+                                       "recovery_file": recovery.name,
+                                       "dashboard": dashboard})
                 command, values = payload.get("command"), payload.get("values")
                 if command not in ALLOWED_PROGRESS_COMMANDS:
                     raise ValueError("Unsupported progress command")
@@ -1593,6 +1668,13 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", mimetypes.guess_type(candidate.name)[0] or "application/octet-stream")
             self.send_header("Content-Length", str(len(body)))
+            if candidate.name == "service-worker.js":
+                self.send_header("Service-Worker-Allowed", "/")
+                self.send_header("Cache-Control", "no-cache")
+            elif candidate.suffix in (".html", ".json"):
+                self.send_header("Cache-Control", "no-cache")
+            else:
+                self.send_header("Cache-Control", "public, max-age=3600")
             self.end_headers()
             self.wfile.write(body)
 
@@ -1610,6 +1692,8 @@ def create_server(host="127.0.0.1", port=8765, db_path=DEFAULT_DB,
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--lan", action="store_true",
+                        help="Let trusted devices on the local network open and edit the guide")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
@@ -1617,11 +1701,24 @@ def main():
     parser.add_argument("--open-browser", action="store_true",
                         help="Open the guide in the default browser after starting")
     args = parser.parse_args()
+    if args.lan:
+        if args.host != "127.0.0.1":
+            parser.error("--lan cannot be combined with --host")
+        args.host = "0.0.0.0"
     server = create_server(args.host, args.port, args.db, args.state, args.static)
-    url = f"http://{args.host}:{server.server_port}"
-    print(f"DQ7 guide: {url}")
+    local_url, phone_urls = _access_urls(args.host, server.server_port)
+    print(f"DQ7 guide (this device): {local_url}", flush=True)
+    if args.lan:
+        print("PHONE MODE: progress editing is available to devices on this trusted local network.",
+              flush=True)
+        if phone_urls:
+            for phone_url in phone_urls:
+                print(f"DQ7 guide (phone): {phone_url}", flush=True)
+        else:
+            print("Phone address unavailable. Connect the Deck to Wi-Fi, then restart.", flush=True)
+        print("Keep this window open. Press Ctrl+C here to stop sharing.", flush=True)
     if args.open_browser:
-        webbrowser.open(url)
+        webbrowser.open(local_url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -56,6 +56,31 @@ python scripts/guide_server.py --open-browser
 
 Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, read-only equipment comparison, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. Its first-use editor records an explicit checkpoint, medal count, party levels, current vocations, and mastery while preserving unknowns. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only validated changes.
 
+### Use on a phone while playing on Steam Deck
+
+1. Put the Steam Deck and phone on the same trusted Wi-Fi network.
+2. On Windows, double-click `start-guide-phone.bat`. On SteamOS Desktop Mode,
+   macOS, or Linux, run `start-guide-phone.sh` (right-click it and choose
+   **Run In Konsole** on SteamOS if prompted).
+3. Open the printed `DQ7 guide (phone)` address on the phone and bookmark it.
+4. Keep the Konsole window open while playing. Press `Ctrl+C` there to stop.
+
+Phone mode is an explicit opt-in because it permits devices on the local network
+to view the guide and edit its selected player-state file. Do not use it on public
+Wi-Fi. The ordinary launchers remain private to the computer. If the phone cannot
+connect, allow Python through the Steam Deck firewall for the private/local network,
+disable phone VPN or cellular fallback temporarily, and confirm both devices are on
+the same Wi-Fi. No cloud account, internet service, QR provider, or third-party Python
+package is involved.
+
+The normal phone URL uses local HTTP, so the Deck host must remain running and
+reachable. Browsers only enable installable/offline service workers on localhost or
+a secure HTTPS origin; when served that way, visited guide/API pages can reopen from
+cache. Cached pages are always read-only: offline progress edits are rejected and
+never queued, preventing hidden divergence from the canonical player file. The
+Progress view can download a JSON backup and restore one with an explicit
+confirmation; the host preserves the pre-restore state as a recovery file.
+
 The Sources view also provides a dated audit of the remaining single-source,
 unsupported, and corroborated-but-unresolved evidence gaps.
 

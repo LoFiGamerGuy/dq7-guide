@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0 };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -18,15 +18,35 @@ const viewTitles = { dashboard: "Dashboard", walkthrough: "Walkthrough", progres
 const $ = (selector) => document.querySelector(selector);
 const empty = () => document.importNode($("#emptyTemplate").content, true);
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 
 async function api(path, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  if (method !== "GET" && !navigator.onLine) throw new Error("Offline: progress changes are not queued");
   state.requests += 1; $("#main").setAttribute("aria-busy", "true");
   try {
     const response = await fetch(`/api${path}`, { headers: { "Content-Type": "application/json" }, ...options });
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    if (response.headers.get("X-DQ7-Offline-Cache") === "true") { state.usingCachedData = true; renderConnectionState(false); }
     return response.status === 204 ? null : response.json();
   } finally {
     state.requests -= 1; if (!state.requests) $("#main").removeAttribute("aria-busy");
+  }
+}
+
+function renderConnectionState(reconnected = false) {
+  const banner = $("#connectionBanner");
+  if (!navigator.onLine || state.usingCachedData) {
+    banner.hidden = false;
+    banner.className = "connection-banner";
+    banner.textContent = "Offline or host unavailable · cached pages are read-only. Progress changes are not queued.";
+  } else if (reconnected) {
+    banner.hidden = false;
+    banner.className = "connection-banner online";
+    banner.textContent = "Reconnected · refreshed from the guide host.";
+    window.setTimeout(() => { if (navigator.onLine) banner.hidden = true; }, 3500);
+  } else {
+    banner.hidden = true;
   }
 }
 
@@ -104,6 +124,8 @@ function renderCheckpoint() {
   const index = state.checkpoints.findIndex(row => row.id === c.id);
   $("#previousCheckpoint").disabled = index <= 0;
   $("#nextCheckpoint").disabled = index < 0 || index >= state.checkpoints.length - 1;
+  $("#mobilePrevious").disabled = index <= 0;
+  $("#mobileNext").disabled = index < 0 || index >= state.checkpoints.length - 1;
   $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
   renderStopActions($("#checkpointStop"), c.stop_actions || []);
   renderChecks($("#actions"), c.actions || [], $("#hideCompleted").checked);
@@ -388,6 +410,10 @@ $("#refreshButton").addEventListener("click", () => loadAll().catch(handleError)
 $("#checkpointSelect").addEventListener("change", event => loadCheckpoint(event.target.value).catch(handleError));
 $("#previousCheckpoint").addEventListener("click", () => stepCheckpoint(-1).catch(handleError));
 $("#nextCheckpoint").addEventListener("click", () => stepCheckpoint(1).catch(handleError));
+$("#mobilePrevious").addEventListener("click", () => { showView("walkthrough"); stepCheckpoint(-1).then(scrollToTop).catch(handleError); });
+$("#mobileNext").addEventListener("click", () => { showView("walkthrough"); stepCheckpoint(1).then(scrollToTop).catch(handleError); });
+$("#mobileTop").addEventListener("click", scrollToTop);
+document.querySelectorAll("[data-mobile-view]").forEach(button => button.addEventListener("click", () => { showView(button.dataset.mobileView); scrollToTop(); }));
 $("#setCheckpointButton").addEventListener("click", async () => {
   const id = $("#checkpointSelect").value;
   try { setStatus("Saving checkpoint…"); await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) }); await loadAll(); setStatus("Checkpoint saved"); }
@@ -405,6 +431,29 @@ $("#partyDetailsMember").addEventListener("change", syncPartyDetails);
 $("#medalCountForm").addEventListener("submit", event => { event.preventDefault(); recordCommand("medal-count", [$("#medalCountInput").value]).catch(handleError); });
 $("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
 $("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
+$("#restoreFile").addEventListener("change", async event => {
+  state.pendingRestore = null;
+  $("#restoreConfirm").hidden = true;
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Backup must contain a JSON object");
+    state.pendingRestore = parsed;
+    $("#restoreConfirm").hidden = false;
+    setStatus(`Backup selected: ${file.name}`);
+  } catch (error) { state.pendingRestore = null; handleError(error); }
+});
+$("#cancelRestoreButton").addEventListener("click", () => { state.pendingRestore = null; $("#restoreFile").value = ""; $("#restoreConfirm").hidden = true; setStatus("Restore cancelled"); });
+$("#confirmRestoreButton").addEventListener("click", async () => {
+  if (!state.pendingRestore) return;
+  try {
+    setStatus("Restoring progress…");
+    const result = await api("/state-restore", { method: "POST", body: JSON.stringify({ confirmation: "RESTORE", state: state.pendingRestore }) });
+    state.pendingRestore = null; $("#restoreFile").value = ""; $("#restoreConfirm").hidden = true;
+    await loadAll(); setStatus(`${result.message} Previous state saved as ${result.recovery_file}.`);
+  } catch (error) { handleError(error); }
+});
 document.addEventListener("change", event => {
   if (event.target.dataset.accessoryCharacter) {
     const path = `/equipment/accessories/${encodeURIComponent(event.target.dataset.accessoryCharacter)}/${event.target.dataset.accessorySlot}`;
@@ -428,6 +477,10 @@ $("#catalogSearch").addEventListener("input", renderCatalog);
 function handleError(error) { console.error(error); const target = $("#status"); target.classList.add("error"); target.innerHTML = `Could not load guide. <button class="secondary" type="button" data-retry>Retry</button>`; }
 document.addEventListener("keydown", event => { if (event.key === "Escape" && $("#primaryNav").classList.contains("open")) { $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false"); $("#menuButton").focus(); } });
 window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
+window.addEventListener("offline", () => renderConnectionState(false));
+window.addEventListener("online", () => { state.usingCachedData = false; renderConnectionState(true); loadAll().catch(handleError); });
 const initialRoute = location.hash.slice(1) || "dashboard";
 if (domains[initialRoute]) showDomain(initialRoute); else showView(initialRoute);
+renderConnectionState(false);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/service-worker.js").catch(error => console.warn("Offline shell unavailable", error));
 loadAll().catch(handleError);

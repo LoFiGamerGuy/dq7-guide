@@ -4,6 +4,15 @@ The local HTML guide is ready for an active playthrough. Launch it with
 `start-guide.bat` on Windows or `./start-guide.sh` on macOS/Linux. Python 3.10+
 is the only runtime dependency.
 
+For Steam Deck + phone play, run `start-guide-phone.sh` in Desktop Mode and open
+the printed phone URL. LAN access is opt-in, uses no external service, and ends
+when its Konsole process is stopped. Use it only on trusted Wi-Fi because phone
+mode includes the same validated progress-editing controls as the Deck browser.
+The ordinary LAN URL is online-to-host only. Offline installation/caching requires
+localhost or a secure HTTPS origin due to browser rules; cached data is visibly
+read-only, and changes are never queued. Progress JSON can be exported from and
+explicitly restored in the Progress view, with a pre-restore recovery copy retained.
+
 ## Verified surface
 
 - Dashboard, checkpoint walkthrough, progress editor, sources, and conflicts.
@@ -20,6 +29,8 @@ is the only runtime dependency.
   motion support. Failed checkbox saves roll back visibly.
 - Player writes are validated, serialized, and atomic. Checkpoint advancement
   always requires an explicit action.
+- Install metadata, cache versioning, explicit offline/read-only behavior, and
+  confirmed backup restore are covered by static/API tests.
 - A clean-state HTTP workflow verifies the Prologue preview, early STOPs and
   citations, checkpoint selection, first-ten-hours guidance, and reversible
   action/medal/tablet/item/monster/Heart/vocation updates.

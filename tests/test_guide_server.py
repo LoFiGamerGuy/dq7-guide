@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import (_checkpoint_view, _equipment_readiness, _evidence_gaps, _progress,
+from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps, _progress,
                           _vocation_unlock_progress, create_server)
 
 
@@ -47,6 +47,12 @@ class GuideServerTests(unittest.TestCase):
     def patch_json(self, path, payload):
         request = Request(self.base + path, data=json.dumps(payload).encode(),
                           headers={"Content-Type": "application/json"}, method="PATCH")
+        with urlopen(request) as response:
+            return response.status, json.load(response)
+
+    def post_json(self, path, payload):
+        request = Request(self.base + path, data=json.dumps(payload).encode(),
+                          headers={"Content-Type": "application/json"}, method="POST")
         with urlopen(request) as response:
             return response.status, json.load(response)
 
@@ -122,6 +128,8 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("The guide could not start", launcher)
         self.assertIn("python3 scripts/guide_server.py --open-browser", unix_launcher)
         self.assertIn("sys.version_info", unix_launcher)
+        phone_launcher = (ROOT / "start-guide-phone.sh").read_text(encoding="utf-8")
+        self.assertIn("guide_server.py --lan --open-browser", phone_launcher)
         self.assertEqual(self.get_json("/api/health"), (200, {"status": "ok"}))
         status, checkpoints = self.get_json("/api/checkpoints")
         self.assertEqual(status, 200)
@@ -144,6 +152,54 @@ class GuideServerTests(unittest.TestCase):
             self.assertNotIn(b'state.domain === "medals" && entry.completed', app)
             self.assertIn(b"Save failed. Change was not recorded.", app)
             self.assertIn(b"saveToggle(event.target", app)
+
+    def test_phone_shell_manifest_service_worker_and_backup(self):
+        with urlopen(self.base + "/manifest.webmanifest") as response:
+            manifest = json.load(response)
+            self.assertEqual(manifest["display"], "standalone")
+            self.assertEqual(manifest["start_url"], "/#walkthrough")
+            self.assertTrue(manifest["icons"])
+        with urlopen(self.base + "/service-worker.js") as response:
+            worker = response.read()
+            self.assertEqual(response.headers["Service-Worker-Allowed"], "/")
+            self.assertIn(b'request.method !== "GET"', worker)
+            self.assertIn(b'/api/state-backup', worker)
+            self.assertIn(b"DATA_CACHE", worker)
+        with urlopen(self.base + "/api/state-backup") as response:
+            backup = json.load(response)
+            self.assertIn("attachment;", response.headers["Content-Disposition"])
+            self.assertEqual(backup["player"], "Ryan")
+        with urlopen(self.base + "/app.js") as response:
+            app = response.read()
+            self.assertIn(b"progress changes are not queued", app)
+            self.assertIn(b'navigator.serviceWorker.register("/service-worker.js")', app)
+
+    def test_restore_requires_confirmation_validates_and_keeps_recovery_copy(self):
+        _, original = self.get_json("/api/state-backup")
+        backup = json.loads(json.dumps(original))
+        backup["completion"]["mini_medal_count"] = 17
+        with self.assertRaises(HTTPError) as missing_confirmation:
+            self.post_json("/api/state-restore", {"state": backup})
+        self.assertEqual(missing_confirmation.exception.code, 400)
+        status, restored = self.post_json("/api/state-restore", {
+            "confirmation": "RESTORE", "state": backup,
+        })
+        self.assertEqual(status, 200)
+        self.assertEqual(self.get_json("/api/progress")[1]["mini_medal_count"], 17)
+        recovery = self.state.with_name(restored["recovery_file"])
+        self.assertTrue(recovery.is_file())
+        self.post_json("/api/state-restore", {
+            "confirmation": "RESTORE", "state": original,
+        })
+
+    def test_network_urls_keep_normal_mode_private_and_label_phone_mode(self):
+        local, phone = _access_urls("127.0.0.1", 8765)
+        self.assertEqual(local, "http://127.0.0.1:8765")
+        self.assertEqual(phone, [])
+        local, phone = _access_urls("0.0.0.0", 8765)
+        self.assertEqual(local, "http://127.0.0.1:8765")
+        self.assertTrue(all(url.startswith("http://") and url.endswith(":8765")
+                            for url in phone))
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
