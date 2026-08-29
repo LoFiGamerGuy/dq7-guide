@@ -98,6 +98,13 @@ due achievements but does not independently infer that the exit condition is met
 
 Returns display totals plus explicit editor state: `saved_checkpoint`, raw `mini_medal_count` (nullable), and `party`. Member rows expose only recorded `level`, `primary_vocation`, `secondary_vocation`, and `mastered_vocations`; null values remain unknown. Equipment and party presence are not inferred.
 
+`ledger_audit` covers medals, required items, monsters, tablet fragments, Monster
+Hearts, missables, vocations, and achievements. Every ledger reports `status`,
+nullable `known_count`, canonical `total`, and `unknown_state_ids`; missables also
+separate completed and missed counts. Empty legacy identity arrays remain unknown
+rather than becoming false zero. The optional Monster Heart ledger is the exception:
+once explicitly created, an empty list means zero recorded Hearts.
+
 Each counter may be a string, `{ "display": "x / y" }`, or `null`. `open_work` is ordered by current relevance.
 
 ```json
@@ -124,6 +131,11 @@ is explicitly tiered as `single_source`, `unsupported`, or
 condition, and expands every registered `source_id` to current source metadata. Two
 guide texts do not resolve a row whose acceptance condition requires direct UI or
 save-tested evidence.
+
+The endpoint separately returns the complete unresolved-conflict count grouped by
+predicate and whole-registry source freshness totals. The five priority research
+gaps are therefore never presented as the entire conflict or source-maintenance
+inventory.
 
 The first-class domain routes call:
 
@@ -160,6 +172,10 @@ profile; absent player mastery remains unknown.
 - `GET /api/achievements`
 
 Each returns an object containing `items`, `vocations`, `monsters`, `medals`, `fragments`, or `achievements`. Paginated registries also return `total`, `limit`, and `offset` (achievement paging metadata is under `page`). The browser normalizes persisted IDs and progress fields for display.
+
+Checkpoint `actions` and `stop_actions` include their precise source object.
+`GET /api/farms?through_checkpoint={checkpoint_id}` excludes routes gated after
+that checkpoint and labels returned rows `available_by_checkpoint`.
 
 Monster Hearts return `{total, limit, offset, ownership_tracking, owned_count, unknown_state_ids, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, locator, `owned`, and `ownership_status`. `owned: null` / `ownership_tracking: "unknown"` means Ryan has never reported Heart inventory; it is not false or zero. Only canonical registry IDs contribute to `owned_count`; stale or foreign saved IDs remain visible in `unknown_state_ids`.
 
@@ -215,7 +231,7 @@ List, Vicious encounters, tablets, vocations, and medals.
 `GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
-reports a 311-row weapon/shield/head/torso/accessory/Heart audit separately. Only rows where at
+reports a complete 311-row canonical weapon/shield/head/torso/accessory/Heart audit separately. Only rows where at
 least two independent publishers agree are expanded into six explicit character
 decisions. `compatibility_audits` retains every agreeing,
 disputed, and single-source row with both character lists and exact source

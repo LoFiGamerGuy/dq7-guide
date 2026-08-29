@@ -2,14 +2,20 @@
 cd /d "%~dp0"
 where py >nul 2>nul
 if not errorlevel 1 (
-  py -3 scripts\guide_server.py --open-browser
-  goto :finished
+  py -3 -c "import sys; raise SystemExit(sys.version_info ^< (3, 10))" >nul 2>nul
+  if not errorlevel 1 (
+    py -3 scripts\guide_server.py --open-browser
+    goto :finished
+  )
 )
 
 where python >nul 2>nul
 if not errorlevel 1 (
-  python scripts\guide_server.py --open-browser
-  goto :finished
+  python -c "import sys; raise SystemExit(sys.version_info ^< (3, 10))" >nul 2>nul
+  if not errorlevel 1 (
+    python scripts\guide_server.py --open-browser
+    goto :finished
+  )
 )
 
 echo Python 3.10 or newer is required. Install it from https://www.python.org/downloads/

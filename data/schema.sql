@@ -110,6 +110,19 @@ CREATE TABLE equipment_compatibility (
     PRIMARY KEY(item_id, character_name)
 );
 
+CREATE TABLE item_identity_redirects (
+    legacy_item_id TEXT PRIMARY KEY REFERENCES items(item_id),
+    canonical_item_id TEXT NOT NULL REFERENCES items(item_id),
+    source_id TEXT NOT NULL REFERENCES sources(source_id),
+    corroborating_source_id TEXT NOT NULL REFERENCES sources(source_id),
+    locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    corroborating_locator TEXT NOT NULL CHECK(length(trim(corroborating_locator)) > 0),
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    notes TEXT,
+    CHECK(legacy_item_id <> canonical_item_id)
+);
+
 CREATE TABLE conflicts (
     conflict_id TEXT PRIMARY KEY,
     conflict_key TEXT NOT NULL,

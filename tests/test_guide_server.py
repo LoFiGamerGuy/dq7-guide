@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from guide_server import (_checkpoint_view, _equipment_readiness, _evidence_gaps,
+from guide_server import (_checkpoint_view, _equipment_readiness, _evidence_gaps, _progress,
                           _vocation_unlock_progress, create_server)
 
 
@@ -69,18 +69,18 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(accessory["confidence"], "verified")
         coverage = report["compatibility_coverage"]
         self.assertEqual(coverage["status"], "partial_two_source_matrix")
-        self.assertEqual(coverage["catalog_item_rows"], 312)
+        self.assertEqual(coverage["catalog_item_rows"], 311)
         self.assertEqual(coverage["audited_item_rows"], 311)
-        self.assertEqual(coverage["verified_item_rows"], 299)
-        self.assertEqual(coverage["conflicted_item_rows"], 10)
+        self.assertEqual(coverage["verified_item_rows"], 306)
+        self.assertEqual(coverage["conflicted_item_rows"], 3)
         self.assertEqual(coverage["single_source_item_rows"], 2)
-        self.assertEqual(coverage["unaudited_item_rows"], 1)
+        self.assertEqual(coverage["unaudited_item_rows"], 0)
         accessories = next(row for row in coverage["by_category"]
                            if row["category"] == "Accessories")
-        self.assertEqual(accessories["catalog_item_rows"], 75)
-        self.assertEqual(accessories["verified_item_rows"], 69)
-        self.assertEqual(accessories["conflicted_item_rows"], 5)
-        self.assertEqual(accessories["unaudited_item_rows"], 1)
+        self.assertEqual(accessories["catalog_item_rows"], 74)
+        self.assertEqual(accessories["verified_item_rows"], 74)
+        self.assertEqual(accessories["conflicted_item_rows"], 0)
+        self.assertEqual(accessories["unaudited_item_rows"], 0)
         cautery = next(row for row in report["recommendations"]
                        if row["item_name"] == "Cautery Sword")
         self.assertEqual(cautery["character"], "Hero")
@@ -98,8 +98,10 @@ class GuideServerTests(unittest.TestCase):
         launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")
         unix_launcher = (ROOT / "start-guide.sh").read_text(encoding="utf-8")
         self.assertIn("Python 3.10 or newer is required", launcher)
+        self.assertIn("sys.version_info", launcher)
         self.assertIn("The guide could not start", launcher)
         self.assertIn("python3 scripts/guide_server.py --open-browser", unix_launcher)
+        self.assertIn("sys.version_info", unix_launcher)
         self.assertEqual(self.get_json("/api/health"), (200, {"status": "ok"}))
         status, checkpoints = self.get_json("/api/checkpoints")
         self.assertEqual(status, 200)
@@ -129,6 +131,14 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(audit["single_source"], 2)
         self.assertEqual(audit["unsupported"], 1)
         self.assertEqual(audit["corroborated_but_unresolved"], 2)
+        self.assertEqual(audit["unresolved_conflicts"], sum(
+            row["count"] for row in audit["unresolved_conflicts_by_predicate"]
+        ))
+        self.assertGreater(audit["unresolved_conflicts"], 0)
+        self.assertEqual(audit["source_freshness"]["total"], sum(
+            audit["source_freshness"][key]
+            for key in ("within_180_days", "over_180_days", "unknown")
+        ))
         by_id = {row["gap_id"]: row for row in audit["gaps"]}
         self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
         self.assertEqual(by_id["gap_shell_shield_identity"]["source_count"], 1)
@@ -142,6 +152,31 @@ class GuideServerTests(unittest.TestCase):
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])
+
+    def test_progress_audits_every_completion_ledger_without_false_zeroes(self):
+        state_path = Path(self.temp.name) / "ledger-state.json"
+        shutil.copy(ROOT / "player" / "ryan-save-state.json", state_path)
+        progress = _progress(ROOT / "data" / "dq7_reimagined.sqlite", state_path)
+        expected = {"medals", "items", "monsters", "tablets", "hearts",
+                    "missables", "vocations", "achievements"}
+        self.assertEqual(set(progress["ledger_audit"]), expected)
+        self.assertTrue(all(progress["ledger_audit"][key]["status"] == "unknown"
+                            for key in expected))
+        self.assertTrue(all(progress[key]["display"] == "Unknown"
+                            for key in expected))
+
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["completion"]["monster_hearts_owned"] = []
+        state["completion"]["items_obtained"] = ["item_cypress_stick", "stale_item"]
+        state["completion"]["missables_missed"] = ["missable_wooden_doll"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        progress = _progress(ROOT / "data" / "dq7_reimagined.sqlite", state_path)
+        self.assertEqual(progress["ledger_audit"]["hearts"]["known_count"], 0)
+        self.assertEqual(progress["ledger_audit"]["hearts"]["status"], "partial")
+        self.assertEqual(progress["ledger_audit"]["items"]["known_count"], 1)
+        self.assertEqual(progress["ledger_audit"]["items"]["unknown_state_ids"],
+                         ["stale_item"])
+        self.assertEqual(progress["ledger_audit"]["missables"]["status"], "missed")
 
     def test_checkpoint_and_domain_endpoints(self):
         _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")

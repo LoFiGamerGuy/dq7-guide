@@ -84,6 +84,7 @@ python scripts/monster_report.py --checkpoint cp_003_ballymolloy
 python scripts/monster_report.py --coverage
 python scripts/heart_report.py --checkpoint cp_003_ballymolloy --sources
 python scripts/conflict_report.py
+python -m unittest tests.test_retrieval_quality -v
 python -m unittest discover -s tests -v
 ```
 
@@ -137,6 +138,7 @@ python scripts/player_progress.py heart-obtained heart_slime
 - `INGEST_STATUS.md` — coverage ledger and next concrete targets.
 - `docs/PRODUCT_READINESS.md` — verified interactive surface and intentional gaps.
 - `docs/INGESTION_ROADMAP.md` — phased roadmap with acceptance gates.
+- `docs/RETRIEVAL_QUALITY.md` — golden question/evidence audit and boundaries.
 - `docs/PROVENANCE_AND_CONFLICT_POLICY.md` — evidence, citation, confidence, and conflict rules.
 - `CODEX_KICKOFF_PROMPT.md` — ready-to-paste prompt for the first local Codex session.
 - `RECOVERY_MANIFEST.md` — exact reconstruction disclosure.

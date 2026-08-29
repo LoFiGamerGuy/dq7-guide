@@ -1,0 +1,8 @@
+[
+  {"id":"safe_advance_alltrades","question":"Can I safely advance from Alltrades Abbey?","checkpoint_id":"cp_009_alltrades","evidence_domains":["checkpoint_obligations","checkpoint_advice"],"requires_precise_locators":true},
+  {"id":"strongest_legal_gear_alltrades","question":"What is the strongest legal gear at Alltrades?","checkpoint_id":"cp_009_alltrades","evidence_domains":["checkpoint_advice","equipment_compatibility","item_acquisition_paths"],"requires_source_diversity":true},
+  {"id":"champion_vocation_path","question":"What is the legal path to Champion and how much proficiency does it cost?","checkpoint_id":"cp_010_alltrades_present","evidence_domains":["vocation_requirements","vocation_progression_profiles"],"requires_source_diversity":true},
+  {"id":"available_farm_alltrades","question":"What can I farm now at Alltrades?","checkpoint_id":"cp_009_alltrades","evidence_domains":["farming_spots"],"requires_checkpoint_filter":true},
+  {"id":"cactiball_heart","question":"What does Cactiball Heart do and when is it available?","checkpoint_id":"cp_011_la_bravoure","evidence_domains":["monster_hearts","item_acquisition_paths"],"requires_precise_locators":true},
+  {"id":"visible_conflicts","question":"Which facts still conflict and what evidence supports each side?","checkpoint_id":null,"evidence_domains":["conflicts","claims","sources"],"requires_precise_locators":true}
+]

@@ -58,10 +58,10 @@ def _checkpoints(db_path: Path) -> list[dict]:
         )]
 
 
-def _rows(db_path: Path, sql: str) -> list[dict]:
+def _rows(db_path: Path, sql: str, parameters: tuple = ()) -> list[dict]:
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row
-        return [dict(row) for row in connection.execute(sql)]
+        return [dict(row) for row in connection.execute(sql, parameters)]
 
 
 def _state(state_path: Path) -> dict:
@@ -339,7 +339,7 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             "Only two-source-agreeing compatibility rows are normalized; disputed and single-source rows remain read-only.",
             "Duplicate accessory/Heart equip and effect-stacking behavior has only one current-version source and is not normalized.",
             "One-each weapon, shield, head, and torso slot counts lack direct two-source evidence.",
-            "Five accessory rows conflict and one legacy duplicate Heart identity has no deterministic source row.",
+            "Three compatibility rows conflict and two armour rows remain single-source.",
         ],
         "mechanics": [],
         "compatibility_coverage": {
@@ -415,7 +415,9 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 SUM(CASE WHEN a.item_id IS NULL THEN 1 ELSE 0 END) AS unaudited_item_rows
             FROM item_categories c JOIN items i USING(category_id)
             LEFT JOIN equipment_compatibility_audits a USING(item_id)
+            LEFT JOIN item_identity_redirects redirect ON redirect.legacy_item_id=i.item_id
             WHERE c.name IN ('Weapons','Shields','Head','Armour','Accessories')
+              AND redirect.legacy_item_id IS NULL
             GROUP BY c.category_id ORDER BY c.heroic_hoarder_order"""
         )]
         result["compatibility_coverage"] = {
@@ -659,6 +661,23 @@ def _farms(db_path: Path, query: dict) -> dict:
         row["rate_status"] = "numeric_unpublished"
         row["provenance_gap"] = False
         row["strategy_kind"] = "attributed_strategy" if row["strategy"] else None
+    through_checkpoint = query.get("through_checkpoint", [""])[0].strip()
+    if through_checkpoint:
+        checkpoint = _rows(db_path,
+            "SELECT sequence_no FROM checkpoints WHERE checkpoint_id=?",
+            (through_checkpoint,))
+        if not checkpoint:
+            raise ValueError(f"Unknown checkpoint: {through_checkpoint}")
+        sequence = checkpoint[0]["sequence_no"]
+        gated = _rows(db_path, "SELECT checkpoint_id, sequence_no FROM checkpoints")
+        sequence_by_id = {row["checkpoint_id"]: row["sequence_no"] for row in gated}
+        rows = [row for row in rows
+                if row["available_from_checkpoint_id"] is not None
+                and sequence_by_id[row["available_from_checkpoint_id"]] <= sequence]
+        for row in rows:
+            row["availability_status"] = "available_by_checkpoint"
+        query = {key: value for key, value in query.items()
+                 if key != "through_checkpoint"}
     page = _page(rows, query, ("farming_id", "target", "location",
         "time_period", "available_from", "encounter_rate_text", "strategy", "farm_type"))
     page["farms"] = page.pop("results")
@@ -728,6 +747,14 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
                            for source in gap["sources"]) else
             "current_retrieval"
         )
+    conflict_rows = _rows(db_path, """SELECT ca.predicate, COUNT(*) AS count
+        FROM conflicts c JOIN claims ca ON ca.claim_id=c.claim_a_id
+        WHERE c.status='unresolved'
+        GROUP BY ca.predicate ORDER BY count DESC, ca.predicate""")
+    source_total = len(source_rows)
+    freshness_counts = {"within_180_days": 0, "over_180_days": 0, "unknown": 0}
+    for source in source_rows.values():
+        freshness_counts[source["retrieval_band"]] += 1
     return {
         "total": len(gaps),
         "single_source": sum(gap["verification_tier"] == "single_source" for gap in gaps),
@@ -735,6 +762,9 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
         "corroborated_but_unresolved": sum(
             gap["verification_tier"] == "corroborated_but_unresolved" for gap in gaps
         ),
+        "unresolved_conflicts": sum(row["count"] for row in conflict_rows),
+        "unresolved_conflicts_by_predicate": conflict_rows,
+        "source_freshness": {"total": source_total, **freshness_counts},
         "gaps": gaps,
     }
 
@@ -1038,6 +1068,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "action": row["action"], "completed": False,
             "required": bool(row["required_for_100_percent"]),
             "type": row["obligation_type"],
+            "source": {"id": row["source_id"], "title": row["source_title"],
+                       "url": row["source_url"], "locator": row["locator"]},
         } for row in block["stops"]],
         "actions": [{
             "id": row["obligation_id"], "title": row["subject"],
@@ -1045,6 +1077,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "required": bool(row["required_for_100_percent"]),
             "type": row["obligation_type"], "display_order": row["display_order"],
             "is_next": index == 0,
+            "source": {"id": row["source_id"], "title": row["source_title"],
+                       "url": row["source_url"], "locator": row["locator"]},
         } for index, row in enumerate(block["now"])],
         "advice": [{
             "id": row["advice_id"], "type": row["advice_type"],
@@ -1106,14 +1140,76 @@ def _progress(db_path: Path, state_path: Path) -> dict:
         vocation_id for member in state.get("party", {}).get("members", {}).values()
         for vocation_id, value in member.get("vocation_mastery", {}).items() if value is True
     }
+    def identity_ledger(values: list, sql: str, total: int) -> dict:
+        canonical = {next(iter(row.values())) for row in _rows(db_path, sql)}
+        recorded = set(values)
+        known = len(recorded & canonical)
+        return {
+            "status": ("unknown" if not recorded else
+                       "complete" if known >= total else "partial"),
+            "known_count": None if not recorded else known,
+            "total": total,
+            "unknown_state_ids": sorted(recorded - canonical),
+        }
+
+    ledgers = {
+        "items": identity_ledger(completion.get("items_obtained", []),
+            "SELECT item_id FROM items WHERE heroic_hoarder_required=1", hoarder["total"]),
+        "monsters": identity_ledger(completion.get("monster_entries", []),
+            "SELECT monster_id FROM monsters", monsters["total"]),
+        "tablets": identity_ledger(completion.get("tablet_fragments", []),
+            "SELECT fragment_id FROM tablet_fragments", 71),
+        "achievements": identity_ledger(completion.get("achievements_unlocked", []),
+            "SELECT achievement_id FROM achievements", achievements["total"]),
+    }
+    heart_tracking = "monster_hearts_owned" in completion
+    heart_values = completion.get("monster_hearts_owned", [])
+    hearts = identity_ledger(heart_values, "SELECT heart_id FROM monster_hearts", 46)
+    if heart_tracking and not heart_values:
+        hearts.update({"status": "partial", "known_count": 0})
+    ledgers["hearts"] = hearts
+    vocation_values = sorted(mastered)
+    ledgers["vocations"] = identity_ledger(
+        vocation_values, "SELECT vocation_id FROM vocations", 26
+    )
+    found_medals = completion.get("mini_medals_found", [])
+    if medal_count is not None:
+        ledgers["medals"] = {"status": "complete" if medal_count >= 100 else "partial",
+            "known_count": medal_count, "total": 100, "unknown_state_ids": []}
+    else:
+        valid_medals = {number for number in found_medals
+            if isinstance(number, int) and not isinstance(number, bool)
+            and 1 <= number <= 100}
+        invalid_medals = [number for number in set(found_medals)
+            if number not in valid_medals]
+        ledgers["medals"] = {"status": "unknown" if not found_medals else "partial",
+            "known_count": None if not found_medals else len(valid_medals),
+            "total": 100, "unknown_state_ids": sorted(invalid_medals, key=str)}
+    completed_missables = set(completion.get("missables_completed", []))
+    missed_missables = set(completion.get("missables_missed", []))
+    missables = identity_ledger(sorted(completed_missables | missed_missables),
+        "SELECT missable_id FROM missables", 7)
+    missables["completed_count"] = len(completed_missables)
+    missables["missed_count"] = len(missed_missables)
+    if missed_missables:
+        missables["status"] = "missed"
+    ledgers["missables"] = missables
+
+    def display(ledger: dict) -> str:
+        count = ledger["known_count"]
+        return "Unknown" if count is None else f"{count} / {ledger['total']}"
     return {
         "actions": {"display": f"{len(completion.get('obligations_completed', []))} recorded"},
-        "medals": None if medals is None else {"display": f"{medals} / 100"},
+        "medals": {"display": display(ledgers["medals"])},
         "mini_medal_count": medal_count,
-        "items": {"display": f"{hoarder['obtained_count']} / {hoarder['total']}"},
-        "monsters": {"display": f"{monsters['defeated']} / {monsters['total']}"},
-        "vocations": {"display": f"{len(mastered)} / 26"},
-        "achievements": {"display": f"{achievements['unlocked_count']} / {achievements['total']}"},
+        "items": {"display": display(ledgers["items"])},
+        "monsters": {"display": display(ledgers["monsters"])},
+        "tablets": {"display": display(ledgers["tablets"])},
+        "hearts": {"display": display(ledgers["hearts"])},
+        "missables": {"display": display(ledgers["missables"])},
+        "vocations": {"display": display(ledgers["vocations"])},
+        "achievements": {"display": display(ledgers["achievements"])},
+        "ledger_audit": ledgers,
         "saved_checkpoint": state.get("story", {}).get("checkpoint_id"),
         "party": [{"name": name, "level": member.get("level"),
                    "primary_vocation": member.get("primary_vocation"),

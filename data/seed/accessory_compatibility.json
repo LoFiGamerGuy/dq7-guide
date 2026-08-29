@@ -1,4 +1,7 @@
 {
+  "identity_redirects": [
+    {"legacy_item_id":"item_meowgiican_heart","canonical_item_id":"item_meowgician_heart","source_id":"rpgsite_heroic_hoarder","corroborating_source_id":"game8_meowgician_heart","locator":"Accessories > Meowgiican Heart; walkthrough route names Vicious Meowgician","corroborating_locator":"Meowgician Heart Overview and Stats > Category > Monster Heart","confidence":"verified","verification_status":"two_source_typographic_identity_resolution","notes":"Preserves the published RPG Site-derived ID while redirecting it to the correctly spelled canonical Heart. Both acquisition records remain intact."}
+  ],
   "ordinary": [
     ["item_strength_ring","ちからのゆびわ","HMRAS","HKMR","HKMRAS"],
     ["item_prayer_ring","いのりのゆびわ","HMRAS","HMRAS","HKMRAS"],
@@ -33,6 +36,17 @@
     ["item_fire_amulet","炎のアミュレット","HMRAS","HMRAS","HMRAS"],
     ["item_water_amulet","水のアミュレット","HMRAS","HMRAS","HMRAS"],
     ["item_air_amulet","風のアミュレット","HMRAS","HMRAS","HMRAS"]
+  ],
+  "supplemental": [
+    ["item_strength_ring","HKMRAS","gamedeep_accessories","Accessories > ちからのゆびわ > compatible characters"],
+    ["item_slime_earring","HKM","gamedeep_accessories","Accessories > スライムピアス > compatible characters"],
+    ["item_rabbit_tail","HKMRAS","gamedeep_accessories","Accessories > うさぎのしっぽ > compatible characters"],
+    ["item_bow_tie","HK","gamedeep_accessories","Accessories > ちょうネクタイ > compatible characters"],
+    ["item_ruby_of_protection","HKMRAS","gamedeep_accessories","Accessories > まもりのルビー > compatible characters"],
+    ["item_boxer_shorts","HKR","gamedeep_armour","Armour > ステテコパンツ > compatible characters"],
+    ["item_spiked_armour","HRA","gamedeep_armour","Armour > やいばのよろい > compatible characters"],
+    ["item_iron_lance","HKR","gamedeep_spears","Spears > てつのやり > compatible characters"],
+    ["item_white_shield","HM","gamedeep_shields","Shields > ホワイトシールド > compatible characters"]
   ],
   "hearts": [
     ["item_slime_heart","スライムの心"],["item_lips_heart","リップスの心"],

@@ -59,10 +59,11 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 527)
+        self.assertEqual(self.counts["sources"], 531)
         self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
-        self.assertEqual(self.counts["equipment_compatibility"], 1794)
+        self.assertEqual(self.counts["equipment_compatibility"], 1836)
+        self.assertEqual(self.counts["item_identity_redirects"], 1)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -143,13 +144,17 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE c.name='Accessories' GROUP BY a.agreement_status"""
         ).fetchall()
         self.assertEqual({row["agreement_status"]: row["row_count"] for row in accessory_rows},
-                         {"two_source_agreement": 69, "source_disagreement": 5})
+                         {"two_source_agreement": 74})
         self.assertEqual(self.connection.execute(
             "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_slime_heart'"
         ).fetchone()[0], 6)
-        self.assertIsNone(self.connection.execute(
-            "SELECT audit_id FROM equipment_compatibility_audits WHERE item_id='item_meowgiican_heart'"
-        ).fetchone())
+        redirect = self.connection.execute(
+            """SELECT canonical_item_id, verification_status FROM item_identity_redirects
+            WHERE legacy_item_id='item_meowgiican_heart'"""
+        ).fetchone()
+        self.assertEqual(redirect["canonical_item_id"], "item_meowgician_heart")
+        self.assertEqual(redirect["verification_status"],
+                         "two_source_typographic_identity_resolution")
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)

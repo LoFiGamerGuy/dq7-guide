@@ -405,6 +405,41 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "verification_status": "source_checked_row_level_compatibility",
                     "notes": "Source-specific character list retained for independent corroboration.",
                 })
+        audits_by_item = {row["item_id"]: row for row in equipment_compatibility_audits}
+        for item_id, character_codes_value, source_id, locator in accessory_matrix["supplemental"]:
+            characters = [character_codes[code] for code in character_codes_value]
+            audit = audits_by_item[item_id]
+            existing_lists = [row for row in (
+                audit["source_a_characters"], audit["source_b_characters"],
+                audit["source_c_characters"],
+            ) if row is not None]
+            independently_corroborated = characters in existing_lists
+            if independently_corroborated:
+                # Keep every original source claim below, but make the audit's third
+                # visible column the adjudicating source so the promotion is inspectable.
+                audit.update({
+                    "agreement_status": "two_source_agreement",
+                    "allowed_characters": characters,
+                    "source_c_characters": characters,
+                    "source_c_id": source_id,
+                    "source_c_locator": locator,
+                    "confidence": "verified",
+                    "verification_status": "two_independent_current_version_rows_match_after_fourth_source",
+                    "notes": (audit["notes"] + " A fourth current-version publisher matches one retained claim; "
+                              "the other original claims remain visible in claims/conflicts."),
+                })
+            equipment_compatibility_claims.append({
+                "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_gamedeep",
+                "subject_key": f"item:{item_id.removeprefix('item_')}",
+                "predicate": "equipment_compatible_characters",
+                "value": {"characters": characters}, "claim_kind": "fact",
+                "scope": {"game": "DQ7 Reimagined", "platform": "unknown", "patch": "patch_unknown"},
+                "source_id": source_id, "locator": locator, "confidence": "high",
+                "verification_status": ("source_checked_row_level_compatibility_corroborates_existing_claim"
+                                        if independently_corroborated else
+                                        "source_checked_row_level_compatibility_disagrees_not_normalized"),
+                "notes": "Fourth-source adjudication claim; original claims are retained.",
+            })
         connection.executemany(
             """INSERT INTO sources(
                 source_id, title, publisher, url, source_class, role,
@@ -1106,6 +1141,18 @@ def _build_database(db_path: Path) -> dict[str, int]:
             ) VALUES (?, ?, ?, ?)""",
             compatibility_rows,
         )
+        connection.executemany(
+            """INSERT INTO item_identity_redirects(
+                legacy_item_id, canonical_item_id, source_id,
+                corroborating_source_id, locator, corroborating_locator,
+                confidence, verification_status, notes
+            ) VALUES (
+                :legacy_item_id, :canonical_item_id, :source_id,
+                :corroborating_source_id, :locator, :corroborating_locator,
+                :confidence, :verification_status, :notes
+            )""",
+            accessory_matrix["identity_redirects"],
+        )
 
         connection.executemany(
             """INSERT INTO achievement_requirements(
@@ -1509,7 +1556,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
         counts = {}
         for table in (
             "sources", "entities", "relationships", "claims", "documents", "equipment_rules",
-            "equipment_compatibility_audits", "equipment_compatibility",
+            "equipment_compatibility_audits", "equipment_compatibility", "item_identity_redirects",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
             "vocation_progression_rules", "vocation_rank_costs",
             "vocation_progression_profiles", "vocation_stat_modifiers",

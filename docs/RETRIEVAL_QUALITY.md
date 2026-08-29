@@ -1,0 +1,25 @@
+# Retrieval quality audit
+
+Audit date: 2026-08-28
+
+`data/golden_questions.json` defines six representative playthrough questions:
+safe advancement, strongest legal gear, vocation planning, available farming,
+Monster Hearts, and visible conflicts. `tests/test_retrieval_quality.py` verifies
+their structured evidence bundles against a clean rebuilt database.
+
+The suite requires:
+
+- checkpoint-scoped obligations, advice, acquisition gates, and farms;
+- precise locators for every externally sourced result;
+- independent sources where a normalized mechanic or numeric profile claims
+  corroboration;
+- player-state unknowns to remain unknown;
+- both claims and both citations for unresolved conflicts;
+- rejection of source metadata explicitly scoped to PS1 or Nintendo 3DS.
+
+The first audit added citations directly to checkpoint action payloads, added
+`through_checkpoint` filtering and an explicit availability status to farm
+retrieval, and exposed source IDs on both sides of conflict-report rows.
+
+This suite protects representative evidence bundles; it does not imply that all
+possible natural-language questions or all guide domains are complete.

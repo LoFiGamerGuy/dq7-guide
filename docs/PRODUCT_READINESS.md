@@ -10,7 +10,8 @@ is the only runtime dependency.
 - Searchable items, vocations, monsters, Monster Hearts, missables, farms,
   seeds, Mini Medals, tablets, and achievements.
 - Shared ledgers for checkpoint actions, medals, tablets, finite items,
-  monsters, achievements, and missables.
+  monsters, Monster Hearts, achievements, and missables. The Progress view audits
+  every completion ledger and preserves unreported empty legacy arrays as unknown.
 - Explicit saved checkpoint, party levels, vocations, and vocation mastery;
   unknown values remain unknown.
 - STOP warnings precede normal actions; safe advancement comes last. Unresolved
