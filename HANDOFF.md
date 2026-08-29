@@ -40,11 +40,12 @@ Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
 Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
 refinements remain separate evidence gaps.
 
-The subsequent current-version walkthrough audit refines 28 finite routes and
-reduces the exact-container residual from 31 to 13. Eighteen routes have exact
-containers; ten preserve a narrower room, route, or paired-container ambiguity.
-Do not collapse those remaining pair-member unknowns or the disputed Frobisher
-Fishnet Stockings area into invented directions.
+The subsequent current-version walkthrough audits reduce the exact-container
+residual from 31 to 9. Kamikazee Bracer, the Wilted Heart Mountain Path Strength
+Ring, and Burnmount's Yggdrasil Leaf now have exact chest directions from an
+independent current-version walkthrough. Do not collapse the nine remaining
+pair-member/container unknowns or the disputed Frobisher Fishnet Stockings period
+into invented directions.
 
 Six additional power cards now carry two-publisher atomic evidence: Tribulators
 healing-item safety, the Present La Bravoure Metal King Slime route and critical
@@ -61,9 +62,10 @@ universal best wearer.
 
 Pirate's Hat is resolved to Buccanham Palace Past: Neoseeker and Eliteguias
 independently agree on the 2F bedroom wardrobe pair. Both losing Present conflict
-pairs remain visible. Fishnet Stockings now carries the unresolved period conflict:
-Game8 says Frobisher Past, while GuíasPSN says the Present inn wardrobe; keep the
-translation/derivation caveat and do not normalize the new route yet.
+pairs remain visible. Fishnet Stockings now carries two unresolved period pairs:
+Game8 says Frobisher Past, while GuíasPSN and independent Eliteguias chronology
+place it in the Present inn's right-hand wardrobe. Preserve every claim pending
+direct UI or in-game adjudication.
 
 ## Source methodology
 

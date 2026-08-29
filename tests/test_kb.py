@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 621)
+        self.assertEqual(self.counts["sources"], 625)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1175,7 +1175,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             "chest", "Likeness of the Great Evil 5F", "Past",
             "cp_011_la_bravoure", "finite", 1, 1,
         ))
-        self.assertIn("pair_member_unknown", row[7])
+        self.assertEqual(row[7], "two_source_route_exact_container_resolved")
 
     def test_missables_have_precise_provenance_and_exact_blue_button_cutoff(self):
         rows = self.connection.execute(
@@ -1525,8 +1525,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         by_id = {row["acquisition_id"]: row for row in rows}
         self.assertIn("pair_member_unknown", by_id[
             "acq_knuckledusters_pilgrims_perdition_past"]["verification_status"])
-        self.assertIn("container_unknown", by_id[
-            "acq_yggdrasil_leaf_burnmont_past"]["verification_status"])
+        self.assertEqual(by_id["acq_yggdrasil_leaf_burnmont_past"][
+            "verification_status"], "two_source_route_exact_container_resolved")
         self.assertEqual(by_id["acq_iron_lance_grotta_sigillo_past"][
             "verification_status"], "source_checked_exact_container")
         self.assertEqual(by_id["acq_iron_lance_allblades_arena_past"][
@@ -2319,7 +2319,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 12)
+        self.assertEqual(residual, 9)
 
     def test_pirates_hat_period_conflict_is_resolved_but_visible(self):
         rows = self.connection.execute(
@@ -2344,12 +2344,12 @@ class KnowledgeBaseTests(unittest.TestCase):
             JOIN claims b ON b.claim_id=c.claim_b_id
             WHERE a.subject_key='item:fishnet_stockings_frobisher'"""
         ).fetchall()
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]['status'], 'unresolved')
-        self.assertEqual({
-            json.loads(rows[0]['value_a'])['time_period'],
-            json.loads(rows[0]['value_b'])['time_period'],
-        }, {'Past', 'Present'})
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(row['status'] == 'unresolved' for row in rows))
+        self.assertTrue(all({
+            json.loads(row['value_a'])['time_period'],
+            json.loads(row['value_b'])['time_period'],
+        } == {'Past', 'Present'} for row in rows))
 
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {
