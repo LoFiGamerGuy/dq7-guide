@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 663 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 667 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -22,23 +22,23 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame reward rule with all nine eligible Super-stat items | High for fixed effects, one-per-victory reward, and two-publisher pool membership; selection weights remain unknown | Preserve unknown probabilities until a draw algorithm or reproducible measurements are published |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
-| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking; individual-monster units and in-battle wins normalized | High for identities, thresholds, and verified units; Massively Minted has a visible balance-versus-lifetime conflict and six exact counter questions remain | Resolve counter overlaps, gold semantics, metal-family membership, and save/reset scope through controlled deltas or direct documentation |
+| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking; individual-monster units, in-battle wins, lifetime-gold semantics, and the four-member metal-family roster normalized | High for identities, thresholds, and verified units; four exact counter questions remain | Resolve quick-win overlaps/units and save/reset scope through controlled deltas or direct documentation |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; Scarewell's exact fixed Past route has two independent current-version sources | Preserve the PS5-only scope on its separately sourced reset method; do not infer numeric rates |
 | Player state | Schema and empty Ryan state; optional exact item-copy totals with quantity-safe global equipment allocation | Ready, no user data; missing totals remain unknown and duplicate legality is item-specific | Fill only from Ryan's reports; never infer quantities |
-| Conflicts | Automatic exact-scope detection active; 1 unresolved claim-pair remains: Massively Minted's simultaneous-balance versus lifetime-gold condition. Stellar Fan is resolved by a direct English acquisition toast, with both older guide claims retained. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; the gold condition is deliberately not collapsed | Resolve the gold condition with controlled counter evidence or publisher documentation |
+| Conflicts | Automatic exact-scope detection active; all 411 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired by four-publisher agreement; the simultaneous-balance claim remains visible as losing evidence. Stellar Fan is resolved by direct English UI, and fourteen compatibility pairs use linked two-publisher consensus claims | High; every losing claim and rationale remains visible | Preserve conflict visibility and reopen only if stronger same-scope evidence disagrees |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 663
+- sources: 667
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,820
+- claims: 1,831
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 411 total / 1 unresolved claim-pair / 1 unresolved fact scope
+- conflicts: 411 total / 0 unresolved claim-pairs / 0 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -75,16 +75,16 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
-- **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
+- **Achievements:** no identity or structured non-story requirement gap remains. Massively Minted's lifetime-total semantics and the exact four-member metal-family roster are independently corroborated. Four questions remain: quick-win overlap with Field Day, quick-win victims in Monster Masher/Metal Mangler, multi-enemy quick-win units, and save/reset scope.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
-- **Conflicts:** one automatically detected claim-pair remains unresolved: whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. `Stellar Fan` is resolved by a legible launch-period English acquisition toast, while RPG Site's `Stella Fan` wording remains visible as the losing claim. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
-- **Conflict-safe phone action:** Massively Minted remains unresolved, but its detail now labels a conservative synthesis: hold 300,000 gold simultaneously before spending. That satisfies either registered claim and is not presented as evidence for either counter implementation.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 663 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** all 411 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired because GameWith, Game8 Japan, and Altema publish the same explicit cumulative condition and independently match Maestros del Mando; the isolated simultaneous-balance instruction remains visible as losing evidence. `Stellar Fan` is resolved by a legible launch-period English acquisition toast. Fourteen pairwise equipment conflicts use two-publisher consensus claims. Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all losing claims beside their resolutions.
+- **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 667 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Seek explicit repeat evidence for a non-Vicious Heart route; defeated Vicious/strong encounters are verified finite.
-2. Resolve the six exact remaining achievement-counter questions, additional named accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence. Meteorite Bracer and Rabbit Tail are already item-specific verified cases.
+2. Resolve the four exact remaining achievement-counter questions, additional named accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence. Meteorite Bracer and Rabbit Tail are already item-specific verified cases.
 3. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors this complete six-item evidence-blocked
@@ -93,6 +93,16 @@ queue: 1 single-source, 1 unsupported, and 4 corroborated-but-unresolved rows.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The achievement adjudication batch closes two of six counter questions. GameWith,
+Game8 Japan, and Altema independently publish the exact cumulative Massively
+Minted condition, matching Maestros del Mando's explicit lifetime-total reading;
+the isolated simultaneous-balance instruction is retained as losing evidence.
+GameWith and Kyokugen independently enumerate Metal Slime, Liquid Metal Slime,
+Metal King Slime, and Platinum King as the complete current-version metal family.
+The phone achievement card exposes the resolved rule and no longer recommends
+unnecessarily holding 300,000 gold at once. Quick-win overlaps/units and
+save/reset scope remain unknown.
 
 The second exact-container video pass resolves Knuckledusters in Strom's Mansion
 Past Level 2: continuous English footage opens the west/left north-wall closet for
@@ -440,8 +450,10 @@ pairs.
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence. The Blue Button row now isolates only immediate pre-trigger
   presence; its cp022-to-cp023 event mapping is directly evidenced.
-- **Automatic conflicts:** one unresolved claim-pair/fact scope remains:
-  Massively Minted's gold-counter condition. Stellar Fan is resolved from direct
+- **Automatic conflicts:** no unresolved claim-pair/fact scope remains.
+  Massively Minted is resolved to lifetime total gold acquired by four independent
+  current-version publishers; its isolated simultaneous-balance claim remains visible.
+  Stellar Fan is resolved from direct
   English UI while retaining the losing Stella Fan claim. Fourteen equipment-compatible-character pairs
   are resolved through separately linked two-publisher consensus claims when the
   supported complete list is neither losing value. Fishnet Stockings and Marshal
@@ -467,7 +479,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 663 source records currently have retrieval dates within 180
+- **Freshness:** all 667 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

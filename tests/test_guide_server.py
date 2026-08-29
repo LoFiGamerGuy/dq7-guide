@@ -429,7 +429,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
-        self.assertGreater(audit["unresolved_conflicts"], 0)
+        self.assertEqual(audit["unresolved_conflicts"], 0)
         self.assertEqual(audit["source_freshness"]["total"], sum(
             audit["source_freshness"][key]
             for key in ("within_180_days", "over_180_days", "unknown")
@@ -473,9 +473,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(len(hearts["supporting_claims"]), 2)
         self.assertIn("verified finite", hearts["acceptance_condition"])
         counters = by_id["gap_achievement_counter_semantics"]
-        self.assertEqual(counters["source_count"], 5)
-        self.assertEqual(len(counters["supporting_claims"]), 9)
-        self.assertIn("simultaneous-balance", counters["summary"])
+        self.assertEqual(counters["source_count"], 3)
+        self.assertEqual(len(counters["supporting_claims"]), 7)
+        self.assertIn("four-member metal-family roster", counters["summary"])
         self.assertIn("quick-win", counters["acceptance_condition"])
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
@@ -581,18 +581,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(panel["source"]["locator"])
         self.assertIn("two_source_verified", panel["verification_status"])
         _, conflicts = self.get_json("/api/conflicts")
-        self.assertGreater(len(conflicts), 0)
-        self.assertEqual(conflicts[0]["status"], "unresolved")
-        self.assertEqual(len(conflicts[0]["claims"]), 2)
-        for claim in conflicts[0]["claims"]:
-            self.assertIn("scope", claim)
-            self.assertIn("locator", claim)
-            self.assertTrue(claim["source"]["url"])
-            self.assertIn("retrieved_at", claim["source"])
-
-        self.assertTrue(conflicts[0]["required_evidence"])
-        self.assertFalse(any("tempest shield" in row["subject"]
-                             for row in conflicts))
+        self.assertEqual(conflicts, [])
         _, tempest_item = self.get_json("/api/items/Tempest%20Shield")
         tempest_chests = {row["location_text"] for row in tempest_item["routes"]
                           if row["method"] == "chest"}
@@ -607,6 +596,15 @@ class GuideServerTests(unittest.TestCase):
                          stellar_item["item"]["item_id"])
         self.assertEqual(stellar_item["item"]["name"], "Stellar Fan")
         _, all_conflicts = self.get_json("/api/conflicts?include_resolved=1")
+        gold = next(row for row in all_conflicts
+                    if "massively minted" in row["subject"])
+        self.assertEqual(gold["status"], "resolved")
+        self.assertEqual(gold["resolution"]["value"],
+                         "lifetime total gold acquired")
+        self.assertEqual({
+            evidence["source"]["publisher"]
+            for evidence in gold["resolution_evidence"]
+        }, {"Altema", "Game8 Japan", "GameWith", "Maestros del Mando"})
         stellar = next(row for row in all_conflicts
                        if "stella fan" in row["subject"])
         self.assertEqual(stellar["status"], "resolved")
@@ -1653,11 +1651,15 @@ class GuideServerTests(unittest.TestCase):
         _, gold_detail = self.get_json(
             "/api/achievements/ach_massively_minted"
         )
-        self.assertEqual(len(gold_detail["counter_semantics"]), 2)
+        self.assertEqual(len(gold_detail["counter_semantics"]), 5)
         self.assertEqual(len(gold_detail["counter_conflicts"]), 1)
         self.assertEqual(gold_detail["counter_conflicts"][0]["status"],
-                         "unresolved")
-        self.assertIn("semantics_conflict",
+                         "resolved")
+        self.assertEqual(
+            gold_detail["counter_conflicts"][0]["resolution"]["value"],
+            "lifetime total gold acquired",
+        )
+        self.assertIn("lifetime_total_semantics",
                       gold_detail["requirement_verification_status"])
         for completed in (True, False):
             self.patch_json("/api/achievements/" + achievement_id,

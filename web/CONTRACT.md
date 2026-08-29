@@ -117,7 +117,7 @@ Each counter may be a string, `{ "display": "x / y" }`, or `null`. `open_work` i
 [{"id":"conflict_id","subject":"item:tempest shield","predicate":"precise location","status":"unresolved","detection_method":"manual","rationale":null,"claims":[{"id":"claim_a","value":{"location":"A"},"scope":{"game":"DQ7 Reimagined"},"confidence":"high","verification_status":"source_checked","locator":"Heading > row","source":{"title":"Guide A","url":"https://example.com/a","updated_at":"2026-02-19","retrieved_at":"2026-08-25"}},{"id":"claim_b","value":{"location":"B"},"scope":{"game":"DQ7 Reimagined"},"confidence":"high","verification_status":"source_checked","locator":"Heading > row","source":{"title":"Guide B","url":"https://example.com/b","updated_at":null,"retrieved_at":"2026-08-25"}}]}]
 ```
 
-The conflict view presents both claims symmetrically with their independent scopes, confidence, verification status, source, locator, and freshness dates. `updated_at: null` is displayed as unknown. An unresolved badge, `required_evidence`, and “No resolution is implied” remain visible; value order does not indicate preference. With `include_resolved=1`, resolved rows expose `resolution_claim_id` and the recorded adjudication rationale. When one conflicting claim is the resolution, it has `is_resolution: true`. When two independent publishers instead agree on a third complete value, `resolution_is_external` is true, `resolution_evidence` contains every matching sourced claim, and a separate consensus card displays the distinct corroborating publishers; both losing pair claims remain unchanged and visible. The build rejects an equipment consensus unless matching claims come from at least two distinct publishers.
+The conflict view presents both claims symmetrically with their independent scopes, confidence, verification status, source, locator, and freshness dates. `updated_at: null` is displayed as unknown. An unresolved badge, `required_evidence`, and “No resolution is implied” remain visible; value order does not indicate preference. With `include_resolved=1`, resolved rows expose `resolution_claim_id`, the recorded adjudication rationale, and `resolution_evidence` containing every sourced claim with the winning normalized value. When one conflicting claim is the resolution, it has `is_resolution: true`. When two independent publishers instead agree on a third complete value, `resolution_is_external` is true and a separate consensus card displays the distinct corroborating publishers; both losing pair claims remain unchanged and visible. The build rejects an equipment consensus unless matching claims come from at least two distinct publishers.
 
 The server validates the knowledge database before binding its listening socket.
 Missing, unreadable, corrupt, empty, or wrong-schema databases fail startup with a
@@ -251,6 +251,14 @@ remain `unknown`, not zero; an explicit `mini_medal_count: 0` is an exact zero.
 has not itself been recorded. This distinction applies to Heroic Hoarder, Monster
 List, Vicious encounters, tablets, vocations, and medals.
 
+Achievement details retain every counter-semantic claim and every resolved or
+unresolved counter conflict. A resolved row includes its `resolution` claim and
+rationale; the browser displays the winning rule without hiding the losing claim.
+Massively Minted is resolved to lifetime total gold acquired from four independent
+current-version publishers. The exact metal-family roster is independently
+corroborated as Metal Slime, Liquid Metal Slime, Metal King Slime, and Platinum
+King; quick-win inclusion remains a separate unknown.
+
 `GET /api/equipment` is an equipment-readiness and comparison endpoint with a narrow accessory editor.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
@@ -261,8 +269,11 @@ disputed, and single-source row with both character lists and exact source
 locators. Verified slot mechanics and partial matrix coverage must not be
 mistaken for duplicate-effect rules. `PATCH /api/equipment/accessories/{character}/{accessory_1|accessory_2}`
 accepts `{ "item_id": canonical_id_or_null }`. It permits only explicitly owned,
-verified-compatible canonical accessories, treats Hearts as accessories, refuses
-the same item ID in both slots, and clears a slot back to unknown with `null`.
+verified-compatible canonical accessories, treats Hearts as accessories, enforces
+global exact-copy allocation, and clears a slot back to unknown with `null`. The
+same ID in both slots additionally requires an exact total of at least two and
+two-publisher item-specific same-item legality; this is currently verified only
+for Rabbit Tail and Meteorite Bracer. Monster Heart duplicates remain unsupported.
 It returns `editor_supported: false`, `accessory_editor_supported: true`, the exact normalization `gaps`, each party
 member's raw explicitly recorded equipment with an `unvalidated_record` warning,
 and gear recommendations for the saved checkpoint. Recommendation rows resolve

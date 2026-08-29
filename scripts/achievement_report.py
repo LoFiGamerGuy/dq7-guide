@@ -53,11 +53,11 @@ def load_achievement_report(
             ORDER BY c.subject_key, c.predicate, c.claim_id"""
         ).fetchall()
         counter_conflict_rows = connection.execute(
-            """SELECT c.conflict_key, c.status, a.subject_key,
+            """SELECT c.conflict_key, c.status, c.rationale,
+                c.resolution_claim_id, a.subject_key,
                 c.claim_a_id, c.claim_b_id
             FROM conflicts c JOIN claims a ON a.claim_id=c.claim_a_id
             WHERE a.subject_key LIKE 'achievement:%'
-              AND c.status='unresolved'
             ORDER BY c.conflict_key"""
         ).fetchall()
         tablet_rows = connection.execute(
@@ -116,6 +116,9 @@ def load_achievement_report(
                 for claim_id in (conflict["claim_a_id"], conflict["claim_b_id"])
                 if claim_id in semantic_claims
             ]
+            conflict["resolution"] = semantic_claims.get(
+                conflict["resolution_claim_id"]
+            )
             conflicts_by_achievement.setdefault(achievement_id, []).append(conflict)
         for row in rows:
             item = dict(row)

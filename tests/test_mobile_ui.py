@@ -44,9 +44,9 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("Verified eligible pool", js)
         self.assertIn("Selection weights unknown", js)
         self.assertIn("Counter rule conflict — do not assume", js)
-        self.assertIn("Conflict-safe strategy · synthesis", js)
-        self.assertIn("Bank 300,000 gold at once before spending it", js)
-        self.assertIn('detail.achievement_id === "ach_massively_minted"', js)
+        self.assertIn("Resolved counter rule · independently corroborated", js)
+        self.assertIn("The losing interpretation remains visible below", js)
+        self.assertNotIn("Bank 300,000 gold at once before spending it", js)
         self.assertIn("requirement_verification_status", js)
 
     def test_phone_companion_controls_and_safe_area_support_are_present(self):
@@ -74,7 +74,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('viewedCheckpoint && state.checkpoints.some', js)
         self.assertIn('data-play-jump="power"', html)
         self.assertIn("function scrollToPlayPriority()", js)
-        self.assertIn('[aria-labelledby="advice-strongest_now"]', js)
+        self.assertIn('power: $("#powerPlan .next-power") || $("#powerAdvice")', js)
+        self.assertNotIn('power: $(\'[aria-labelledby="advice-strongest_now"]\')', js)
         self.assertIn('id="powerPlan"', html)
         self.assertIn("Next power move", js)
         self.assertIn("strongest.slice(1)", js)
@@ -169,7 +170,8 @@ class MobileUiContractTests(unittest.TestCase):
     def test_item_quantity_controls_preserve_unknowns_and_large_touch_targets(self):
         css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
-        self.assertIn("Copies: unknown · not zero", js)
+        self.assertIn("Copies: unknown · may be zero", js)
+        self.assertNotIn("Copies: unknown · not zero", js)
         self.assertIn('inputmode="numeric" min="0" max="99"', js)
         self.assertIn("Clear to unknown", js)
         self.assertIn("Routes never change this value", js)
@@ -271,6 +273,7 @@ class MobileUiContractTests(unittest.TestCase):
         render_start = js.index('target.innerHTML = `${nextPowerSection}<p class="power-party"')
         self.assertGreater(render_start, js.index('const nextPowerSection ='))
         self.assertIn('class="next-power" aria-labelledby="nextPowerHeading"', js)
+        self.assertIn('power: $("#powerPlan .next-power") || $("#powerAdvice")', js)
         self.assertIn(".next-power {", css)
         self.assertLess(js.index('id="checkpointStop"') if 'id="checkpointStop"' in js else 0,
                         js.index('const nextPowerSection ='))

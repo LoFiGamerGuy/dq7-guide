@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 663)
+        self.assertEqual(self.counts["sources"], 667)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -921,7 +921,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(hoarder, 353)
 
-    def test_cumulative_achievement_semantics_preserve_units_and_gold_conflict(self):
+    def test_cumulative_achievement_semantics_resolve_gold_and_metal_roster(self):
         statuses = dict(self.connection.execute(
             """SELECT target_key, verification_status
             FROM achievement_requirements
@@ -932,19 +932,42 @@ class KnowledgeBaseTests(unittest.TestCase):
                       statuses["metal_monsters_defeated"])
         self.assertIn("quick_win_exclusion_single_firsthand",
                       statuses["battles_won"])
-        self.assertIn("semantics_conflict", statuses["gold_acquired"])
+        self.assertIn("lifetime_total_semantics", statuses["gold_acquired"])
+        self.assertIn("roster_verified", statuses["metal_monsters_defeated"])
 
         gold = self.connection.execute(
             """SELECT status, claim_a_id, claim_b_id FROM conflicts
             WHERE conflict_key LIKE
               'achievement:massively_minted|achievement_counter_condition|%'"""
         ).fetchone()
-        self.assertEqual(gold["status"], "unresolved")
+        self.assertEqual(gold["status"], "resolved")
         self.assertEqual(
             {gold["claim_a_id"], gold["claim_b_id"]},
             {"claim_massively_minted_lifetime_gold_maestros",
              "claim_massively_minted_current_balance_steam_guide"},
         )
+        resolution = self.connection.execute(
+            """SELECT resolution_claim_id FROM conflicts
+            WHERE conflict_key LIKE
+              'achievement:massively_minted|achievement_counter_condition|%'"""
+        ).fetchone()[0]
+        self.assertEqual(resolution,
+                         "claim_massively_minted_lifetime_gold_maestros")
+        consensus_publishers = self.connection.execute(
+            """SELECT COUNT(DISTINCT s.publisher)
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:massively_minted'
+              AND c.predicate='achievement_counter_condition'
+              AND c.value_json='\"lifetime total gold acquired\"'"""
+        ).fetchone()[0]
+        self.assertEqual(consensus_publishers, 4)
+        roster_publishers = self.connection.execute(
+            """SELECT COUNT(DISTINCT s.publisher)
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:metal_mangler'
+              AND c.predicate='achievement_counter_members'"""
+        ).fetchone()[0]
+        self.assertEqual(roster_publishers, 2)
 
         units = self.connection.execute(
             """SELECT c.subject_key, c.predicate, s.publisher
@@ -1414,7 +1437,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         unresolved = self.connection.execute(
             "SELECT COUNT(*) FROM conflicts WHERE status='unresolved'"
         ).fetchone()[0]
-        self.assertEqual(unresolved, 1)
+        self.assertEqual(unresolved, 0)
 
     def test_direct_item_pages_resolve_verified_panel_name_variants(self):
         aliases = dict(self.connection.execute(

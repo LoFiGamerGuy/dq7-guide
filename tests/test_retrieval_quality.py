@@ -163,10 +163,10 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         self.assert_current_version_source(heart["source_id"], heart["locator"])
 
     def test_conflict_bundle_exposes_both_precisely_cited_claims(self):
-        conflicts = load_conflicts(self.db, include_resolved=False)
+        conflicts = load_conflicts(self.db, include_resolved=True)
         self.assertTrue(conflicts)
         for row in conflicts:
-            self.assertEqual(row["status"], "unresolved")
+            self.assertIn(row["status"], {"resolved", "unresolved"})
             for side in ("a", "b"):
                 self.assert_current_version_source(row[f"source_id_{side}"],
                                                    row[f"locator_{side}"])
