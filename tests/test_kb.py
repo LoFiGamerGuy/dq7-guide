@@ -2288,6 +2288,20 @@ class KnowledgeBaseTests(unittest.TestCase):
         rows = search(self.db_path, 'alltrades foo"bar', limit=8)
         self.assertTrue(rows)
 
+    def test_search_prioritizes_structured_priority_identities_and_claims(self):
+        shell = search(self.db_path, "Shell Shield", limit=4)
+        self.assertEqual(shell[0]["title"], "Shell Shield → Scale Shield")
+        slime = search(self.db_path, "Slime Earring", limit=4)
+        self.assertTrue(any("Slime Earring" in row["title"] for row in slime))
+        stella = search(self.db_path, "Stella Fan", limit=4)
+        self.assertEqual(stella[0]["title"], "Stella Fan → Stellar Fan")
+        orgodemir = search(self.db_path, "Orgodemir Magic Barrier", limit=8)
+        self.assertTrue(any(row["domain"] == "claim" and
+                            "orgodemir" in row["title"].casefold()
+                            for row in orgodemir))
+        self.assertTrue(all(row["source_url"] and row["locator"]
+                            for row in (shell[0], stella[0])))
+
     def test_search_does_not_create_missing_database(self):
         missing = Path(self.tempdir.name) / "missing.sqlite"
         with self.assertRaises(FileNotFoundError):

@@ -3,7 +3,7 @@
 This repository is a local, provenance-first knowledge base for a completionist and deliberately overpowered playthrough of **Dragon Quest VII Reimagined**. It combines:
 
 - a structured SQLite database for facts and relationships;
-- FTS5 search for RAG-style retrieval;
+- exact-term-first FTS5 plus structured claim/item search for RAG-style retrieval;
 - a player-state file kept separate from shared game knowledge;
 - source and conflict records so disagreements are visible;
 - synthesized guidance that can answer “what is strongest and safe to do now?”

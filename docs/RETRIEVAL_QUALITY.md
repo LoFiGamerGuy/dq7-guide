@@ -23,3 +23,9 @@ retrieval, and exposed source IDs on both sides of conflict-report rows.
 
 This suite protects representative evidence bundles; it does not imply that all
 possible natural-language questions or all guide domains are complete.
+
+The local `query_kb.py` search uses exact-term FTS matches first, then sourced
+structured claims and item aliases, and only then broad OR fallback. Regression
+queries cover Shell Shield, Slime Earring, Stella Fan, and Orgodemir Magic
+Barrier so exact priority identities and conflicts do not disappear into generic
+shield, slime, or spell results.
