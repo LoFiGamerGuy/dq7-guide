@@ -115,6 +115,7 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("Core 2-source · extras 1-source", js)
         self.assertIn('class="evidence-strength"', js)
         self.assertIn('corroborated_but_unresolved: `${gap.supporting_claim_publisher_count} claim publishers · still unresolved`', js)
+        self.assertIn('incomplete_methodology: "Comparable benchmark still missing"', js)
         self.assertIn('single_source: `${gap.supporting_claim_publisher_count} claim publisher`', js)
         self.assertIn('guide_text_conflict: "Direct UI needed to resolve conflict"', js)
         self.assertIn("Open question · ${escapeHtml(gapStatus(gap))}", js)

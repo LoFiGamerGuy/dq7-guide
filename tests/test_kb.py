@@ -2592,6 +2592,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             "Can I still get the Little Blue Button?": "gap_blue_button_cutoff",
             "What are Lucky Panel odds?": "gap_lucky_panel_probabilities",
             "How much EXP per hour farming?": "gap_reproducible_farm_rates",
+            "best EXP farming rate": "gap_reproducible_farm_rates",
             "Can I farm Monster Hearts repeatedly?": "gap_repeatable_monster_hearts",
             "Can I equip two of the same accessory?": "gap_duplicate_equipment_stacking",
             "Do achievement counters carry over New Game?":

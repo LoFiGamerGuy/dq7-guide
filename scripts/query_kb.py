@@ -31,7 +31,7 @@ EVIDENCE_GAP_SEARCH_TERMS = {
 }
 
 EVIDENCE_GAP_STOPWORDS = {
-    "a", "an", "are", "can", "do", "does", "for", "get", "has", "how", "i",
+    "a", "an", "are", "best", "can", "do", "does", "for", "get", "has", "how", "i",
     "in", "is", "it", "much", "of", "per", "still", "the", "what", "which",
 }
 

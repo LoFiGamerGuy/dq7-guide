@@ -176,7 +176,11 @@ small explicit normalization map handles supported plurals and phrasing variants
 without fuzzy inference. The phone Sources screen keeps active STOP context above
 the collapsed queue, labels the 5 corroborated / 1 single-source / 0 unsupported
 split, and gives evidence links 44px touch targets. Portrait and landscape browser
-tests exercise these states directly; cache v19 delivers the update.
+tests exercise these states directly; cache v20 delivers the update. The farming-rate
+card now distinguishes incomplete benchmark methodology from a missing exact
+observation, so its collapsed phone label states the actionable evidence boundary.
+Retrieval also treats the conversational modifier `best` as non-semantic for curated
+gap matching, allowing `best EXP farming rate` to lead with that preserved unknown.
 
 The Troll Heart retrieval pass closes the mismatch between its normalized item route
 and the dedicated Heart views. Heart/API/CLI guidance now gates the finite field
@@ -993,7 +997,7 @@ descriptive container and route metadata likewise does not block availability.
 Purchase advice cannot say a Medal reward is free-now when the saved count is
 unknown. Equipment responses select an explicit current `actionable_route`, and
 the phone uses that route (including exact shop price) rather than blindly using
-the first route in a mixed collection. The service-worker cache is v19.
+the first route in a mixed collection. The service-worker cache is v20.
 
 Catalog item detail now annotates every acquisition route against the explicitly
 saved checkpoint and Medal count. Current, later, expired, conditional, and

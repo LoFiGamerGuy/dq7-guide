@@ -138,6 +138,7 @@ for (const viewport of [
     await expect(gapCards).toHaveCount(6);
     await expect(page.locator(".evidence-gap-card[open]")).toHaveCount(0);
     await expect(page.locator("#evidenceGaps")).toContainText("5 corroborated but unresolved");
+    await expect(page.locator("#evidenceGaps")).toContainText("Comparable benchmark still missing");
     await expect(page.locator("#evidenceGaps")).toContainText("1 single-source");
     await expect(page.locator("#evidenceGaps")).toContainText("0 unsupported");
     await expect(page.locator("#evidenceGaps")).not.toContainText("Ruby of Protection individual Faraday drawer");
@@ -170,7 +171,7 @@ for (const viewport of [
         }))).flat().map(request => new URL(request.url).pathname);
         return { keys, apiRequests: requests.filter(pathname => pathname.startsWith("/api/")) };
       });
-      expect(cacheState.keys).toContain("dq7-guide-shell-v19");
+      expect(cacheState.keys).toContain("dq7-guide-shell-v20");
       expect(cacheState.apiRequests).toEqual([]);
     }
   });

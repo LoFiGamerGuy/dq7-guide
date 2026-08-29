@@ -1,6 +1,6 @@
 "use strict";
-const SHELL_CACHE = "dq7-guide-shell-v19";
-const DATA_CACHE = "dq7-guide-data-v19";
+const SHELL_CACHE = "dq7-guide-shell-v20";
+const DATA_CACHE = "dq7-guide-data-v20";
 const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.webmanifest", "/icons/guide-icon.svg"];
 self.addEventListener("install", event => { event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => ![SHELL_CACHE, DATA_CACHE].includes(key)).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
