@@ -499,10 +499,10 @@ class GuideServerTests(unittest.TestCase):
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
-        self.assertEqual(audit["total"], 7)
+        self.assertEqual(audit["total"], 6)
         self.assertEqual(audit["single_source"], 1)
         self.assertEqual(audit["unsupported"], 1)
-        self.assertEqual(audit["corroborated_but_unresolved"], 5)
+        self.assertEqual(audit["corroborated_but_unresolved"], 4)
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
@@ -536,13 +536,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
         self.assertNotIn("gap_shell_shield_identity", by_id)
         self.assertNotIn("gap_stellar_fan_ui_name", by_id)
-        ruby = by_id["gap_ruby_of_protection_drawer"]
-        self.assertEqual(ruby["verification_tier"],
-                         "corroborated_but_unresolved")
-        self.assertEqual(ruby["source_count"], 2)
-        self.assertEqual(len(ruby["supporting_claims"]), 2)
-        self.assertIn("without opening either drawer", ruby["summary"])
-        self.assertIn("which Faraday Castle Present", ruby["acceptance_condition"])
+        self.assertNotIn("gap_ruby_of_protection_drawer", by_id)
         blue_button = by_id["gap_blue_button_cutoff"]
         self.assertEqual(blue_button["subject"],
                          "Little Blue Button immediate pre-trigger availability")

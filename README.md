@@ -27,7 +27,7 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with a verified nine-item pool and unpublished selection weights;
 - all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 694-page source registry with browser search and retrieval-freshness metadata;
+- a 696-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
@@ -50,8 +50,9 @@ and Goddess Ring. Video-source records preserve uploader-title versus in-game
 time-period wording where they differ; platform and patch remain unstated.
 Additional continuous English PC footage resolves six Yet Another World seed
 chests, L'Arca's isolated-north Pretty Betsy sparkle, Temple Palace's Gold Bracer
-chest, and Hubble's Silk Tuxedo dresser. Ruby of Protection's individual Faraday
-drawer is the only remaining `container_unspecified` route.
+chest, and Hubble's Silk Tuxedo dresser. AppMedia's item table and Altema's
+independently labelled map resolve Ruby of Protection to the left drawer in the
+Faraday Present throne-room bedroom; no `container_unspecified` route remains.
 
 The browser's item details support optional exact copy totals. Missing totals remain unknown; explicit totals enable global equipment-allocation checks without changing identity-based Heroic Hoarder progress. Same-item double accessories additionally require item-specific legality from two independent publishers.
 
@@ -166,7 +167,7 @@ the guide does not claim offline installation in that mode.
 The Dashboard and Phone Setup screens both expose one-tap progress backup; restore
 stays under Progress to prevent an accidental replacement during play.
 
-The Sources view also provides a dated seven-item audit of the maintained
+The Sources view also provides a dated six-item audit of the maintained
 single-source, unsupported, and corroborated-but-unresolved evidence queue.
 The local query tool searches that queue before generic documents when all query
 terms match, so questions such as `repeatable Monster Heart` or `Lucky Panel

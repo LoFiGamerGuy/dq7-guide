@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 694)
+        self.assertEqual(self.counts["sources"], 696)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2590,7 +2590,6 @@ class KnowledgeBaseTests(unittest.TestCase):
 
         gap_queries = {
             "Can I still get the Little Blue Button?": "gap_blue_button_cutoff",
-            "Which drawer has the Ruby of Protection?": "gap_ruby_of_protection_drawer",
             "What are Lucky Panel odds?": "gap_lucky_panel_probabilities",
             "How much EXP per hour farming?": "gap_reproducible_farm_rates",
             "Can I farm Monster Hearts repeatedly?": "gap_repeatable_monster_hearts",
@@ -2608,6 +2607,14 @@ class KnowledgeBaseTests(unittest.TestCase):
                     self.assertTrue(evidence["locator"])
                 if gap_id == "gap_reproducible_farm_rates":
                     self.assertEqual(result["evidence"], [])
+
+        ruby = search(self.db_path, "Ruby of Protection left drawer", limit=4)
+        self.assertIn(ruby[0]["document_id"], {
+            "claim:claim_ruby_protection_left_drawer_appmedia",
+            "claim:claim_ruby_protection_left_drawer_altema",
+        })
+        self.assertTrue(ruby[0]["source_url"])
+        self.assertTrue(ruby[0]["locator"])
 
     def test_search_does_not_create_missing_database(self):
         missing = Path(self.tempdir.name) / "missing.sqlite"
@@ -2656,21 +2663,30 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(missing_shop, [])
         self.assertEqual(missing_panel, [])
 
-    def test_container_unspecified_residual_is_explicit(self):
+    def test_no_container_unspecified_residual_remains(self):
         rows = self.connection.execute(
             """SELECT method, COUNT(*) AS row_count
             FROM item_acquisition_paths
             WHERE verification_status LIKE '%container_unspecified%'
             GROUP BY method ORDER BY method"""
         ).fetchall()
-        self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"other": 1})
+        self.assertEqual(rows, [])
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("1 acquisition row", status)
-        self.assertIn("sole grouped-container `other` route",
-                      status)
-        self.assertIn("one broader acquisition row", handoff)
+        self.assertIn("no `container_unspecified` acquisition row remains", status)
+        self.assertIn("No grouped-container acquisition residual remains", handoff)
+        ruby_claims = self.connection.execute(
+            """SELECT c.value_json, c.locator, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.claim_id IN (
+                'claim_ruby_protection_left_drawer_appmedia',
+                'claim_ruby_protection_left_drawer_altema'
+            )"""
+        ).fetchall()
+        self.assertEqual({row["publisher"] for row in ruby_claims},
+                         {"AppMedia", "Altema"})
+        self.assertEqual(len({row["value_json"] for row in ruby_claims}), 1)
+        self.assertTrue(all(row["locator"] for row in ruby_claims))
 
     def test_lordfenton_resolves_nine_residual_routes_without_ruby_inference(self):
         expected = {
@@ -2704,7 +2720,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()[0]
         self.assertGreaterEqual(claim_count, 9)
 
-    def test_early_container_pass_resolves_fishnet_and_mermaid_but_not_ruby_member(self):
+    def test_early_container_pass_resolves_fishnet_mermaid_and_ruby(self):
         fishnet = self.connection.execute(
             """SELECT method, prerequisite_json, locator, verification_status
             FROM item_acquisition_paths
@@ -2733,9 +2749,11 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE acquisition_id='acq_ruby_of_protection_faraday_castle'"""
         ).fetchone()
         details = json.loads(ruby["prerequisite_json"])
-        self.assertEqual(details["container_group"], "drawers")
-        self.assertEqual(details["individual_member"], "unknown")
-        self.assertIn("container_unspecified", ruby["verification_status"])
+        self.assertEqual(details["container"], "left drawer")
+        self.assertEqual(details["adjacent_container"],
+                         "right drawer contains 200 gold")
+        self.assertEqual(ruby["verification_status"],
+                         "two_source_exact_container")
 
     def test_direct_heart_guide_resolves_two_exact_chests(self):
         rows = self.connection.execute(
@@ -2996,10 +3014,10 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("one broader acquisition row", handoff)
-        self.assertIn("1 acquisition row still deliberately carries",
+        self.assertIn("No grouped-container acquisition residual remains", handoff)
+        self.assertIn("no `container_unspecified` acquisition row remains",
                       status)
-        self.assertIn("browser's seven-item", status)
+        self.assertIn("browser's six-item", status)
         corroborating = self.connection.execute(
             """SELECT c.subject_key, c.value_json, s.publisher
             FROM claims c JOIN sources s USING(source_id)

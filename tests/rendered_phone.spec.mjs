@@ -135,12 +135,12 @@ for (const viewport of [
     await page.evaluate(() => { location.hash = "sources"; });
     await expect(page.locator("#sources")).toBeVisible();
     const gapCards = page.locator(".evidence-gap-card");
-    await expect(gapCards).toHaveCount(7);
+    await expect(gapCards).toHaveCount(6);
     await expect(page.locator(".evidence-gap-card[open]")).toHaveCount(0);
-    await expect(page.locator("#evidenceGaps")).toContainText("5 corroborated but unresolved");
+    await expect(page.locator("#evidenceGaps")).toContainText("4 corroborated but unresolved");
     await expect(page.locator("#evidenceGaps")).toContainText("1 single-source");
     await expect(page.locator("#evidenceGaps")).toContainText("1 unsupported");
-    await expect(page.locator("#evidenceGaps")).toContainText("Ruby of Protection individual Faraday drawer");
+    await expect(page.locator("#evidenceGaps")).not.toContainText("Ruby of Protection individual Faraday drawer");
     await expect(page.locator("#evidenceGaps")).toContainText("Lucky Panel probability algorithm");
     const firstGap = gapCards.first();
     await firstGap.locator("summary").click();

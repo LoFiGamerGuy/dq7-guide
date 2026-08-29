@@ -156,7 +156,7 @@ and locators, separately labelled additional audited pages, freshness, and audit
 date. Corroboration is never presented as resolution.
 
 The endpoint separately returns the complete unresolved-conflict count grouped by
-predicate and whole-registry source freshness totals. The seven priority research
+predicate and whole-registry source freshness totals. The six priority research
 gaps are therefore never presented as the entire conflict or source-maintenance
 inventory.
 

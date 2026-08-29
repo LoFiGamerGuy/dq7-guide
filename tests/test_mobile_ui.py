@@ -222,7 +222,7 @@ class MobileUiContractTests(unittest.TestCase):
         contract = (ROOT / "web" / "CONTRACT.md").read_text(encoding="utf-8")
         self.assertIn("Stella/Stellar Fan spelling conflict is resolved", contract)
         self.assertNotIn("Stella/Stellar Fan spelling remains unresolved", contract)
-        self.assertIn("seven priority research", contract)
+        self.assertIn("six priority research", contract)
         self.assertIn("non_accessory_editor_supported", contract)
         self.assertIn("editor_supported` is true when both editor paths are safe", contract)
         self.assertIn(
