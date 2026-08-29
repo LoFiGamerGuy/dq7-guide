@@ -142,6 +142,12 @@ condition, and expands every registered `source_id` to current source metadata. 
 guide texts do not resolve a row whose acceptance condition requires direct UI or
 save-tested evidence.
 
+The phone view renders `verification_tier` as evidence strength (`1 source`, `No
+publishable source`, or `2+ sources · still unresolved`) separately from the
+row's residual `status`. The open-question label, acceptance condition, source
+links, freshness, and audit date remain visible; corroboration is never presented
+as resolution.
+
 The endpoint separately returns the complete unresolved-conflict count grouped by
 predicate and whole-registry source freshness totals. The five priority research
 gaps are therefore never presented as the entire conflict or source-maintenance
