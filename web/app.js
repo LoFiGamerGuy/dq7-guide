@@ -220,7 +220,7 @@ function renderPowerPlan(plan = {}) {
     if (tier === "two_source_core_single_source_extras") return "Core 2-source · extras 1-source";
     if (tier === "two_source") return "2-source";
     if (tier === "single_source") return "1-source";
-    if (tier === "declared_two_source_audit_pending") return "2-source · link audit";
+    if (tier === "declared_two_source_audit_pending") return "Declared corroboration · links missing";
     return "Evidence audit pending";
   };
   const brief = plan.play_brief || {};
@@ -230,10 +230,10 @@ function renderPowerPlan(plan = {}) {
   const bossNames = [...new Set(bossPrep.map(row => row.boss))];
   const bossRows = bossPrep.map(row => {
     const stateText = row.state_status === "skill_available" ? "Recorded mastered + equipped · skill available" : row.state_status === "mastered_not_equipped" ? "Mastered · equip this vocation" : row.state_status === "rank_progress_unknown" ? "Current vocation · rank unknown" : "Mastery/rank unknown";
-    const evidenceText = row.recommendation_verification_status === "two_source_verified" ? "Two-source boss recommendation" : "Single-source boss recommendation";
-    const corroboration = row.corroborating_source ? `<p><a href="${escapeHtml(row.corroborating_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.corroborating_source.title)}</a><br><span class="muted">${escapeHtml(row.corroborating_source.locator)}</span></p>` : "";
-    const rankEvidence = row.skill_source.verification_status === "two_source_verified" ? "two-source" : "single-source";
-    return `<li><strong>${escapeHtml(row.boss)} · ${escapeHtml(row.skill)}</strong><span>${escapeHtml(row.characters.join(" or "))} · ${escapeHtml(row.vocation)} ${escapeHtml(row.rank)}★ · ${escapeHtml(row.recommendation_strength)}, not required</span><small class="applicability-${row.state_status === "skill_available" ? "satisfied" : "unknown"}">${escapeHtml(stateText)}</small><details class="advice-evidence"><summary>Evidence · ${escapeHtml(evidenceText)}</summary><p><a href="${escapeHtml(row.boss_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.boss_source.title)}</a><br><span class="muted">${escapeHtml(row.boss_source.locator)}</span></p>${corroboration}<p><strong>Skill rank · ${escapeHtml(rankEvidence)}:</strong> <a href="${escapeHtml(row.skill_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.skill_source.title)}</a><br><span class="muted">${escapeHtml(row.skill_source.locator)}</span></p></details></li>`;
+    const evidenceText = row.recommendation_evidence?.tier === "two_source" ? "Two-source boss recommendation" : "Single-source boss recommendation";
+    const recommendationSources = (row.recommendation_evidence?.claims || []).map(claim => `<p><a href="${escapeHtml(claim.url)}" target="_blank" rel="noreferrer">${escapeHtml(claim.publisher || claim.title)}</a><br><span class="muted">${escapeHtml(claim.locator)}</span></p>`).join("");
+    const rankEvidence = row.rank_evidence?.tier === "two_source" ? "two-source" : "single-source";
+    return `<li><strong>${escapeHtml(row.boss)} · ${escapeHtml(row.skill)}</strong><span>${escapeHtml(row.characters.join(" or "))} · ${escapeHtml(row.vocation)} ${escapeHtml(row.rank)}★ · ${escapeHtml(row.recommendation_strength)}, not required</span><small class="applicability-${row.state_status === "skill_available" ? "satisfied" : "unknown"}">${escapeHtml(stateText)}</small><details class="advice-evidence"><summary>Evidence · ${escapeHtml(evidenceText)}</summary>${recommendationSources}<p><strong>Skill rank · ${escapeHtml(rankEvidence)}:</strong> <a href="${escapeHtml(row.skill_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.skill_source.title)}</a><br><span class="muted">${escapeHtml(row.skill_source.locator)}</span></p></details></li>`;
   }).join("");
   const bossSection = bossRows ? `<details class="boss-prep"><summary>Prepare for ${escapeHtml(bossNames.length === 1 ? bossNames[0] : `${bossNames.length} upcoming bosses`)}</summary><ul class="power-list">${bossRows}</ul><p class="muted">Recommended is not required. State uses explicit mastery/current vocation only; missing rank stays unknown.</p></details>` : "";
   const recordedRoles = party.filter(row => row.active || row.primary_vocation || row.secondary_vocation).map(row => {
@@ -242,7 +242,7 @@ function renderPowerPlan(plan = {}) {
   }).join("");
   const battleBossRows = bossPrep.map(row => {
     const stateText = row.state_status === "skill_available" ? "READY" : row.state_status === "mastered_not_equipped" ? "EQUIP VOCATION" : row.state_status === "rank_progress_unknown" ? "CHECK RANK" : "STATE UNKNOWN";
-    const evidenceText = row.recommendation_verification_status === "two_source_verified" ? "2-source tactic" : "1-source tactic";
+    const evidenceText = row.recommendation_evidence?.tier === "two_source" ? "2-source tactic" : "1-source tactic";
     return `<li><strong>${escapeHtml(row.boss)}: ${escapeHtml(row.skill)}</strong><span>${escapeHtml(row.characters.join(" / "))} · ${escapeHtml(row.vocation)} ${escapeHtml(row.rank)}★</span><small class="applicability-${row.state_status === "skill_available" ? "satisfied" : "unknown"}">${escapeHtml(stateText)} · ${escapeHtml(evidenceText)} · rank 1-source</small></li>`;
   }).join("");
   const battleTacticRow = row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span><small class="evidence-strength">${escapeHtml(recommendationEvidence(row))}</small></li>`;

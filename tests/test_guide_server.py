@@ -289,10 +289,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v11', worker)
-            self.assertIn(b'dq7-guide-data-v11', worker)
-            self.assertNotIn(b'dq7-guide-shell-v10', worker)
-            self.assertNotIn(b'dq7-guide-data-v10', worker)
+            self.assertIn(b'dq7-guide-shell-v12', worker)
+            self.assertIn(b'dq7-guide-data-v12', worker)
+            self.assertNotIn(b'dq7-guide-shell-v11', worker)
+            self.assertNotIn(b'dq7-guide-data-v11', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -1059,6 +1059,8 @@ class GuideServerTests(unittest.TestCase):
                       if row["skill"] == "Fizzle")
         self.assertEqual(fizzle["state_status"], "rank_progress_unknown")
         self.assertEqual(fizzle["recommendation_verification_status"], "single_source")
+        self.assertEqual(fizzle["recommendation_evidence"]["tier"], "single_source")
+        self.assertEqual(fizzle["recommendation_evidence"]["publisher_count"], 1)
         self.assertIsNone(fizzle["corroborating_source"])
         self.assertEqual(fizzle["skill_source"]["verification_status"], "source_checked")
         self.assertTrue(fizzle["boss_source"]["locator"])
@@ -1067,9 +1069,14 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(leg_sweep["characters"], ["Hero", "Ruff"])
         self.assertEqual(leg_sweep["recommendation_verification_status"],
                          "two_source_verified")
+        self.assertEqual(leg_sweep["recommendation_evidence"]["tier"], "two_source")
+        self.assertEqual(leg_sweep["recommendation_evidence"]["publisher_count"], 2)
+        self.assertEqual(len({source["publisher"] for source in
+                              leg_sweep["recommendation_evidence"]["claims"]}), 2)
         self.assertEqual(leg_sweep["corroborating_source"]["id"],
                          "gamewith_mighty_pip")
         self.assertEqual(leg_sweep["rank_verification_status"], "single_source")
+        self.assertEqual(leg_sweep["rank_evidence"]["tier"], "single_source")
         self.assertNotIn("Hero or Ruff", {item["character"]
                                           for item in leg_sweep["candidate_state"]})
 
@@ -1108,6 +1115,34 @@ class GuideServerTests(unittest.TestCase):
                          "two_source_verified")
         self.assertEqual(aqua["corroborating_source"]["id"],
                          "neoseeker_poolside_cave")
+
+    def test_every_boss_skill_badge_uses_distinct_structured_publishers(self):
+        rows = []
+        for checkpoint_id in (
+            "cp_005_larca", "cp_007_frobisher", "cp_008_roamer",
+            "cp_009_alltrades", "cp_010_alltrades_present",
+        ):
+            rows.extend(_checkpoint_view(
+                ROOT / "data" / "dq7_reimagined.sqlite", self.state,
+                checkpoint_id,
+            )["power_plan"]["boss_skill_prep"])
+        self.assertEqual(len(rows), 8)
+        self.assertEqual(sum(row["recommendation_evidence"]["tier"] == "two_source"
+                             for row in rows), 7)
+        for row in rows:
+            with self.subTest(recommendation_id=row["id"]):
+                evidence = row["recommendation_evidence"]
+                publishers = {claim["publisher"] for claim in evidence["claims"]}
+                self.assertEqual(evidence["publisher_count"], len(publishers))
+                self.assertEqual(evidence["source_count"],
+                                 len({claim["id"] for claim in evidence["claims"]}))
+                self.assertEqual(evidence["tier"],
+                                 "two_source" if len(publishers) >= 2
+                                 else "single_source")
+                self.assertTrue(all(claim["url"].startswith("https://")
+                                    and claim["locator"] and claim["claim_id"]
+                                    for claim in evidence["claims"]))
+                self.assertEqual(row["rank_evidence"]["tier"], "single_source")
 
     def test_party_setup_atomically_records_checkpoint_active_party_and_unknowns(self):
         state_path = Path(self.temp.name) / "quick-party-state.json"

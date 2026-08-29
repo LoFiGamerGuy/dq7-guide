@@ -1071,7 +1071,6 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             seed.get("boss_skill_recommendations", []),
         )
-
         connection.executemany(
             """INSERT INTO achievements(
                 achievement_id, name, description, category, hidden, grade,
@@ -1495,6 +1494,55 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 ),
             )
 
+        connection.executemany(
+            """INSERT INTO boss_skill_recommendation_evidence(
+                boss_skill_recommendation_id, claim_id, evidence_role
+            ) VALUES (
+                :boss_skill_recommendation_id, :claim_id, :evidence_role
+            )""",
+            seed.get("boss_skill_recommendation_evidence", []),
+        )
+        missing_boss_skill_evidence = connection.execute(
+            """SELECT b.boss_skill_recommendation_id
+            FROM boss_skill_recommendations b
+            LEFT JOIN boss_skill_recommendation_evidence e
+              USING(boss_skill_recommendation_id)
+            GROUP BY b.boss_skill_recommendation_id
+            HAVING COUNT(e.claim_id)=0"""
+        ).fetchall()
+        if missing_boss_skill_evidence:
+            raise ValueError("Boss-skill recommendation lacks atomic evidence: "
+                             + ", ".join(row[0] for row in missing_boss_skill_evidence))
+        invalid_boss_skill_evidence = connection.execute(
+            """SELECT b.boss_skill_recommendation_id
+            FROM boss_skill_recommendations b
+            JOIN boss_skill_recommendation_evidence e
+              USING(boss_skill_recommendation_id)
+            JOIN claims c USING(claim_id)
+            GROUP BY b.boss_skill_recommendation_id
+            HAVING SUM(CASE
+                WHEN c.claim_kind NOT IN ('recommendation', 'strategy')
+                  OR json_extract(c.scope_json, '$.checkpoint') != b.checkpoint_id
+                THEN 1 ELSE 0 END) > 0"""
+        ).fetchall()
+        if invalid_boss_skill_evidence:
+            raise ValueError("Boss-skill evidence has incompatible kind/checkpoint: "
+                             + ", ".join(row[0] for row in invalid_boss_skill_evidence))
+        mismatched_boss_skill_tiers = connection.execute(
+            """SELECT b.boss_skill_recommendation_id
+            FROM boss_skill_recommendations b
+            JOIN boss_skill_recommendation_evidence e
+              USING(boss_skill_recommendation_id)
+            JOIN claims c USING(claim_id)
+            JOIN sources s USING(source_id)
+            GROUP BY b.boss_skill_recommendation_id
+            HAVING (COUNT(DISTINCT s.publisher) >= 2)
+                != (b.recommendation_verification_status = 'two_source_verified')"""
+        ).fetchall()
+        if mismatched_boss_skill_tiers:
+            raise ValueError("Boss-skill declared tier disagrees with claim publishers: "
+                             + ", ".join(row[0] for row in mismatched_boss_skill_tiers))
+
         detect_conflicts(connection)
         for audit in equipment_compatibility_audits:
             if audit["agreement_status"] != "two_source_agreement":
@@ -1652,7 +1700,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "farming_spots", "seed_effects", "seed_reward_rules",
             "monster_hearts", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
-            , "checkpoint_advice", "boss_skill_recommendations", "achievements", "achievement_aliases"
+            , "checkpoint_advice", "boss_skill_recommendations"
+            , "boss_skill_recommendation_evidence", "achievements", "achievement_aliases"
             , "achievement_requirements"
             , "monsters", "monster_encounters", "monster_drops"
             , "vicious_targets", "vicious_encounters"

@@ -853,3 +853,13 @@ and 5% elemental reduction. The row no longer presents an unsupported battle-
 use party effect and explicitly allows encounter-specific shields to win the
 slot. The cp008 gate remains derived from collecting all medals available by
 that route rather than assumed from player state.
+
+The boss-skill preparation evidence pass replaces free-form verification badges
+with 15 exact atomic-claim links across eight checkpoint-scoped recommendations.
+Seven recommendations have matching claims from two independent publishers;
+Mild Bunch Fizzle remains visibly single-source. Florin's Aqua Slash sources are
+corrected to GameWith and Neoseeker. The unsupported Mighty Pip Buff prep row was
+removed from structured skill preparation rather than inheriting evidence from
+broader checkpoint advice; its broader attributed tactic remains available.
+Exact vocation-rank cells remain separately labeled single-source. Phone cache
+v12 delivers the corrected badges and claim locators to existing installations.

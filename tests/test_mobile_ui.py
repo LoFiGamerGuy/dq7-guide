@@ -105,7 +105,7 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('class="battle-plan"', js)
         self.assertIn("Saved roles · sourced tactics · no ranking", js)
         self.assertIn("Core 2-source · extras 1-source", js)
-        self.assertIn("2-source · link audit", js)
+        self.assertIn("Declared corroboration · links missing", js)
         self.assertIn("Evidence audit pending", js)
         self.assertIn("Core 2-source · extras 1-source", js)
         self.assertIn('class="evidence-strength"', js)
@@ -352,6 +352,19 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('class="next-power" aria-labelledby="nextPowerHeading"', js)
         self.assertIn('power: $("#powerPlan .next-power") || $("#powerAdvice")', js)
         self.assertIn(".next-power {", css)
+
+    def test_boss_badges_use_structured_publisher_evidence(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertGreaterEqual(
+            js.count('row.recommendation_evidence?.tier === "two_source"'), 2
+        )
+        self.assertIn('row.rank_evidence?.tier === "two_source"', js)
+        self.assertNotIn(
+            'row.recommendation_verification_status === "two_source_verified"', js
+        )
+        self.assertNotIn(
+            'row.skill_source.verification_status === "two_source_verified"', js
+        )
         self.assertLess(js.index('id="checkpointStop"') if 'id="checkpointStop"' in js else 0,
                         js.index('const nextPowerSection ='))
 

@@ -70,7 +70,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
         self.assertEqual(self.counts["checkpoint_advice"], 116)
-        self.assertEqual(self.counts["boss_skill_recommendations"], 9)
+        self.assertEqual(self.counts["boss_skill_recommendations"], 8)
+        self.assertEqual(self.counts["boss_skill_recommendation_evidence"], 15)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
@@ -666,9 +667,9 @@ class KnowledgeBaseTests(unittest.TestCase):
                 corroborating_source_id, corroborating_locator
             FROM boss_skill_recommendations"""
         ).fetchall()
-        self.assertEqual(len(rows), 9)
+        self.assertEqual(len(rows), 8)
         self.assertEqual(sum(row["recommendation_verification_status"] == "single_source"
-                             for row in rows), 2)
+                             for row in rows), 1)
         self.assertEqual(sum(row["recommendation_verification_status"] == "two_source_verified"
                              for row in rows), 7)
         self.assertTrue(all(

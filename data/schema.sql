@@ -496,6 +496,14 @@ CREATE TABLE boss_skill_recommendations (
     UNIQUE(checkpoint_id, boss_name, character_name, vocation_skill_id)
 );
 
+CREATE TABLE boss_skill_recommendation_evidence (
+    boss_skill_recommendation_id TEXT NOT NULL
+        REFERENCES boss_skill_recommendations(boss_skill_recommendation_id),
+    claim_id TEXT NOT NULL REFERENCES claims(claim_id),
+    evidence_role TEXT NOT NULL CHECK(evidence_role = 'exact_tactic'),
+    PRIMARY KEY (boss_skill_recommendation_id, claim_id)
+);
+
 CREATE TABLE achievements (
     achievement_id TEXT PRIMARY KEY,
     name TEXT NOT NULL COLLATE NOCASE UNIQUE,

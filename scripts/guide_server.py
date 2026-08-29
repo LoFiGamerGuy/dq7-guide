@@ -1635,10 +1635,13 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                 k.verification_status AS skill_verification_status,
                 e.name AS vocation_name,
                 a.source_id AS boss_source_id, a.locator AS boss_locator,
-                bs.title AS boss_source_title, bs.url AS boss_source_url,
+                bs.title AS boss_source_title, bs.publisher AS boss_source_publisher,
+                bs.url AS boss_source_url,
                 k.source_id AS skill_source_id, k.locator AS skill_locator,
-                ks.title AS skill_source_title, ks.url AS skill_source_url,
+                ks.title AS skill_source_title, ks.publisher AS skill_source_publisher,
+                ks.url AS skill_source_url,
                 cs.title AS corroborating_source_title,
+                cs.publisher AS corroborating_source_publisher,
                 cs.url AS corroborating_source_url
             FROM boss_skill_recommendations b
             JOIN checkpoint_advice a USING(advice_id)
@@ -1651,8 +1654,30 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             WHERE b.checkpoint_id=?
             ORDER BY b.boss_skill_recommendation_id""", (checkpoint_id,)
         )]
+        for row in boss_skill_rows:
+            row["recommendation_claims"] = [dict(claim) for claim in connection.execute(
+                """SELECT c.claim_id, c.source_id, c.value_json, c.locator,
+                    s.publisher, s.title, s.url
+                FROM boss_skill_recommendation_evidence e
+                JOIN claims c USING(claim_id)
+                JOIN sources s USING(source_id)
+                WHERE e.boss_skill_recommendation_id=?
+                  AND e.evidence_role='exact_tactic'
+                ORDER BY s.publisher, c.claim_id""",
+                (row["boss_skill_recommendation_id"],),
+            )]
     boss_skill_prep = []
     for row in boss_skill_rows:
+        recommendation_claims = row["recommendation_claims"]
+        recommendation_sources = [{
+            "id": claim["source_id"], "publisher": claim["publisher"],
+            "title": claim["title"], "url": claim["url"],
+            "locator": claim["locator"], "claim_id": claim["claim_id"],
+            "value": json.loads(claim["value_json"]),
+        } for claim in recommendation_claims]
+        recommendation_publisher_count = len({
+            source["publisher"] for source in recommendation_sources
+        })
         candidates = ([name.strip() for name in row["character_name"].split(" or ")]
                       if " or " in row["character_name"] else [row["character_name"]])
         candidate_state = []
@@ -1684,6 +1709,18 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "notes": row["notes"],
             "recommendation_verification_status": row["recommendation_verification_status"],
             "rank_verification_status": "single_source",
+            "recommendation_evidence": {
+                "tier": ("two_source" if recommendation_publisher_count >= 2
+                         else "single_source"),
+                "source_count": len({source["id"] for source in recommendation_sources}),
+                "publisher_count": recommendation_publisher_count,
+                "claim_count": len(recommendation_claims),
+                "claims": recommendation_sources,
+            },
+            "rank_evidence": {
+                "tier": "single_source", "source_count": 1,
+                "publisher_count": 1,
+            },
             "boss_source": {"id": row["boss_source_id"], "title": row["boss_source_title"],
                             "url": row["boss_source_url"], "locator": row["boss_locator"]},
             "corroborating_source": ({
@@ -1693,6 +1730,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                 "locator": row["corroborating_locator"],
             } if row["corroborating_source_id"] else None),
             "skill_source": {"id": row["skill_source_id"], "title": row["skill_source_title"],
+                             "publisher": row["skill_source_publisher"],
                              "url": row["skill_source_url"], "locator": row["skill_locator"],
                              "verification_status": row["skill_verification_status"]},
         })
