@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 633)
+        self.assertEqual(self.counts["sources"], 635)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1216,7 +1216,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(tuple(final_warning),
                          ("cp_022_almighty", 1,
-                          "two_independent_current_version_sources_event_checkpoint_mapping_derived"))
+                          "continuous_walkthrough_direct_checkpoint_mapping_cutoff_two_source_verified"))
 
     def test_farming_rows_are_checkpoint_gated_and_strategy_attributed(self):
         rows = self.connection.execute(
@@ -1384,8 +1384,29 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "source_checked_exact_container")
         self.assertEqual(by_item["item_rabbit_ears"]["verification_status"],
                          "source_checked_exact_container")
-        self.assertIn("container_unknown",
-                      by_item["item_coagulant"]["verification_status"])
+        self.assertEqual(by_item["item_coagulant"]["verification_status"],
+                         "two_source_route_exact_container_resolved")
+        coagulant = self.connection.execute(
+            """SELECT method, route_label, location_text, prerequisite_json
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_coagulant_treasure_hubble_castle_past'"""
+        ).fetchone()
+        self.assertEqual(coagulant["method"], "other")
+        self.assertIn("Inquisitory lower-roof barrel", coagulant["route_label"])
+        self.assertNotIn("Castle", coagulant["location_text"])
+        self.assertEqual(json.loads(coagulant["prerequisite_json"])["container"],
+                         "barrel")
+
+        fur_cape = self.connection.execute(
+            """SELECT location_text, prerequisite_json, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_fur_cape_poolside_cave_present'"""
+        ).fetchone()
+        self.assertEqual(fur_cape["verification_status"],
+                         "source_checked_exact_container")
+        self.assertIn("northeast terminal alcove", fur_cape["location_text"])
+        self.assertEqual(json.loads(fur_cape["prerequisite_json"])["container"],
+                         "lone treasure chest")
 
     def test_late_panel_only_helmets_have_finite_free_alternatives(self):
         rows = self.connection.execute(
@@ -2342,7 +2363,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 8)
+        self.assertEqual(residual, 6)
 
     def test_pirates_hat_period_conflict_is_resolved_but_visible(self):
         rows = self.connection.execute(

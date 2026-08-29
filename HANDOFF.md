@@ -63,11 +63,12 @@ Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
 refinements remain separate evidence gaps.
 
 The subsequent current-version walkthrough audits reduce the exact-container
-residual from 31 to 9. Kamikazee Bracer, the Wilted Heart Mountain Path Strength
-Ring, and Burnmount's Yggdrasil Leaf now have exact chest directions from an
-independent current-version walkthrough. Do not collapse the nine remaining
-pair-member/container unknowns into invented directions. Fishnet Stockings is no
-longer part of that residual: it is resolved to the Present inn wardrobe.
+residual from 31 to 6. Kamikazee Bracer, the Wilted Heart Mountain Path Strength
+Ring, Burnmount's Yggdrasil Leaf, Present Poolside Cave Fur Cape, and Hubble
+Inquisitory Coagulant now have exact container directions. Do not collapse the six
+remaining pair-member/container unknowns into invented directions. Fishnet
+Stockings is no longer part of that residual: it is resolved to the Present inn
+wardrobe.
 
 Six additional power cards now carry two-publisher atomic evidence: Tribulators
 healing-item safety, the Present La Bravoure Metal King Slime route and critical

@@ -372,16 +372,20 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("English", stellar["acceptance_condition"])
         blue_button = by_id["gap_blue_button_cutoff"]
         self.assertEqual(blue_button["subject"],
-                         "Little Blue Button checkpoint mapping")
+                         "Little Blue Button immediate pre-trigger availability")
         self.assertEqual(blue_button["source_ids"], [
             "game8_jp_missables", "gamewith_little_blue_button",
+            "game8_jp_post_temple_walkthrough",
         ])
-        self.assertEqual(len(blue_button["supporting_claims"]), 2)
+        self.assertEqual(len(blue_button["supporting_claims"]), 3)
         self.assertEqual(
-            {row["value"] for row in blue_button["supporting_claims"]},
-            {"The late-game Cataclysm (異変)"},
+            {row["claim_id"] for row in blue_button["supporting_claims"]},
+            {"claim_blue_button_cutoff_game8_jp",
+             "claim_blue_button_cutoff_gamewith",
+             "claim_cataclysm_trigger_game8_jp_cp022"},
         )
-        self.assertIn("cp022-before-cp023", blue_button["summary"])
+        self.assertIn("end of cp022 before cp023", blue_button["summary"])
+        self.assertIn("immediately before", blue_button["acceptance_condition"])
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])

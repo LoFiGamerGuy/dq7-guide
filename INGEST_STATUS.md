@@ -8,14 +8,14 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 633 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 635 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
 | Walkthrough checkpoints | 33 checkpoints; 223 obligations; cp001–cp033 ordered and progress-aware; all 33 have directly verified RPG Site section-range locators; cp010 Mighty Pip control advice has two-source boss support and source-checked vocation-rank gates | High for chronology and locator provenance; exact Leg Sweep/Dazzle ranks currently have one dedicated skill-table source and remain labeled accordingly | Expand checkpoint-specific optimization without treating locator coverage as content completeness |
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
-| Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources, while its cp022 placement is derived from the normalized chronology | Preserve player-unknown state; never infer that the Button sidequest was completed |
+| Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources and a continuous walkthrough directly maps its trigger to end-cp022 before cp023 | Preserve player-unknown state; never infer that the Button sidequest was completed |
 | Heroic Hoarder items | 353/353 required identities / 748 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 303 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify the legacy row and numerical probabilities only if directly published |
 | Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 633
+- sources: 635
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,779
+- claims: 1,782
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -70,15 +70,15 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
-- **Items:** 9 finite acquisition rows retain an unknown exact container or exact member of a published container pair. These are route refinements, not Heroic Hoarder route gaps. The three formerly untyped shop-like rows now have direct prices and typed shop inventory records.
+- **Items:** 6 finite acquisition rows retain an unknown exact container member of a published pair/group. These are route refinements, not Heroic Hoarder route gaps. Present Poolside Cave Fur Cape is resolved to the lone chest in the B2 section-1 northeast terminal alcove; Coagulant is corrected from Hubble Castle to the lower-roof barrel of Hubble Past's western Inquisitory. The three formerly untyped shop-like rows have direct prices and typed shop inventory records.
 - **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. Entry is independently verified as free. hyperWiki publishes source-native numeric selection cells (including 100, 50, 1, and 0), but no denominator or selection algorithm; they are retained as single-source weights and never displayed as item probabilities. All 303 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
-- **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
+- **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. Fishnet Stockings is resolved to Present Frobisher and Marshal Lourgh to the Past Exposure Enclosure route; every losing isolated-page claim remains auditable. Pirate's Hat likewise remains resolved to Past with both losing Present pairs visible. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 633 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 635 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -401,7 +401,8 @@ pairs.
 
 - **Curated research queue:** 4 items: 1 single-source, 1 unsupported, and 2
   corroborated-but-unresolved. None can be safely closed from the currently
-  registered evidence.
+  registered evidence. The Blue Button row now isolates only immediate pre-trigger
+  presence; its cp022-to-cp023 event mapping is directly evidenced.
 - **Automatic conflicts:** 15 unresolved claim-pairs represent 11 distinct fact
   scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts),
   and one is the Stella/Stellar Fan display name. Fishnet Stockings and Marshal
@@ -412,9 +413,11 @@ pairs.
   character list or full item name. Additional guide consensus is not treated as
   equivalent to direct UI evidence.
 - **Little Blue Button:** Game8 Japan and GameWith independently name the
-  late-game Cataclysm (`異変`) as the boundary. The cp022 checkpoint warning is
-  derived from the normalized Almighty-to-Fire-Spirit chronology; neither cutoff
-  page names the repository checkpoint. Completion remains unknown until reported.
+  late-game Cataclysm (`異変`) as the boundary. A separate continuous Game8
+  Japan walkthrough places the trigger when leaving Estard Castle after the
+  cp022 Ultimate-Key cleanup and before the cp023 changed-world route. No source
+  checks the child immediately before that trigger; completion remains unknown
+  until reported.
 - **Lucky Panel probabilities:** requires a published draw algorithm/denominator
   or controlled sampling/source-code evidence. Source-native numeric weights are
   not probabilities.
@@ -426,7 +429,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 633 source records currently have retrieval dates within 180
+- **Freshness:** all 635 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
