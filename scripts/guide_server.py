@@ -1091,6 +1091,7 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
                     f"Evidence-gap claim {claim_id} uses unlisted source {claim['source_id']}"
                 )
             claim["value"] = json.loads(claim.pop("value_json"))
+            claim["source"] = source_rows[claim["source_id"]]
             gap["supporting_claims"].append(claim)
         gap["sources"] = [source_rows[source_id] for source_id in gap["source_ids"]]
         gap["source_count"] = len(gap["sources"])

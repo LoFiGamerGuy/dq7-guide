@@ -282,10 +282,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v7', worker)
-            self.assertIn(b'dq7-guide-data-v7', worker)
-            self.assertNotIn(b'dq7-guide-shell-v6', worker)
-            self.assertNotIn(b'dq7-guide-data-v6', worker)
+            self.assertIn(b'dq7-guide-shell-v8', worker)
+            self.assertIn(b'dq7-guide-data-v8', worker)
+            self.assertNotIn(b'dq7-guide-shell-v7', worker)
+            self.assertNotIn(b'dq7-guide-data-v7', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -465,6 +465,8 @@ class GuideServerTests(unittest.TestCase):
             "game8_jp_post_temple_walkthrough",
         ])
         self.assertEqual(len(blue_button["supporting_claims"]), 3)
+        self.assertTrue(all(row["locator"] and row["source"]["url"]
+                            for row in blue_button["supporting_claims"]))
         self.assertEqual(
             {row["claim_id"] for row in blue_button["supporting_claims"]},
             {"claim_blue_button_cutoff_game8_jp",
