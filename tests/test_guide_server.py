@@ -1585,10 +1585,34 @@ class GuideServerTests(unittest.TestCase):
         ready = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
                                  state_path, "cp_001_prologue")
         self.assertEqual(ready["advancement_readiness"]["status"],
+                         "completion_ledgers_open")
+        self.assertGreater(ready["advancement_readiness"]["open_completion_ledger_count"], 0)
+        self.assertFalse(ready["advancement_readiness"]["can_confirm_and_save_next"])
+        state["completion"]["mini_medals_found"] = [
+            row["number"] for row in ready["medals"] if row["timing"] != "later"
+        ]
+        state["completion"]["tablet_fragments"] = [
+            row["fragment_id"] for row in ready["tablet_fragments"]
+        ]
+        state["completion"]["items_obtained"] = [
+            row["id"] for row in ready["checkpoint_items"]
+        ]
+        state["completion"]["achievements_unlocked"] = [
+            row["id"] for row in ready["checkpoint_achievements"]
+            if row["timing"] == "due_here"
+        ]
+        state["completion"]["missables_completed"] = [
+            row["missable_id"] for row in ready["checkpoint_missables"]
+        ]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        confirmed = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                     state_path, "cp_001_prologue")
+        self.assertEqual(confirmed["advancement_readiness"]["status"],
                          "manual_confirmation")
-        self.assertTrue(ready["advancement_readiness"]["can_confirm_and_save_next"])
-        self.assertTrue(ready["advancement_readiness"]["safe_condition_requires_player_confirmation"])
-        self.assertEqual(ready["advancement_readiness"]["next_checkpoint"]["id"],
+        self.assertEqual(confirmed["advancement_readiness"]["open_completion_ledger_count"], 0)
+        self.assertTrue(confirmed["advancement_readiness"]["can_confirm_and_save_next"])
+        self.assertTrue(confirmed["advancement_readiness"]["safe_condition_requires_player_confirmation"])
+        self.assertEqual(confirmed["advancement_readiness"]["next_checkpoint"]["id"],
                          "cp_002_estard_shrine")
         preview = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
                                    state_path, "cp_002_estard_shrine")

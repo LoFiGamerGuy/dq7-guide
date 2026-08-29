@@ -62,6 +62,46 @@ def load_report(db_path: Path, state_path: Path, checkpoint_id: str | None = Non
             ORDER BY m.medal_number""",
             (selected,),
         ).fetchall()
+        from early_walkthrough import load_walkthrough
+        walkthrough_block = load_walkthrough(
+            db_path, state_path, selected, selected
+        )["blocks"][0]
+        tablet_count = connection.execute(
+            """SELECT COUNT(*) FROM tablet_fragments
+            WHERE available_from_checkpoint_id=?
+              AND fragment_id NOT IN (SELECT value FROM json_each(?))""",
+            (selected, json.dumps(completion.get("tablet_fragments", []))),
+        ).fetchone()[0]
+        finite_item_count = connection.execute(
+            """SELECT COUNT(DISTINCT a.item_id)
+            FROM item_acquisition_paths a JOIN items i USING(item_id)
+            WHERE a.available_from_checkpoint_id=? AND a.supply_type='finite'
+              AND i.heroic_hoarder_required=1
+              AND a.item_id NOT IN (SELECT value FROM json_each(?))""",
+            (selected, json.dumps(completion.get("items_obtained", []))),
+        ).fetchone()[0]
+        achievement_count = connection.execute(
+            """SELECT COUNT(*) FROM achievements
+            WHERE completion_checkpoint_id=?
+              AND achievement_id NOT IN (SELECT value FROM json_each(?))""",
+            (selected, json.dumps(completion.get("achievements_unlocked", []))),
+        ).fetchone()[0]
+        missable_count = connection.execute(
+            """SELECT COUNT(*) FROM missables
+            WHERE available_from_checkpoint_id=?
+              AND missable_id NOT IN (SELECT value FROM json_each(?))
+              AND missable_id NOT IN (SELECT value FROM json_each(?))""",
+            (selected, json.dumps(completion.get("missables_completed", [])),
+             json.dumps(completion.get("missables_missed", []))),
+        ).fetchone()[0]
+        ledger_counts = {
+            "available_medals": len(walkthrough_block["medals_now"])
+            + len(walkthrough_block["medals_backtrack"]),
+            "checkpoint_tablet_fragments": tablet_count,
+            "finite_hoarder_items": finite_item_count,
+            "due_achievements": achievement_count,
+            "checkpoint_missables": missable_count,
+        }
         return {
             "player_checkpoint_matches": state["story"]["checkpoint_id"] == selected,
             "checkpoint": dict(checkpoint),
@@ -75,6 +115,8 @@ def load_report(db_path: Path, state_path: Path, checkpoint_id: str | None = Non
             "found_medals_hidden_count": sum(
                 row["medal_number"] in found_numbers for row in medals
             ),
+            "completion_ledger_counts": ledger_counts,
+            "open_completion_ledger_count": sum(ledger_counts.values()),
         }
     finally:
         connection.close()
@@ -112,6 +154,23 @@ def print_report(report: dict) -> None:
         gate = row["available_from"] or "normal access"
         print(f"- #{row['medal_number']}: {row['location']} ({row['time_period']}) — {row['detail']} [from: {gate}]")
         print(f"  Source: {row['source_title']} — {row['source_url']} ({row['locator']})")
+
+    print("Completion-ledger review before advancing:")
+    labels = {
+        "available_medals": "available Mini Medals",
+        "checkpoint_tablet_fragments": "checkpoint Tablet Fragments",
+        "finite_hoarder_items": "finite Heroic Hoarder items",
+        "due_achievements": "achievements due here",
+        "checkpoint_missables": "checkpoint missables needing a result",
+    }
+    open_counts = [(labels[key], count) for key, count
+                   in report["completion_ledger_counts"].items() if count]
+    if not open_counts:
+        print("- No unrecorded checkpoint ledger entries remain.")
+    for label, count in open_counts:
+        print(f"- {count} {label}")
+    if open_counts:
+        print("- Advancement remains disabled until these entries are recorded or reviewed.")
 
     print(f"Safe advancement condition: {checkpoint['safe_exit_condition']}")
     print("Coverage status: " + checkpoint["coverage_status"])

@@ -3415,6 +3415,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         stops = [row for row in report["obligations"] if row["stop_before_advancing"]]
         self.assertEqual([row["subject"] for row in stops], ["Pearl's Fish Bits"])
         self.assertEqual([row["medal_number"] for row in report["medals"]], [6, 7])
+        self.assertGreater(report["open_completion_ledger_count"], 0)
+        self.assertIn("checkpoint_missables", report["completion_ledger_counts"])
         self.assertFalse(report["player_checkpoint_matches"])
 
     def test_checkpoint_report_requires_known_checkpoint(self):

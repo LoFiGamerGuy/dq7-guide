@@ -1394,20 +1394,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         }
     open_required = [row for row in block["now"] if row["required_for_100_percent"]]
     saved_checkpoint_match = player_state.get("story", {}).get("checkpoint_id") == checkpoint_id
-    if block["stops"]:
-        readiness_status = "blocked_by_stop"
-        readiness_reason = "Clear the STOP obligation before advancing."
-    elif open_required:
-        readiness_status = "required_actions_open"
-        readiness_reason = "Complete the remaining required actions first."
-    else:
-        readiness_status = "manual_confirmation"
-        readiness_reason = "No structured blocker remains; confirm the sourced safe condition yourself."
-    advancement_readiness = {
-        "status": readiness_status, "reason": readiness_reason,
-        "open_stop_count": len(block["stops"]),
-        "open_required_action_count": len(open_required),
-        "open_optional_action_count": len(block["now"]) - len(open_required),
+    ledger_counts = {
         "unrecorded_available_medal_count": len(block["medals_now"]) + len(block["medals_backtrack"]),
         "unrecorded_checkpoint_tablet_fragment_count": sum(
             row["fragment_id"] not in set(completion.get("tablet_fragments", []))
@@ -1419,6 +1406,30 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             for row in achievement_rows),
         "unrecorded_checkpoint_missable_count": sum(
             row["progress_status"] == "unknown" for row in checkpoint_missables),
+    }
+    open_ledger_count = sum(ledger_counts.values())
+    if block["stops"]:
+        readiness_status = "blocked_by_stop"
+        readiness_reason = "Clear the STOP obligation before advancing."
+    elif open_required:
+        readiness_status = "required_actions_open"
+        readiness_reason = "Complete the remaining required actions first."
+    elif open_ledger_count:
+        readiness_status = "completion_ledgers_open"
+        readiness_reason = (
+            f"Review and record {open_ledger_count} open completion-ledger "
+            "entr" + ("y" if open_ledger_count == 1 else "ies") + " before advancing."
+        )
+    else:
+        readiness_status = "manual_confirmation"
+        readiness_reason = "No structured blocker remains; confirm the sourced safe condition yourself."
+    advancement_readiness = {
+        "status": readiness_status, "reason": readiness_reason,
+        "open_stop_count": len(block["stops"]),
+        "open_required_action_count": len(open_required),
+        "open_optional_action_count": len(block["now"]) - len(open_required),
+        **ledger_counts,
+        "open_completion_ledger_count": open_ledger_count,
         "saved_checkpoint_match": saved_checkpoint_match,
         "safe_condition_requires_player_confirmation": True,
         "next_checkpoint": ({"id": next_checkpoint["checkpoint_id"],

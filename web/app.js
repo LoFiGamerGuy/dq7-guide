@@ -387,9 +387,18 @@ function renderCheckpoint() {
   if (!medals.children.length) medals.append(empty());
   const monsters = $("#monsters"); monsters.innerHTML = (c.monsters || []).map(m => `<label class="check-row"><input type="checkbox" data-monster-id="${escapeHtml(m.id)}" ${m.defeated ? "checked" : ""}><span class="check-text"><strong>${escapeHtml(m.name || `Monster #${m.ordinal}`)}</strong><br>${escapeHtml(m.location || "")}${m.drop ? ` · ${escapeHtml(m.drop)}` : ""}</span></label>`).join(""); if (!monsters.children.length) monsters.append(empty());
   $("#safeCondition").textContent = c.safe_condition || "Not yet verified.";
-  const readiness = c.advancement_readiness || {}, labels = { blocked_by_stop: "STOP open", required_actions_open: "Actions open", manual_confirmation: "Confirm manually" };
+  const readiness = c.advancement_readiness || {}, labels = { blocked_by_stop: "STOP open", required_actions_open: "Actions open", completion_ledgers_open: "Ledger review", manual_confirmation: "Confirm manually" };
   $("#advanceStatus").textContent = labels[readiness.status] || "Unknown";
   $("#advanceReason").textContent = readiness.reason || "Readiness is not machine-verifiable.";
+  const ledgerLabels = [
+    ["unrecorded_available_medal_count", "available Mini Medals"],
+    ["unrecorded_checkpoint_tablet_fragment_count", "checkpoint Tablet Fragments"],
+    ["unrecorded_finite_hoarder_item_count", "finite Heroic Hoarder items"],
+    ["unrecorded_due_achievement_count", "achievements due here"],
+    ["unrecorded_checkpoint_missable_count", "checkpoint missables needing a result"],
+  ];
+  $("#advanceLedgerGaps").innerHTML = ledgerLabels.filter(([key]) => Number(readiness[key]) > 0)
+    .map(([key, label]) => `<li><strong>${readiness[key]}</strong> ${escapeHtml(label)}</li>`).join("");
   const advanceButton = $("#advanceCheckpointButton"); advanceButton.disabled = !readiness.can_confirm_and_save_next;
   $("#advancePanel").classList.toggle("advance-ready", Boolean(readiness.can_confirm_and_save_next));
   advanceButton.dataset.nextCheckpoint = readiness.next_checkpoint?.id || "";
