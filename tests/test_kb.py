@@ -2620,15 +2620,15 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 5, "other": 23})
+                         {"chest": 5, "other": 21})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("28 acquisition rows", status)
-        self.assertIn("23 broad area/reward-style `other` routes and five chest routes",
+        self.assertIn("26 acquisition rows", status)
+        self.assertIn("21 broad area/reward-style `other` routes and five chest routes",
                       status)
-        self.assertIn("28 broader acquisition rows", handoff)
+        self.assertIn("26 broader acquisition rows", handoff)
 
-    def test_walkthrough_refines_six_broad_routes_without_inventing_containers(self):
+    def test_walkthrough_refines_five_broad_routes_without_inventing_containers(self):
         expected = {
             "acq_gold_bracer_temple_palace_past": (
                 "Temple Palace hidden room behind Queen Fertiti's throne",
@@ -2637,8 +2637,6 @@ class KnowledgeBaseTests(unittest.TestCase):
                 "Allblades Arena north room", "Allblades Arena (Past) > Items"),
             "acq_mermaid_moon_wetlock_treasure": (
                 "Wetlock west treasure room", "west treasure room"),
-            "acq_healslime_heart_grotto_del_silgillo": (
-                "Grotta del Sigillo 2F", "Grotta del Sigillo (Present)"),
             "acq_day_off_dress_another_world": (
                 "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
             "acq_drakulard_heart_another_world": (
@@ -2659,6 +2657,31 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertEqual(row["source_id"], "rpgsite_walkthrough")
             self.assertIn(locator_fragment, row["locator"])
             self.assertIn("container_unspecified", row["verification_status"])
+
+    def test_direct_heart_guide_resolves_two_exact_chests(self):
+        rows = self.connection.execute(
+            """SELECT acquisition_id, method, location_text, source_id, locator,
+                verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_little_devil_heart_burnmount',
+                'acq_healslime_heart_grotto_del_silgillo'
+            ) ORDER BY acquisition_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        for row in rows:
+            self.assertEqual(row["method"], "chest")
+            self.assertEqual(row["source_id"], "ngb_monster_hearts")
+            self.assertIn("chest", row["locator"].casefold())
+            self.assertEqual(row["verification_status"],
+                             "source_checked_exact_chest")
+        self.assertIn("exterior mountain ledge", rows[1]["location_text"])
+        claim_count = self.connection.execute(
+            """SELECT COUNT(*) FROM claims WHERE claim_id IN (
+                'claim_little_devil_heart_exact_chest_ngb',
+                'claim_healslime_heart_exact_chest_ngb')"""
+        ).fetchone()[0]
+        self.assertEqual(claim_count, 2)
 
     def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
         expected = {
@@ -2761,8 +2784,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("28 broader acquisition rows", handoff)
-        self.assertIn("28 acquisition rows still deliberately carry",
+        self.assertIn("26 broader acquisition rows", handoff)
+        self.assertIn("26 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(

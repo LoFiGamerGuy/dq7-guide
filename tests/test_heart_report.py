@@ -33,7 +33,8 @@ class HeartReportTests(unittest.TestCase):
         self.assertIs(healslime["available_now"], False)
         self.assertEqual(healslime["available_from_checkpoint_id"], "cp_005_larca")
         self.assertEqual(healslime["availability_status"], "route_normalized")
-        self.assertIn("Grotta del Sigillo 2F", healslime["availability_notes"])
+        self.assertIn("Grotta del Sigillo Level 2 chest",
+                      healslime["availability_notes"])
         self.assertTrue(healslime["availability_source_url"].startswith("https://"))
 
     def test_lookup_rejects_unknown_instead_of_returning_empty(self):
