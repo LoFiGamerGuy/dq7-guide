@@ -892,8 +892,15 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
         routes = _heart_routes(db_path, row["name"])
         row["route_count"] = len(routes)
         if not row["available_from_checkpoint_id"] and routes:
-            row["available_from_checkpoint_id"] = routes[0]["available_from_checkpoint_id"]
-            row["available_checkpoint"] = routes[0]["available_checkpoint"]
+            earliest_route = routes[0]
+            row["available_from_checkpoint_id"] = earliest_route["available_from_checkpoint_id"]
+            row["available_checkpoint"] = earliest_route["available_checkpoint"]
+            row["availability_source_id"] = earliest_route["source_id"]
+            row["availability_source_title"] = earliest_route["source_title"]
+            row["availability_source_url"] = earliest_route["source_url"]
+            row["availability_locator"] = earliest_route["locator"]
+            row["availability_notes"] = (row["availability_notes"] or
+                f"Earliest normalized item route: {earliest_route['route_label']}.")
             row["availability_status"] = "route_normalized"
         else:
             row["availability_status"] = ("heart_gate" if row["available_from_checkpoint_id"]

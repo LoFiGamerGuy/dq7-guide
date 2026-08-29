@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_kb import build_database  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
+from heart_report import load_heart_report  # noqa: E402
 from guide_server import (  # noqa: E402
     _checkpoint_view,
     _equipment_readiness,
@@ -231,6 +232,31 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         self.assertIn("100%", heart["effect_text"])
         self.assertIsNone(heart["owned"])
         self.assert_current_version_source(heart["source_id"], heart["locator"])
+
+    def test_all_heart_gates_match_cli_and_api_with_route_provenance(self):
+        parity_state = Path(self.temp.name) / "heart-parity-state.json"
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["story"]["checkpoint_id"] = "cp_020_buccanham"
+        parity_state.write_text(json.dumps(state), encoding="utf-8")
+        cli_rows = {row["heart_id"]: row for row in load_heart_report(
+            self.db, checkpoint_id="cp_020_buccanham", state_path=parity_state
+        )["hearts"]}
+        api_rows = {row["heart_id"]: row for row in _monster_hearts(
+            self.db, {}, parity_state
+        )["hearts"]}
+        self.assertEqual(set(cli_rows), set(api_rows))
+        for heart_id, cli_row in cli_rows.items():
+            with self.subTest(heart_id=heart_id):
+                api_row = api_rows[heart_id]
+                for key in ("available_from_checkpoint_id", "available_checkpoint",
+                            "availability_status", "available_now",
+                            "dlc_ownership_status"):
+                    self.assertEqual(cli_row[key], api_row[key])
+                if api_row["availability_status"] == "route_normalized":
+                    self.assertTrue(api_row["availability_source_url"].startswith("https://"))
+                    self.assertTrue(api_row["availability_locator"])
+                    self.assertIn("Earliest normalized item route:",
+                                  api_row["availability_notes"])
 
     def test_conflict_bundle_exposes_both_precisely_cited_claims(self):
         conflicts = load_conflicts(self.db, include_resolved=True)

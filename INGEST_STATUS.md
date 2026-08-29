@@ -94,6 +94,15 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The Heart retrieval parity audit checks every one of the 46 identities across the
+CLI and phone API. Checkpoint gates, current/later/unknown results, and DLC
+entitlement handling must match. When the gate is inherited from a normalized item
+route, the API now exposes that route's source, precise locator, and explanatory
+note at list level; route existence still does not establish repeatability or
+ownership. Parallel residual reviews found no acceptable new evidence for a
+repeatable Heart route, additional named duplicate accessory, or achievement
+counter overlap/persistence, so those unknowns remain unchanged.
+
 The unscoped Heart CLI wording now distinguishes a known acquisition gate from a
 current-checkpoint comparison. Grody Gumpdrops Heart reports its finite Another
 World route as established instead of contradicting that route with “availability
