@@ -27,7 +27,7 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 540-page source registry with browser search and retrieval-freshness metadata;
+- a 541-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
@@ -54,7 +54,7 @@ On Windows, double-click `start-guide.bat`. On macOS/Linux run
 python scripts/guide_server.py --open-browser
 ```
 
-Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, advice, progress, read-only equipment comparison, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. Its first-use editor records an explicit checkpoint, medal count, party levels, current vocations, and mastery while preserving unknowns. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only validated changes.
+Open `http://127.0.0.1:8765`. The responsive interface provides the dashboard, compact walkthrough, STOP warnings, concise strongest-now and completion-safe power plans, reversible verified equipment and vocation tracking, detailed conflicts, and searchable registries for sources, items, vocations, monsters, Monster Hearts, Seeds, missables, farms, medals, tablets, and achievements. Its first-use editor records an explicit checkpoint, medal count, party levels, current vocations, and mastery while preserving unknowns. It is mobile- and keyboard-friendly, hides completed steps by default, and saves only validated changes.
 
 ### Use on a phone while playing on Steam Deck
 

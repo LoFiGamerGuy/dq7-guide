@@ -932,6 +932,8 @@ def _moonlighting(db_path: Path) -> dict:
         del row["value_json"]
     unlocks = [row for row in facts if row["predicate"] == "unlocks_when"]
     mechanics = next((row for row in facts if row["predicate"] == "effect"), None)
+    pairing_rules = [row for row in facts
+                     if row["predicate"] == "legal_pairing_rule"]
     canonical = next((row for row in unlocks
                       if row["claim_id"] == "claim_moonlighting_sequence_corroborated"),
                      unlocks[0] if unlocks else None)
@@ -957,6 +959,10 @@ def _moonlighting(db_path: Path) -> dict:
                              else "conflicting_sources" if len(unlocks) > 1 else "single_source"),
             "venue_resolution": venue_resolution[0] if venue_resolution else None,
             "mechanics": mechanics,
+            "pairing_rules": pairing_rules,
+            "pairing_summary": ("Any two distinct vocations available to that character; "
+                                "normal unlock and character-exclusive rules still apply."
+                                if len(pairing_rules) >= 2 else None),
             "skill_retention": retention,
             "recommendation_notice": "Pairing suggestions are attributed recommendations, not legal-pairing rules."}
 
@@ -1229,8 +1235,40 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             """SELECT v.vocation_id, e.name FROM vocations v
             JOIN entities e ON e.entity_id=v.vocation_id"""
         ).fetchall()
+        skill_rows = connection.execute(
+            """SELECT k.vocation_id, k.proficiency_rank, k.skill_name,
+                k.source_id, k.locator, s.title AS source_title, s.url AS source_url
+            FROM vocation_rank_skills k JOIN sources s USING(source_id)
+            ORDER BY k.vocation_id, k.proficiency_rank, k.vocation_skill_id"""
+        ).fetchall()
+        perk_rows = connection.execute(
+            """SELECT p.vocation_id, p.perk_name, p.perk_description,
+                p.source_id, p.locator, s.title AS source_title, s.url AS source_url
+            FROM vocation_perks p JOIN sources s USING(source_id)
+            ORDER BY p.vocation_id, p.vocation_perk_id"""
+        ).fetchall()
     vocation_by_name = {row["name"].casefold(): row["vocation_id"]
                         for row in vocation_rows}
+    first_skill = {}
+    for skill in skill_rows:
+        first_skill.setdefault(skill["vocation_id"], {
+            "rank": skill["proficiency_rank"], "name": skill["skill_name"],
+            "source": {"id": skill["source_id"], "title": skill["source_title"],
+                       "url": skill["source_url"], "locator": skill["locator"]},
+        })
+    perk_by_vocation = {perk["vocation_id"]: {
+        "name": perk["perk_name"], "description": perk["perk_description"],
+        "source": {"id": perk["source_id"], "title": perk["source_title"],
+                   "url": perk["source_url"], "locator": perk["locator"]},
+    } for perk in perk_rows}
+
+    def add_vocation_payoff(option: dict) -> dict:
+        vocation_id = option["vocation_id"]
+        return {**option, "power_payoff": {
+            "earliest_skill": first_skill.get(vocation_id),
+            "let_loose": perk_by_vocation.get(vocation_id),
+            "ranking_status": "factual_unlocks_not_ranked",
+        }}
     vocation_paths = []
     seen_vocation_paths = set()
     for row in advice:
@@ -1255,7 +1293,11 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             vocation_paths.append({
                 "character": character, "target_id": target_id,
                 "target_name": vocation_name, "status": recursive["status"],
-                "next_options": recursive["next_options"],
+                "next_options": [add_vocation_payoff(option)
+                                 for option in recursive["next_options"]],
+                "target_payoff": add_vocation_payoff({
+                    "vocation_id": target_id
+                })["power_payoff"],
                 "choice_policy": recursive["choice_policy"],
                 "decision_group": row["decision_group"],
                 "recommendation": row["text"], "source": row["source"],

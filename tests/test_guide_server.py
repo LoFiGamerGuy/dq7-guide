@@ -196,7 +196,7 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v2', worker)
+            self.assertIn(b'dq7-guide-shell-v3', worker)
             self.assertIn(b'fetch(request).then', worker)
         with urlopen(self.base + "/api/state-backup") as response:
             backup = json.load(response)
@@ -206,6 +206,9 @@ class GuideServerTests(unittest.TestCase):
             app = response.read()
             self.assertIn(b"progress changes are not queued", app)
             self.assertIn(b'navigator.serviceWorker.register("/service-worker.js")', app)
+            self.assertIn(b'addEventListener("controllerchange"', app)
+            self.assertIn(b'registration => registration.update()', app)
+            self.assertIn(b'window.location.reload()', app)
 
     def test_restore_requires_confirmation_validates_and_keeps_recovery_copy(self):
         _, original = self.get_json("/api/state-backup")
@@ -414,6 +417,14 @@ class GuideServerTests(unittest.TestCase):
                          "strongest_now")
         self.assertEqual(arena_paths[("Hero", "Warrior")]["next_options"][0]["vocation_id"],
                          "vocation_warrior")
+        warrior_payoff = arena_paths[("Hero", "Warrior")]["next_options"][0]["power_payoff"]
+        self.assertEqual(warrior_payoff["earliest_skill"]["name"], "Focus Strength")
+        self.assertEqual(warrior_payoff["earliest_skill"]["rank"], 1)
+        self.assertEqual(warrior_payoff["let_loose"]["name"], "Art of Chivalry")
+        self.assertTrue(warrior_payoff["earliest_skill"]["source"]["url"])
+        self.assertTrue(warrior_payoff["let_loose"]["source"]["locator"])
+        self.assertEqual(warrior_payoff["ranking_status"],
+                         "factual_unlocks_not_ranked")
         self.assertTrue(all(row["availability_status"] == "available_by_checkpoint"
                             for row in plan["available_farms"]))
         self.assertIn("not a ranking", plan["farm_note"])
@@ -534,11 +545,16 @@ class GuideServerTests(unittest.TestCase):
                          "Shrine of Mysteries")
         self.assertEqual(moon["unlock"]["value"]["activation_location"],
                          "Alltrades Abbey")
-        self.assertEqual(moon["mechanics"]["value"]["unknown_restrictions"],
-                         ["Complete legal pairing restrictions"])
+        self.assertNotIn("unknown_restrictions", moon["mechanics"]["value"])
+        self.assertEqual(len(moon["pairing_rules"]), 2)
+        self.assertIn("Any two distinct vocations", moon["pairing_summary"])
+        self.assertEqual({row["source_id"] for row in moon["pairing_rules"]}, {
+            "playstation_blog_dq7r_interview", "xbox_wire_dq7r_tips",
+        })
         self.assertFalse(moon["skill_retention"]["value"]["retained_after_switching"])
         _, moon_endpoint = self.get_json("/api/moonlighting")
         self.assertEqual(moon_endpoint["mechanics"]["value"]["simultaneous_vocations"], 2)
+        self.assertEqual(moon_endpoint["pairing_summary"], moon["pairing_summary"])
         _, items = self.get_json("/api/items")
         item_id = items["items"][0]["item_id"]
         _, item = self.get_json("/api/items/" + item_id)

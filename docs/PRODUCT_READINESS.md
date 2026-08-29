@@ -68,11 +68,13 @@ Setup, and Progress; restore remains confirmation-gated under Progress.
 
 ## Intentional limits
 
-- Equipment writes are accessory-only: two slots per character, explicitly owned
-  canonical items, verified compatibility, and distinct item IDs. Weapon, shield,
-  head, and torso writes remain disabled; every disputed or single-source row stays visible.
+- Equipment writes require explicit ownership, the corroborated slot layout, matching
+  item category, and verified character compatibility. Weapons, shields, helmets,
+  armour, and two distinct accessories are reversible; unsupported duplicate/stacking
+  behavior remains constrained and every disagreeing source claim stays visible.
 - Monster Heart ownership is editable through a dedicated reversible ledger. An absent ledger remains unknown; route or checkpoint availability never implies ownership.
-- Unknown rates, mastery costs, and unresolved evidence remain unknown.
+- Unknown encounter/drop/farm rates, repeatable Heart routes, duplicate-effect
+  stacking, and other unresolved evidence remain unknown.
 - The Sources view exposes a dated five-gap audit with single-source, unsupported,
   and corroborated-but-unresolved tiers plus the exact evidence needed to close each gap.
 - First use does not infer an existing save; enter only known state.

@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 540)
+        self.assertEqual(self.counts["sources"], 541)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2970,6 +2970,22 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE claim_id='claim_vocation_skill_retention'"""
         ).fetchone()[0]
         self.assertIn('"retained_after_switching": false', retention)
+        pairing_rows = self.connection.execute(
+            """SELECT claim_id, value_json, source_id, confidence
+            FROM claims WHERE predicate='legal_pairing_rule'
+            ORDER BY claim_id"""
+        ).fetchall()
+        self.assertEqual(len(pairing_rows), 2)
+        self.assertEqual({row[2] for row in pairing_rows}, {
+            "playstation_blog_dq7r_interview", "xbox_wire_dq7r_tips",
+        })
+        self.assertTrue(all(row[3] == "verified" for row in pairing_rows))
+        playstation = next(row[1] for row in pairing_rows
+                           if row[2] == "playstation_blog_dq7r_interview")
+        xbox = next(row[1] for row in pairing_rows
+                    if row[2] == "xbox_wire_dq7r_tips")
+        self.assertIn('"Intermediate + Intermediate"', playstation)
+        self.assertIn('"distinct_vocations_required": true', xbox)
 
     def test_advanced_vocation_stat_modifiers_are_complete_and_qualitative(self):
         for vocation_id in ("vocation_champion", "vocation_druid", "vocation_hero"):

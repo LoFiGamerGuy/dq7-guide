@@ -117,7 +117,9 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("Validated equipment tracking enabled", js)
         self.assertIn('data-power-vocation-mastered=', js)
         self.assertIn('showUndo("Vocation mastery recorded."', js)
-        self.assertIn("Branch choice preserved · options are not ranked.", js)
+        self.assertIn("Branch choice preserved · payoffs shown, options not ranked.", js)
+        self.assertIn("Let Loose:", js)
+        self.assertIn("option.power_payoff?.earliest_skill", js)
         self.assertIn("member?.standard_slots?.[slot]", js)
         self.assertIn("Replace the currently recorded ${slot}?", js)
         self.assertIn('id="quickMasteryForm"', html)
@@ -189,6 +191,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('visibilitychange', js)
         self.assertIn('state.hostReachable === false || state.usingCachedData', js)
         self.assertIn('state.usingCachedData = isCached', js)
+        self.assertIn('addEventListener("controllerchange"', js)
+        self.assertIn('registration => registration.update()', js)
         self.assertIn(".play-jumps", css)
 
     def test_phone_launcher_opts_in_to_lan_mode(self):
