@@ -884,3 +884,14 @@ badges to ingestion. Every declared two-source advice row must now reference
 existing atomic claim IDs from at least two distinct registered publishers.
 A synthetic same-publisher regression proves that two pages and two claims from
 one publisher fail the build boundary; a missing claim ID fails separately.
+
+The strongest-gear retrieval audit replaces a misleading legality-only green
+check with an exhaustive cp009 candidate oracle. It finds 104 equipment
+identities with an explicit open checkpoint window and verified compatibility,
+but only seven have any independently corroborated numeric profile. The API and
+phone therefore retain attributed strongest-now recommendations while returning
+`global_strongest_not_proven`; a stat leader is permitted only if every candidate
+for that character and slot has the same verified dimension. Expired routes are
+excluded, route prerequisites remain visible but are not inferred from player
+state, publisher count—not page count—controls stat corroboration, and no
+weighted score is invented for elemental, utility, cost, or finite-copy tradeoffs.

@@ -40,9 +40,10 @@ Achievement-counter handoff: all thresholds remain structured, and current sourc
 
 Advancement-readiness handoff: verified STOP obligations remain the first and strongest gate. Missables have a reversible unknown/completed/missed API and phone control; choosing missed requires destructive confirmation and produces a 100%-recovery-required state rather than misleading safe language. A separate conservative ledger-review gate keeps advancement disabled while any available/backtrack Medal, checkpoint Tablet Fragment, finite Heroic Hoarder item, due achievement, or checkpoint missable lacks a recorded result. The API, phone panel, and checkpoint CLI expose the same five categories. On phone, each nonzero gap is a large navigation-only button that opens and focuses the exact collapsed ledger without changing progress. These ledger gaps are not labelled irreversible; they require review because absence from player state is not evidence of completion. The checkpoint picker cannot bypass these gates: forward movement requires the immediate next checkpoint and a server-side readiness recheck; initialization and backward correction remain supported. Manual confirmation of the sourced safe-exit condition remains required after every structured gate clears.
 
-Phone-cache handoff: shell and API caches use the v14 namespace. The activating worker removes older namespaces, and `controllerchange` reloads once, so full checkpoint advice, vocation recommendations, boss preparation, and Heart routes all expose structured evidence links on already-paired phones. Paired API responses remain excluded from caching.
+Phone-cache handoff: shell and API caches use the v15 namespace. The activating worker removes older namespaces, and `controllerchange` reloads once, so evidence-safe strongest-gear coverage, full checkpoint advice, vocation recommendations, boss preparation, and Heart routes reach already-paired phones. Paired API responses remain excluded from caching.
 Evidence-gap badges count independent publishers behind locator-linked atomic claims, not pages or source IDs. A synthetic regression now fixes the boundary: two separately registered Game8 Japan pages and two linked claims still yield a single-source tier.
 The database builder now enforces the same boundary for every checkpoint-advice row: any declared two-source status must link existing atomic claims from at least two distinct publishers, so a future seed edit cannot rely on page count or a free-form label.
+The equipment API now separates attributed strongest-now advice from proven maximality. Its checkpoint-window candidate universe is independently regression-checked against all compatible routed items, counts stat coverage by publisher, and returns no leader when any candidate lacks the relevant verified dimension. At Alltrades only seven of 104 route-open equipment identities have any independently corroborated numeric profile, so the phone explicitly says absolute strongest is not proven and never assigns weights to incomparable effects.
 The achievement detail now shows the resolved lifetime-total rule with its source,
 while keeping the losing simultaneous-balance claim visible in counter evidence and
 the conflict registry. It no longer asks the player to bank 300,000 gold at once.
@@ -78,7 +79,7 @@ the recovery banner. Golden retrieval coverage also locks the resolved lifetime-
 and exact metal-family achievement evidence to precise, multi-publisher claims.
 Paired API responses are network-only and never enter the service-worker cache.
 The server marks pairing-required responses, covering explicit headers and
-HttpOnly-cookie sessions; cache v14 purges older snapshots. Rotating the private
+HttpOnly-cookie sessions; cache v15 purges older snapshots. Rotating the private
 pairing identity therefore cannot leave an authorized player snapshot available
 offline. Troll Heart detail separately labels its cp019 route as a finite
 one-copy pickup with no proven repeatable route and two-source acquisition evidence.

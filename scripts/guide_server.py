@@ -701,15 +701,22 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         available_route_rows = [dict(row) for row in connection.execute(
             """SELECT a.item_id, a.acquisition_id, a.method, a.route_label,
                 a.location_text, a.time_period, a.is_free, a.supply_type,
+                a.unavailable_after_checkpoint_id, a.prerequisite_json,
                 a.source_id, a.locator, s.title AS source_title, s.url AS source_url
             FROM item_acquisition_paths a
             JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
+            LEFT JOIN checkpoints expiry
+              ON expiry.checkpoint_id=a.unavailable_after_checkpoint_id
             JOIN sources s USING(source_id)
             WHERE c.sequence_no <= ?
+              AND (expiry.sequence_no IS NULL OR expiry.sequence_no >= ?)
             ORDER BY a.item_id, a.is_free DESC,
                 CASE a.supply_type WHEN 'finite' THEN 0 ELSE 1 END,
-                a.acquisition_id""", (checkpoint["sequence_no"],)
+                a.acquisition_id""", (checkpoint["sequence_no"], checkpoint["sequence_no"])
         )]
+        for route in available_route_rows:
+            route["prerequisites"] = json.loads(route.pop("prerequisite_json"))
+            route["availability_scope"] = "checkpoint_window_open_prerequisites_not_state_evaluated"
         available_routes = {}
         for route in available_route_rows:
             available_routes.setdefault(route["item_id"], []).append(route)
@@ -727,8 +734,8 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             )
         }
         stat_claim_rows = [dict(row) for row in connection.execute(
-            """SELECT i.item_id, c.predicate, c.value_json, c.scope_json,
-                c.source_id, c.locator, s.title AS source_title,
+            """SELECT i.item_id, c.claim_id, c.predicate, c.value_json, c.scope_json,
+                c.source_id, c.locator, s.publisher, s.title AS source_title,
                 s.url AS source_url
             FROM items i JOIN claims c ON c.subject_key=i.canonical_key
             JOIN sources s ON s.source_id=c.source_id
@@ -748,12 +755,13 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             stat_groups.setdefault(key, []).append(stat)
         verified_stats_by_item = {}
         for (item_id, predicate, value_json, _scope), corroboration in stat_groups.items():
-            if len({row["source_id"] for row in corroboration}) < 2:
+            if len({row["publisher"] for row in corroboration}) < 2:
                 continue
             verified_stats_by_item.setdefault(item_id, {})[predicate] = {
                 "value": json.loads(value_json),
                 "verification_status": "two_independent_sources_match",
-                "sources": [{"id": row["source_id"], "title": row["source_title"],
+                "sources": [{"id": row["source_id"], "publisher": row["publisher"],
+                             "claim_id": row["claim_id"], "title": row["source_title"],
                              "url": row["source_url"], "locator": row["locator"]}
                             for row in corroboration],
             }
@@ -765,6 +773,83 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
     slot_for_category = {"weapons": "weapon", "armour": "armour",
                          "shields": "shield", "head": "helmet",
                          "accessories": "accessory"}
+    advice_characters = sorted({
+        applicability.get("party_member")
+        for advice in advice_rows
+        for applicability in [json.loads(advice["applicability_json"])]
+        if isinstance(applicability.get("party_member"), str)
+    })
+    primary_dimension = {
+        "weapon": "attack_bonus", "shield": "defence_bonus",
+        "helmet": "defence_bonus", "armour": "defence_bonus",
+        "accessory": None,
+    }
+    strength_slots = []
+    for character in advice_characters:
+        for slot in ("weapon", "shield", "helmet", "armour", "accessory"):
+            candidates = []
+            for item in item_rows:
+                if slot_for_category.get(item["category"].casefold()) != slot:
+                    continue
+                if item["item_id"] not in available:
+                    continue
+                if compatibility_by_pair.get((item["item_id"], character)) is not True:
+                    continue
+                stats = verified_stats_by_item.get(item["item_id"], {})
+                candidates.append({
+                    "item_id": item["item_id"], "name": item["name"],
+                    "verified_dimensions": sorted(stats),
+                    "route_count": len(available_routes.get(item["item_id"], [])),
+                    "has_documented_prerequisites": any(
+                        bool(route["prerequisites"])
+                        for route in available_routes.get(item["item_id"], [])
+                    ),
+                })
+            candidates.sort(key=lambda row: (row["name"], row["item_id"]))
+            dimension = primary_dimension[slot]
+            profiled = [row for row in candidates
+                        if dimension and dimension in row["verified_dimensions"]]
+            coverage_complete = bool(candidates) and len(profiled) == len(candidates)
+            leaders = []
+            if coverage_complete:
+                best_value = max(
+                    verified_stats_by_item[row["item_id"]][dimension]["value"]
+                    for row in profiled
+                )
+                leaders = [
+                    {"item_id": row["item_id"], "name": row["name"],
+                     "value": best_value, "dimension": dimension}
+                    for row in profiled
+                    if verified_stats_by_item[row["item_id"]][dimension]["value"] == best_value
+                ]
+            strength_slots.append({
+                "character": character, "slot": slot,
+                "candidate_count": len(candidates),
+                "candidate_universe": candidates,
+                "primary_dimension": dimension,
+                "profiled_candidate_count": len(profiled),
+                "dimension_coverage_complete": coverage_complete,
+                "dimension_leaders": leaders,
+                "unranked_candidate_ids": [row["item_id"] for row in candidates
+                                            if row not in profiled],
+                "conclusion_status": (
+                    "proven_dimension_leaders" if leaders else
+                    "insufficient_complete_profiles"
+                ),
+            })
+    result["strength_analysis"] = {
+        "checkpoint_id": checkpoint_id,
+        "character_scope": "characters_with_checkpoint_gear_advice",
+        "route_scope": "explicit_checkpoint_window_open; documented prerequisites are exposed but not inferred from player state",
+        "comparison_policy": (
+            "A dimension leader is shown only when every route-open compatible candidate "
+            "has the same independently corroborated numeric dimension. Utility, elemental, "
+            "cost, finite-copy, and unknown-effect tradeoffs are never assigned invented weights."
+        ),
+        "overall_conclusion": "global_strongest_not_proven",
+        "attributed_recommendations_maximality_proven": False,
+        "slots": strength_slots,
+    }
     for advice in advice_rows:
         applicability = json.loads(advice["applicability_json"])
         character = applicability.get("party_member")
@@ -830,7 +915,7 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 "obtainable_routes": available_routes.get(item["item_id"], []),
                 "route_display_policy": "Free routes first, then source order; this does not rank item strength.",
                 "verified_stats": verified_stats_by_item.get(item["item_id"], {}),
-                "stat_display_policy": "Only matching numeric cells from at least two independent sources are shown.",
+                "stat_display_policy": "Only matching numeric cells from at least two independent publishers are shown.",
                 "ownership_status": "recorded" if item["item_id"] in obtained else "unknown",
                 "required_quantity": required_quantity,
                 "quantity": quantity_state["quantity"],

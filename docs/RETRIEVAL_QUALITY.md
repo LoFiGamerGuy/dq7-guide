@@ -25,6 +25,14 @@ retrieval, and exposed source IDs on both sides of conflict-report rows.
 This suite protects representative evidence bundles; it does not imply that all
 possible natural-language questions or all guide domains are complete.
 
+The Alltrades gear bundle now independently reconstructs every compatible item
+with an explicit route whose checkpoint window is open. It reports a numeric
+dimension leader only when every candidate in that character/slot universe has
+that independently corroborated stat. At cp009, coverage is sparse, so the
+correct result is `global_strongest_not_proven`: attributed recommendations stay
+useful, but effects, costs, prerequisites, finite-copy allocation, and unknown
+stats are not collapsed into a fabricated score or universal best-in-slot claim.
+
 The local `query_kb.py` search uses exact-term FTS matches first, then sourced
 structured claims and item aliases, and only then broad OR fallback. Regression
 queries cover Shell Shield, Slime Earring, Stella Fan, and Orgodemir Magic

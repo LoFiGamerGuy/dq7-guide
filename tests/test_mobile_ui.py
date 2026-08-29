@@ -221,6 +221,11 @@ class MobileUiContractTests(unittest.TestCase):
             "PATCH /api/equipment/slots/{character}/{weapon|shield|helmet|armour}",
             contract,
         )
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("Absolute strongest not proven", js)
+        self.assertIn("Attributed strongest-now checks", js)
+        self.assertIn("Effects and tradeoffs are not assigned invented weights", js)
+        self.assertIn("row.profiled_candidate_count", js)
         for safeguard in ("explicit ownership", "canonical item category",
                           "global copy availability",
                           "two-publisher character compatibility"):

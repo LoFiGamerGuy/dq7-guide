@@ -67,6 +67,9 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
             "cactiball_heart", "visible_conflicts", "duplicate_accessory_power",
             "achievement_counter_rules",
         })
+        strongest = self.questions["strongest_legal_gear_alltrades"]
+        self.assertTrue(strongest["requires_exhaustive_candidate_universe"])
+        self.assertTrue(strongest["forbids_invented_weighting"])
 
     def test_retrieval_audit_count_tracks_golden_manifest(self):
         audit = (ROOT / "docs" / "RETRIEVAL_QUALITY.md").read_text(encoding="utf-8")
@@ -178,8 +181,9 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
                                                action["source"]["locator"])
 
     def test_strongest_legal_gear_bundle_keeps_legality_and_advice_separate(self):
+        question = self.questions["strongest_legal_gear_alltrades"]
         state = json.loads(self.state.read_text(encoding="utf-8"))
-        state["story"]["checkpoint_id"] = "cp_009_alltrades"
+        state["story"]["checkpoint_id"] = question["checkpoint_id"]
         self.state.write_text(json.dumps(state), encoding="utf-8")
         report = _equipment_readiness(self.db, self.state)
         self.assertTrue(report["recommendations"])
@@ -189,6 +193,50 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         self.assertEqual(report["compatibility_coverage"]["status"],
                          "complete_two_source_compatibility_matrix")
         self.assertEqual(len(report["mechanics"]), 6)
+        analysis = report["strength_analysis"]
+        self.assertEqual(analysis["overall_conclusion"],
+                         "global_strongest_not_proven")
+        self.assertFalse(analysis["attributed_recommendations_maximality_proven"])
+        category_by_slot = {
+            "weapon": "itemcat_weapons", "shield": "itemcat_shields",
+            "helmet": "itemcat_head", "armour": "itemcat_armour",
+            "accessory": "itemcat_accessories",
+        }
+        checkpoint_sequence = self.connection.execute(
+            "SELECT sequence_no FROM checkpoints WHERE checkpoint_id=?",
+            (question["checkpoint_id"],),
+        ).fetchone()[0]
+        for slot in analysis["slots"]:
+            expected = {row[0] for row in self.connection.execute(
+                """SELECT DISTINCT i.item_id
+                FROM items i
+                JOIN equipment_compatibility ec USING(item_id)
+                JOIN item_acquisition_paths a USING(item_id)
+                JOIN checkpoints start
+                  ON start.checkpoint_id=a.available_from_checkpoint_id
+                LEFT JOIN checkpoints expiry
+                  ON expiry.checkpoint_id=a.unavailable_after_checkpoint_id
+                WHERE i.category_id=? AND ec.character_name=? AND ec.can_equip=1
+                  AND start.sequence_no<=?
+                  AND (expiry.sequence_no IS NULL OR expiry.sequence_no>=?)""",
+                (category_by_slot[slot["slot"]], slot["character"],
+                 checkpoint_sequence, checkpoint_sequence),
+            )}
+            actual = {row["item_id"] for row in slot["candidate_universe"]}
+            self.assertEqual(actual, expected, (slot["character"], slot["slot"]))
+            self.assertEqual(slot["candidate_count"], len(expected))
+            if slot["dimension_leaders"]:
+                self.assertTrue(slot["dimension_coverage_complete"])
+                self.assertEqual(slot["profiled_candidate_count"],
+                                 slot["candidate_count"])
+            else:
+                self.assertEqual(slot["conclusion_status"],
+                                 "insufficient_complete_profiles")
+        self.assertTrue(any(slot["candidate_count"] >
+                            slot["profiled_candidate_count"]
+                            for slot in analysis["slots"]))
+        self.assertNotIn("weighted", json.dumps(analysis).casefold())
+        self.assertNotIn("score", json.dumps(analysis).casefold())
         for row in report["recommendations"]:
             self.assertEqual(row["availability_status"], "route_available")
             self.assert_current_version_source(row["source"]["id"],
