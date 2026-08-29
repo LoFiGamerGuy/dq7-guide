@@ -394,12 +394,12 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 
 ## Authoritative residual-evidence audit
 
-Audited 2026-08-29 against a clean generated database. The browser's five-item
+Audited 2026-08-29 against a clean generated database. The browser's four-item
 evidence-gap list is a curated research queue, not the total number of disputed
 database facts. The API therefore reports it separately from automatic conflict
 pairs.
 
-- **Curated research queue:** 5 items: 2 single-source, 1 unsupported, and 2
+- **Curated research queue:** 4 items: 1 single-source, 1 unsupported, and 2
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence.
 - **Automatic conflicts:** 15 unresolved claim-pairs represent 11 distinct fact
@@ -411,8 +411,6 @@ pairs.
   current-version English equipment/inventory UI capture that shows the relevant
   character list or full item name. Additional guide consensus is not treated as
   equivalent to direct UI evidence.
-  or English Item List capture. The single Lucky Panel table is insufficient to
-  decide whether this is a distinct item or an alias.
 - **Little Blue Button:** Game8 Japan and GameWith independently name the
   late-game Cataclysm (`異変`) as the boundary. The cp022 checkpoint warning is
   derived from the normalized Almighty-to-Fire-Spirit chronology; neither cutoff
