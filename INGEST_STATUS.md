@@ -1,6 +1,6 @@
 # Ingestion status
 
-Status date: 2026-08-28
+Status date: 2026-08-29
 Package: `0.3.0-phase1`  
 Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 548 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 553 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -18,7 +18,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources, while its cp022 placement is derived from the normalized chronology | Preserve player-unknown state; never infer that the Button sidequest was completed |
 | Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` remains the sole exact-name gap. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify Shell Shield, the legacy row, and numerical probabilities only if directly published |
-| Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield has four independently corroborated numeric power cells | High for normalized compatibility and slot layout; Magic Shield Defence +22, Magical Might +12, Magical Mending +11, and all-element reduction 5% are verified; its 6% block chance and battle-use spell-resistance stage remain single-source | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
+| Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 548
+- sources: 553
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,470
+- claims: 1,488
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 548 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 553 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -210,6 +210,8 @@ The direct L'Arca walkthrough also upgrades Sledgehammer from a generic Grotta d
 
 The early-power stat audit independently corroborates Sledgehammer's +26 Attack and -20 Agility through dedicated current-version Game8 and GameWith pages. The cp005 phone advice now presents it as a free high-attack option with a clear turn-order tradeoff, rather than implying it is universally strongest.
 
+The Ruff early-power audit independently corroborates Windcheater's +33 Defence, +50 Deftness, qualitative enemy-drop boost, 15-Medal route, and Ruff legality through dedicated current-version Game8 Japan and GameWith pages. The cp007 and cp009 phone advice now surfaces those verified payoffs while preserving the four-piece Ruff loadout as a single-source editorial recommendation. A separate table publishes a 6% drop increase, but that numeric rate remains single-source and is not promoted.
+
 The current Roamer walkthrough refines Past Poolside Cave Fur Cape to the Underground Level 2 northern-corner chest pair reached by falling through the northwest pits. The page identifies the pair's two rewards but not which individual chest contains the cape, so that remaining ambiguity is explicit.
 
 The farming audit adds precise provenance and checkpoint gates to all eight routes, separates factual target/location evidence from attributed strategy provenance, and removes unsupported generic tactics. Metal-enemy frequency remains qualitative because the direct source publishes no numeric encounter rates; the repeatable Almighty-and-Spirits reward is sourced separately from Game8's recommended Magic Burst composition.
@@ -306,7 +308,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 548 source records currently have retrieval dates within 180
+- **Freshness:** all 553 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -345,6 +347,19 @@ the complete 311-row compatibility matrix. Monster Hearts still consume accessor
 slots. Hobby Consolas shows one repeated accessory in a sample loadout, but no second
 independent current-version source establishes same-item legality or effect stacking,
 so that narrower duplicate rule remains explicitly unpromoted.
+
+The cp009 Hero power batch independently verifies Cautery Sword's +42 Attack and
+one-group battle-use flame effect between Game8's dedicated English item page and
+D-navi's current-version weapon table. Altema separately matches Game8's complete
+early Hero recommendation through Alltrades Abbey: Cautery Sword, Iron Armour,
+Magic Shield, and Iron Mask. The normalized advice keeps the free fixed Sword and
+Mask plus 20-medal Shield ahead of optional Lucky Panel grinding for Iron Armour;
+the older Game8 location error remains resolved rather than silently restored.
+
+The same cp009 defensive pass independently matches White Shield's +19 Defence,
+6% block chance, and 10% fire-damage reduction between its dedicated Game8 and
+GameWith pages. These cells are exposed on Maribel's phone gear card without
+upgrading the broader partial-build recommendation beyond its attributed source.
 
 The Arena roster corroboration batch matches all ten Silver and Gold Cup members
 between RPG Site and Nerthing's independent current-version Steam achievement

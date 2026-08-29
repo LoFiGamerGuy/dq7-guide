@@ -111,6 +111,12 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(cautery["obtainable_routes"][0]["route_label"])
         self.assertTrue(cautery["obtainable_routes"][0]["source_url"])
         self.assertIn("does not rank item strength", cautery["route_display_policy"])
+        self.assertEqual(cautery["verified_stats"]["attack_bonus"]["value"], 42)
+        self.assertEqual(
+            cautery["verified_stats"]["battle_use_effect"]["value"],
+            "Scorching flames damage one enemy group",
+        )
+        self.assertEqual(len(cautery["verified_stats"]["attack_bonus"]["sources"]), 2)
         magic = next(row for row in report["recommendations"]
                      if row["item_name"] == "Magic Shield")
         self.assertEqual(magic["verified_stats"]["defence_bonus"]["value"], 22)
@@ -625,6 +631,19 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(snooze_stick["verified_stats"]["battle_use_effect"]["value"],
                          "Attempts to put one enemy to sleep")
         for stat in snooze_stick["verified_stats"].values():
+            self.assertGreaterEqual(len({source["id"] for source in stat["sources"]}), 2)
+        white_shield = next(row for row in plan["gear_checks"]
+                            if row["item_name"] == "White Shield")
+        self.assertEqual(white_shield["verified_stats"]["defence_bonus"]["value"], 19)
+        self.assertEqual(white_shield["verified_stats"]["block_chance_percent"]["value"], 6)
+        self.assertEqual(white_shield["verified_stats"]["fire_damage_reduction_percent"]["value"], 10)
+        windcheater = next(row for row in plan["gear_checks"]
+                           if row["item_name"] == "Windcheater")
+        self.assertEqual(windcheater["verified_stats"]["defence_bonus"]["value"], 33)
+        self.assertEqual(windcheater["verified_stats"]["deftness_bonus"]["value"], 50)
+        self.assertEqual(windcheater["verified_stats"]["drop_rate_effect"]["value"],
+                         "Enemies are more likely to drop items")
+        for stat in windcheater["verified_stats"].values():
             self.assertGreaterEqual(len({source["id"] for source in stat["sources"]}), 2)
 
     def test_phone_power_gear_exposes_verified_tradeoff_stats(self):

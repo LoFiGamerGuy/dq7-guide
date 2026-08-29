@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 548)
+        self.assertEqual(self.counts["sources"], 553)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1952,6 +1952,52 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(rows, [])
 
+    def test_cp009_hero_power_gear_is_two_source_verified(self):
+        cautery = self.connection.execute(
+            """SELECT predicate, value_json, source_id, confidence
+            FROM claims
+            WHERE subject_key = 'item:cautery_sword'
+              AND predicate IN ('attack_bonus', 'battle_use_effect')
+            ORDER BY predicate, source_id"""
+        ).fetchall()
+        self.assertEqual(len(cautery), 4)
+        self.assertEqual({row["source_id"] for row in cautery}, {
+            "game8_cautery_sword", "dnavi_weapon_list"
+        })
+        self.assertTrue(all(row["confidence"] == "verified" for row in cautery))
+        self.assertEqual(
+            {(row["predicate"], json.loads(row["value_json"])) for row in cautery},
+            {("attack_bonus", 42),
+             ("battle_use_effect", "Scorching flames damage one enemy group")},
+        )
+
+        recommendations = self.connection.execute(
+            """SELECT value_json, source_id, confidence FROM claims
+            WHERE subject_key = 'checkpoint:cp_009_alltrades'
+              AND predicate = 'recommended_hero_early_equipment'
+            ORDER BY source_id"""
+        ).fetchall()
+        self.assertEqual({row["source_id"] for row in recommendations}, {
+            "game8_best_equipment", "altema_best_equipment"
+        })
+        self.assertEqual(len({row["value_json"] for row in recommendations}), 1)
+        self.assertTrue(all(row["confidence"] == "verified"
+                            for row in recommendations))
+
+        advice = self.connection.execute(
+            """SELECT advice_text, applicability_json, confidence,
+                verification_status
+            FROM checkpoint_advice
+            WHERE advice_id = 'advice_cp009_hero_practical_gear'"""
+        ).fetchone()
+        self.assertIn("+42 Attack", advice["advice_text"])
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertTrue(advice["verification_status"].startswith("two_independent"))
+        applicability = json.loads(advice["applicability_json"])
+        self.assertEqual(applicability["cautery_sword_stats"]["attack_bonus"], 42)
+        self.assertEqual(applicability["corroboration"]["source_id"],
+                         "altema_best_equipment")
+
     def test_ingested_medal_numbers_are_contiguous(self):
         numbers = [
             row[0]
@@ -3112,6 +3158,10 @@ class KnowledgeBaseTests(unittest.TestCase):
                 "magical_mending_bonus": 12, "mp_absorption_percent": 8,
                 "battle_use_effect": "Attempts to put one enemy to sleep"},
             "item:iron_mask": {"defence_bonus": 25},
+            "item:windcheater": {"defence_bonus": 33, "deftness_bonus": 50,
+                "drop_rate_effect": "Enemies are more likely to drop items"},
+            "item:white_shield": {"defence_bonus": 19,
+                "block_chance_percent": 6, "fire_damage_reduction_percent": 10},
         }
         for subject, predicates in expected.items():
             for predicate, expected_value in predicates.items():

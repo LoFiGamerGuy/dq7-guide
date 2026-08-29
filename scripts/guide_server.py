@@ -604,9 +604,10 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             WHERE c.claim_kind='fact' AND c.confidence='verified'
               AND c.verification_status LIKE 'two_independent%'
               AND c.predicate IN ('attack_bonus', 'defence_bonus', 'agility_bonus',
-                'magical_might_bonus', 'magical_mending_bonus',
-                'elemental_damage_reduction_percent',
-                'mp_absorption_percent', 'battle_use_effect')
+                'deftness_bonus', 'magical_might_bonus', 'magical_mending_bonus',
+                'elemental_damage_reduction_percent', 'fire_damage_reduction_percent',
+                'block_chance_percent',
+                'mp_absorption_percent', 'battle_use_effect', 'drop_rate_effect')
             ORDER BY i.item_id, c.predicate, c.source_id"""
         )]
         stat_groups = {}
