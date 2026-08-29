@@ -69,17 +69,22 @@
           <div class="checkpoint-picker"><button id="previousCheckpoint" class="secondary" type="button" aria-label="Previous checkpoint">Previous</button><label class="select-label">Checkpoint <select id="checkpointSelect"></select></label><button id="nextCheckpoint" class="secondary" type="button" aria-label="Next checkpoint">Next</button><button id="setCheckpointButton" class="secondary" type="button">Set current</button></div>
         </div>
         <div id="checkpointMeta" class="checkpoint-meta"></div>
+        <nav class="play-jumps" aria-label="Checkpoint shortcuts">
+          <button class="secondary" type="button" data-play-jump="next">Next task</button>
+          <button class="secondary" type="button" data-play-jump="power">Power up</button>
+          <button class="secondary" type="button" data-play-jump="advance">Advance</button>
+        </nav>
         <div id="checkpointStop" class="stop-banner" role="alert" hidden></div>
         <div class="walk-grid">
           <article class="panel span-two"><div class="panel-heading"><h3>Actions</h3><div class="action-tools"><span id="actionCount" class="muted"></span><label><input id="hideCompleted" type="checkbox" checked> Hide done</label></div></div><div id="actions"></div></article>
-          <article class="panel"><div class="panel-heading"><h3>Advice</h3></div><div id="advice"></div></article>
+          <article id="powerAdvice" class="panel"><div class="panel-heading"><h3>Power & safety</h3></div><div id="advice"></div></article>
           <details class="panel secondary-ledger"><summary><strong>Tablet fragments</strong><span id="tabletFragmentCount" class="muted"></span></summary><div id="checkpointTablets"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Finite Hoarder items</strong><span id="checkpointItemCount" class="muted"></span></summary><div id="checkpointItems"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Achievements</strong><span id="checkpointAchievementCount" class="muted"></span></summary><div id="checkpointAchievements"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Missables</strong><span id="checkpointMissableCount" class="muted"></span></summary><div id="checkpointMissables"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Mini Medals</strong></summary><div id="medals"></div></details>
           <details class="panel secondary-ledger"><summary><strong>Monsters</strong></summary><div id="monsters"></div></details>
-          <article class="panel"><div class="panel-heading"><h3>Safe to advance when</h3><span id="advanceStatus" class="tag"></span></div><p id="safeCondition"></p><p id="advanceReason" class="muted"></p><button id="advanceCheckpointButton" class="secondary" type="button" disabled>Confirm and set next current</button></article>
+          <article id="advancePanel" class="panel"><div class="panel-heading"><h3>Safe to advance when</h3><span id="advanceStatus" class="tag"></span></div><p id="safeCondition"></p><p id="advanceReason" class="muted"></p><button id="advanceCheckpointButton" class="secondary" type="button" disabled>Confirm and set next current</button></article>
         </div>
       </section>
 
@@ -131,7 +136,7 @@
   <nav id="playBar" class="play-bar" aria-label="Play controls">
     <button type="button" data-mobile-view="dashboard"><span aria-hidden="true">⌂</span><span>Home</span></button>
     <button id="mobilePrevious" type="button" aria-label="Browse previous checkpoint"><span aria-hidden="true">‹</span><span>Prev</span></button>
-    <button id="mobileCurrent" type="button"><span aria-hidden="true">☑</span><span>Current</span></button>
+    <button id="mobileCurrent" type="button" aria-label="Jump to current STOP or next task"><span aria-hidden="true">☑</span><span>Now</span></button>
     <button id="mobileNext" type="button" aria-label="Browse next checkpoint"><span aria-hidden="true">›</span><span>Next</span></button>
     <button id="mobileTop" type="button"><span aria-hidden="true">↑</span><span>Top</span></button>
   </nav>

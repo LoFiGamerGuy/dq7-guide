@@ -80,9 +80,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(coverage["status"], "partial_two_source_matrix")
         self.assertEqual(coverage["catalog_item_rows"], 311)
         self.assertEqual(coverage["audited_item_rows"], 311)
-        self.assertEqual(coverage["verified_item_rows"], 306)
+        self.assertEqual(coverage["verified_item_rows"], 308)
         self.assertEqual(coverage["conflicted_item_rows"], 3)
-        self.assertEqual(coverage["single_source_item_rows"], 2)
+        self.assertEqual(coverage["single_source_item_rows"], 0)
         self.assertEqual(coverage["unaudited_item_rows"], 0)
         accessories = next(row for row in coverage["by_category"]
                            if row["category"] == "Accessories")

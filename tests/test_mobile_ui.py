@@ -54,6 +54,9 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('$("#mobilePrevious")', js)
         self.assertIn('$("#mobileNext")', js)
         self.assertIn('$("#mobileCurrent")', js)
+        self.assertIn('data-play-jump="power"', html)
+        self.assertIn("function scrollToPlayPriority()", js)
+        self.assertIn('[aria-labelledby="advice-strongest_now"]', js)
         self.assertIn("(max-width: 900px) and (pointer: coarse)", css)
 
     def test_mobile_restore_and_long_details_are_keyboard_and_overflow_safe(self):
@@ -105,6 +108,15 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("ledger.open = !mobileLayout()", js)
         self.assertIn('$("#hideCompleted")', js)
 
+    def test_long_checkpoint_actions_show_next_three_before_later_work(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("function renderCheckpointActions", js)
+        self.assertIn("visible.slice(0, 3)", js)
+        self.assertIn("Later in this checkpoint", js)
+        self.assertIn('renderCheckpointActions($("#actions")', js)
+        self.assertIn(".later-actions > summary", css)
+
     def test_phone_setup_diagnoses_security_and_exposes_recovery(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
@@ -117,6 +129,15 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("Unavailable on this LAN HTTP address", js)
         self.assertIn("Disabled — never queued", js)
         self.assertIn('"display": "standalone"', manifest)
+
+    def test_real_host_failure_has_phone_recovery_even_when_browser_reports_online(self):
+        css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("hostReachable: null", js)
+        self.assertIn("state.hostReachable = false", js)
+        self.assertIn('data-reconnect', js)
+        self.assertIn('visibilitychange', js)
+        self.assertIn(".play-jumps", css)
 
     def test_phone_launcher_opts_in_to_lan_mode(self):
         launcher = (ROOT / "start-guide-phone.sh").read_text(encoding="utf-8")

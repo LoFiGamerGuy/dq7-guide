@@ -250,6 +250,20 @@ def _build_database(db_path: Path) -> dict[str, int]:
         equipment_compatibility_claims = []
         for (item_id, source_name, kind, hyper_page, game8_chars, hyper_chars,
              _prior_status, gamers_high_chars) in equipment_matrix:
+            source_b_id = (
+                "gamewith_jp_equipment_armor"
+                if hyper_page == "gamewith_armor"
+                else f"hyperwiki_equipment_{hyper_page}" if hyper_page else None
+            )
+            source_b_locator = (
+                "Armour list > " + {
+                    "パーティドレス": "パーティードレス",
+                    "メタルキングのよろい": "メタルキングよろい",
+                }.get(source_name, source_name) + " > compatible-character icons"
+                if hyper_page == "gamewith_armor"
+                else f"Equipment list > {source_name} > equipment characters"
+                if hyper_page else None
+            )
             source_a_characters = [character_codes[code] for code in game8_chars]
             source_b_characters = (
                 [character_codes[code] for code in hyper_chars]
@@ -281,16 +295,13 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 "source_b_characters": source_b_characters,
                 "source_c_characters": source_c_characters,
                 "source_a_id": "game8_jp_equipment_matrix",
-                "source_b_id": f"hyperwiki_equipment_{hyper_page}" if hyper_page else None,
+                "source_b_id": source_b_id,
                 "source_c_id": (
                     f"gamers_high_equipment_{kind}" if source_c_characters is not None else None
                 ),
                 "mapping_source_id": mapping_sources[kind],
                 "source_a_locator": f"Equipment list > {source_name} > compatible characters",
-                "source_b_locator": (
-                    f"Equipment list > {source_name} > equipment characters"
-                    if hyper_page else None
-                ),
+                "source_b_locator": source_b_locator,
                 "source_c_locator": (
                     f"Equipment list > {source_name} > compatible characters"
                     if source_c_characters is not None else None
@@ -310,9 +321,9 @@ def _build_database(db_path: Path) -> dict[str, int]:
             for suffix, characters, source_id, locator in (
                 ("game8jp", source_a_characters, "game8_jp_equipment_matrix",
                  f"Equipment list > {source_name} > compatible characters"),
-                ("hyperwiki", source_b_characters,
-                 f"hyperwiki_equipment_{hyper_page}" if hyper_page else None,
-                 f"Equipment list > {source_name} > equipment characters"),
+                ("gamewith" if hyper_page == "gamewith_armor" else "hyperwiki",
+                 source_b_characters,
+                 source_b_id, source_b_locator),
                 ("gamershigh", source_c_characters,
                  f"gamers_high_equipment_{kind}" if source_c_characters is not None else None,
                  f"Equipment list > {source_name} > compatible characters"),

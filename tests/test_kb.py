@@ -59,10 +59,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 531)
+        self.assertEqual(self.counts["sources"], 532)
         self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
-        self.assertEqual(self.counts["equipment_compatibility"], 1836)
+        self.assertEqual(self.counts["equipment_compatibility"], 1848)
         self.assertEqual(self.counts["item_identity_redirects"], 1)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
@@ -132,10 +132,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT item_id, source_b_id, source_c_id FROM equipment_compatibility_audits
             WHERE agreement_status='single_source' ORDER BY item_id"""
         ).fetchall()
-        self.assertEqual([row["item_id"] for row in singles],
-                         ["item_metal_king_armour", "item_party_dress"])
-        self.assertTrue(all(row["source_b_id"] is None for row in singles))
-        self.assertTrue(all(row["source_c_id"] is None for row in singles))
+        self.assertEqual(singles, [])
 
         accessory_rows = self.connection.execute(
             """SELECT a.agreement_status, COUNT(*) AS row_count

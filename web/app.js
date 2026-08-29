@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false, mutations: new Set(), undoAction: null, undoTimer: null };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false, hostReachable: null, mutations: new Set(), undoAction: null, undoTimer: null };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -65,9 +65,15 @@ async function api(path, options = {}) {
         ...(options.headers || {})
       }
     });
+    const wasUnreachable = state.hostReachable === false;
+    state.hostReachable = true;
+    if (wasUnreachable) renderConnectionState(true);
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     if (response.headers.get("X-DQ7-Offline-Cache") === "true") { state.usingCachedData = true; renderConnectionState(false); }
     return response.status === 204 ? null : response.json();
+  } catch (error) {
+    if (error instanceof TypeError) { state.hostReachable = false; renderConnectionState(false); }
+    throw error;
   } finally {
     state.requests -= 1; if (!state.requests) $("#main").removeAttribute("aria-busy");
   }
@@ -75,10 +81,10 @@ async function api(path, options = {}) {
 
 function renderConnectionState(reconnected = false) {
   const banner = $("#connectionBanner");
-  if (!navigator.onLine || state.usingCachedData) {
+  if (!navigator.onLine || state.usingCachedData || state.hostReachable === false) {
     banner.hidden = false;
     banner.className = "connection-banner";
-    banner.textContent = "Offline or host unavailable · cached pages are read-only. Progress changes are not queued.";
+    banner.innerHTML = 'Guide host unavailable · changes are disabled and never queued. <button class="secondary" type="button" data-reconnect>Reconnect</button>';
   } else if (reconnected) {
     banner.hidden = false;
     banner.className = "connection-banner online";
@@ -147,6 +153,23 @@ function renderChecks(target, actions = [], hideCompleted = false) {
   });
 }
 
+function renderCheckpointActions(target, actions = [], hideCompleted = false) {
+  target.replaceChildren();
+  const visible = hideCompleted ? actions.filter(action => !action.completed) : actions;
+  if (!visible.length) return target.append(empty());
+  const immediate = document.createElement("div");
+  immediate.className = "immediate-actions";
+  renderChecks(immediate, visible.slice(0, 3));
+  target.append(immediate);
+  const later = visible.slice(3);
+  if (!later.length) return;
+  const details = document.createElement("details");
+  details.className = "later-actions";
+  details.innerHTML = `<summary>Later in this checkpoint (${later.length})</summary><div></div>`;
+  renderChecks(details.lastElementChild, later);
+  target.append(details);
+}
+
 function renderStopActions(target, actions = []) {
   target.hidden = !actions.length;
   target.replaceChildren();
@@ -157,6 +180,20 @@ function renderStopActions(target, actions = []) {
     label.innerHTML = `<input type="checkbox" data-action-id="${escapeHtml(action.id)}"><span class="check-text"><strong>${escapeHtml(action.title)}</strong><br>${escapeHtml(action.action)}</span>`;
     target.append(label);
   });
+}
+
+function scrollToPlayPriority() {
+  const target = (!$("#checkpointStop").hidden && $("#checkpointStop")) || $("#actions .next-action") || $("#actions") || $("#walkthrough");
+  target.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
+function scrollToPlaySection(section) {
+  const targets = {
+    next: (!$("#checkpointStop").hidden && $("#checkpointStop")) || $("#actions .next-action") || $("#actions"),
+    power: $('[aria-labelledby="advice-strongest_now"]') || $('[aria-labelledby="advice-optional_grind"]') || $("#powerAdvice"),
+    advance: $("#advancePanel")
+  };
+  targets[section]?.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 
 function compactApplicability(value) {
@@ -187,7 +224,7 @@ function renderCheckpoint() {
   $("#mobileNext").disabled = index < 0 || index >= state.checkpoints.length - 1;
   $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
   renderStopActions($("#checkpointStop"), c.stop_actions || []);
-  renderChecks($("#actions"), c.actions || [], $("#hideCompleted").checked);
+  renderCheckpointActions($("#actions"), c.actions || [], $("#hideCompleted").checked);
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"), adviceGroups = [
     ["completion_safe", "Completion-safe"],
@@ -485,6 +522,8 @@ document.addEventListener("click", event => {
   const filter = event.target.closest("[data-filter]"); if (filter) { state.filter = filter.dataset.filter; renderCatalog(); }
   const card = event.target.closest("[data-entry-id]"); if (card) selectCatalogEntry(card.dataset.entryId);
   if (event.target.closest("[data-retry]")) { if (state.domain) loadDomain(state.domain).catch(handleError); else loadAll().catch(handleError); }
+  if (event.target.closest("[data-reconnect]")) { state.usingCachedData = false; loadAll().catch(handleError); }
+  const playJump = event.target.closest("[data-play-jump]"); if (playJump) scrollToPlaySection(playJump.dataset.playJump);
 });
 $("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); if (open) $("#primaryNav a").focus(); });
 $("#refreshButton").addEventListener("click", () => loadAll().catch(handleError));
@@ -500,7 +539,7 @@ $("#mobileCurrent").addEventListener("click", () => {
   const id = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : state.checkpoints[0]?.id;
   if (!id) return scrollToTop();
   $("#checkpointSelect").value = id;
-  loadCheckpoint(id).then(scrollToTop).catch(handleError);
+  loadCheckpoint(id).then(scrollToPlayPriority).catch(handleError);
 });
 $("#setCheckpointButton").addEventListener("click", async () => {
   const id = $("#checkpointSelect").value, previous = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
@@ -586,6 +625,7 @@ document.addEventListener("keydown", event => { if (event.key === "Escape" && !$
 window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
 window.addEventListener("offline", () => renderConnectionState(false));
 window.addEventListener("online", () => { state.usingCachedData = false; renderConnectionState(true); loadAll().catch(handleError); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && state.hostReachable === false) loadAll().catch(handleError); });
 const initialRoute = location.hash.slice(1) || "dashboard";
 if (domains[initialRoute]) showDomain(initialRoute); else showView(initialRoute);
 renderConnectionState(false);
