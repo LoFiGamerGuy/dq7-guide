@@ -384,10 +384,10 @@ class GuideServerTests(unittest.TestCase):
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
-        self.assertEqual(audit["total"], 8)
+        self.assertEqual(audit["total"], 7)
         self.assertEqual(audit["single_source"], 1)
         self.assertEqual(audit["unsupported"], 1)
-        self.assertEqual(audit["corroborated_but_unresolved"], 6)
+        self.assertEqual(audit["corroborated_but_unresolved"], 5)
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
@@ -403,9 +403,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertNotIn("gap_super_seed_reward_pool", by_id)
         self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
         self.assertNotIn("gap_shell_shield_identity", by_id)
-        stellar = by_id["gap_stellar_fan_ui_name"]
-        self.assertEqual(stellar["verification_tier"], "corroborated_but_unresolved")
-        self.assertIn("English", stellar["acceptance_condition"])
+        self.assertNotIn("gap_stellar_fan_ui_name", by_id)
         blue_button = by_id["gap_blue_button_cutoff"]
         self.assertEqual(blue_button["subject"],
                          "Little Blue Button immediate pre-trigger availability")
@@ -424,7 +422,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("immediately before", blue_button["acceptance_condition"])
         containers = by_id["gap_finite_container_members"]
         self.assertEqual(containers["source_count"], 7)
-        self.assertEqual(len(containers["supporting_claims"]), 4)
+        self.assertEqual(len(containers["supporting_claims"]), 5)
         self.assertIn("Knuckledusters", containers["summary"])
         self.assertIn("Faraday", containers["acceptance_condition"])
         duplicates = by_id["gap_duplicate_equipment_stacking"]
@@ -436,6 +434,9 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("Monster Hearts", duplicates["acceptance_condition"])
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])
+        hearts = by_id["gap_repeatable_monster_hearts"]
+        self.assertEqual(len(hearts["supporting_claims"]), 2)
+        self.assertIn("verified finite", hearts["acceptance_condition"])
         counters = by_id["gap_achievement_counter_semantics"]
         self.assertEqual(counters["source_count"], 5)
         self.assertEqual(len(counters["supporting_claims"]), 9)
@@ -564,16 +565,17 @@ class GuideServerTests(unittest.TestCase):
             "Sanctum of the Cirrus", "Ventus Tower 2F, by the north stairs"
         })
         self.assertFalse(any("moonlighting" in row["subject"] for row in conflicts))
-        stellar = next(row for row in conflicts if "stella fan" in row["subject"])
-        self.assertIn("English in-game Item List", stellar["required_evidence"])
-        self.assertIn("full fan name legible", stellar["required_evidence"])
-        self.assertEqual(stellar["status"], "unresolved")
+        self.assertFalse(any("stella fan" in row["subject"] for row in conflicts))
         _, stella_item = self.get_json("/api/items/Stella%20Fan")
         _, stellar_item = self.get_json("/api/items/Stellar%20Fan")
         self.assertEqual(stella_item["item"]["item_id"],
                          stellar_item["item"]["item_id"])
         self.assertEqual(stellar_item["item"]["name"], "Stellar Fan")
         _, all_conflicts = self.get_json("/api/conflicts?include_resolved=1")
+        stellar = next(row for row in all_conflicts
+                       if "stella fan" in row["subject"])
+        self.assertEqual(stellar["status"], "resolved")
+        self.assertIn("acquisition toast", stellar["rationale"])
         moonlighting = next(row for row in all_conflicts
                             if "moonlighting" in row["subject"])
         self.assertEqual(moonlighting["status"], "resolved")

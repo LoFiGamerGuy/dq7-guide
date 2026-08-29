@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 655)
+        self.assertEqual(self.counts["sources"], 659)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -69,7 +69,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
-        self.assertEqual(self.counts["checkpoint_advice"], 114)
+        self.assertEqual(self.counts["checkpoint_advice"], 115)
         self.assertEqual(self.counts["boss_skill_recommendations"], 9)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -1399,14 +1399,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(report["routed_count"], 353)
         self.assertEqual(len(report["items"]), 0)
 
-    def test_item_alias_resolves_without_discarding_name_conflict(self):
+    def test_item_alias_preserves_losing_name_after_direct_ui_resolution(self):
         item, routes = load_item_routes(self.db_path, "Stella Fan")
         self.assertEqual(item["name"], "Stellar Fan")
         self.assertTrue(any(route["method"] == "shop" for route in routes))
         conflict = self.connection.execute(
             """SELECT 1 FROM conflicts c
             JOIN claims a ON a.claim_id = c.claim_a_id
-            WHERE c.status = 'unresolved'
+            WHERE c.status = 'resolved'
               AND a.subject_key = 'item:stella_fan'
               AND a.predicate = 'item_display_name'"""
         ).fetchone()
@@ -1414,7 +1414,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         unresolved = self.connection.execute(
             "SELECT COUNT(*) FROM conflicts WHERE status='unresolved'"
         ).fetchone()[0]
-        self.assertEqual(unresolved, 2)
+        self.assertEqual(unresolved, 1)
 
     def test_direct_item_pages_resolve_verified_panel_name_variants(self):
         aliases = dict(self.connection.execute(
@@ -1521,12 +1521,13 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
         self.assertTrue(all(row["source_id"] and row["locator"] for row in rows))
 
-    def test_video_observations_resolve_four_exact_container_members(self):
+    def test_video_observations_resolve_five_exact_container_members(self):
         expected = {
             "acq_dragon_shield_treasure_la_bravoure_present": "northmost/top chest",
             "acq_pirates_hat_buccanham_palace_closet": "west/left wardrobe",
             "acq_silk_robe_temple_palace_present": "east/right wardrobe",
             "acq_steel_helmet_rucker_castle_past": "east/right chest",
+            "acq_knuckledusters_pilgrims_perdition_past": "east/right closet",
         }
         placeholders = ",".join("?" for _ in expected)
         rows = self.connection.execute(
@@ -1535,11 +1536,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE acquisition_id IN ({placeholders})""",
             tuple(expected),
         ).fetchall()
-        self.assertEqual(len(rows), 4)
+        self.assertEqual(len(rows), 5)
         for row in rows:
-            self.assertTrue(row["source_id"].startswith("lordfenton_"))
-            self.assertEqual(row["verification_status"],
-                             "direct_pc_english_video_exact_container")
+            self.assertTrue(row["source_id"].startswith(
+                ("lordfenton_", "baigaming_")))
+            self.assertIn("direct_", row["verification_status"])
+            self.assertIn("english_video_exact_container",
+                          row["verification_status"])
             container = json.loads(row["prerequisite_json"])["container"]
             self.assertIn(expected[row["acquisition_id"]], container)
             self.assertRegex(row["locator"], r"\d\d:\d\d")
@@ -1651,8 +1654,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["finite_total"] == 1 and row["is_free"] == 1 for row in rows))
         self.assertTrue(all(row["locator"] for row in rows))
         by_id = {row["acquisition_id"]: row for row in rows}
-        self.assertIn("pair_member_unknown", by_id[
-            "acq_knuckledusters_pilgrims_perdition_past"]["verification_status"])
+        knuckles = by_id["acq_knuckledusters_pilgrims_perdition_past"]
+        self.assertEqual(knuckles["verification_status"],
+                         "direct_english_video_exact_container_platform_patch_unstated")
+        self.assertIn("east/right closet", knuckles["locator"])
         self.assertEqual(by_id["acq_yggdrasil_leaf_burnmont_past"][
             "verification_status"], "two_source_route_exact_container_resolved")
         self.assertEqual(by_id["acq_iron_lance_grotta_sigillo_past"][
@@ -2531,7 +2536,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 2)
+        self.assertEqual(residual, 1)
         corroborating = self.connection.execute(
             """SELECT c.subject_key, c.value_json, s.publisher
             FROM claims c JOIN sources s USING(source_id)
@@ -3664,6 +3669,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         expected = {
             "advice_cp002_tribulators", "advice_cp003_golem",
             "advice_cp003_crabble_maeve_sequence",
+            "advice_cp003_vicious_hearts_are_finite",
             "advice_cp004_glowering_inferno", "advice_cp005_hackrobat",
             "advice_cp005_fixed_weapon_sweep",
             "advice_cp007_tinpot_dictator", "advice_cp007_slaughtomaton",

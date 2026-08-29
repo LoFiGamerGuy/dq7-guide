@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 655 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 659 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -16,7 +16,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
 | Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources and a continuous walkthrough directly maps its trigger to end-cp022 before cp023 | Preserve player-unknown state; never infer that the Button sidequest was completed |
-| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
+| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stellar Fan is resolved from direct English UI while Stella Fan remains a sourced losing alias | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. The stale Version 1 Rank 2 Slime Earring route is preserved only as a contradicted historical claim; one source publishes raw numeric selection cells but no probability formula | Verify numerical probabilities only if directly published |
 | Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
 | Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
@@ -26,19 +26,19 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; Scarewell's exact fixed Past route has two independent current-version sources | Preserve the PS5-only scope on its separately sourced reset method; do not infer numeric rates |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 2 unresolved claim-pairs remain: Stella/Stellar Fan and Massively Minted's simultaneous-balance versus lifetime-gold condition. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; the gold condition is deliberately not collapsed | Resolve the fan name with legible English UI and the gold condition with controlled counter evidence or publisher documentation |
+| Conflicts | Automatic exact-scope detection active; 1 unresolved claim-pair remains: Massively Minted's simultaneous-balance versus lifetime-gold condition. Stellar Fan is resolved by a direct English acquisition toast, with both older guide claims retained. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; the gold condition is deliberately not collapsed | Resolve the gold condition with controlled counter evidence or publisher documentation |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 655
+- sources: 659
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,816
+- claims: 1,820
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -53,14 +53,14 @@ Expected after `python scripts/build_kb.py`:
 - monsters: 333
 - monster encounters / drops: 476 / 227
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 114
+- ready-for-play checkpoint advice: 115
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
 - item aliases / acquisition paths: 5 / 747
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 410 total / 2 unresolved claim-pairs / 2 unresolved fact scopes
+- conflicts: 411 total / 1 unresolved claim-pair / 1 unresolved fact scope
 
 Treat these as build assertions, not completion percentages.
 
@@ -70,38 +70,51 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
-- **Items:** 2 finite acquisition rows retain an unknown exact container member of a published pair/group: Knuckledusters in Strom's Mansion 2F and Faraday Strength Ring east of the throne room. These are route refinements, not Heroic Hoarder route gaps. Direct PC/English item-result footage now resolves Dragon Shield, Pirate's Hat, Silk Robe, and Steel Helmet to individual containers. Present Poolside Cave Fur Cape is resolved to the lone chest in the B2 section-1 northeast terminal alcove; Coagulant is corrected from Hubble Castle to the lower-roof barrel of Hubble Past's western Inquisitory. The three formerly untyped shop-like rows have direct prices and typed shop inventory records.
+- **Items:** 1 finite acquisition row retains an unknown exact container member of a published pair/group: Faraday Strength Ring east of the throne room. This is a route refinement, not a Heroic Hoarder route gap. Direct English item-result footage now resolves Dragon Shield, Pirate's Hat, Silk Robe, Steel Helmet, and Knuckledusters to individual containers. Present Poolside Cave Fur Cape is resolved to the lone chest in the B2 section-1 northeast terminal alcove; Coagulant is corrected from Hubble Castle to the lower-roof barrel of Hubble Past's western Inquisitory. The three formerly untyped shop-like rows have direct prices and typed shop inventory records.
 - **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The stale Version 1 Rank 2 Slime Earring route is removed from active normalization and preserved as a contradicted historical claim: RPG Site's current table, AppMedia, and GameWith independently place it in Version 1 Rank 1. Because RPG Site warns its tables may be non-exhaustive, the resolution does not assert Rank 2 impossibility. Entry is independently verified as free. hyperWiki's numeric selection cells remain weights, not probabilities. All 302 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
-- **Conflicts:** two automatically detected claim-pairs remain unresolved: the `Stella Fan` / `Stellar Fan` display name and whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 655 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** one automatically detected claim-pair remains unresolved: whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. `Stellar Fan` is resolved by a legible launch-period English acquisition toast, while RPG Site's `Stella Fan` wording remains visible as the losing claim. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 659 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
-1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
-2. Verify the Knuckledusters and Faraday Strength Ring individual finite-container members without inferring positions within their published pairs.
-3. Seek explicit rematch/respawn evidence for repeatable Hearts.
-4. Resolve the six exact remaining achievement-counter questions, non-Rabbit-Tail accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence.
-5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
+1. Verify the Faraday Strength Ring individual finite-container member without inferring a drawer position within its published pair.
+2. Seek explicit repeat evidence for a non-Vicious Heart route; defeated Vicious/strong encounters are verified finite.
+3. Resolve the six exact remaining achievement-counter questions, non-Rabbit-Tail accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence.
+4. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors this complete eight-item evidence-blocked
-queue: 1 single-source, 1 unsupported, and 6 corroborated-but-unresolved rows.
+queue: 1 single-source, 1 unsupported, and 5 corroborated-but-unresolved rows.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The second exact-container video pass resolves Knuckledusters in Strom's Mansion
+Past Level 2: continuous English footage opens the west/left north-wall closet for
+Iron Mask, then the east/right closet for Knuckledusters. Platform and patch remain
+unstated. Two checked Faraday Castle videos did not safely identify the Strength
+Ring drawer, leaving it as the sole grouped-container residual.
+
+The direct-UI and finite-Heart batch resolves the English item name to `Stellar
+Fan`: a launch-period Poolside Cave acquisition toast displays the complete name,
+independently matching Game8. RPG Site's `Stella Fan` claim remains preserved but
+resolved. GameWith and Gamers-High also independently establish that defeated
+Vicious/strong monsters never respawn at that location. Phone guidance now treats
+their Heart rewards as finite pickups rather than farms; the broader search for a
+repeatable non-Vicious Heart route remains open.
 
 The exact-container video batch resolves four of the six remaining grouped
 members from continuous current-version English PC footage: Dragon Shield is the
 north chest in the west Treasure House row; Pirate's Hat is the west wardrobe of
 the Buccanham bedroom pair; Silk Robe is the east wardrobe of the Temple Palace
 B1 north-wall trio; and Steel Helmet is the east chest of the Rucker 2F pair.
-Knuckledusters and Faraday Strength Ring remain grouped unknowns after checked
-footage failed to show a legible item-result/member association.
+That pass left Knuckledusters and Faraday Strength Ring grouped; the later BAI
+GAMING capture resolves Knuckledusters, so only Faraday remains unknown.
 
 The Rabbit Tail mechanics batch narrows the duplicate-equipment gap without
 generalizing it. Masakun's PS5 guide recommends two Rabbit Tails on every party
@@ -403,7 +416,7 @@ The earlier Moonlighting venue re-audit kept the conflict unresolved because the
 
 The expanded systems batch adds two-source Lucky Panel limits (three attempts per in-game day, reset by staying at an inn). A later audit independently corroborates free entry through GAME攻略BOX and Game8 Japan. hyperWiki's raw selection cells remain single-source, source-native weights because no denominator or draw algorithm is published; they are not probabilities. Official and independently maintained sources establish that both assigned Moonlighting vocations provide their skills/spells/perks and gain proficiency, while learned skills stop being available when their vocation is no longer assigned. Normal-setting proficiency is scoped to 1 point for an overworld instant defeat, 5 for a regular entered battle, and 10 for a boss/special battle. Luminary's matching two-source rank costs are normalized through 480 cumulative points; disagreeing numeric stat cells remain visible claims and are not promoted.
 
-The Stella/Stellar Fan re-audit also remains unresolved. Game8's dedicated current-version page consistently uses `Stellar Fan`, while RPG Site says its `Stella Fan` checklist spelling follows the in-game menu; neither available page exposes a legible English UI capture that directly adjudicates the name. Search and item detail continue accepting both spellings through the sourced alias, and conflict details now require an Item List, inventory, shop, or acquisition-result capture with the complete name visible.
+The Stella/Stellar Fan re-audit was later resolved. Game8's dedicated current-version page consistently uses `Stellar Fan`, and a launch-period English Poolside Cave acquisition toast directly displays `stellar fan`. RPG Site's `Stella Fan` checklist wording remains preserved as the losing claim, and search/item detail continue accepting the sourced alias. Exact hardware and patch for the capture remain unstated.
 
 The vocation readiness batch adds direct unlock planning to every vocation detail. Intermediate and advanced requirements retain their sourced `all_of` or `any_n_of` semantics, candidate names, required count, locator, and URL. Per-member status uses only explicit mastery records: satisfied thresholds are recognized, while absent records remain unknown and conditional remaining counts are labeled accordingly. Numeric mastery cost remains unknown rather than being inferred from eight-rank skill tables.
 
@@ -418,17 +431,18 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 
 ## Authoritative residual-evidence audit
 
-Audited 2026-08-29 against a clean generated database. The browser's four-item
+Audited 2026-08-29 against a clean generated database. The browser's seven-item
 evidence-gap list is a curated research queue, not the total number of disputed
 database facts. The API therefore reports it separately from automatic conflict
 pairs.
 
-- **Curated research queue:** 4 items: 1 single-source, 1 unsupported, and 2
+- **Curated research queue:** 7 items: 1 single-source, 1 unsupported, and 5
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence. The Blue Button row now isolates only immediate pre-trigger
   presence; its cp022-to-cp023 event mapping is directly evidenced.
-- **Automatic conflicts:** two unresolved claim-pairs/fact scopes remain: the
-  Stella/Stellar Fan display name and Massively Minted's gold-counter condition. Fourteen equipment-compatible-character pairs
+- **Automatic conflicts:** one unresolved claim-pair/fact scope remains:
+  Massively Minted's gold-counter condition. Stellar Fan is resolved from direct
+  English UI while retaining the losing Stella Fan claim. Fourteen equipment-compatible-character pairs
   are resolved through separately linked two-publisher consensus claims when the
   supported complete list is neither losing value. Fishnet Stockings and Marshal
   Lourgh chronology are now resolved from location-specific and continuous
@@ -452,7 +466,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 655 source records currently have retrieval dates within 180
+- **Freshness:** all 659 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

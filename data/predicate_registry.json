@@ -31,5 +31,6 @@
     "achievement_counter_aggregation": {"comparison": "single"},
     "achievement_counter_exclusion": {"comparison": "single"},
     "same_item_equip_legality": {"comparison": "single"},
-    "duplicate_effect_stacking": {"comparison": "single"}
+    "duplicate_effect_stacking": {"comparison": "single"},
+    "encounter_repeatability": {"comparison": "single"}
 }
