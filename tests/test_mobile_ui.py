@@ -91,6 +91,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("<b>Needed:</b>", js)
         self.assertIn("Consensus resolution · separate claim", js)
         self.assertIn("c.resolution_is_external", js)
+        self.assertIn("Independent matching publishers:", js)
+        self.assertIn("c.resolution_evidence", js)
         self.assertIn("Party roles", js)
         self.assertIn("Fight plan", js)
         self.assertIn("Skill prep", js)

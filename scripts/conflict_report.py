@@ -62,7 +62,27 @@ def load_conflicts(db_path: Path, include_resolved: bool = False) -> list[dict]:
         connection.close()
 
 
-def print_conflicts(rows: list[dict]) -> None:
+def load_resolution_evidence(db_path: Path, resolution_claim_id: str) -> list[dict]:
+    """Return every claim matching a resolution value, with publisher provenance."""
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            """SELECT c.claim_id, c.value_json, c.scope_json, c.confidence,
+                c.verification_status, c.locator, s.source_id, s.title,
+                s.publisher, s.url, s.updated_at, s.retrieved_at
+            FROM claims resolution
+            JOIN claims c ON c.subject_key=resolution.subject_key
+                AND c.predicate=resolution.predicate
+                AND c.value_json=resolution.value_json
+            JOIN sources s ON s.source_id=c.source_id
+            WHERE resolution.claim_id=?
+            ORDER BY s.publisher, c.claim_id""",
+            (resolution_claim_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+
+def print_conflicts(rows: list[dict], db_path: Path = DEFAULT_DB) -> None:
     if not rows:
         print("No matching conflicts.")
         return
@@ -78,8 +98,10 @@ def print_conflicts(rows: list[dict]) -> None:
         if (row["resolution_claim_id"] and
                 row["resolution_claim_id"] not in (row["claim_a_id"], row["claim_b_id"])):
             print(f"Resolution [{row['resolution_claim_id']}]: {row['resolution_value']}")
-            print(f"  {row['resolution_source_title']} — {row['resolution_source_url']} "
-                  f"({row['resolution_locator'] or 'no locator'})")
+            for evidence in load_resolution_evidence(
+                    db_path, row["resolution_claim_id"]):
+                print(f"  {evidence['title']} ({evidence['publisher']}) — "
+                      f"{evidence['url']} ({evidence['locator'] or 'no locator'})")
         if row["rationale"]:
             print(f"Rationale: {row['rationale']}")
         print()
@@ -91,7 +113,7 @@ def main() -> None:
     parser.add_argument("--all", action="store_true", help="Include resolved conflicts")
     args = parser.parse_args()
     try:
-        print_conflicts(load_conflicts(args.db, args.all))
+        print_conflicts(load_conflicts(args.db, args.all), args.db)
     except FileNotFoundError as error:
         raise SystemExit(str(error)) from error
 

@@ -1508,11 +1508,18 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 (subject_key,),
             ).fetchall()
             consensus_claims = connection.execute(
-                """SELECT claim_id FROM claims
+                """SELECT c.claim_id, s.publisher FROM claims c
+                JOIN sources s ON s.source_id=c.source_id
                 WHERE subject_key=? AND predicate='equipment_compatible_characters'
                   AND value_json=? ORDER BY claim_id""",
                 (subject_key, consensus_value),
             ).fetchall()
+            consensus_publishers = {row["publisher"] for row in consensus_claims}
+            if len(consensus_publishers) < 2:
+                raise ValueError(
+                    f"Equipment consensus for {audit['item_id']} requires matching "
+                    "claims from two distinct publishers"
+                )
             consensus_claim_id = (consensus_claims[0]["claim_id"]
                                   if consensus_claims else None)
             for conflict in conflict_rows:

@@ -23,7 +23,7 @@ import webbrowser
 
 from achievement_report import load_achievement_report
 from checkpoint_report import load_report
-from conflict_report import load_conflicts
+from conflict_report import load_conflicts, load_resolution_evidence
 from early_walkthrough import DEFAULT_FROM, DEFAULT_THROUGH, load_walkthrough
 from hoarder_report import load_hoarder_report
 from item_report import load_item_routes
@@ -2134,6 +2134,27 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                                 "retrieved_at": row["resolution_source_retrieved_at"],
                             },
                         } if row["resolution_claim_id"] else None),
+                        "resolution_evidence": ([{
+                            "id": evidence["claim_id"],
+                            "value": json.loads(evidence["value_json"]),
+                            "scope": json.loads(evidence["scope_json"]),
+                            "confidence": evidence["confidence"],
+                            "verification_status": evidence["verification_status"],
+                            "locator": evidence["locator"],
+                            "source": {
+                                "id": evidence["source_id"],
+                                "title": evidence["title"],
+                                "publisher": evidence["publisher"],
+                                "url": evidence["url"],
+                                "updated_at": evidence["updated_at"],
+                                "retrieved_at": evidence["retrieved_at"],
+                            },
+                        } for evidence in load_resolution_evidence(
+                            db_path, row["resolution_claim_id"]
+                        )] if row["resolution_claim_id"] and
+                            row["resolution_claim_id"] not in
+                            (row["claim_a_id"], row["claim_b_id"])
+                         else []),
                         "required_evidence": (None if row["status"] == "resolved" else
                             ("Direct in-game capture or patch-scoped map evidence confirming whether Tempest Shield exists in both Sanctum of the Cirrus and Ventus Tower, or which listed route is erroneous."
                              if row["subject_key"] == "item:tempest_shield" else

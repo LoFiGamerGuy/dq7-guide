@@ -558,6 +558,13 @@ class GuideServerTests(unittest.TestCase):
                          {claim["id"] for claim in bow["claims"]})
         self.assertTrue(bow["resolution"]["source"]["url"])
         self.assertTrue(bow["resolution"]["locator"])
+        self.assertGreaterEqual(len(bow["resolution_evidence"]), 2)
+        self.assertGreaterEqual(len({
+            evidence["source"]["publisher"]
+            for evidence in bow["resolution_evidence"]
+        }), 2)
+        self.assertTrue(all(evidence["source"]["url"] and evidence["locator"]
+                            for evidence in bow["resolution_evidence"]))
         for row in all_conflicts:
             if row["status"] != "resolved":
                 continue

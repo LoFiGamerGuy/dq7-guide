@@ -777,6 +777,25 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "claim_equipcompat_liquid_metal_sword_gamershigh")
         self.assertEqual(adjudicated_conflict["detection_method"],
                          "two_independent_source_consensus_external_claim")
+        external_resolutions = self.connection.execute(
+            """SELECT f.resolution_claim_id, resolution.subject_key,
+                resolution.predicate, resolution.value_json
+            FROM conflicts f
+            JOIN claims resolution
+              ON resolution.claim_id=f.resolution_claim_id
+            WHERE f.detection_method=
+              'two_independent_source_consensus_external_claim'"""
+        ).fetchall()
+        self.assertEqual(len(external_resolutions), 14)
+        for resolution in external_resolutions:
+            publishers = self.connection.execute(
+                """SELECT DISTINCT s.publisher
+                FROM claims c JOIN sources s ON s.source_id=c.source_id
+                WHERE c.subject_key=? AND c.predicate=? AND c.value_json=?""",
+                (resolution["subject_key"], resolution["predicate"],
+                 resolution["value_json"]),
+            ).fetchall()
+            self.assertGreaterEqual(len(publishers), 2)
 
         iron_lance = self.connection.execute(
             """SELECT agreement_status, allowed_characters_json, source_b_id, source_c_id
