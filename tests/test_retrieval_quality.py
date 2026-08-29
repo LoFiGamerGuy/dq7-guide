@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_kb import build_database  # noqa: E402
+from acquisition_availability import route_availability  # noqa: E402
 from conflict_report import load_conflicts  # noqa: E402
 from heart_report import load_heart_report  # noqa: E402
 from guide_server import (  # noqa: E402
@@ -207,8 +208,8 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
             (question["checkpoint_id"],),
         ).fetchone()[0]
         for slot in analysis["slots"]:
-            expected = {row[0] for row in self.connection.execute(
-                """SELECT DISTINCT i.item_id
+            route_rows = self.connection.execute(
+                """SELECT DISTINCT i.item_id, a.prerequisite_json
                 FROM items i
                 JOIN equipment_compatibility ec USING(item_id)
                 JOIN item_acquisition_paths a USING(item_id)
@@ -221,7 +222,13 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
                   AND (expiry.sequence_no IS NULL OR expiry.sequence_no>=?)""",
                 (category_by_slot[slot["slot"]], slot["character"],
                  checkpoint_sequence, checkpoint_sequence),
-            )}
+            ).fetchall()
+            expected = {
+                row[0] for row in route_rows
+                if route_availability(
+                    "open", json.loads(row[1]), state
+                )["availability_status"] == "available_now"
+            }
             actual = {row["item_id"] for row in slot["candidate_universe"]}
             self.assertEqual(actual, expected, (slot["character"], slot["slot"]))
             self.assertEqual(slot["candidate_count"], len(expected))
@@ -238,9 +245,19 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         self.assertNotIn("weighted", json.dumps(analysis).casefold())
         self.assertNotIn("score", json.dumps(analysis).casefold())
         for row in report["recommendations"]:
-            self.assertEqual(row["availability_status"], "route_available")
+            self.assertIn(row["availability_status"], {
+                "route_available", "route_prerequisite_unconfirmed",
+            })
             self.assert_current_version_source(row["source"]["id"],
                                                row["source"]["locator"])
+        magic = next(row for row in report["recommendations"]
+                     if row["item_name"] == "Magic Shield")
+        self.assertEqual(magic["availability_status"],
+                         "route_prerequisite_unconfirmed")
+        self.assertNotIn("item_magic_shield", {
+            row["item_id"] for slot in analysis["slots"]
+            for row in slot["candidate_universe"]
+        })
         for rule in report["mechanics"]:
             self.assertNotEqual(rule["source_id"], rule["corroborating_source_id"])
 

@@ -139,6 +139,8 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(cautery["ownership_status"], "unknown")
         self.assertEqual(cautery["compatibility_status"], "verified_can_equip")
         self.assertTrue(cautery["obtainable_routes"])
+        self.assertEqual(cautery["actionable_route"]["availability_status"],
+                         "available_now")
         self.assertTrue(cautery["obtainable_routes"][0]["route_label"])
         self.assertTrue(cautery["obtainable_routes"][0]["source_url"])
         self.assertIn("does not rank item strength", cautery["route_display_policy"])
@@ -154,9 +156,33 @@ class GuideServerTests(unittest.TestCase):
                             cautery["verified_stats"]["attack_bonus"]["sources"]))
         magic = next(row for row in report["recommendations"]
                      if row["item_name"] == "Magic Shield")
+        self.assertEqual(magic["availability_status"],
+                         "route_prerequisite_unconfirmed")
+        self.assertIsNone(magic["actionable_route"])
+        self.assertGreater(magic["conditional_route_count"], 0)
+        self.assertIn("prerequisite is not explicitly confirmed",
+                      magic["equip_block_reason"])
         self.assertEqual(magic["verified_stats"]["defence_bonus"]["value"], 22)
         self.assertEqual(len(magic["verified_stats"]["defence_bonus"]["sources"]), 2)
         self.assertIn("at least two independent publishers", magic["stat_display_policy"])
+        white = next(row for row in report["recommendations"]
+                     if row["item_name"] == "White Shield")
+        self.assertEqual(white["actionable_route"]["method"], "shop")
+        self.assertEqual(white["actionable_route"]["price"], 980)
+        self.assertEqual(white["actionable_route"]["currency"], "gold")
+        snooze = next(row for row in report["recommendations"]
+                      if row["item_name"] == "Snooze Stick")
+        self.assertEqual(snooze["actionable_route"]["price"], 2000)
+
+        state["completion"]["mini_medal_count"] = 20
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        medal_report = _equipment_readiness(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path)
+        medal_magic = next(row for row in medal_report["recommendations"]
+                           if row["item_name"] == "Magic Shield")
+        self.assertEqual(medal_magic["availability_status"], "route_available")
+        self.assertEqual(medal_magic["actionable_route"]["availability_status"],
+                         "available_now")
 
         status, endpoint = self.get_json("/api/equipment")
         self.assertEqual(status, 200)
@@ -293,10 +319,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v15', worker)
-            self.assertIn(b'dq7-guide-data-v15', worker)
-            self.assertNotIn(b'dq7-guide-shell-v14', worker)
-            self.assertNotIn(b'dq7-guide-data-v14', worker)
+            self.assertIn(b'dq7-guide-shell-v16', worker)
+            self.assertIn(b'dq7-guide-data-v16', worker)
+            self.assertNotIn(b'dq7-guide-shell-v15', worker)
+            self.assertNotIn(b'dq7-guide-data-v15', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)

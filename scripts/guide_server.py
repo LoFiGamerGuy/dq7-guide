@@ -21,6 +21,7 @@ import tempfile
 from urllib.parse import parse_qs, unquote, urlparse
 import webbrowser
 
+from acquisition_availability import route_availability
 from achievement_report import load_achievement_report
 from checkpoint_report import load_report
 from conflict_report import load_conflicts, load_resolution_evidence
@@ -702,12 +703,15 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             """SELECT a.item_id, a.acquisition_id, a.method, a.route_label,
                 a.location_text, a.time_period, a.is_free, a.supply_type,
                 a.unavailable_after_checkpoint_id, a.prerequisite_json,
-                a.source_id, a.locator, s.title AS source_title, s.url AS source_url
+                a.source_id, a.locator, s.title AS source_title, s.url AS source_url,
+                si.price, si.currency, sh.name AS shop_name
             FROM item_acquisition_paths a
             JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
             LEFT JOIN checkpoints expiry
               ON expiry.checkpoint_id=a.unavailable_after_checkpoint_id
             JOIN sources s USING(source_id)
+            LEFT JOIN shop_inventory si USING(acquisition_id)
+            LEFT JOIN shops sh ON sh.shop_id=si.shop_id
             WHERE c.sequence_no <= ?
               AND (expiry.sequence_no IS NULL OR expiry.sequence_no >= ?)
             ORDER BY a.item_id, a.is_free DESC,
@@ -716,11 +720,23 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         )]
         for route in available_route_rows:
             route["prerequisites"] = json.loads(route.pop("prerequisite_json"))
-            route["availability_scope"] = "checkpoint_window_open_prerequisites_not_state_evaluated"
+            route.update(route_availability("open", route["prerequisites"], state))
+            route["availability_scope"] = (
+                "checkpoint_window_and_prerequisites_evaluated_conservatively"
+            )
         available_routes = {}
         for route in available_route_rows:
             available_routes.setdefault(route["item_id"], []).append(route)
-        available = set(available_routes)
+        available = {
+            item_id for item_id, routes in available_routes.items()
+            if any(route["availability_status"] == "available_now" for route in routes)
+        }
+        conditional = {
+            item_id for item_id, routes in available_routes.items()
+            if item_id not in available and any(
+                route["availability_status"] == "conditionally_available"
+                for route in routes)
+        }
         compatibility_by_pair = {
             (row["item_id"], row["character_name"]): bool(row["can_equip"])
             for row in connection.execute(
@@ -896,10 +912,24 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             evidence = _advice_evidence(
                 db_path, applicability, advice["verification_status"], advice["source_id"]
             )
-            availability_status = ("route_available" if item["item_id"] in available
-                                   else "route_not_proven_by_checkpoint")
+            availability_status = (
+                "route_available" if item["item_id"] in available else
+                "route_prerequisite_unconfirmed" if item["item_id"] in conditional else
+                "route_not_proven_by_checkpoint"
+            )
+            item_routes = available_routes.get(item["item_id"], [])
+            actionable_routes = [route for route in item_routes
+                                 if route["availability_status"] == "available_now"]
+            conditional_routes = [route for route in item_routes
+                                  if route["availability_status"] ==
+                                  "conditionally_available"]
             equip_block_reason = None
-            if availability_status != "route_available":
+            if availability_status == "route_prerequisite_unconfirmed":
+                equip_block_reason = (
+                    "Checkpoint window is open, but a route prerequisite is not "
+                    "explicitly confirmed."
+                )
+            elif availability_status != "route_available":
                 equip_block_reason = "No verified route is available by this checkpoint."
             elif compatibility is not True:
                 equip_block_reason = "Character compatibility is not verified."
@@ -912,8 +942,12 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 "slot": slot, "item_id": item["item_id"], "item_name": item["name"],
                 "category": item["category"],
                 "availability_status": availability_status,
-                "obtainable_routes": available_routes.get(item["item_id"], []),
-                "route_display_policy": "Free routes first, then source order; this does not rank item strength.",
+                "obtainable_routes": item_routes,
+                "actionable_route": actionable_routes[0] if actionable_routes else None,
+                "actionable_route_count": len(actionable_routes),
+                "conditional_route_count": len(conditional_routes),
+                "route_collection_scope": "checkpoint_window_open_including_conditional",
+                "route_display_policy": "Actionable route is the first proven-current route; the full collection preserves conditional routes and does not rank item strength.",
                 "verified_stats": verified_stats_by_item.get(item["item_id"], {}),
                 "stat_display_policy": "Only matching numeric cells from at least two independent publishers are shown.",
                 "ownership_status": "recorded" if item["item_id"] in obtained else "unknown",

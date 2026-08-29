@@ -303,6 +303,18 @@ canonical item IDs and nominal category slots, route availability, explicit
 ownership, the recorded-value comparison, provenance, and an attributed
 compatibility status and basis.
 
+Route availability separates the checkpoint window from the one independently
+state-evaluable acquisition gate: Mini Medal thresholds. `route_available` means
+at least one open route has no Medal threshold or its threshold is explicitly
+satisfied. An open route with an unknown Medal count is
+`route_prerequisite_unconfirmed`; it is withheld from the phone's “Get now”
+loadout list and shown only as a short gated-recommendation notice. Keys, events,
+bosses, items, arena conditions, containers, rooms, ranks, and pools remain
+visible route conditions or metadata; their normalized earliest checkpoint—not
+untracked save-state inference—controls when the route can be pursued. Each row
+also exposes an authoritative `actionable_route`; the phone never assumes the
+first route in the full collection is current.
+
 `PATCH /api/equipment/slots/{character}/{weapon|shield|helmet|armour}` accepts
 `{ "item_id": canonical_id_or_null }` when `non_accessory_editor_supported` is
 true. It requires explicit ownership, the matching canonical item category,

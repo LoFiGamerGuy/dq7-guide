@@ -30,6 +30,7 @@ from early_walkthrough import (  # noqa: E402
     main as early_walkthrough_main,
 )
 from medal_report import medals_available_through  # noqa: E402
+from acquisition_availability import route_availability  # noqa: E402
 from item_report import load_item_routes, load_purchase_advice  # noqa: E402
 from monster_report import (  # noqa: E402
     load_checkpoint_monsters,
@@ -2390,6 +2391,40 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.db_path, "Tempest Shield", "cp_025_wind_spirit"
         )
         self.assertNotIn("acquisition evidence conflict", verdict)
+
+    def test_acquisition_availability_separates_gates_from_route_metadata(self):
+        descriptive = route_availability(
+            "open", {"container": "east chest", "room": "north room"}, {})
+        self.assertEqual(descriptive["availability_status"], "available_now")
+        unknown_medals = route_availability(
+            "open", {"mini_medals": 20}, {"completion": {}})
+        self.assertEqual(unknown_medals["availability_status"],
+                         "conditionally_available")
+        self.assertEqual(unknown_medals["prerequisite_status"], "unknown")
+        unmet_medals = route_availability(
+            "open", {"mini_medals": 20},
+            {"completion": {"mini_medal_count": 19}})
+        self.assertEqual(unmet_medals["availability_status"], "unavailable")
+        met_medals = route_availability(
+            "open", {"mini_medals": 20},
+            {"completion": {"mini_medal_count": 20}})
+        self.assertEqual(met_medals["availability_status"], "available_now")
+        key_gate = route_availability("open", {"key": "Magic Key"}, {})
+        self.assertEqual(key_gate["availability_status"], "available_now")
+        self.assertEqual(key_gate["prerequisite_status"], "not_applicable")
+        self.assertEqual(key_gate["route_condition_keys"], ["key"])
+
+    def test_purchase_advice_never_calls_unconfirmed_medal_route_free_now(self):
+        _, routes, verdict = load_purchase_advice(
+            self.db_path, "Magic Shield", "cp_009_alltrades")
+        medal_route = next(row for row in routes
+                           if row["acquisition_id"] ==
+                           "acq_magic_shield_medal_reward_20")
+        self.assertEqual(medal_route["timing_status"],
+                         "checkpoint_open_prerequisite_unconfirmed")
+        self.assertEqual(medal_route["availability_status"],
+                         "conditionally_available")
+        self.assertNotIn("verified free route available now", verdict)
 
     def test_conflict_detector_opens_stable_fact_conflict(self):
         path = Path(self.tempdir.name) / "conflict.sqlite"

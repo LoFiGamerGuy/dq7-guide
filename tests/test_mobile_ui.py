@@ -271,7 +271,7 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('/equipment/slots/', js)
         self.assertIn('showUndo("Equipment saved."', js)
         self.assertIn("Validated equipment tracking enabled", js)
-        self.assertIn("<b>Get now:</b>", js)
+        self.assertIn('route?.method === "shop" ? "Buy now" : "Get now"', js)
         self.assertIn("<b>Verified:</b>", js)
         self.assertIn("Sourced loadout checks", js)
         self.assertIn("Grouped by character · source order · not a complete or ranked loadout.", js)
@@ -280,7 +280,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn(".gear-character", css)
         self.assertIn(".gear-item-heading", css)
         self.assertIn("all-element reduction", js)
-        self.assertIn("row.obtainable_routes?.[0]", js)
+        self.assertIn("row.actionable_route", js)
+        self.assertNotIn("row.obtainable_routes?.[0]", js)
         self.assertIn("+${extraRoutes} routes", js)
         self.assertIn('data-power-vocation-mastered=', js)
         self.assertIn('showUndo("Vocation mastery recorded."', js)
@@ -583,6 +584,13 @@ class MobileUiContractTests(unittest.TestCase):
                                capture_output=True, text=True, timeout=15)
         self.assertIn("player/*.before-restore-*.json",
                       (ROOT / ".gitignore").read_text(encoding="utf-8"))
+
+    def test_phone_withholds_gear_with_unconfirmed_route_prerequisites(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('row.availability_status === "route_available"', js)
+        self.assertIn('row.availability_status === "route_prerequisite_unconfirmed"', js)
+        self.assertIn("gated gear recommendation", js)
+        self.assertIn("checkpoint window open · prerequisite unconfirmed", js)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sqlite3
 from pathlib import Path
+
+from acquisition_availability import route_availability
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,14 +114,23 @@ def load_purchase_advice(
         unavailable = route["unavailable_sequence"]
         if available is None:
             route["timing_status"] = "unknown_gate"
+            window_status = "unknown"
         elif unavailable is not None and unavailable < available:
             route["timing_status"] = "invalid_window"
+            window_status = "invalid"
         elif unavailable is not None and unavailable < current_sequence:
             route["timing_status"] = "expired"
+            window_status = "expired"
         elif available <= current_sequence:
             route["timing_status"] = "available_now"
+            window_status = "open"
         else:
             route["timing_status"] = "available_later"
+            window_status = "later"
+        route["prerequisites"] = json.loads(route["prerequisite_json"])
+        route.update(route_availability(window_status, route["prerequisites"]))
+        if route["availability_status"] == "conditionally_available":
+            route["timing_status"] = "checkpoint_open_prerequisite_unconfirmed"
 
         if route["is_free"] == 1:
             route["cost_status"] = "free"
@@ -146,7 +158,7 @@ def load_purchase_advice(
             + predicates
         )
     elif any(
-        row["cost_status"] == "free" and row["timing_status"] == "available_now"
+        row["cost_status"] == "free" and row["availability_status"] == "available_now"
         for row in routes
     ):
         verdict = "DON'T BUY FOR COMPLETION — verified free route available now"
@@ -154,7 +166,8 @@ def load_purchase_advice(
         later_free = [
             row for row in routes
             if row["cost_status"] == "free"
-            and row["timing_status"] == "available_later"
+            and row["window_status"] == "later"
+            and row["prerequisite_status"] in ("not_applicable", "satisfied")
         ]
         if later_free:
             earliest = min(later_free, key=lambda row: row["available_sequence"])
@@ -164,7 +177,7 @@ def load_purchase_advice(
             )
         elif any(
             row["cost_status"] == "unknown"
-            or row["timing_status"] in ("unknown_gate", "invalid_window")
+            or row["availability_status"] in ("unknown", "conditionally_available")
             for row in routes
         ):
             verdict = "UNRESOLVED — no verified free route; incomplete cost or timing data"

@@ -26,7 +26,11 @@ This suite protects representative evidence bundles; it does not imply that all
 possible natural-language questions or all guide domains are complete.
 
 The Alltrades gear bundle now independently reconstructs every compatible item
-with an explicit route whose checkpoint window is open. It reports a numeric
+with an explicit route whose checkpoint window is open and whose Mini Medal
+threshold is either absent or explicitly satisfied. Window-open Medal rewards
+with an unknown count remain visible as conditional evidence but are excluded
+from the proven-current candidate universe. Other route conditions remain
+instructions governed by their normalized earliest checkpoint. It reports a numeric
 dimension leader only when every candidate in that character/slot universe has
 that independently corroborated stat. At cp009, coverage is sparse, so the
 correct result is `global_strongest_not_proven`: attributed recommendations stay

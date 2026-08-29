@@ -953,3 +953,13 @@ Ruby of Protection is narrowed to the Faraday Castle throne-bedroom drawers,
 whose grouped rewards are Ruby of Protection and 200 gold; no source identifies
 which individual drawer holds the accessory. The residual falls from 20 to 18
 while the Ruby member-level unknown remains explicit.
+
+The prerequisite-aware availability batch separates checkpoint windows from the
+one independently state-evaluable route gate: Mini Medal thresholds. Keys,
+items, events, bosses, story steps, quests, and arena conditions remain visible
+route instructions whose earliest pursueable timing is already normalized;
+descriptive container and route metadata likewise does not block availability.
+Purchase advice cannot say a Medal reward is free-now when the saved count is
+unknown. Equipment responses select an explicit current `actionable_route`, and
+the phone uses that route (including exact shop price) rather than blindly using
+the first route in a mixed collection. The service-worker cache is v16.

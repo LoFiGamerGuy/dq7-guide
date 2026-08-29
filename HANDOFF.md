@@ -222,3 +222,12 @@ The KB is useful during live play when, for every checkpoint through Alltrades A
 - Past and Present locations often share names; time-period scoping is mandatory.
 - Completion requirements and optional collector-only items are not always identical.
 - The user's actual save state is currently empty; personalized recommendations must expose this uncertainty.
+
+Equipment and purchase availability now distinguishes an open checkpoint window
+from the one separately state-evaluable route gate: Mini Medal thresholds, using
+only explicit saved counts. Keys, events, bosses, required items, quests, and
+arena conditions remain visible instructions whose earliest pursueable timing is
+encoded by the normalized checkpoint window. The phone withholds unknown-Medal
+rows from “Get now,” uses the server-selected actionable route rather than array
+order, and shows exact shop prices. Container/room/rank/pool metadata is not
+misclassified as a progression gate.
