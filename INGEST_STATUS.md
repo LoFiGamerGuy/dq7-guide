@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 645 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 648 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -22,23 +22,23 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame reward rule with all nine eligible Super-stat items | High for fixed effects, one-per-victory reward, and two-publisher pool membership; selection weights remain unknown | Preserve unknown probabilities until a draw algorithm or reproducible measurements are published |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
-| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
+| Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking; individual-monster units and in-battle wins normalized | High for identities, thresholds, and verified units; Massively Minted has a visible balance-versus-lifetime conflict and six exact counter questions remain | Resolve counter overlaps, gold semantics, metal-family membership, and save/reset scope through controlled deltas or direct documentation |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; Scarewell's exact fixed Past route has two independent current-version sources | Preserve the PS5-only scope on its separately sourced reset method; do not infer numeric rates |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 1 unresolved claim-pair/fact remains: Stella/Stellar Fan. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; every losing compatibility, Pirate's Hat, Fishnet Stockings, and Marshal Lourgh claim remains visible | Resolve the remaining fan name with legible current-version English UI evidence |
+| Conflicts | Automatic exact-scope detection active; 2 unresolved claim-pairs remain: Stella/Stellar Fan and Massively Minted's simultaneous-balance versus lifetime-gold condition. Fourteen compatibility pairs are resolved through separately linked two-publisher consensus claims when neither losing pair value is complete | High for normalized compatibility where independent publishers agree; the gold condition is deliberately not collapsed | Resolve the fan name with legible English UI and the gold condition with controlled counter evidence or publisher documentation |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 645
+- sources: 648
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,799
+- claims: 1,808
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 409 total / 1 unresolved claim-pair / 1 unresolved fact scope
+- conflicts: 410 total / 2 unresolved claim-pairs / 2 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,15 +77,15 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
-- **Conflicts:** one automatically detected claim-pair remains unresolved: the `Stella Fan` / `Stellar Fan` display name. Fourteen pairwise conflicts across ten equipment identities are now explicitly resolved to the already-normalized two-independent-publisher consensus claims. When the supported complete character list is neither losing pair value, the conflict links and displays that third claim separately; both original claims remain auditable. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 645 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** two automatically detected claim-pairs remain unresolved: the `Stella Fan` / `Stellar Fan` display name and whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 648 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
 2. Verify the six individual finite-container members without inferring positions within a published container group.
 3. Seek explicit rematch/respawn evidence for repeatable Hearts.
-4. Verify remaining achievement counters and duplicate/stacking mechanics from direct evidence.
+4. Resolve the six exact remaining achievement-counter questions and duplicate/stacking mechanics from direct evidence.
 5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors this complete eight-item evidence-blocked
@@ -348,6 +348,8 @@ The Phase 2 equipment batches established typed item, shop, and Lucky Panel acqu
 
 The achievement-readiness batch makes all 29 structured completion dependencies state-aware in the API and browser. Heroic Hoarder, Monster List, Vicious, tablet, vocation, and medal progress now distinguishes explicit partial counts, met counters with an unrecorded unlock, and unknown tracking. Empty identity arrays are no longer presented as zero; only a deliberately saved numeric Mini Medal count can establish exact zero.
 
+The achievement-semantics audit narrows the cumulative-counter residual to six explicit questions. Altema and the platform registry establish individual-monster units for Monster Masher and Metal Mangler and in-battle wins for Winning Machine; Maestros attributes successful pre-battle strikes, no-combat quick wins, and party-wide Let Loose aggregation. A PS5 firsthand answer says quick wins do not increment battle wins, retained at single-firsthand strength. Massively Minted remains a visible conflict because one current guide says to hold 300,000 gold simultaneously while another says lifetime acquisition persists after spending. No overlap, metal-roster, or save/reset behavior is inferred.
+
 The equipment-readiness audit confirms that item categories provide nominal slots and checkpoint advice provides a bounded set of attributed character/item recommendations, but the KB has no complete current-version character equipability matrix, accessory slot count, or duplicate-equip rules. The browser therefore keeps equipment writes disabled and exposes a read-only saved-checkpoint comparison with canonical items, route availability, explicit ownership, raw recorded gear, and the precise validation gaps instead of accepting potentially invalid loadouts.
 
 The recursive vocation-planning batch expands all 10 sourced prerequisite groups / 27 edges into a complete per-character dependency tree in vocation details. It preserves every `all_of` and `any_n_of` branch, character exclusivity, group provenance, and explicit mastery state, then surfaces all currently derivable next mastery options without ranking alternatives. Numeric mastery/proficiency cost and absent mastery remain unknown.
@@ -409,8 +411,8 @@ pairs.
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence. The Blue Button row now isolates only immediate pre-trigger
   presence; its cp022-to-cp023 event mapping is directly evidenced.
-- **Automatic conflicts:** one unresolved claim-pair/fact scope remains: the
-  Stella/Stellar Fan display name. Fourteen equipment-compatible-character pairs
+- **Automatic conflicts:** two unresolved claim-pairs/fact scopes remain: the
+  Stella/Stellar Fan display name and Massively Minted's gold-counter condition. Fourteen equipment-compatible-character pairs
   are resolved through separately linked two-publisher consensus claims when the
   supported complete list is neither losing value. Fishnet Stockings and Marshal
   Lourgh chronology are now resolved from location-specific and continuous
@@ -434,7 +436,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 645 source records currently have retrieval dates within 180
+- **Freshness:** all 648 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

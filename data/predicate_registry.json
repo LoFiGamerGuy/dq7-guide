@@ -24,5 +24,10 @@
   "vocation_rank_progression": {"comparison": "single"},
     "lucky_panel_pool_rank": {"comparison": "single"},
     "tablet_unlock_behavior": {"comparison": "single"},
-    "eligible_reward_pool": {"comparison": "single"}
+    "eligible_reward_pool": {"comparison": "single"},
+    "achievement_counter_condition": {"comparison": "single"},
+    "achievement_counter_unit": {"comparison": "single"},
+    "achievement_counter_definition": {"comparison": "single"},
+    "achievement_counter_aggregation": {"comparison": "single"},
+    "achievement_counter_exclusion": {"comparison": "single"}
 }

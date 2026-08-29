@@ -27,13 +27,38 @@ def load_achievement_report(
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             """SELECT a.*, r.target_type, r.target_key, r.required_count,
-                s.title AS source_title, s.url AS source_url
-            FROM achievements a JOIN sources s USING(source_id)
+                r.source_id AS requirement_source_id,
+                r.locator AS requirement_locator,
+                r.confidence AS requirement_confidence,
+                r.verification_status AS requirement_verification_status,
+                s.title AS source_title, s.url AS source_url,
+                rs.title AS requirement_source_title,
+                rs.url AS requirement_source_url
+            FROM achievements a JOIN sources s ON s.source_id=a.source_id
             LEFT JOIN achievement_requirements r USING(achievement_id)
+            LEFT JOIN sources rs ON rs.source_id=r.source_id
             ORDER BY CASE a.grade
                 WHEN 'bronze' THEN 1 WHEN 'silver' THEN 2
                 WHEN 'gold' THEN 3 ELSE 4 END,
                 a.category, a.name"""
+        ).fetchall()
+        semantic_rows = connection.execute(
+            """SELECT c.claim_id, c.subject_key, c.predicate, c.value_json,
+                c.scope_json, c.confidence, c.verification_status,
+                c.locator, c.source_id, s.title AS source_title,
+                s.url AS source_url
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key LIKE 'achievement:%'
+              AND c.predicate LIKE 'achievement_counter_%'
+            ORDER BY c.subject_key, c.predicate, c.claim_id"""
+        ).fetchall()
+        counter_conflict_rows = connection.execute(
+            """SELECT c.conflict_key, c.status, a.subject_key,
+                c.claim_a_id, c.claim_b_id
+            FROM conflicts c JOIN claims a ON a.claim_id=c.claim_a_id
+            WHERE a.subject_key LIKE 'achievement:%'
+              AND c.status='unresolved'
+            ORDER BY c.conflict_key"""
         ).fetchall()
         tablet_rows = connection.execute(
             "SELECT tablet_id, fragment_id FROM tablet_fragments ORDER BY tablet_id"
@@ -71,8 +96,35 @@ def load_achievement_report(
         }
         unknown = sorted(set(unlocked) - known)
         result_rows = []
+        semantics_by_achievement: dict[str, list[dict]] = {}
+        semantic_claims: dict[str, dict] = {}
+        for semantic_row in semantic_rows:
+            semantic = dict(semantic_row)
+            semantic["value"] = json.loads(semantic.pop("value_json"))
+            semantic["scope"] = json.loads(semantic.pop("scope_json"))
+            subject_id = semantic["subject_key"].removeprefix("achievement:")
+            achievement_id = subject_id if subject_id.startswith("ach_") else f"ach_{subject_id}"
+            semantics_by_achievement.setdefault(achievement_id, []).append(semantic)
+            semantic_claims[semantic["claim_id"]] = semantic
+        conflicts_by_achievement: dict[str, list[dict]] = {}
+        for conflict_row in counter_conflict_rows:
+            conflict = dict(conflict_row)
+            subject_id = conflict["subject_key"].removeprefix("achievement:")
+            achievement_id = subject_id if subject_id.startswith("ach_") else f"ach_{subject_id}"
+            conflict["claims"] = [
+                semantic_claims[claim_id]
+                for claim_id in (conflict["claim_a_id"], conflict["claim_b_id"])
+                if claim_id in semantic_claims
+            ]
+            conflicts_by_achievement.setdefault(achievement_id, []).append(conflict)
         for row in rows:
             item = dict(row)
+            item["counter_semantics"] = semantics_by_achievement.get(
+                item["achievement_id"], []
+            )
+            item["counter_conflicts"] = conflicts_by_achievement.get(
+                item["achievement_id"], []
+            )
             item["unlocked"] = item["achievement_id"] in unlocked
             progress = None
             basis = "No supported player-state counter has been recorded."

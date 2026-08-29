@@ -412,6 +412,11 @@ class GuideServerTests(unittest.TestCase):
                          ["verification_tier"], "unsupported")
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])
+        counters = by_id["gap_achievement_counter_semantics"]
+        self.assertEqual(counters["source_count"], 5)
+        self.assertEqual(len(counters["supporting_claims"]), 9)
+        self.assertIn("simultaneous-balance", counters["summary"])
+        self.assertIn("quick-win", counters["acceptance_condition"])
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])
@@ -1584,6 +1589,15 @@ class GuideServerTests(unittest.TestCase):
         _, achievement_detail = self.get_json("/api/achievements/" + achievement_id)
         self.assertIn(achievement_detail["dependency_progress"]["status"],
                       {"unknown", "partial", "target_met", "complete"})
+        _, gold_detail = self.get_json(
+            "/api/achievements/ach_massively_minted"
+        )
+        self.assertEqual(len(gold_detail["counter_semantics"]), 2)
+        self.assertEqual(len(gold_detail["counter_conflicts"]), 1)
+        self.assertEqual(gold_detail["counter_conflicts"][0]["status"],
+                         "unresolved")
+        self.assertIn("semantics_conflict",
+                      gold_detail["requirement_verification_status"])
         for completed in (True, False):
             self.patch_json("/api/achievements/" + achievement_id,
                             {"completed": completed})

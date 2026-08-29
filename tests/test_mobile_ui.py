@@ -39,6 +39,13 @@ class _MobileContractParser(HTMLParser):
 
 
 class MobileUiContractTests(unittest.TestCase):
+    def test_verified_seed_pool_and_achievement_conflicts_are_visible(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("Verified eligible pool", js)
+        self.assertIn("Selection weights unknown", js)
+        self.assertIn("Counter rule conflict — do not assume", js)
+        self.assertIn("requirement_verification_status", js)
+
     def test_phone_companion_controls_and_safe_area_support_are_present(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")

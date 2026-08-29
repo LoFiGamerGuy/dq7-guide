@@ -1059,11 +1059,18 @@ def _seeds(db_path: Path, query: dict) -> dict:
         FROM seed_reward_rules r LEFT JOIN checkpoints c
         ON c.checkpoint_id = r.available_from_checkpoint_id
         JOIN sources s USING(source_id) ORDER BY r.reward_family_text""")
+    item_names = {row["item_id"]: row["name"] for row in _rows(
+        db_path, "SELECT item_id, name FROM items"
+    )}
     for row in rewards:
         row["variant"] = "reward"
         row["eligible_items"] = (json.loads(row["eligible_items_json"])
                                  if row["eligible_items_json"] else None)
         row["eligible_pool_status"] = "known" if row["eligible_items"] is not None else "unknown"
+        row["eligible_item_names"] = (
+            [item_names.get(item_id, item_id) for item_id in row["eligible_items"]]
+            if row["eligible_items"] is not None else None
+        )
         row["dlc_scope_status"] = "specified" if row["dlc_scope"] else "not_recorded"
         del row["eligible_items_json"]
     rows = effects + rewards
