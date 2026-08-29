@@ -77,6 +77,8 @@ Setup, and Progress; restore remains confirmation-gated under Progress.
   stacking, and other unresolved evidence remain unknown.
 - The Sources view exposes a dated six-item audit with single-source, unsupported,
   and corroborated-but-unresolved tiers plus the exact evidence needed to close each gap.
+  On phones, each evidence-labelled gap starts collapsed behind a large summary target;
+  opening it reveals the full boundary, needed evidence, sources, and audit date.
 - First use does not infer an existing save; enter only known state.
 
 ## Validation
