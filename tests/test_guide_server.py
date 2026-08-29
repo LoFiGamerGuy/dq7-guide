@@ -154,6 +154,7 @@ class GuideServerTests(unittest.TestCase):
             self.assertLess(page.index(b'id="checkpointStop"'), page.index(b'id="advice"'))
             self.assertLess(page.index(b'id="advice"'), page.index(b'id="safeCondition"'))
         with urlopen(self.base + "/app.js") as response:
+            self.assertEqual(response.headers["Cache-Control"], "no-cache")
             app = response.read()
             self.assertNotIn(b'checked disabled', app)
             self.assertNotIn(b'state.domain === "medals" && entry.completed', app)
@@ -172,6 +173,8 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
+            self.assertIn(b'dq7-guide-shell-v2', worker)
+            self.assertIn(b'fetch(request).then', worker)
         with urlopen(self.base + "/api/state-backup") as response:
             backup = json.load(response)
             self.assertIn("attachment;", response.headers["Content-Disposition"])

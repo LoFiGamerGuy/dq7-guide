@@ -1836,7 +1836,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             if candidate.name == "service-worker.js":
                 self.send_header("Service-Worker-Allowed", "/")
                 self.send_header("Cache-Control", "no-cache")
-            elif candidate.suffix in (".html", ".json"):
+            elif candidate.suffix in (".html", ".json", ".js", ".css", ".webmanifest"):
                 self.send_header("Cache-Control", "no-cache")
             else:
                 self.send_header("Cache-Control", "public, max-age=3600")

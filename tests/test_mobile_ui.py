@@ -65,7 +65,16 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("function quickSetupPayload", js)
         self.assertIn('recordCommand("party-setup"', js)
         self.assertIn("Party plan personalized.", js)
+        self.assertIn('aria-describedby="quickSetupHint"', html)
+        self.assertIn('id="quickSetupError"', html)
+        self.assertIn('aria-label="${escapeHtml(member.name)} level"', js)
+        self.assertIn('error.focus()', js)
+        self.assertIn("Nothing was recorded.", js)
+        self.assertIn("submit.disabled = true", js)
+        self.assertIn("Known values are prefilled", html)
         self.assertIn("(max-width: 900px) and (pointer: coarse)", css)
+        self.assertIn("grid-template-columns: 1.65rem minmax(0, 1fr)", css)
+        self.assertIn(".checkpoint-picker .select-label { min-width: 0", css)
 
     def test_mobile_restore_and_long_details_are_keyboard_and_overflow_safe(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
@@ -145,6 +154,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("state.hostReachable = false", js)
         self.assertIn('data-reconnect', js)
         self.assertIn('visibilitychange', js)
+        self.assertIn('state.hostReachable === false || state.usingCachedData', js)
+        self.assertIn('state.usingCachedData = isCached', js)
         self.assertIn(".play-jumps", css)
 
     def test_phone_launcher_opts_in_to_lan_mode(self):

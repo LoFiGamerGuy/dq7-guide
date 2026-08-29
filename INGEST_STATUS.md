@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 535 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 536 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous two-vocation learning, current-vocation-only skills, and dual skill/stat access normalized | High for published behavior; legal-pair restrictions remain unpublished | Resolve legal-pair restrictions only from direct evidence |
@@ -24,7 +24,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking | High for identities and dependency structure; no unresolved registry placeholder remains | Verify monster English-name alignment and remaining counter semantics |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
-| Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; 12 routes are explicitly single-independent-source | Seek independent confirmation for ten Arena members, Scarewell, and Miry Mudraker |
+| Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell and Miry Mudraker remain explicitly single-independent-source | Seek independent confirmation for Scarewell and Miry Mudraker |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
 | Conflicts | Automatic exact-scope detection active; 15 unresolved claim-pairs represent 11 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, plus Stella/Stellar Fan | High for normalized compatibility where independent publishers agree; conservative for losing source claims and English display spelling | Resolve remaining claim conflicts only with legible current-version UI/equip-menu evidence; pair counts are not distinct-fact counts |
 
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 535
+- sources: 536
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** Little Blue Button is the sole record without an exact named story cutoff and remains structurally excluded from STOP warnings.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 535 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 536 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -138,7 +138,7 @@ The late/postgame boss-sequence audit adds six direct current-version tactics: o
 
 The first browser-interface batch adds a responsive dependency-free dashboard and checkpoint walkthrough, validated progress mutations, provenance/conflict views, domain JSON endpoints, three server integration tests, and two additional monster pages.
 
-The monster expansion now has 476 checkpoint-gated encounter routes covering all 333 monsters and 227 verified drop rows across 196 monsters. Independent current-version sources corroborate exact routes for Cannibox, Urnexpected, Vicious Fandangow, Vicious Kisser, Vicious Scrapper, Damned Well, Mothertoad, Dark Gryphon, and Miry Hand. Exact RPG Site cup rosters route ten Silver/Gold Arena members, while Scarewell has a precise Neoseeker route and Miry Mudraker has a Cathedral boss-area listing; those twelve rows remain explicitly `single_independent_source` and are not promoted to verified.
+The monster expansion now has 476 checkpoint-gated encounter routes covering all 333 monsters and 227 verified drop rows across 196 monsters. Independent current-version sources corroborate exact routes for Cannibox, Urnexpected, Vicious Fandangow, Vicious Kisser, Vicious Scrapper, Damned Well, Mothertoad, Dark Gryphon, and Miry Hand. RPG Site's exact Silver/Gold Arena rosters for ten members are independently matched by a current-version Steam 100% achievement walkthrough. Only Scarewell's precise Neoseeker route and Miry Mudraker's Cathedral boss-area listing remain explicitly `single_independent_source` and are not promoted to verified.
 
 The current boss-advice audit adds three directly sourced early-game tactics: the scripted-loss and item-only recovery rules for Rashers and Stripes, multi-target damage plus Fizzle control for the Mild Bunch, and Leg Sweep/Dazzle/support alternatives for the Mighty Pip. The Mighty Pip row explicitly preserves the source's incompatible Ruff role alternatives instead of presenting both vocations as one simultaneous build.
 
@@ -306,7 +306,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 535 source records currently have retrieval dates within 180
+- **Freshness:** all 536 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -333,3 +333,10 @@ GameWith, Gamers-High, and GameDeep publish differing lists; each claim remains
 stored and conflicted rather than overwritten. Character compatibility is now
 normalized for all 311 equipment rows, while non-accessory writes remain disabled
 until slot-count and duplicate-equip behavior are separately verified.
+
+The Arena roster corroboration batch matches all ten Silver and Gold Cup members
+between RPG Site and Nerthing's independent current-version Steam achievement
+walkthrough. Each corroborating roster claim has an exact cup/challenge/member
+locator and the existing cp020 gate is unchanged. These ten routes are now
+verified; Scarewell and Miry Mudraker remain the only single-independent-source
+encounter routes.

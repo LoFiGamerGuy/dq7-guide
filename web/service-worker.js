@@ -1,6 +1,6 @@
 "use strict";
-const SHELL_CACHE = "dq7-guide-shell-v1";
-const DATA_CACHE = "dq7-guide-data-v1";
+const SHELL_CACHE = "dq7-guide-shell-v2";
+const DATA_CACHE = "dq7-guide-data-v2";
 const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/manifest.webmanifest", "/icons/guide-icon.svg"];
 self.addEventListener("install", event => { event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => ![SHELL_CACHE, DATA_CACHE].includes(key)).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
@@ -17,5 +17,5 @@ self.addEventListener("fetch", event => {
     }));
     return;
   }
-  event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => { if (response.ok) caches.open(SHELL_CACHE).then(cache => cache.put(request, response.clone())); return response; }).catch(() => caches.match("/index.html"))));
+  event.respondWith(fetch(request).then(response => { if (response.ok) caches.open(SHELL_CACHE).then(cache => cache.put(request, response.clone())); return response; }).catch(() => caches.match(request).then(cached => cached || caches.match("/index.html"))));
 });

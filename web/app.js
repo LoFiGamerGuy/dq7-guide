@@ -66,10 +66,13 @@ async function api(path, options = {}) {
       }
     });
     const wasUnreachable = state.hostReachable === false;
+    const wasCached = state.usingCachedData;
     state.hostReachable = true;
-    if (wasUnreachable) renderConnectionState(true);
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-    if (response.headers.get("X-DQ7-Offline-Cache") === "true") { state.usingCachedData = true; renderConnectionState(false); }
+    const isCached = response.headers.get("X-DQ7-Offline-Cache") === "true";
+    state.usingCachedData = isCached;
+    if (isCached) renderConnectionState(false);
+    else if (wasUnreachable || wasCached) renderConnectionState(true);
     return response.status === 204 ? null : response.json();
   } catch (error) {
     if (error instanceof TypeError) { state.hostReachable = false; renderConnectionState(false); }
@@ -216,7 +219,7 @@ function renderQuickSetup() {
   const members = state.progress?.party || [], vocations = state.vocations || [];
   $("#quickPartyRows").innerHTML = members.map(member => {
     const options = `<option value="unknown">Unknown</option>${vocations.filter(row => !row.exclusive_character || row.exclusive_character === member.name).map(row => `<option value="${escapeHtml(row.vocation_id)}">${escapeHtml(row.name)}</option>`).join("")}`;
-    return `<fieldset class="quick-party-row" data-quick-member="${escapeHtml(member.name)}"><label class="quick-active"><input type="checkbox" data-quick-active ${member.active ? "checked" : ""}> <strong>${escapeHtml(member.name)}</strong></label><label>Level<input type="number" min="1" inputmode="numeric" data-quick-level value="${escapeHtml(member.level ?? "")}" placeholder="?"></label><label>Vocation<select data-quick-primary>${options}</select></label><label>Second<select data-quick-secondary>${options}</select></label></fieldset>`;
+    return `<fieldset class="quick-party-row" data-quick-member="${escapeHtml(member.name)}"><legend class="visually-hidden">${escapeHtml(member.name)} party details</legend><label class="quick-active"><input type="checkbox" data-quick-active aria-label="${escapeHtml(member.name)} is active" ${member.active ? "checked" : ""}> <strong>${escapeHtml(member.name)}</strong></label><label>Level<input type="number" min="1" inputmode="numeric" data-quick-level aria-label="${escapeHtml(member.name)} level" value="${escapeHtml(member.level ?? "")}" placeholder="?"></label><label>Vocation<select data-quick-primary aria-label="${escapeHtml(member.name)} current vocation">${options}</select></label><label>Second<select data-quick-secondary aria-label="${escapeHtml(member.name)} second vocation">${options}</select></label></fieldset>`;
   }).join("");
   members.forEach(member => {
     const row = document.querySelector(`[data-quick-member="${CSS.escape(member.name)}"]`);
@@ -590,14 +593,20 @@ $("#vocationMasteryForm").addEventListener("submit", event => { event.preventDef
 $("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
 $("#quickSetupForm").addEventListener("submit", async event => {
   event.preventDefault();
+  const submit = event.currentTarget.querySelector('[type="submit"]');
   const payload = quickSetupPayload();
-  if (!payload.active.length) return setStatus("Choose at least one active party member.");
+  const error = $("#quickSetupError"); error.hidden = true;
+  if (!payload.active.length) { error.textContent = "Choose at least one active party member."; error.hidden = false; error.focus(); return; }
   const previous = { checkpoint_id: state.progress?.saved_checkpoint || null, active: (state.progress?.party || []).filter(row => row.active).map(row => row.name), members: (state.progress?.party || []).map(row => ({ name: row.name, level: row.level ?? "unknown", primary_vocation: row.primary_vocation || "unknown", secondary_vocation: row.secondary_vocation || "unknown" })) };
   try {
+    submit.disabled = true;
     await recordCommand("party-setup", [JSON.stringify(payload)]);
     $("#quickSetup").open = false;
     showUndo("Party plan personalized.", async () => { await recordCommand("party-setup", [JSON.stringify(previous)]); });
-  } catch (error) { handleError(error); }
+  } catch (saveError) {
+    console.error(saveError);
+    const currentError = $("#quickSetupError"); currentError.textContent = "Could not save party. Nothing was recorded."; currentError.hidden = false; currentError.focus();
+  } finally { if (submit.isConnected) submit.disabled = false; }
 });
 $("#chooseRestoreButton").addEventListener("click", () => $("#restoreFile").click());
 $("#restoreFile").addEventListener("change", async event => {
@@ -665,7 +674,7 @@ document.addEventListener("keydown", event => { if (event.key === "Escape" && !$
 window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
 window.addEventListener("offline", () => renderConnectionState(false));
 window.addEventListener("online", () => { state.usingCachedData = false; renderConnectionState(true); loadAll().catch(handleError); });
-document.addEventListener("visibilitychange", () => { if (!document.hidden && state.hostReachable === false) loadAll().catch(handleError); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && (state.hostReachable === false || state.usingCachedData)) loadAll().catch(handleError); });
 const initialRoute = location.hash.slice(1) || "dashboard";
 if (domains[initialRoute]) showDomain(initialRoute); else showView(initialRoute);
 renderConnectionState(false);
