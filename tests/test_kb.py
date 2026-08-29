@@ -60,7 +60,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 682)
+        self.assertEqual(self.counts["sources"], 683)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2620,13 +2620,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 4, "other": 14})
+                         {"chest": 3, "other": 12})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("18 acquisition rows", status)
-        self.assertIn("14 broad or grouped-container `other` routes and four chest routes",
+        self.assertIn("15 acquisition rows", status)
+        self.assertIn("12 broad or grouped-container `other` routes and three chest routes",
                       status)
-        self.assertIn("18 broader acquisition rows", handoff)
+        self.assertIn("15 broader acquisition rows", handoff)
 
     def test_walkthrough_refines_four_broad_routes_without_inventing_containers(self):
         expected = {
@@ -2765,18 +2765,15 @@ class KnowledgeBaseTests(unittest.TestCase):
 
     def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
         expected = {
-            "acq_sun_crown_another_world": "Outside (Precipice Pass)",
             "acq_ruinous_shield_yet_another_world": "Underground Level 1 (Well)",
             "acq_super_seed_of_resilience_yet_another_world": "Underground Level 1 (Well)",
             "acq_gigant_armour_yet_another_world": "shop / Interior (jail)",
             "acq_super_seed_of_magic_yet_another_world": "shop / Interior (jail)",
-            "acq_super_seed_of_agility_yet_another_world": "shop / Interior (jail)",
             "acq_super_seed_of_life_yet_another_world": "Dock; Tower",
             "acq_super_seed_of_deftness_yet_another_world": "Underground Level 1 (Stairs)",
             "acq_super_pretty_betsy_yet_another_world": "Forest Area",
             "acq_super_seed_of_strength_yet_another_world": "SW building / Interior (fire)",
             "acq_super_seed_of_therapeusis_yet_another_world": "N house / Interior (water)",
-            "acq_super_seed_of_sorcery_yet_another_world": "N house / Interior (water)",
         }
         placeholders = ",".join("?" for _ in expected)
         rows = self.connection.execute(
@@ -2820,6 +2817,43 @@ class KnowledgeBaseTests(unittest.TestCase):
                 'claim_goddess_ring_yet_another_world_chest_group_game8')"""
         ).fetchone()[0]
         self.assertEqual(claim_count, 2)
+
+    def test_direct_postgame_evidence_resolves_three_exact_chests(self):
+        rows = self.connection.execute(
+            """SELECT acquisition_id, method, source_id, locator,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_sun_crown_another_world',
+                'acq_super_seed_of_agility_yet_another_world',
+                'acq_super_seed_of_sorcery_yet_another_world')"""
+        ).fetchall()
+        self.assertEqual(len(rows), 3)
+        for row in rows:
+            self.assertEqual(row["method"], "chest")
+            self.assertNotIn("container_unspecified",
+                             row["verification_status"])
+        by_id = {row["acquisition_id"]: row for row in rows}
+        self.assertEqual(
+            by_id["acq_sun_crown_another_world"]["source_id"],
+            "codenamegaming_another_world_video")
+        self.assertIn("west/left", by_id[
+            "acq_sun_crown_another_world"]["locator"])
+        for acquisition_id in (
+            "acq_super_seed_of_agility_yet_another_world",
+            "acq_super_seed_of_sorcery_yet_another_world",
+        ):
+            self.assertEqual(by_id[acquisition_id]["source_id"],
+                             "neoseeker_yet_another_world")
+            self.assertIn("Game8", by_id[acquisition_id]["locator"])
+        claim_count = self.connection.execute(
+            """SELECT COUNT(*) FROM claims WHERE claim_id IN (
+                'claim_sun_crown_exact_chest_codenamegaming',
+                'claim_super_seed_agility_exact_location_neoseeker',
+                'claim_super_seed_agility_chest_class_game8',
+                'claim_super_seed_sorcery_exact_location_neoseeker',
+                'claim_super_seed_sorcery_chest_class_game8')"""
+        ).fetchone()[0]
+        self.assertEqual(claim_count, 5)
 
     def test_game8_postgame_resolves_great_helm_exact_chest(self):
         row = self.connection.execute(
@@ -2912,8 +2946,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("18 broader acquisition rows", handoff)
-        self.assertIn("18 acquisition rows still deliberately carry",
+        self.assertIn("15 broader acquisition rows", handoff)
+        self.assertIn("15 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
