@@ -591,6 +591,14 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('row.availability_status === "route_prerequisite_unconfirmed"', js)
         self.assertIn("gated gear recommendation", js)
         self.assertIn("checkpoint window open · prerequisite unconfirmed", js)
+        self.assertIn("function itemRouteTiming(route)", js)
+        self.assertIn("Medal threshold unconfirmed", js)
+        self.assertIn("Available later", js)
+        self.assertIn("Window passed", js)
+        self.assertIn("function itemRouteCost(route)", js)
+        self.assertIn("Free entry · reward probability unpublished", js)
+        self.assertIn("Drop route · rate/repeatability unknown", js)
+        self.assertIn("No gold cost", js)
 
 
 if __name__ == "__main__":

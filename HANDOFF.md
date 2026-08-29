@@ -231,3 +231,9 @@ encoded by the normalized checkpoint window. The phone withholds unknown-Medal
 rows from “Get now,” uses the server-selected actionable route rather than array
 order, and shows exact shop prices. Container/room/rank/pool metadata is not
 misclassified as a progression gate.
+
+Item detail routes are also checkpoint-aware. They retain future and expired
+evidence but label it instead of presenting every route as current. Shop routes
+show exact prices, Lucky Panel alone uses “Free entry” with unpublished reward
+probability, ordinary free pickups say no gold cost, and drops keep rate and
+repeatability unknown.

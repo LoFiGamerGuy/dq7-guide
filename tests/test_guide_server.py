@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from guide_server import (_access_urls, _advice_evidence, _checkpoint_view,
+                          _annotate_item_routes,
                           _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
                           _monster_hearts, _record_checkpoint_progress,
@@ -26,6 +27,7 @@ from guide_server import (_access_urls, _advice_evidence, _checkpoint_view,
                           _validate_database, _vocation_unlock_progress,
                           create_server, make_handler)
 from build_kb import build_database
+from item_report import load_item_routes
 from player_progress import update_progress
 
 
@@ -209,6 +211,29 @@ class GuideServerTests(unittest.TestCase):
         hero = next(row for row in report["members"] if row["name"] == "Hero")
         self.assertIsNone(hero["accessory_slots"]["accessory_1"])
 
+    def test_item_routes_are_saved_checkpoint_and_medal_aware(self):
+        _, routes = load_item_routes(
+            ROOT / "data" / "dq7_reimagined.sqlite", "Magic Shield")
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_009_alltrades"
+        _annotate_item_routes(ROOT / "data" / "dq7_reimagined.sqlite",
+                              state, routes)
+        medal = next(row for row in routes
+                     if row["acquisition_id"] ==
+                     "acq_magic_shield_medal_reward_20")
+        self.assertEqual(medal["window_status"], "open")
+        self.assertEqual(medal["availability_status"],
+                         "conditionally_available")
+        state["completion"]["mini_medal_count"] = 20
+        _annotate_item_routes(ROOT / "data" / "dq7_reimagined.sqlite",
+                              state, routes)
+        self.assertEqual(medal["availability_status"], "available_now")
+        state["story"]["checkpoint_id"] = None
+        _annotate_item_routes(ROOT / "data" / "dq7_reimagined.sqlite",
+                              state, routes)
+        self.assertTrue(all(row["availability_status"] == "unknown"
+                            for row in routes))
+
     def test_item_quantity_api_enables_only_two_source_duplicate_accessories(self):
         self.patch_json("/api/items/item_rabbit_tail/quantity", {"quantity": 2})
         _, item = self.get_json("/api/items/item_rabbit_tail")
@@ -319,10 +344,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v16', worker)
-            self.assertIn(b'dq7-guide-data-v16', worker)
-            self.assertNotIn(b'dq7-guide-shell-v15', worker)
-            self.assertNotIn(b'dq7-guide-data-v15', worker)
+            self.assertIn(b'dq7-guide-shell-v17', worker)
+            self.assertIn(b'dq7-guide-data-v17', worker)
+            self.assertNotIn(b'dq7-guide-shell-v16', worker)
+            self.assertNotIn(b'dq7-guide-data-v16', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)

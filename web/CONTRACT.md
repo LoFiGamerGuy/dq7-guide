@@ -171,6 +171,13 @@ The first-class domain routes call:
 - `GET /api/sources`
 - `GET /api/seeds`
 
+`GET /api/items/{id-or-name}` retains every sourced acquisition route and adds
+saved-state timing fields: `window_status`, `prerequisite_status`,
+`availability_status`, `availability_reason`, and `availability_scope`. With no
+recorded checkpoint, timing is unknown. The item detail labels current, later,
+expired, and unknown routes distinctly; only Lucky Panel uses “Free entry,”
+while shops show exact prices and drops retain unknown rate/repeatability.
+
 `GET /api/vocations/{id-or-name}` includes `rank_costs`, a two-source
 `progression` profile, numeric stat modifiers, and `unlock_progress`. `groups`
 preserves the sourced direct rule (`all_of` or `any_n_of`), required count,

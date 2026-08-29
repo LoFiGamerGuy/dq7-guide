@@ -332,6 +332,37 @@ def _items(db_path: Path, state_path: Path, query: dict) -> dict:
     return page
 
 
+def _annotate_item_routes(db_path: Path, state: dict, routes: list[dict]) -> None:
+    checkpoint_id = state.get("story", {}).get("checkpoint_id")
+    checkpoint_sequence = None
+    if isinstance(checkpoint_id, str):
+        with sqlite3.connect(db_path) as connection:
+            row = connection.execute(
+                "SELECT sequence_no FROM checkpoints WHERE checkpoint_id=?",
+                (checkpoint_id,),
+            ).fetchone()
+        checkpoint_sequence = row[0] if row else None
+    for route in routes:
+        start = route.get("available_sequence")
+        expiry = route.get("unavailable_sequence")
+        if checkpoint_sequence is None or start is None:
+            window = "unknown"
+        elif expiry is not None and expiry < start:
+            window = "invalid"
+        elif expiry is not None and expiry < checkpoint_sequence:
+            window = "expired"
+        elif start > checkpoint_sequence:
+            window = "later"
+        else:
+            window = "open"
+        prerequisites = json.loads(route.get("prerequisite_json") or "{}")
+        route["prerequisites"] = prerequisites
+        route.update(route_availability(window, prerequisites, state))
+        route["availability_scope"] = (
+            "saved_checkpoint_window_and_explicit_medal_state"
+        )
+
+
 def _vocations(db_path: Path, state_path: Path, query: dict) -> dict:
     members = _state(state_path).get("party", {}).get("members", {})
     rows = _rows(db_path, """SELECT v.vocation_id, e.name, v.tier, v.exclusive_character
@@ -2506,6 +2537,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                     item["obtained"] = item["item_id"] in set(
                         state.get("completion", {}).get("items_obtained", []))
                     item.update(_item_quantity_state(state, item["item_id"]))
+                    _annotate_item_routes(db_path, state, routes)
                     return self._json({"item": item, "routes": routes})
                 if parsed.path == "/api/conflicts":
                     query = parse_qs(parsed.query)

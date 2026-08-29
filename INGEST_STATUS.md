@@ -962,4 +962,11 @@ descriptive container and route metadata likewise does not block availability.
 Purchase advice cannot say a Medal reward is free-now when the saved count is
 unknown. Equipment responses select an explicit current `actionable_route`, and
 the phone uses that route (including exact shop price) rather than blindly using
-the first route in a mixed collection. The service-worker cache is v16.
+the first route in a mixed collection. The service-worker cache is v17.
+
+Catalog item detail now annotates every acquisition route against the explicitly
+saved checkpoint and Medal count. Current, later, expired, conditional, and
+unknown routes remain visible with distinct labels. Method-aware cost text stops
+calling chests, pickups, rewards, and drops “Free entry”; shops show their exact
+stored price, Lucky Panel retains free-entry probability caveats, and drop rates
+and repeatability remain unknown.
