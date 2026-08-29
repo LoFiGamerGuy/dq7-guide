@@ -30,7 +30,7 @@ The schema deliberately separates:
 The browser exposes first-class item, vocation, monster, Monster Heart, Seed, missable, farm, medal, tablet, achievement, source, and conflict registries alongside the walkthrough. Reads are state-aware and paginated; supported writes reuse the validated player-progress layer. Monster Heart ownership has a dedicated canonical-ID ledger: absence remains unknown, the first explicit checkbox starts tracking, and every change is reversible. Equipment compatibility verifies all 311 canonical rows through two-publisher agreement; no normalized row is disputed or single-source, while every disagreeing source claim remains visible. The reversible editor requires explicit ownership, the sourced slot layout, the matching item category, and verified character compatibility. Optional exact copy totals enforce global allocation without changing identity-based completion; same-item double accessories also require item-specific legality from two independent publishers (currently Rabbit Tail and Meteorite Bracer only). Monster Heart duplicates remain unsupported. The published `Meowgiican Heart` typo redirects to `Meowgician Heart`, leaving all 74 canonical accessories verified. Checkpoint selection is explicit, and the responsive UI includes keyboard focus, high-contrast support, loading/retry states, and a default hide-completed mode.
 
 Current reproducible headline counts are tracked in `INGEST_STATUS.md`. The database contains 355 shared items (353 in the registered Heroic Hoarder matrix), all 46 Monster Heart identities/effects, 18 fixed Seed effects and one repeatable reward rule, 11 checkpoint-gated farms with separate fact/strategy provenance, 7 sourced missable records, 14 Lucky Panel pools with 302 rewards, 100 Mini Medals, 71 tablet fragments, 61 achievements, and 26 complete vocation skill/perk ladders. Meowgician Heart has a direct finite Vicious Meowgician route at cp005; Metal Slime and Gold Golem have explicit DLC notes. Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena thresholds and are gated from cp020 after the Buccanham Past storyline. All 100 Mini Medals have independent direct walkthrough evidence. Dedicated current-version pages and cross-publisher rank tables resolve every standard-matrix identity variant without changing the 353-item Heroic matrix; RPG Site's `Shell Shield` wording is retained as a source-error alias for canonical Scale Shield. Direct evidence adds finite free alternatives throughout the early and midgame. The priority video/container queue is resolved, but 15 broader acquisition rows still explicitly retain `container_unspecified` status: 12 are broad or grouped-container `other` routes and three are chest routes. They require semantic reclassification or exact direct evidence before claiming full container closure. Vocation details expose sourced unlock rules and state-aware per-member progress without inferring missing mastery or numeric costs. The browser provides current-equipment comparison and exposes independently corroborated one-each weapon/shield/head/torso, two-accessory-slot, and Monster-Heart slot-use rules. Character legality is complete. Rabbit Tail has two-publisher evidence that two copies are legal and stack qualitatively, plus a reproducible 100-kill comparison that still does not establish its formula or cap. Meteorite Bracer now separately has two-publisher, item-specific evidence that two copies add their +100 Agility bonuses to +200. Other identical accessories and Monster Hearts remain constrained unknowns. All 33 walkthrough checkpoints have direct RPG Site section-range locators; their `seed_partial` status remains because provenance completeness does not mean the guide content and optimization layers are complete.
-Six of those broad rows now have exact walkthrough branch/room refinement without pretending the container is known: Temple Palace hidden-room Gold Bracer, Allblades Arena north-room Fishnet Stockings, Wetlock west-room Mermaid Moon, Grotta del Sigillo 2F Healslime Heart, and the Another World northeast-cave routes for Day Off Dress and Drakulard Heart. Their `container_unspecified` status remains intentional.
+Five residual rows retain useful room- or group-level refinement without an individual container/member mapping: Temple Palace hidden-room Gold Bracer, Another World Level 3 jail-cell Day Off Dress, Yet Another World southwest-Tower Goddess Ring, Hubble Castle NW Tower dresser-pair Silk Tuxedo, and Faraday Castle throne-bedroom Ruby of Protection. Their `container_unspecified` status remains intentional.
 
 Combat/optimization handoff: 116 checkpoint advice rows cover every checkpoint except the non-combat ending victory lap, 11 farming routes have exact gates, all 26 vocation skill/perk ladders and qualitative non-default modifiers are normalized, and all 333 monsters have at least one gated encounter. Twenty-one formerly missing routes have two independent current-version sources. Scarewell's fixed Past route is now corroborated; its town-reset method remains explicitly PS5-scoped, single-firsthand evidence, and no numeric rate is normalized. Normal-setting field/regular/boss proficiency awards are 1/5/10 with explicit scope, and all 26 vocations have two-source progression profiles with 163 normalized rank-cost cells. Two official sources establish that Moonlighting accepts any two distinct vocations available to the character, including cross-tier pairs; character-exclusive availability still applies. Rabbit Tail farming advice is quantity-guarded and qualitative only; the postgame Aishe card similarly requires explicitly owned copies before recommending two Meteorite Bracers for +200 Agility. Vicious/strong Heart encounters are independently verified as finite after victory and phone guidance forbids treating them as farms. Troll Heart is separately resolved to a field sparkle exposed after defeating the blocking Troll; a losing respawning-drop claim is preserved but cannot establish a farm or second copy. At cp013, two publishers now establish an inter-battle heal between the Sunken Spirits and Gracos; only the firsthand Tough Going report explicitly names MP restoration, so that detail stays single-source. Older conserve/leave-one advice remains attributed but is no longer promoted. Do not fill the remaining evidence blocks by inference: general numeric farm/drop/encounter rates, a repeatable non-Vicious Heart route, other same-name accessories, or Monster Heart duplicate/stacking behavior.
 
@@ -41,7 +41,7 @@ Achievement-counter handoff: all thresholds remain structured, and current sourc
 
 Advancement-readiness handoff: verified STOP obligations remain the first and strongest gate. Missables have a reversible unknown/completed/missed API and phone control; choosing missed requires destructive confirmation and produces a 100%-recovery-required state rather than misleading safe language. A separate conservative ledger-review gate keeps advancement disabled while any available/backtrack Medal, checkpoint Tablet Fragment, finite Heroic Hoarder item, due achievement, or checkpoint missable lacks a recorded result. The API, phone panel, and checkpoint CLI expose the same five categories. On phone, each nonzero gap is a large navigation-only button that opens and focuses the exact collapsed ledger without changing progress. These ledger gaps are not labelled irreversible; they require review because absence from player state is not evidence of completion. The checkpoint picker cannot bypass these gates: forward movement requires the immediate next checkpoint and a server-side readiness recheck; initialization and backward correction remain supported. Manual confirmation of the sourced safe-exit condition remains required after every structured gate clears.
 
-Phone-cache handoff: shell and API caches use the v15 namespace. The activating worker removes older namespaces, and `controllerchange` reloads once, so evidence-safe strongest-gear coverage, full checkpoint advice, vocation recommendations, boss preparation, and Heart routes reach already-paired phones. Paired API responses remain excluded from caching.
+Phone-cache handoff: shell and API caches use the v17 namespace. The activating worker removes older namespaces, and `controllerchange` reloads once, so evidence-safe strongest-gear coverage, full checkpoint advice, vocation recommendations, boss preparation, and Heart routes reach already-paired phones. Paired API responses remain excluded from caching.
 Evidence-gap badges count independent publishers behind locator-linked atomic claims, not pages or source IDs. A synthetic regression now fixes the boundary: two separately registered Game8 Japan pages and two linked claims still yield a single-source tier.
 The database builder now enforces the same boundary for every checkpoint-advice row: any declared two-source status must link existing atomic claims from at least two distinct publishers, so a future seed edit cannot rely on page count or a free-form label.
 The equipment API now separates attributed strongest-now advice from proven maximality. Its checkpoint-window candidate universe is independently regression-checked against all compatible routed items, counts stat coverage by publisher, and returns no leader when any candidate lacks the relevant verified dimension. At Alltrades only seven of 104 route-open equipment identities have any independently corroborated numeric profile, so the phone explicitly says absolute strongest is not proven and never assigns weights to incomparable effects.
@@ -80,7 +80,7 @@ the recovery banner. Golden retrieval coverage also locks the resolved lifetime-
 and exact metal-family achievement evidence to precise, multi-publisher claims.
 Paired API responses are network-only and never enter the service-worker cache.
 The server marks pairing-required responses, covering explicit headers and
-HttpOnly-cookie sessions; cache v15 purges older snapshots. Rotating the private
+HttpOnly-cookie sessions; cache v17 purges older snapshots. Rotating the private
 pairing identity therefore cannot leave an authorized player snapshot available
 offline. Troll Heart detail separately labels its cp019 route as a finite
 one-copy pickup with no proven repeatable route and two-source acquisition evidence.
@@ -99,8 +99,10 @@ Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
 Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
 refinements remain separate evidence gaps.
 
-The current-version walkthrough and video audits close all 31 exact-container
-residuals. Direct English item-result footage resolves Dragon Shield, Pirate's Hat,
+The current-version walkthrough and video audits close the original 31-row
+priority finite-container queue, while the broader semantic audit still leaves
+the 15 explicit `container_unspecified` rows summarized above. Direct English
+item-result footage resolves Dragon Shield, Pirate's Hat,
 Silk Robe, Steel Helmet, and Knuckledusters to individual containers. A separately
 scoped current-version PS5 video with Italian UI resolves Faraday Strength Ring to
 the lower/southern drawer of the east-wall bedroom pair; it does not establish an
@@ -128,12 +130,10 @@ right-hand wardrobe: Game8's dedicated Frobisher map agrees with Eliteguias and
 GuíasPSN, overriding the isolated Game8 item page's Past label while preserving
 that losing claim.
 
-Twenty broad finite-acquisition routes have now been narrowed using registered
-current-version walkthrough locators. The second batch covers Great Helm and Sun
-Crown in Another World plus twelve fixed items across Yet Another World's
-west-stairs, forest, well, fire, water, jail, and tower branches. This is a route
-precision improvement only: all affected rows retain `container_unspecified`,
-so the guide does not imply an unsupported chest, pot, wardrobe, or floor pickup.
+Earlier route-refinement batches narrowed 20 broad finite acquisitions to
+registered walkthrough branches or rooms. Subsequent direct evidence resolved
+several individual containers; the current residual is the 15-row set summarized
+above, and no remaining row is promoted beyond its exact evidence.
 
 NightlyGamingBinge's current-version Heart guide closes two early container
 unknowns: Little Devil Heart is in the chest on Burnmount Level 2's exterior
@@ -151,13 +151,15 @@ finite one-copy route; repeatability and duplicate behavior are still unknown.
 The Hubble cleanup resolves Princess's Robe to Magic Key chest #7 in the Water
 Tower on Level 1. Silk Tuxedo is corrected from a chest to the NW Tower 3F
 king-room dresser pair; the individual dresser remains unknown because the
-walkthrough groups it with Bow Tie. This leaves 21 explicit container residuals
-instead of overstating the grouped-dresser evidence.
+walkthrough groups it with Bow Tie. This left 21 residuals at that batch stage;
+subsequent direct evidence reduced the current total to 15.
 
 Game8's postgame route resolves Great Helm to the north chest on Another World
-4F, reached by taking the left stairs from 3F. Direct English video later resolves Sun Crown; Ruinous Shield is
-the two remaining chest-labelled residuals; current pages confirm their dungeon
-treasure routes but do not identify an individual chest.
+4F, reached by taking the left stairs from 3F. Direct English video later
+resolves Sun Crown. The three current chest-labelled residuals are Day Off Dress
+(one of three Level 3 jail-cell chests), Goddess Ring (one of two southwest-Tower
+lever chests), and Ruinous Shield (Underground Level 1 well branch); no source
+identifies the individual chest for any of them.
 
 The early container follow-up resolves Fishnet Stockings to the east closet in
 Allblades Arena's north room and Mermaid Moon to the Wetlock Treasure Room chest
