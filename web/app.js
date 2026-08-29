@@ -285,14 +285,32 @@ function renderDashboard() {
   renderChecks($("#nextActions"), d.next_actions || []);
 }
 
+function renderCheckpointFinder() {
+  const finder = $("#checkpointFinder"), saved = state.dashboard?.checkpoint?.is_saved;
+  finder.hidden = Boolean(saved);
+  if (saved) return;
+  finder.open = true;
+  const query = $("#checkpointFinderInput").value.trim().toLowerCase();
+  const matches = state.checkpoints.filter(row => !query || [row.name, row.region, row.entry_condition, row.time_period].some(value => String(value || "").toLowerCase().includes(query))).slice(0, 5);
+  $("#checkpointFinderResults").innerHTML = matches.map(row => `<button class="secondary" type="button" data-preview-checkpoint="${escapeHtml(row.id)}"><strong>${String(row.sequence).padStart(2, "0")} · ${escapeHtml(row.name)}</strong><small>${escapeHtml(row.region)} · ${escapeHtml(row.entry_condition || "Entry step unknown")}</small></button>`).join("") || '<p class="muted">No match. Try a town or region name.</p>';
+  const viewed = state.checkpoints.find(row => row.id === state.checkpoint?.id);
+  $("#checkpointFinderChoice").innerHTML = viewed ? `<strong>Previewing: ${escapeHtml(viewed.name)}</strong><span>Not saved as current.</span><button type="button" data-save-found-checkpoint="${escapeHtml(viewed.id)}">Save this checkpoint</button>` : "";
+}
+
 function renderCheckpoint() {
   const c = state.checkpoint || {};
+  renderCheckpointFinder();
   const index = state.checkpoints.findIndex(row => row.id === c.id);
+  const savedCheckpoint = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
+  const isSavedCurrent = savedCheckpoint === c.id;
   $("#previousCheckpoint").disabled = index <= 0;
   $("#nextCheckpoint").disabled = index < 0 || index >= state.checkpoints.length - 1;
   $("#mobilePrevious").disabled = index <= 0;
   $("#mobileNext").disabled = index < 0 || index >= state.checkpoints.length - 1;
-  $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
+  $("#checkpointMeta").textContent = [savedCheckpoint ? null : "Preview · not saved", c.name, c.time_period, c.region].filter(Boolean).join(" · ");
+  const setCurrent = $("#setCheckpointButton");
+  setCurrent.disabled = isSavedCurrent;
+  setCurrent.textContent = isSavedCurrent ? "Current" : savedCheckpoint ? "Set current" : "Start here";
   renderStopActions($("#checkpointStop"), c.stop_actions || []);
   renderCheckpointActions($("#actions"), c.actions || [], $("#hideCompleted").checked);
   renderPowerPlan(c.power_plan || {});
@@ -531,6 +549,7 @@ async function stepCheckpoint(delta) {
   await loadCheckpoint(select.value);
 }
 async function loadAll() {
+  const viewedCheckpoint = state.checkpoint?.id;
   setStatus("Loading guide…");
   const vocationRequest = state.vocations.length ? Promise.resolve(null) : api("/vocations?limit=200");
   const loaded = await Promise.all([api("/dashboard"), api("/checkpoints"), api("/progress"), api("/equipment"), api("/conflicts?include_resolved=1"), api("/evidence-gaps"), vocationRequest]);
@@ -539,7 +558,7 @@ async function loadAll() {
   renderDashboard(); renderProgress();
   const savedCheckpoint = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
   const select = $("#checkpointSelect"); select.innerHTML = state.checkpoints.map(c => `<option value="${escapeHtml(c.id)}">${String(c.sequence).padStart(2,"0")} · ${escapeHtml(c.name)}${c.id === savedCheckpoint ? " (saved)" : ""}</option>`).join("");
-  const current = state.dashboard?.checkpoint?.id || state.checkpoints[0]?.id; if (current) { select.value = current; await loadCheckpoint(current); }
+  const current = savedCheckpoint || (viewedCheckpoint && state.checkpoints.some(row => row.id === viewedCheckpoint) ? viewedCheckpoint : null) || state.dashboard?.checkpoint?.id || state.checkpoints[0]?.id; if (current) { select.value = current; await loadCheckpoint(current); }
   syncSecondaryLedgers();
   if (!$("#phone-setup").hidden) renderPhoneSetup();
   setStatus("");
@@ -593,6 +612,27 @@ async function recordCommand(command, values) {
 }
 
 document.addEventListener("click", event => {
+  const previewCheckpoint = event.target.closest("[data-preview-checkpoint]");
+  if (previewCheckpoint) {
+    const id = previewCheckpoint.dataset.previewCheckpoint;
+    $("#checkpointSelect").value = id;
+    loadCheckpoint(id).then(() => $("#checkpointFinderChoice").scrollIntoView({ block: "nearest" })).catch(handleError);
+    return;
+  }
+  const saveFoundCheckpoint = event.target.closest("[data-save-found-checkpoint]");
+  if (saveFoundCheckpoint) {
+    const id = saveFoundCheckpoint.dataset.saveFoundCheckpoint;
+    const checkpoint = state.checkpoints.find(row => row.id === id);
+    if (!checkpoint || !window.confirm(`Save ${checkpoint.name} as your current checkpoint?`)) return;
+    saveFoundCheckpoint.disabled = true;
+    oneMutation("checkpoint-finder", async () => {
+      setStatus("Saving confirmed checkpoint…");
+      await api(`/checkpoints/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ selected: true }) });
+      await loadAll();
+      setStatus("Checkpoint saved");
+    }).catch(handleError).finally(() => { if (saveFoundCheckpoint.isConnected) saveFoundCheckpoint.disabled = false; });
+    return;
+  }
   const powerVocation = event.target.closest("[data-power-vocation-mastered]");
   if (powerVocation) {
     const vocationId = powerVocation.dataset.powerVocationMastered, character = powerVocation.dataset.powerVocationCharacter;
@@ -639,6 +679,7 @@ document.addEventListener("click", event => {
 $("#menuButton").addEventListener("click", () => { const open = $("#primaryNav").classList.toggle("open"); $("#menuButton").setAttribute("aria-expanded", String(open)); if (open) $("#primaryNav a").focus(); });
 $("#refreshButton").addEventListener("click", () => loadAll().catch(handleError));
 $("#checkpointSelect").addEventListener("change", event => loadCheckpoint(event.target.value).catch(handleError));
+$("#checkpointFinderInput").addEventListener("input", renderCheckpointFinder);
 $("#previousCheckpoint").addEventListener("click", () => stepCheckpoint(-1).catch(handleError));
 $("#nextCheckpoint").addEventListener("click", () => stepCheckpoint(1).catch(handleError));
 $("#mobilePrevious").addEventListener("click", () => { showView("walkthrough"); stepCheckpoint(-1).then(scrollToTop).catch(handleError); });

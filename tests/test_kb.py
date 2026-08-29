@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 544)
+        self.assertEqual(self.counts["sources"], 546)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3080,6 +3080,24 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual({row[1] for row in structured}, {"gamewith_mighty_pip"})
         self.assertEqual({row[2] for row in structured}, {2})
         self.assertTrue(all(not row[3].startswith("two_") for row in structured))
+
+    def test_early_recommended_gear_stats_have_two_source_agreement(self):
+        expected = {
+            "item:snooze_stick": {"attack_bonus": 18, "magical_might_bonus": 22,
+                "magical_mending_bonus": 12, "mp_absorption_percent": 8,
+                "battle_use_effect": "Attempts to put one enemy to sleep"},
+            "item:iron_mask": {"defence_bonus": 25},
+        }
+        for subject, predicates in expected.items():
+            for predicate, expected_value in predicates.items():
+                rows = self.connection.execute(
+                    "SELECT value_json, source_id, confidence FROM claims "
+                    "WHERE subject_key=? AND predicate=?", (subject, predicate)
+                ).fetchall()
+                self.assertEqual(len(rows), 2)
+                self.assertEqual({json.loads(row[0]) for row in rows}, {expected_value})
+                self.assertEqual(len({row[1] for row in rows}), 2)
+                self.assertTrue(all(row[2] == "verified" for row in rows))
 
     def test_advanced_vocation_stat_modifiers_are_complete_and_qualitative(self):
         for vocation_id in ("vocation_champion", "vocation_druid", "vocation_hero"):

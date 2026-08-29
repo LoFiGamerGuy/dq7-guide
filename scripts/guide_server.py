@@ -129,7 +129,7 @@ def _checkpoints(db_path: Path) -> list[dict]:
         connection.row_factory = sqlite3.Row
         return [dict(row) for row in connection.execute(
             """SELECT checkpoint_id, sequence_no, name, time_period, region,
-                safe_exit_condition, coverage_status
+                entry_condition, safe_exit_condition, coverage_status
             FROM checkpoints ORDER BY sequence_no"""
         )]
 
@@ -1782,7 +1782,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                     return self._json(_dashboard_view(db_path, state_path))
                 if parsed.path == "/api/checkpoints":
                     return self._json([{"id": row["checkpoint_id"], "sequence": row["sequence_no"],
-                                        "name": row["name"]} for row in _checkpoints(db_path)])
+                                        "name": row["name"], "region": row["region"],
+                                        "time_period": row["time_period"],
+                                        "entry_condition": row["entry_condition"]}
+                                       for row in _checkpoints(db_path)])
                 if parsed.path.startswith("/api/checkpoints/"):
                     checkpoint_id = unquote(parsed.path.removeprefix("/api/checkpoints/"))
                     return self._json(_checkpoint_view(db_path, state_path, checkpoint_id))

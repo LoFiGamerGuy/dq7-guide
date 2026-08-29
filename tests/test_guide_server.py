@@ -173,6 +173,8 @@ class GuideServerTests(unittest.TestCase):
         status, checkpoints = self.get_json("/api/checkpoints")
         self.assertEqual(status, 200)
         self.assertEqual(checkpoints[0]["id"], "cp_001_prologue")
+        self.assertEqual(checkpoints[0]["entry_condition"], "New game")
+        self.assertTrue(checkpoints[2]["region"])
         status, dashboard = self.get_json("/api/dashboard")
         self.assertEqual(status, 200)
         self.assertIn("progress", dashboard)

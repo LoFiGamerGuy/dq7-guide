@@ -68,6 +68,13 @@
           <div><p class="eyebrow">Compact mode</p><h2 id="walkthroughTitle">Walkthrough</h2></div>
           <div class="checkpoint-picker"><button id="previousCheckpoint" class="secondary" type="button" aria-label="Previous checkpoint">Previous</button><label class="select-label">Checkpoint <select id="checkpointSelect"></select></label><button id="nextCheckpoint" class="secondary" type="button" aria-label="Next checkpoint">Next</button><button id="setCheckpointButton" class="secondary" type="button">Set current</button></div>
         </div>
+        <details id="checkpointFinder" class="checkpoint-finder" hidden>
+          <summary>Find where I am</summary>
+          <p class="muted">Search a place or story step. Tapping a result only previews it.</p>
+          <label class="select-label">Place or story step <input id="checkpointFinderInput" type="search" autocomplete="off" placeholder="e.g. Ballymolloy"></label>
+          <div id="checkpointFinderResults" class="checkpoint-finder-results"></div>
+          <div id="checkpointFinderChoice" class="checkpoint-finder-choice" role="status" aria-live="polite"></div>
+        </details>
         <div id="checkpointMeta" class="checkpoint-meta"></div>
         <nav class="play-jumps" aria-label="Checkpoint shortcuts">
           <button class="secondary" type="button" data-play-jump="next">Next task</button>
