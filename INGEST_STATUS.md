@@ -8,14 +8,14 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 538 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 540 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous two-vocation learning, current-vocation-only skills, and dual skill/stat access normalized | High for published behavior; legal-pair restrictions remain unpublished | Resolve legal-pair restrictions only from direct evidence |
-| Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware; all 33 have directly verified RPG Site section-range locators | High for chronology and locator provenance; optimization/content depth remains partial | Expand checkpoint-specific optimization without treating locator coverage as content completeness |
+| Walkthrough checkpoints | 33 checkpoints; 223 obligations; cp001–cp033 ordered and progress-aware; all 33 have directly verified RPG Site section-range locators | High for chronology and locator provenance; optimization/content depth remains partial | Expand checkpoint-specific optimization without treating locator coverage as content completeness |
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
-| Missables / choices | 7/7 direct-source records with precise locators; 6 exact choice/window cutoffs and Little Blue Button explicitly unresolved | High for documented consequences; medium where the source omits a cutoff | Resolve Little Blue Button's story cutoff; it is not STOP-eligible until then |
+| Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources, while its cp022 placement is derived from the normalized chronology | Preserve player-unknown state; never infer that the Button sidequest was completed |
 | Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` remains the sole exact-name gap. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify Shell Shield, the legacy row, and numerical probabilities only if directly published |
 | Equipment | 110 ready-for-play advice rows; all 311 canonical rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated | High for normalized compatibility and slot layout; disagreeing source claims remain visible; duplicate effects remain unmodeled | Keep same-item accessory/Heart duplicates constrained until a second current-version source verifies legality and effect stacking |
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 538
+- sources: 540
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -46,7 +46,7 @@ Expected after `python scripts/build_kb.py`:
 - monster hearts: 46
 - checkpoints: 33
 - mini medal locations: 100
-- checkpoint obligations: 222
+- checkpoint obligations: 223
 - achievements / aliases: 61 / 1
 - achievement requirements: 29
 - stone tablets / fragments: 20 / 71
@@ -76,17 +76,15 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
-- **Missables:** Little Blue Button is the sole record without an exact named story cutoff and remains structurally excluded from STOP warnings.
+- **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 538 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 540 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
-1. Resolve the Little Blue Button cutoff only if a current-version source names the exact boundary.
-2. Resolve Stella/Stellar spelling and the ten disputed equipment-compatibility identities only from legible current-version inventory/equip UI evidence.
-3. Verify Shell Shield, the legacy Version 1 Rank 2 Slime Earring row, and Lucky Panel probabilities only from direct current-version evidence.
-4. Seek explicit rematch or respawn evidence before adding any repeatable Heart route.
-5. Preserve the complete 100/100 cross-source Mini Medal evidence set unless a direct source publishes a correction.
+1. Verify Shell Shield, the legacy Version 1 Rank 2 Slime Earring row, and Lucky Panel probabilities only from direct current-version evidence.
+2. Seek explicit rematch or respawn evidence before adding any repeatable Heart route.
+3. Preserve the complete 100/100 cross-source Mini Medal evidence set unless a direct source publishes a correction.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
@@ -154,7 +152,7 @@ The acquisition-link batch reuses independently sourced item-acquisition rows to
 
 The remaining-heart audit directly links Meowgician Heart to the finite Vicious Meowgician reward/drop in L'Arca Past at `cp_005_larca`. Its dedicated page proves the exact identity and monster source, while the existing encounter page supplies the checkpoint gate; drop rate and repeatability remain unpublished, so it is not labeled renewable. Metal Slime and Gold Golem Hearts are directly documented as Jam-Packed Swag Bag DLC grants. NightlyGamingBinge and Game8 independently establish Dragonlord, Malroth, and Zoma as DLC-only Buccanham Palace Battle Arena rewards with 25-, 50-, and 40-turn conditions; Game8 and RPG Site place Arena availability after Buccanham Past at `cp_020_buccanham`. All five exact identities remain outside the shared item registry until their non-Heroic item semantics are normalized.
 
-The missable audit gives all seven records precise direct-source locators and normalizes six exact action boundaries. It corrects the Vogograd reward to Pretty Betsy, records the irreversible Wrecked Specs, Wooden Doll branch confirmations, Wiggles, and Kiefer choices, and leaves only the Little Blue Button's unnamed story cutoff explicitly unknown and ineligible for STOP presentation.
+The missable audit gives all seven records precise direct-source locators and exact action boundaries. It corrects the Vogograd reward to Pretty Betsy and records the irreversible Wrecked Specs, Wooden Doll branch confirmations, Wiggles, and Kiefer choices. A later two-source batch resolves Little Blue Button's boundary to the late-game Cataclysm.
 
 The Lucky Panel chest batch completes Version 2's three-item and Version 3's eleven-item treasure-chest matrices. It adds 13 version-scoped reward paths, retains the Version 2 replacement boundary at the final Elemental Spirits upgrade, and leaves chest probability and slot counts unknown.
 
@@ -236,7 +234,7 @@ The finite-item synchronization pass groups checkpoint-gated finite Heroic Hoard
 
 The checkpoint-achievement pass separates achievements with an exact completion checkpoint from counters that only begin tracking there. Due rows reuse the validated Achievements-registry checkbox; open-ended counters remain collapsed, read-only progress reminders. Story position never implies an unlock, and checkpoint/registry integration coverage verifies explicit changes remain synchronized and reversible.
 
-The missable-ledger pass normalizes checkpoint and obligation links for all seven current-version missable records and activates the existing explicit completed/missed player fields. Completing a missable synchronizes only its linked checkpoint obligation and registry state. Verified linked STOPs clear reversibly; Little Blue Button remains an unresolved-cutoff informational row and is structurally barred from STOP generation.
+The missable-ledger pass normalizes checkpoint and obligation links for all seven current-version missable records and activates the existing explicit completed/missed player fields. Completing a missable synchronizes only its linked checkpoint obligation and registry state. Verified linked STOPs clear reversibly; Little Blue Button now has a separately sourced final warning at cp022.
 
 The interactive-runtime hardening pass serializes threaded browser mutations and atomically replaces player-state files, preventing rapid checkbox writes from losing progress or exposing partial JSON to concurrent reads. An eight-way integration test records distinct items concurrently and verifies all survive with no temporary files left behind. The existing Windows launcher is joined by a dependency-free macOS/Linux launcher; both preserve the same explicit-state server workflow.
 
@@ -267,7 +265,6 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 
 ## Open questions requiring evidence
 
-- Exact story cutoff for the Little Blue Button sequence; keep it unresolved and out of STOP warnings until a current-version source names the boundary.
 - Exact patch / platform scope for current guide data.
 - Whether every editorial “best” build assumes Moonlighting, DLC, easy difficulty, or heavy grinding.
 - Full set of Lucky Panel exclusives and alternative enemy-drop sources.
@@ -292,9 +289,10 @@ pairs.
 - **Shell Shield:** requires a second independent current-version item identity
   or English Item List capture. The single Lucky Panel table is insufficient to
   decide whether this is a distinct item or an alias.
-- **Little Blue Button:** requires a continuous walkthrough or save test that
-  brackets the child's disappearance between exact story actions. Existing guides
-  establish eventual unavailability but not a STOP-safe boundary.
+- **Little Blue Button:** Game8 Japan and GameWith independently name the
+  late-game Cataclysm (`異変`) as the boundary. The cp022 checkpoint warning is
+  derived from the normalized Almighty-to-Fire-Spirit chronology; neither cutoff
+  page names the repository checkpoint. Completion remains unknown until reported.
 - **Lucky Panel probabilities:** requires a published draw algorithm/denominator
   or controlled sampling/source-code evidence. Source-native numeric weights are
   not probabilities.
@@ -306,7 +304,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 538 source records currently have retrieval dates within 180
+- **Freshness:** all 540 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 538)
+        self.assertEqual(self.counts["sources"], 540)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -68,7 +68,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
-        self.assertEqual(self.counts["checkpoint_obligations"], 222)
+        self.assertEqual(self.counts["checkpoint_obligations"], 223)
         self.assertEqual(self.counts["checkpoint_advice"], 111)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -500,7 +500,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ))
         self.assertIn("container_unknown", row[7])
 
-    def test_missables_have_precise_provenance_and_preserve_unknown_cutoffs(self):
+    def test_missables_have_precise_provenance_and_exact_blue_button_cutoff(self):
         rows = self.connection.execute(
             """SELECT missable_id, unavailable_after, consequence, locator
             FROM missables ORDER BY missable_id"""
@@ -508,10 +508,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(len(rows), 7)
         self.assertTrue(all(row[3] and ">" in row[3] for row in rows))
         unknown = {row[0] for row in rows if row[1] is None}
-        self.assertEqual(
-            unknown,
-            {"missable_blue_button"},
-        )
+        self.assertEqual(unknown, set())
+        blue_button = next(row for row in rows
+                           if row[0] == "missable_blue_button")
+        self.assertIn("Cataclysm", blue_button[1])
         wooden_doll = next(row for row in rows
                            if row[0] == "missable_wooden_doll")
         self.assertIn("Patrick choice", wooden_doll[1])
@@ -529,6 +529,14 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE obligation_id='obl_emberdale_blue_button_deadline'"""
         ).fetchone()[0]
         self.assertEqual(blue_stop, 0)
+        final_warning = self.connection.execute(
+            """SELECT checkpoint_id, stop_before_advancing, verification_status
+            FROM checkpoint_obligations
+            WHERE obligation_id='obl_almighty_blue_button_final_warning'"""
+        ).fetchone()
+        self.assertEqual(tuple(final_warning),
+                         ("cp_022_almighty", 1,
+                          "two_independent_current_version_sources_event_checkpoint_mapping_derived"))
 
     def test_farming_rows_are_checkpoint_gated_and_strategy_attributed(self):
         rows = self.connection.execute(

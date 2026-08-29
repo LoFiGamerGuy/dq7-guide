@@ -731,7 +731,8 @@ def _missables(db_path: Path, query: dict, state_path: Path | None = None) -> di
     for row in rows:
         row["window_status"] = ("verified" if row["available_from"] and
             row["unavailable_after"] and
-            row["verification_status"].startswith("source_checked")
+            (row["verification_status"].startswith("source_checked") or
+             row["verification_status"].startswith("two_independent_current_version_sources"))
             else "unresolved")
         row["provenance_gap"] = not bool(row["locator"])
         row["window_gap_reason"] = (None if row["window_status"] == "verified"
@@ -1222,6 +1223,43 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
     party_status = ("unknown" if not explicit_party else
                     "partial" if len(explicit_party) < len(party_members) else
                     "recorded")
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        vocation_rows = connection.execute(
+            """SELECT v.vocation_id, e.name FROM vocations v
+            JOIN entities e ON e.entity_id=v.vocation_id"""
+        ).fetchall()
+    vocation_by_name = {row["name"].casefold(): row["vocation_id"]
+                        for row in vocation_rows}
+    vocation_paths = []
+    seen_vocation_paths = set()
+    for row in advice:
+        if row["type"] != "vocation":
+            continue
+        applicability = row["applicability"]
+        assignments = applicability.get("party_assignments", {})
+        if not isinstance(assignments, dict):
+            assignments = {}
+        fixed_character = applicability.get("party_member")
+        fixed_vocation = applicability.get("vocation")
+        if fixed_character in party_members and isinstance(fixed_vocation, str):
+            assignments = {**assignments, fixed_character: fixed_vocation}
+        for character, vocation_name in assignments.items():
+            target_id = vocation_by_name.get(str(vocation_name).casefold())
+            key = (character, target_id)
+            if character not in party_members or target_id is None or key in seen_vocation_paths:
+                continue
+            seen_vocation_paths.add(key)
+            recursive = next(plan for plan in _vocation_recursive_plans(
+                db_path, state_path, target_id) if plan["character"] == character)
+            vocation_paths.append({
+                "character": character, "target_id": target_id,
+                "target_name": vocation_name, "status": recursive["status"],
+                "next_options": recursive["next_options"],
+                "choice_policy": recursive["choice_policy"],
+                "decision_group": row["decision_group"],
+                "recommendation": row["text"], "source": row["source"],
+            })
     power_plan = {
         "state_scope": "explicit_saved_state_only",
         "state_status": party_status,
@@ -1237,6 +1275,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "additional_safe_power_count": max(len(safe_power_candidates) - 2, 0),
         "grind_ceiling": [row for row in advice if row["decision_group"] == "optional_grind"],
         "gear_checks": equipment["recommendations"],
+        "vocation_paths": vocation_paths,
         "available_farms": farm_options,
         "farm_note": ("Available sourced options, not a ranking. Use the attributed grind ceiling above when present."
                       if farm_options else "No checkpoint-gated farm is verified as available yet."),

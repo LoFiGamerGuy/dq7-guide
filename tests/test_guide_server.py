@@ -406,6 +406,14 @@ class GuideServerTests(unittest.TestCase):
         self.assertGreater(plan["additional_strongest_count"], 0)
         self.assertTrue(all(row["goal"] == "both" for row in plan["safe_power"]))
         self.assertTrue(plan["grind_ceiling"])
+        self.assertTrue(plan["vocation_paths"])
+        arena_paths = {(row["character"], row["target_name"]): row
+                       for row in plan["vocation_paths"]}
+        self.assertIn(("Hero", "Warrior"), arena_paths)
+        self.assertEqual(arena_paths[("Hero", "Warrior")]["decision_group"],
+                         "strongest_now")
+        self.assertEqual(arena_paths[("Hero", "Warrior")]["next_options"][0]["vocation_id"],
+                         "vocation_warrior")
         self.assertTrue(all(row["availability_status"] == "available_by_checkpoint"
                             for row in plan["available_farms"]))
         self.assertIn("not a ranking", plan["farm_note"])
@@ -585,6 +593,20 @@ class GuideServerTests(unittest.TestCase):
         }])
         self.assertTrue(plan["gear_checks"])
 
+    def test_power_vocation_path_advances_only_from_explicit_mastery(self):
+        state_path = Path(self.temp.name) / "power-vocation-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["party"]["members"]["Hero"]["vocation_mastery"] = {
+            "vocation_warrior": True,
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                state_path, "cp_009_alltrades")["power_plan"]
+        hero = next(row for row in plan["vocation_paths"]
+                    if row["character"] == "Hero" and row["target_id"] == "vocation_warrior")
+        self.assertEqual(hero["status"], "target_mastered")
+        self.assertEqual(hero["next_options"], [])
+
     def test_party_setup_atomically_records_checkpoint_active_party_and_unknowns(self):
         state_path = Path(self.temp.name) / "quick-party-state.json"
         shutil.copy(ROOT / "player" / "ryan-save-state.json", state_path)
@@ -720,11 +742,11 @@ class GuideServerTests(unittest.TestCase):
         if missable["window_status"] == "unresolved":
             self.assertTrue(missable["provenance_gap"])
         _, blue_button = self.get_json("/api/missables/missable_blue_button")
-        self.assertEqual(blue_button["window_status"], "unresolved")
+        self.assertEqual(blue_button["window_status"], "verified")
         self.assertFalse(blue_button["stop_warning_eligible"])
         self.assertEqual(blue_button["available_from_checkpoint_id"],
                          "cp_004_emberdale")
-        self.assertTrue(blue_button["window_gap_reason"])
+        self.assertIsNone(blue_button["window_gap_reason"])
         _, wooden_doll = self.get_json("/api/missables/missable_wooden_doll")
         self.assertEqual(wooden_doll["window_status"], "verified")
         self.assertTrue(wooden_doll["stop_warning_eligible"])
@@ -840,7 +862,7 @@ class GuideServerTests(unittest.TestCase):
         _, emberdale = self.get_json("/api/checkpoints/cp_004_emberdale")
         blue = next(row for row in emberdale["checkpoint_missables"]
                     if row["missable_id"] == "missable_blue_button")
-        self.assertEqual(blue["window_status"], "unresolved")
+        self.assertEqual(blue["window_status"], "verified")
         self.assertFalse(blue["stop_warning_eligible"])
         self.patch_json("/api/missables/missable_fish_bits", {"completed": False})
         _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")

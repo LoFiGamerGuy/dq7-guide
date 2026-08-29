@@ -54,7 +54,7 @@ function controlSelector(control) {
 
 async function api(path, options = {}) {
   const method = (options.method || "GET").toUpperCase();
-  if (method !== "GET" && !navigator.onLine) throw new Error("Offline: progress changes are not queued");
+  if (method !== "GET" && (!navigator.onLine || state.usingCachedData || state.hostReachable === false)) throw new Error("Guide host unavailable: reconnect before saving; progress changes are not queued");
   state.requests += 1; $("#main").setAttribute("aria-busy", "true");
   try {
     const response = await fetch(`/api${path}`, {
@@ -208,7 +208,7 @@ function compactApplicability(value) {
 }
 
 function renderPowerPlan(plan = {}) {
-  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [];
+  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [];
   const partyText = party.length ? party.map(row => `${row.name}: ${row.active ? "Active · " : ""}${row.level ? `Lv ${row.level}` : "level ?"} · ${row.primary_vocation || "vocation ?"}${row.secondary_vocation ? ` + ${row.secondary_vocation}` : ""}`).join(" / ") : "Party levels and vocations not recorded — recommendations remain source-only.";
   const conciseRows = strongest.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span>${row.saved_state_applicability?.reason !== "No supported saved-state gate" ? `<small class="applicability-${escapeHtml(row.saved_state_applicability?.status || "unknown")}">${escapeHtml(row.saved_state_applicability?.reason || "Saved-state fit unknown")}</small>` : ""}</li>`).join("");
   const safeRows = safePower.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("");
@@ -219,7 +219,8 @@ function renderPowerPlan(plan = {}) {
     const canEquip = owned && !equipped && row.character && ["weapon","shield","helmet","armour"].includes(row.slot) && row.compatibility_status === "verified_can_equip";
     return `<li><strong>${escapeHtml([row.character, row.item_name].filter(Boolean).join(" · "))}</strong><span>${escapeHtml(equipped ? "Equipped" : owned ? "Owned" : "Ownership unknown")} · ${escapeHtml((row.compatibility_status || "compatibility unknown").replaceAll("_", " "))}</span>${canRecord ? `<span class="muted">Ownership tracking only · does not equip</span><button class="secondary compact-button" type="button" aria-label="Mark ${escapeHtml(row.item_name)} owned; does not equip it" data-power-item-owned="${escapeHtml(row.item_id)}">Mark owned</button>` : ""}${canEquip ? `<button class="secondary compact-button" type="button" aria-label="Equip ${escapeHtml(row.item_name)} on ${escapeHtml(row.character)}" data-power-equip-item="${escapeHtml(row.item_id)}" data-power-equip-character="${escapeHtml(row.character)}" data-power-equip-slot="${escapeHtml(row.slot)}">Equip</button>` : ""}</li>`;
   }).join("");
-  target.innerHTML = `<p class="power-party"><strong>Recorded party entries</strong><span>${escapeHtml(partyText)}</span><small>${escapeHtml(plan.party_note || "Unrecorded values remain unknown.")}</small></p>${conciseRows ? `<h4>Strongest now</h4><ol class="power-list">${conciseRows}</ol>${plan.additional_strongest_count ? `<p class="muted">${plan.additional_strongest_count} more sourced power notes in Full sourced advice.</p>` : ""}` : '<p class="muted">No separate immediate-power recommendation is sourced here.</p>'}${safeRows ? `<h4>Completion-safe power</h4><ul class="power-list">${safeRows}</ul>${plan.additional_safe_power_count ? `<p class="muted">${plan.additional_safe_power_count} more safe-power notes below.</p>` : ""}` : ""}${gearRows ? `<h4>Gear checks</h4><ul class="power-list">${gearRows}</ul>` : ""}${grind.length ? `<h4>Optional grind ceiling</h4><ul class="power-list">${grind.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("")}</ul>` : '<p class="muted">No checkpoint-specific grind is recommended.</p>'}${farms.length ? `<details class="farm-options"><summary>Other farms available by now (${farms.length})</summary><p class="muted">${escapeHtml(plan.farm_note)}</p>${farms.map(row => `<div><strong>${escapeHtml(row.target)}</strong><span>${escapeHtml(row.location)}${row.time_period ? ` · ${escapeHtml(row.time_period)}` : ""}</span></div>`).join("")}</details>` : ""}`;
+  const vocationRows = vocationPaths.map(path => `<li><strong>${escapeHtml(path.character)} → ${escapeHtml(path.target_name)}</strong><span>${escapeHtml(path.decision_group === "completion_safe" ? "Completion-safe" : "Strongest now")} · ${escapeHtml(path.status === "target_mastered" ? "Target mastered" : "Next mastery")}</span>${path.status !== "target_mastered" ? `<div class="vocation-options">${path.next_options.map(option => `<button class="secondary compact-button" type="button" data-power-vocation-mastered="${escapeHtml(option.vocation_id)}" data-power-vocation-character="${escapeHtml(path.character)}">Record ${escapeHtml(option.name)} mastered</button>`).join("")}</div>${path.next_options.length > 1 ? '<small>Branch choice preserved · options are not ranked.</small>' : ""}` : ""}</li>`).join("");
+  target.innerHTML = `<p class="power-party"><strong>Recorded party entries</strong><span>${escapeHtml(partyText)}</span><small>${escapeHtml(plan.party_note || "Unrecorded values remain unknown.")}</small></p>${conciseRows ? `<h4>Strongest now</h4><ol class="power-list">${conciseRows}</ol>${plan.additional_strongest_count ? `<p class="muted">${plan.additional_strongest_count} more sourced power notes in Full sourced advice.</p>` : ""}` : '<p class="muted">No separate immediate-power recommendation is sourced here.</p>'}${vocationRows ? `<h4>Vocation path</h4><ul class="power-list">${vocationRows}</ul>` : ""}${safeRows ? `<h4>Completion-safe power</h4><ul class="power-list">${safeRows}</ul>${plan.additional_safe_power_count ? `<p class="muted">${plan.additional_safe_power_count} more safe-power notes below.</p>` : ""}` : ""}${gearRows ? `<h4>Gear checks</h4><ul class="power-list">${gearRows}</ul>` : ""}${grind.length ? `<h4>Optional grind ceiling</h4><ul class="power-list">${grind.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("")}</ul>` : '<p class="muted">No checkpoint-specific grind is recommended.</p>'}${farms.length ? `<details class="farm-options"><summary>Other farms available by now (${farms.length})</summary><p class="muted">${escapeHtml(plan.farm_note)}</p>${farms.map(row => `<div><strong>${escapeHtml(row.target)}</strong><span>${escapeHtml(row.location)}${row.time_period ? ` · ${escapeHtml(row.time_period)}` : ""}</span></div>`).join("")}</details>` : ""}`;
 }
 
 function renderQuickSetup() {
@@ -233,6 +234,21 @@ function renderQuickSetup() {
     row.querySelector("[data-quick-primary]").value = member.primary_vocation || "unknown";
     row.querySelector("[data-quick-secondary]").value = member.secondary_vocation || "unknown";
   });
+}
+
+function syncQuickMasteryChoices() {
+  const character = $("#quickMasteryMember")?.value, select = $("#quickMasteryVocation");
+  if (!select) return;
+  const member = (state.progress?.party || []).find(row => row.name === character), mastered = new Set(member?.mastered_vocations || []);
+  select.innerHTML = state.vocations.filter(row => (!row.exclusive_character || row.exclusive_character === character) && !mastered.has(row.vocation_id)).map(row => `<option value="${escapeHtml(row.vocation_id)}">${escapeHtml(row.name)}</option>`).join("");
+  const submit = $("#quickMasteryForm")?.querySelector('[type="submit"]');
+  if (submit) submit.disabled = !select.options.length;
+}
+
+function renderQuickMastery() {
+  const members = state.progress?.party || [];
+  $("#quickMasteryMember").innerHTML = members.map(row => `<option value="${escapeHtml(row.name)}">${escapeHtml(row.name)}</option>`).join("");
+  syncQuickMasteryChoices();
 }
 
 function quickSetupPayload() {
@@ -264,6 +280,7 @@ function renderCheckpoint() {
   renderCheckpointActions($("#actions"), c.actions || [], $("#hideCompleted").checked);
   renderPowerPlan(c.power_plan || {});
   renderQuickSetup();
+  renderQuickMastery();
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"), adviceGroups = [
     ["completion_safe", "Completion-safe"],
@@ -558,6 +575,17 @@ async function recordCommand(command, values) {
 }
 
 document.addEventListener("click", event => {
+  const powerVocation = event.target.closest("[data-power-vocation-mastered]");
+  if (powerVocation) {
+    const vocationId = powerVocation.dataset.powerVocationMastered, character = powerVocation.dataset.powerVocationCharacter;
+    const path = `/vocations/${encodeURIComponent(vocationId)}`;
+    powerVocation.disabled = true;
+    oneMutation(`power-vocation:${character}:${vocationId}`, async () => { await api(path, { method: "PATCH", body: JSON.stringify({ character, completed: true }) }); await refreshPreservingPlayContext(); })
+      .then(saved => { if (saved) showUndo("Vocation mastery recorded.", () => oneMutation(`undo:power-vocation:${character}:${vocationId}`, async () => { await api(path, { method: "PATCH", body: JSON.stringify({ character, completed: false }) }); await refreshPreservingPlayContext(); })); })
+      .catch(handleError)
+      .finally(() => { if (powerVocation.isConnected) powerVocation.disabled = false; });
+    return;
+  }
   const powerEquip = event.target.closest("[data-power-equip-item]");
   if (powerEquip) {
     const { powerEquipItem: itemId, powerEquipCharacter: character, powerEquipSlot: slot } = powerEquip.dataset;
@@ -622,7 +650,30 @@ $("#hideCompleted").addEventListener("change", renderCheckpoint);
 $("#partyMemberSelect").addEventListener("change", syncVocationChoices);
 $("#partyDetailsMember").addEventListener("change", syncPartyDetails);
 $("#medalCountForm").addEventListener("submit", event => { event.preventDefault(); recordCommand("medal-count", [$("#medalCountInput").value]).catch(handleError); });
-$("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
+$("#vocationMasteryForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const command = $("#masteryAction").value, character = $("#partyMemberSelect").value, vocationId = $("#masteryVocationSelect").value;
+  if (command === "vocation-undo" && !window.confirm("Remove this recorded mastery?")) return;
+  try {
+    await recordCommand(command, [character, vocationId]);
+    const inverse = command === "vocation-mastered" ? "vocation-undo" : "vocation-mastered";
+    showUndo(command === "vocation-mastered" ? "Vocation mastery recorded." : "Vocation mastery removed.", () => recordCommand(inverse, [character, vocationId]));
+  } catch (error) { handleError(error); }
+});
+$("#quickMasteryMember").addEventListener("change", syncQuickMasteryChoices);
+$("#quickMasteryForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const character = $("#quickMasteryMember").value, vocationId = $("#quickMasteryVocation").value;
+  const vocationName = $("#quickMasteryVocation").selectedOptions[0]?.textContent || "this vocation";
+  if (!window.confirm(`Record ${vocationName} mastered for ${character}?`)) return;
+  const submit = event.currentTarget.querySelector('[type="submit"]'); submit.disabled = true;
+  try {
+    await recordCommand("vocation-mastered", [character, vocationId]);
+    $("#quickMastery").open = false;
+    showUndo("Vocation mastery recorded.", () => recordCommand("vocation-undo", [character, vocationId]));
+  } catch (error) { handleError(error); }
+  finally { if (submit.isConnected) submit.disabled = false; }
+});
 $("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
 $("#quickSetupForm").addEventListener("submit", async event => {
   event.preventDefault();
@@ -706,7 +757,7 @@ function handleError(error) { console.error(error); const target = $("#status");
 document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("#restoreConfirm").hidden) { event.preventDefault(); cancelRestore(); return; } if (event.key === "Escape" && $("#primaryNav").classList.contains("open")) { $("#primaryNav").classList.remove("open"); $("#menuButton").setAttribute("aria-expanded", "false"); $("#menuButton").focus(); } });
 window.addEventListener("hashchange", () => { const route = location.hash.slice(1) || "dashboard"; if (domains[route]) showDomain(route); else if (document.getElementById(route)) showView(route); });
 window.addEventListener("offline", () => renderConnectionState(false));
-window.addEventListener("online", () => { state.usingCachedData = false; renderConnectionState(true); loadAll().catch(handleError); });
+window.addEventListener("online", () => loadAll().catch(handleError));
 document.addEventListener("visibilitychange", () => { if (!document.hidden && (state.hostReachable === false || state.usingCachedData)) loadAll().catch(handleError); });
 const initialRoute = location.hash.slice(1) || "dashboard";
 if (domains[initialRoute]) showDomain(initialRoute); else showView(initialRoute);
