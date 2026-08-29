@@ -256,6 +256,21 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'registration => registration.update()', app)
             self.assertIn(b'window.location.reload()', app)
 
+    def test_response_body_write_tolerates_client_disconnect(self):
+        handler_type = make_handler(
+            ROOT / "data" / "dq7_reimagined.sqlite", self.state, ROOT / "web"
+        )
+        handler = handler_type.__new__(handler_type)
+
+        class DisconnectedWriter:
+            def write(self, _body):
+                raise BrokenPipeError("browser closed")
+
+        handler.wfile = DisconnectedWriter()
+        handler.close_connection = False
+        handler._write_body(b"headers already committed")
+        self.assertTrue(handler.close_connection)
+
     def test_restore_requires_confirmation_validates_and_keeps_recovery_copy(self):
         _, original = self.get_json("/api/state-backup")
         backup = json.loads(json.dumps(original))

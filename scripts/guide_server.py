@@ -1881,6 +1881,13 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
     class GuideHandler(BaseHTTPRequestHandler):
         server_version = "DQ7Guide/1.0"
 
+        def _write_body(self, body):
+            """Ignore a client disconnect after response headers are committed."""
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                self.close_connection = True
+
         def _json(self, payload, status=HTTPStatus.OK):
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
@@ -1888,7 +1895,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
-            self.wfile.write(body)
+            self._write_body(body)
 
         def _head_json(self, payload, status=HTTPStatus.OK):
             """Return GET-equivalent JSON headers without a response body."""
@@ -1907,7 +1914,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
-            self.wfile.write(body)
+            self._write_body(body)
 
         def _error(self, status, message):
             self._json({"error": message}, status)
@@ -2316,7 +2323,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             else:
                 self.send_header("Cache-Control", "public, max-age=3600")
             self.end_headers()
-            self.wfile.write(body)
+            self._write_body(body)
 
         def log_message(self, format, *args):
             return

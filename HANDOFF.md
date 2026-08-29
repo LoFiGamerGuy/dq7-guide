@@ -64,14 +64,13 @@ Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
 Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
 refinements remain separate evidence gaps.
 
-The subsequent current-version walkthrough audits reduce the exact-container
-residual from 31 to 6. Kamikazee Bracer, the Wilted Heart Mountain Path Strength
-Ring, Burnmount's Yggdrasil Leaf, Present Poolside Cave Fur Cape, and Hubble
-Inquisitory Coagulant now have exact container directions. Do not collapse the six
-remaining pair-member/container unknowns into invented directions. Fishnet
-Stockings is no longer part of that residual: it is resolved to the Present inn
-wardrobe. Each of the six remaining grouped-container routes now has an independent
-current-version walkthrough claim that preserves the unknown individual member.
+The current-version walkthrough and video audits reduce the exact-container
+residual from 31 to 2. Direct PC/English item-result footage resolves Dragon
+Shield, Pirate's Hat, Silk Robe, and Steel Helmet to individual containers in
+addition to the earlier exact routes. Do not collapse the two remaining grouped
+unknowns—Knuckledusters in Strom's Mansion 2F and Faraday Strength Ring east of
+the throne room—into invented directions. Fishnet Stockings is separately
+resolved to the Present inn wardrobe.
 
 Six additional power cards now carry two-publisher atomic evidence: Tribulators
 healing-item safety, the Present La Bravoure Metal King Slime route and critical
