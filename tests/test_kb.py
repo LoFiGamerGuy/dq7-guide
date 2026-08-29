@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 677)
+        self.assertEqual(self.counts["sources"], 679)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2841,11 +2841,25 @@ class KnowledgeBaseTests(unittest.TestCase):
         orgodemir = next(row for row in rows
                          if row['advice_id'] == 'advice_cp021_orgodemir_first')
         applicability = json.loads(orgodemir['applicability_json'])
-        self.assertEqual(applicability['source_specific_phase_two_options'], {
-            'game8': 'Magic Barrier',
-            'dq7reimagined.com': 'Insulatle',
-        })
-        self.assertIn('conflict_visible', orgodemir['verification_status'])
+        self.assertEqual(applicability['verified_core']['phase_2'],
+                         'Use Insulatle to mitigate breath damage')
+        self.assertEqual(applicability['losing_source_disagreement']['game8'],
+                         'Magic Barrier in phase two')
+        self.assertIn('phase_two_insulatle_three_source_verified',
+                      orgodemir['verification_status'])
+        phase_two = self.connection.execute(
+            """SELECT c.claim_id, c.value_json, c.verification_status,
+                s.publisher FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='boss:orgodemir_first'
+              AND c.predicate='phase_two_breath_mitigation_recommendation'
+            ORDER BY c.claim_id"""
+        ).fetchall()
+        self.assertEqual(len(phase_two), 4)
+        self.assertEqual(len({row['publisher'] for row in phase_two
+                              if json.loads(row['value_json']) == 'Insulatle'}), 3)
+        losing = next(row for row in phase_two
+                      if json.loads(row['value_json']) == 'Magic Barrier')
+        self.assertIn('losing', losing['verification_status'])
 
     def test_route_level_supply_does_not_create_item_exclusivity(self):
         rows = self.connection.execute(
@@ -4182,8 +4196,12 @@ class KnowledgeBaseTests(unittest.TestCase):
                 ORDER BY display_order, advice_id""", (checkpoint_id,)
             ).fetchall()
             self.assertEqual([row["subject"] for row in rows], subjects)
-            self.assertTrue(all(row["source_id"].startswith("game8_boss_")
-                                for row in rows))
+            self.assertTrue(all(
+                row["source_id"].startswith("game8_boss_")
+                or (row["subject"] == "Orgodemir first fight"
+                    and row["source_id"] == "gamewith_orgodemir_first")
+                for row in rows
+            ))
             self.assertTrue(all(row["locator"] for row in rows))
             self.assertTrue(all("no_level" in row["verification_status"]
                                 or row["subject"] in {

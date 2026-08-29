@@ -99,9 +99,10 @@ wardrobe.
 Six additional power cards now carry two-publisher atomic evidence: Tribulators
 healing-item safety, the Present La Bravoure Metal King Slime route and critical
 tactic, Luminary/Monster Wrangler/Druid Let Loose mechanics, and first-Orgodemir
-phase-one Magic Barrier. Orgodemir phase two deliberately retains the visible
-Magic Barrier versus Insulatle recommendation split; vocation role/timing advice
-remains labeled as editorial synthesis beyond the verified mechanics.
+phase-one Magic Barrier. Orgodemir phase two now recommends Insulatle from
+three independent current-version publishers; Game8's contrary Magic Barrier
+wording remains visible as losing source advice. Phase-two reapplication and
+vocation role/timing remain labeled single-source/editorial beyond the verified core.
 
 Four fixed-gear sweep cards now separate two-publisher route cores from their
 remaining one-walkthrough extras. Verified pickups cover Ice Shield; Dragon

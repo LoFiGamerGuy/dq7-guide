@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 677 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 679 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 677
+- sources: 679
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,838
+- claims: 1,840
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -79,7 +79,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** all 413 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired because GameWith, Game8 Japan, and Altema publish the same explicit cumulative condition and independently match Maestros del Mando; the isolated simultaneous-balance instruction remains visible as losing evidence. Troll Heart is resolved to the Aeolus Vale Past field sparkle by two dedicated current-version pages; the isolated respawning-drop claim remains visible and does not establish a farm. `Stellar Fan` is resolved by a legible launch-period English acquisition toast. Fourteen pairwise equipment conflicts use two-publisher consensus claims. Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 677 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 679 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -226,9 +226,10 @@ a Game8-only speed option. The cp011 La Bravoure Metal King Slime route and
 critical-hit tactic are independently corroborated, with rate and level ceiling
 still unknown. Luminary, Monster Wrangler, and Druid cards distinguish their
 two-source Let Loose mechanics from editorial role/timing synthesis. The first
-Orgodemir card now scopes verified Magic Barrier/reapplication to phase one and
-shows the phase-two source disagreement—Game8's Magic Barrier versus
-DQ7Reimagined.com's Insulatle—without pretending both are one recommendation.
+Orgodemir card scopes verified Magic Barrier/reapplication to phase one and now
+uses Insulatle for phase two from DQ7Reimagined.com, GameWith, and AppMedia.
+Game8's contrary phase-two Magic Barrier wording remains visible as losing source
+advice; phase-two reapplication is still GameWith-only.
 
 The finite-container refinement batch applies the current-version RPG Site
 walkthrough's exact directions to 28 formerly area-only routes. Eighteen now
@@ -506,7 +507,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 677 source records currently have retrieval dates within 180
+- **Freshness:** all 679 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -746,8 +747,9 @@ Being and Lourgh/Disorder: their narrow shared cores and source-specific extras
 are now normalized above. Lourgh's chronology disagreement was then exposed as
 an automatic conflict and is now resolved to Past by continuous-route evidence.
 Neoseeker also supplies the independently adjudicated
-first-Orgodemir phase-one Magic Barrier core; phase-two recommendations remain
-split and visible.
+first-Orgodemir phase-one Magic Barrier core. The later phase-two audit resolves
+actionable guidance to three-publisher Insulatle while retaining Game8's losing
+Magic Barrier recommendation and keeping reapplication single-source.
 
 The advanced-vocation audit promotes Hero's worked-up ability gate and exact
 unlock rule after direct Game8/GameWith agreement: Hero requires mastery of any
