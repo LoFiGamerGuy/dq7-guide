@@ -282,10 +282,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v9', worker)
-            self.assertIn(b'dq7-guide-data-v9', worker)
-            self.assertNotIn(b'dq7-guide-shell-v8', worker)
-            self.assertNotIn(b'dq7-guide-data-v8', worker)
+            self.assertIn(b'dq7-guide-shell-v10', worker)
+            self.assertIn(b'dq7-guide-data-v10', worker)
+            self.assertNotIn(b'dq7-guide-shell-v9', worker)
+            self.assertNotIn(b'dq7-guide-data-v9', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -453,8 +453,18 @@ class GuideServerTests(unittest.TestCase):
         for gap in audit["gaps"]:
             self.assertEqual(gap["publisher_count"],
                              len({source["publisher"] for source in gap["sources"]}))
+            linked_source_ids = {claim["source_id"]
+                                 for claim in gap["supporting_claims"]}
+            linked_publishers = {source["publisher"] for source in gap["sources"]
+                                 if source["source_id"] in linked_source_ids}
+            self.assertEqual(gap["supporting_claim_source_count"],
+                             len(linked_source_ids))
+            self.assertEqual(gap["supporting_claim_publisher_count"],
+                             len(linked_publishers))
+            if gap["sources"]:
+                self.assertGreater(gap["supporting_claim_publisher_count"], 0)
             expected_tier = ("unsupported" if not gap["sources"] else
-                             "single_source" if gap["publisher_count"] < 2 else
+                             "single_source" if len(linked_publishers) < 2 else
                              "corroborated_but_unresolved")
             self.assertEqual(gap["verification_tier"], expected_tier)
         self.assertNotIn("gap_legacy_slime_earring_rank2", by_id)
@@ -498,6 +508,8 @@ class GuideServerTests(unittest.TestCase):
         hearts = by_id["gap_repeatable_monster_hearts"]
         self.assertEqual(hearts["source_count"], 8)
         self.assertEqual(len(hearts["supporting_claims"]), 5)
+        self.assertEqual(hearts["supporting_claim_source_count"], 5)
+        self.assertEqual(hearts["supporting_claim_publisher_count"], 5)
         self.assertIn("field sparkle", hearts["summary"])
         self.assertIn("does not establish a second copy",
                       hearts["acceptance_condition"])
