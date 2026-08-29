@@ -67,6 +67,12 @@ async function api(path, options = {}) {
     });
     const wasUnreachable = state.hostReachable === false;
     const wasCached = state.usingCachedData;
+    if (response.status >= 500) {
+      state.hostReachable = false;
+      state.usingCachedData = false;
+      renderConnectionState(false);
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
     state.hostReachable = true;
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     const isCached = response.headers.get("X-DQ7-Offline-Cache") === "true";
