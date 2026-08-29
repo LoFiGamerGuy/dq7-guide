@@ -2620,23 +2620,19 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 2, "other": 18})
+                         {"chest": 2, "other": 16})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("20 acquisition rows", status)
-        self.assertIn("18 broad or grouped-container `other` routes and two chest routes",
+        self.assertIn("18 acquisition rows", status)
+        self.assertIn("16 broad or grouped-container `other` routes and two chest routes",
                       status)
-        self.assertIn("20 broader acquisition rows", handoff)
+        self.assertIn("18 broader acquisition rows", handoff)
 
     def test_walkthrough_refines_four_broad_routes_without_inventing_containers(self):
         expected = {
             "acq_gold_bracer_temple_palace_past": (
                 "Temple Palace hidden room behind Queen Fertiti's throne",
                 "hidden room behind throne"),
-            "acq_fishnet_stockings_allblades_arena": (
-                "Allblades Arena north room", "Allblades Arena (Past) > Items"),
-            "acq_mermaid_moon_wetlock_treasure": (
-                "Wetlock west treasure room", "west treasure room"),
             "acq_day_off_dress_another_world": (
                 "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
         }
@@ -2655,6 +2651,39 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertEqual(row["source_id"], "rpgsite_walkthrough")
             self.assertIn(locator_fragment, row["locator"])
             self.assertIn("container_unspecified", row["verification_status"])
+
+    def test_early_container_pass_resolves_fishnet_and_mermaid_but_not_ruby_member(self):
+        fishnet = self.connection.execute(
+            """SELECT method, prerequisite_json, locator, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_fishnet_stockings_allblades_arena'"""
+        ).fetchone()
+        self.assertEqual(fishnet["method"], "other")
+        self.assertEqual(json.loads(fishnet["prerequisite_json"])["container"],
+                         "east closet")
+        self.assertIn("east closet", fishnet["locator"])
+        self.assertNotIn("container_unspecified",
+                         fishnet["verification_status"])
+        mermaid = self.connection.execute(
+            """SELECT method, source_id, prerequisite_json, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_mermaid_moon_wetlock_treasure'"""
+        ).fetchone()
+        self.assertEqual(mermaid["method"], "chest")
+        self.assertEqual(mermaid["source_id"], "game8_walkthrough")
+        self.assertIn("Hardlypool",
+                      json.loads(mermaid["prerequisite_json"])["story"])
+        self.assertNotIn("container_unspecified",
+                         mermaid["verification_status"])
+        ruby = self.connection.execute(
+            """SELECT method, prerequisite_json, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_ruby_of_protection_faraday_castle'"""
+        ).fetchone()
+        details = json.loads(ruby["prerequisite_json"])
+        self.assertEqual(details["container_group"], "drawers")
+        self.assertEqual(details["individual_member"], "unknown")
+        self.assertIn("container_unspecified", ruby["verification_status"])
 
     def test_direct_heart_guide_resolves_two_exact_chests(self):
         rows = self.connection.execute(
@@ -2856,8 +2885,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("20 broader acquisition rows", handoff)
-        self.assertIn("20 acquisition rows still deliberately carry",
+        self.assertIn("18 broader acquisition rows", handoff)
+        self.assertIn("18 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
