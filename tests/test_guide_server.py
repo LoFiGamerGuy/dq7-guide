@@ -107,6 +107,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(cautery["comparison_status"], "matches_recommendation")
         self.assertEqual(cautery["ownership_status"], "unknown")
         self.assertEqual(cautery["compatibility_status"], "verified_can_equip")
+        self.assertTrue(cautery["obtainable_routes"])
+        self.assertTrue(cautery["obtainable_routes"][0]["route_label"])
+        self.assertTrue(cautery["obtainable_routes"][0]["source_url"])
+        self.assertIn("does not rank item strength", cautery["route_display_policy"])
+        magic = next(row for row in report["recommendations"]
+                     if row["item_name"] == "Magic Shield")
+        self.assertEqual(magic["verified_stats"]["defence_bonus"]["value"], 22)
+        self.assertEqual(len(magic["verified_stats"]["defence_bonus"]["sources"]), 2)
+        self.assertIn("at least two independent sources", magic["stat_display_policy"])
 
         status, endpoint = self.get_json("/api/equipment")
         self.assertEqual(status, 200)

@@ -567,11 +567,22 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             JOIN item_categories c USING(category_id)"""
         ).fetchall()
         aliases = connection.execute("SELECT alias, item_id FROM item_aliases").fetchall()
-        available = {row[0] for row in connection.execute(
-            """SELECT DISTINCT a.item_id FROM item_acquisition_paths a
+        available_route_rows = [dict(row) for row in connection.execute(
+            """SELECT a.item_id, a.acquisition_id, a.method, a.route_label,
+                a.location_text, a.time_period, a.is_free, a.supply_type,
+                a.source_id, a.locator, s.title AS source_title, s.url AS source_url
+            FROM item_acquisition_paths a
             JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
-            WHERE c.sequence_no <= ?""", (checkpoint["sequence_no"],)
-        )}
+            JOIN sources s USING(source_id)
+            WHERE c.sequence_no <= ?
+            ORDER BY a.item_id, a.is_free DESC,
+                CASE a.supply_type WHEN 'finite' THEN 0 ELSE 1 END,
+                a.acquisition_id""", (checkpoint["sequence_no"],)
+        )]
+        available_routes = {}
+        for route in available_route_rows:
+            available_routes.setdefault(route["item_id"], []).append(route)
+        available = set(available_routes)
         compatibility_by_pair = {
             (row["item_id"], row["character_name"]): bool(row["can_equip"])
             for row in connection.execute(
@@ -584,6 +595,35 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 "SELECT item_id, agreement_status FROM equipment_compatibility_audits"
             )
         }
+        stat_claim_rows = [dict(row) for row in connection.execute(
+            """SELECT i.item_id, c.predicate, c.value_json, c.scope_json,
+                c.source_id, c.locator, s.title AS source_title,
+                s.url AS source_url
+            FROM items i JOIN claims c ON c.subject_key=i.canonical_key
+            JOIN sources s USING(source_id)
+            WHERE c.claim_kind='fact' AND c.confidence='verified'
+              AND c.verification_status LIKE 'two_independent%'
+              AND c.predicate IN ('attack_bonus', 'defence_bonus',
+                'magical_might_bonus', 'magical_mending_bonus',
+                'elemental_damage_reduction_percent')
+            ORDER BY i.item_id, c.predicate, c.source_id"""
+        )]
+        stat_groups = {}
+        for stat in stat_claim_rows:
+            key = (stat["item_id"], stat["predicate"], stat["value_json"],
+                   stat["scope_json"])
+            stat_groups.setdefault(key, []).append(stat)
+        verified_stats_by_item = {}
+        for (item_id, predicate, value_json, _scope), corroboration in stat_groups.items():
+            if len({row["source_id"] for row in corroboration}) < 2:
+                continue
+            verified_stats_by_item.setdefault(item_id, {})[predicate] = {
+                "value": json.loads(value_json),
+                "verification_status": "two_independent_sources_match",
+                "sources": [{"id": row["source_id"], "title": row["source_title"],
+                             "url": row["source_url"], "locator": row["locator"]}
+                            for row in corroboration],
+            }
     by_name = {row["name"].casefold(): dict(row) for row in item_rows}
     by_id = {row["item_id"]: dict(row) for row in item_rows}
     for alias, item_id in aliases:
@@ -617,6 +657,10 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 "slot": slot, "item_id": item["item_id"], "item_name": item["name"],
                 "category": item["category"],
                 "availability_status": "route_available" if item["item_id"] in available else "route_not_proven_by_checkpoint",
+                "obtainable_routes": available_routes.get(item["item_id"], []),
+                "route_display_policy": "Free routes first, then source order; this does not rank item strength.",
+                "verified_stats": verified_stats_by_item.get(item["item_id"], {}),
+                "stat_display_policy": "Only matching numeric cells from at least two independent sources are shown.",
                 "ownership_status": "recorded" if item["item_id"] in obtained else "unknown",
                 "comparison_status": "matches_recommendation" if matches else "current_equipment_unknown" if recorded_value is None else "different_recorded_value",
                 "recorded_value": recorded_value,

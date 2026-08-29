@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 541)
+        self.assertEqual(self.counts["sources"], 543)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2986,6 +2986,34 @@ class KnowledgeBaseTests(unittest.TestCase):
                     if row[2] == "xbox_wire_dq7r_tips")
         self.assertIn('"Intermediate + Intermediate"', playstation)
         self.assertIn('"distinct_vocations_required": true', xbox)
+
+    def test_magic_shield_numeric_stats_have_two_source_agreement(self):
+        expected = {
+            "defence_bonus": 22,
+            "magical_might_bonus": 12,
+            "magical_mending_bonus": 11,
+            "elemental_damage_reduction_percent": 5,
+        }
+        rows = self.connection.execute(
+            """SELECT predicate, value_json, source_id, confidence,
+                verification_status
+            FROM claims
+            WHERE subject_key='item:magic_shield'
+              AND predicate IN ('defence_bonus', 'magical_might_bonus',
+                'magical_mending_bonus', 'elemental_damage_reduction_percent')
+            ORDER BY predicate, source_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 8)
+        for predicate, value in expected.items():
+            matching = [row for row in rows if row[0] == predicate]
+            self.assertEqual(len(matching), 2)
+            self.assertEqual({json.loads(row[1]) for row in matching}, {value})
+            self.assertEqual(len({row[2] for row in matching}), 2)
+            self.assertTrue(all(row[3] == "verified" for row in matching))
+            self.assertTrue(all(
+                row[4] == "two_independent_current_version_sources"
+                for row in matching
+            ))
 
     def test_advanced_vocation_stat_modifiers_are_complete_and_qualitative(self):
         for vocation_id in ("vocation_champion", "vocation_druid", "vocation_hero"):
