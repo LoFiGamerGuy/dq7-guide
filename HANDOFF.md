@@ -33,6 +33,13 @@ Current reproducible headline counts are tracked in `INGEST_STATUS.md`. The data
 
 Combat/optimization handoff: 112 checkpoint advice rows cover every checkpoint except the non-combat ending victory lap, 10 farming routes have exact gates, all 26 vocation skill/perk ladders and qualitative non-default modifiers are normalized, and all 333 monsters have at least one gated encounter. Twenty formerly missing routes have two independent current-version sources; only Scarewell retains an explicit single-independent-source label. Normal-setting field/regular/boss proficiency awards are 1/5/10 with explicit scope, and all 26 vocations have two-source progression profiles with 163 normalized rank-cost cells. Two official sources establish that Moonlighting accepts any two distinct vocations available to the character, including cross-tier pairs; character-exclusive availability still applies. Do not fill the remaining evidence blocks by inference: numeric farm/drop/encounter rates, a repeatable Heart farm, and same-item accessory/Heart duplicate and stacking behavior.
 
+Roamer and Highendreigh Metal Slime companion-encounter routes now have narrow
+two-publisher phone evidence, as do the 65/80/100 Mini Medal rewards and Cyclops
+Heart's +30% critical-damage effect. Encounter rates, numeric grind ceilings,
+checkpoint medal availability assumptions, universal wearer rankings, and Heart
+repeatability remain explicitly unverified. Highendreigh Whistle use and the
+Neoseeker author's 4F observation are displayed only as source-specific extras.
+
 Lucky Panel entry is independently verified as free. Its single-source numeric selection cells remain raw weights, not probabilities, because no denominator or draw algorithm is published.
 
 The final three unpublished purchase prices are now typed shop inventory:

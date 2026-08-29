@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 625)
+        self.assertEqual(self.counts["sources"], 628)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2351,6 +2351,45 @@ class KnowledgeBaseTests(unittest.TestCase):
             json.loads(row['value_b'])['time_period'],
         } == {'Past', 'Present'} for row in rows))
 
+    def test_metal_medal_and_cyclops_power_cards_have_narrow_atomic_evidence(self):
+        advice_ids = {
+            'advice_cp008_roamer_metal_slime_grind',
+            'advice_cp013_highendreigh_metal_grind',
+            'advice_cp018_cyclops_heart',
+            'advice_cp020_sages_stone_65',
+            'advice_cp024_sacreder_armour_80',
+            'advice_cp032_metal_king_sword_100',
+        }
+        rows = self.connection.execute(
+            f"""SELECT advice_id, applicability_json, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id IN ({','.join('?' for _ in advice_ids)})""",
+            tuple(sorted(advice_ids)),
+        ).fetchall()
+        self.assertEqual({row['advice_id'] for row in rows}, advice_ids)
+        for row in rows:
+            applicability = json.loads(row['applicability_json'])
+            claim_ids = applicability['evidence_claim_ids']
+            publishers = self.connection.execute(
+                f"""SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.claim_id IN ({','.join('?' for _ in claim_ids)})""",
+                tuple(claim_ids),
+            ).fetchall()
+            self.assertGreaterEqual(len(publishers), 2, row['advice_id'])
+            self.assertIn('two_source_verified', row['verification_status'])
+
+        by_id = {row['advice_id']: json.loads(row['applicability_json'])
+                 for row in rows}
+        for advice_id in ('advice_cp008_roamer_metal_slime_grind',
+                          'advice_cp013_highendreigh_metal_grind'):
+            self.assertEqual(by_id[advice_id]['rate'], 'unknown')
+            self.assertIn('ceiling', by_id[advice_id])
+        highendreigh = by_id['advice_cp013_highendreigh_metal_grind']
+        self.assertIn("Ruff's Whistle", highendreigh['single_source_extras']['game8'])
+        self.assertNotIn('repeatable',
+                         by_id['advice_cp018_cyclops_heart'])
+
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {
             'advice_cp002_tribulators',
@@ -3293,6 +3332,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             "advice_cp007_windcheater_spike", "advice_cp008_florin",
             "advice_cp008_magic_shield_spike",
             "advice_cp008_guardians_roamers",
+            "advice_cp008_roamer_metal_slime_grind",
             "advice_cp009_hero_practical_gear",
             "advice_cp009_ruff_practical_gear",
             "advice_cp009_maribel_practical_gear",
