@@ -276,7 +276,8 @@ an exact-value publisher/source evidence tier. Whether that event also increment
 Field Day, Monster Masher, or Metal Mangler—and whether counters persist across
 save slots, New Game, demo transfer, or reset—remains explicitly unknown.
 
-`GET /api/equipment` is an equipment-readiness and comparison endpoint with a narrow accessory editor.
+`GET /api/equipment` is an equipment-readiness and comparison endpoint with
+validated accessory and standard-slot editors.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
 reports a complete 311-row canonical weapon/shield/head/torso/accessory/Heart audit separately. Only rows where at
@@ -291,13 +292,23 @@ global exact-copy allocation, and clears a slot back to unknown with `null`. The
 same ID in both slots additionally requires an exact total of at least two and
 two-publisher item-specific same-item legality; this is currently verified only
 for Rabbit Tail and Meteorite Bracer. Monster Heart duplicates remain unsupported.
-It returns `editor_supported: false`, `accessory_editor_supported: true`, the exact normalization `gaps`, each party
+It returns `accessory_editor_supported: true` and derives
+`non_accessory_editor_supported` from complete two-publisher compatibility and
+slot-rule coverage. `editor_supported` is true when both editor paths are safe; a
+client must honor these flags rather than assuming support. The response also
+includes the exact normalization `gaps`, each party
 member's raw explicitly recorded equipment with an `unvalidated_record` warning,
 and gear recommendations for the saved checkpoint. Recommendation rows resolve
 canonical item IDs and nominal category slots, route availability, explicit
 ownership, the recorded-value comparison, provenance, and an attributed
-compatibility status and basis. Clients must not offer weapon, shield, head, or
-torso writes until their remaining rules and disputed rows are resolved.
+compatibility status and basis.
+
+`PATCH /api/equipment/slots/{character}/{weapon|shield|helmet|armour}` accepts
+`{ "item_id": canonical_id_or_null }` when `non_accessory_editor_supported` is
+true. It requires explicit ownership, the matching canonical item category,
+global copy availability, and two-publisher character compatibility. `null`
+reversibly clears the recorded slot to unknown. These guards are enforced by the
+server even if a client ignores the capability flag.
 
 The Python server derives these endpoints from the generated database and explicitly selected state file. Vocation mastery and whole-tablet status need dedicated workflows and remain read-only in the generic catalog.
 

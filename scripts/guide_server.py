@@ -527,7 +527,7 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         "comparison_scope": "current_checkpoint_attributed_recommendations",
         "checkpoint_id": checkpoint_id,
         "gaps": [
-            "Duplicate accessory/Heart equip and effect-stacking behavior has only one current-version source and is not normalized.",
+            "Same-item duplicate legality is verified only for Rabbit Tail and Meteorite Bracer; other same-name accessories and all Monster Heart duplicate/stacking behavior remain unknown. Rabbit Tail's numeric formula and cap remain unknown.",
         ],
         "mechanics": [],
         "compatibility_coverage": {
@@ -864,12 +864,15 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
     rows = _rows(db_path, """SELECT h.heart_id, h.name, h.effect_text,
         h.available_from_checkpoint_id, c.name AS available_checkpoint,
         h.availability_notes, h.confidence, h.verification_status,
+        h.availability_source_id, h.availability_locator,
+        avs.title AS availability_source_title, avs.url AS availability_source_url,
         h.dlc_scope, h.dlc_claim_method, h.dlc_source_id, h.dlc_locator,
         ds.title AS dlc_source_title, ds.url AS dlc_source_url,
         h.source_id, s.title AS source_title, s.url AS source_url, h.locator
         FROM monster_hearts h
         LEFT JOIN checkpoints c ON c.checkpoint_id=h.available_from_checkpoint_id
         JOIN sources s USING(source_id)
+        LEFT JOIN sources avs ON avs.source_id=h.availability_source_id
         LEFT JOIN sources ds ON ds.source_id=h.dlc_source_id
         ORDER BY COALESCE(c.sequence_no, 999), h.name""")
     player_state = _state(state_path) if state_path else {}

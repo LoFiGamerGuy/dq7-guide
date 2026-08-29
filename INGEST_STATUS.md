@@ -94,6 +94,16 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The runtime/contract audit restores two evidence boundaries that had become stale.
+Heart-native checkpoint gates now retain their dedicated availability source and
+locator through the API and phone detail, not only their separate effect source or
+acquisition-route card. The equipment API gap text now names Rabbit Tail and
+Meteorite Bracer as the only verified same-item exceptions while keeping other
+accessories, every Monster Heart duplicate, and Rabbit Tail's numeric formula/cap
+unknown. The normative browser contract now documents the shipped, conditionally
+enabled standard-slot editor and its ownership, category, allocation,
+compatibility, and reversible-clear guards instead of forbidding those writes.
+
 The Heart retrieval parity audit checks every one of the 46 identities across the
 CLI and phone API. Checkpoint gates, current/later/unknown results, and DLC
 entitlement handling must match. When the gate is inherited from a normalized item

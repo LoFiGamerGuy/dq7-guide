@@ -208,6 +208,22 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn(".callout [data-item-quantity-input]", css)
         self.assertIn("[data-item-quantity-clear] { min-height: 2.75rem", css)
 
+    def test_equipment_contract_matches_validated_standard_slot_editor(self):
+        contract = (ROOT / "web" / "CONTRACT.md").read_text(encoding="utf-8")
+        self.assertIn("non_accessory_editor_supported", contract)
+        self.assertIn("editor_supported` is true when both editor paths are safe", contract)
+        self.assertIn(
+            "PATCH /api/equipment/slots/{character}/{weapon|shield|helmet|armour}",
+            contract,
+        )
+        for safeguard in ("explicit ownership", "canonical item category",
+                          "global copy availability",
+                          "two-publisher character compatibility"):
+            self.assertIn(safeguard, contract)
+        self.assertIn("`null`\nreversibly clears", contract)
+        self.assertNotIn("It returns `editor_supported: false`", contract)
+        self.assertNotIn("Clients must not offer weapon, shield, head, or", contract)
+
     def test_active_play_writes_are_guarded_reversible_and_context_preserving(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
@@ -428,6 +444,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("route.finite_total ?? route.quantity", js)
         self.assertIn("Finite pickup", js)
         self.assertIn("No repeatable Heart route established", js)
+        self.assertIn("detail.availability_source_url", js)
+        self.assertIn("detail.availability_locator", js)
         self.assertIn("function heartRouteEvidence(route)", js)
         self.assertIn("Two-source route", js)
 

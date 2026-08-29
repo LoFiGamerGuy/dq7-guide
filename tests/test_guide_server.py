@@ -98,7 +98,14 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(report["editor_supported"])
         self.assertTrue(report["non_accessory_editor_supported"])
         self.assertFalse(any("One-each weapon" in gap for gap in report["gaps"]))
-        self.assertTrue(any("Duplicate accessory" in gap for gap in report["gaps"]))
+        duplicate_gap = next(gap for gap in report["gaps"]
+                             if "Same-item duplicate legality" in gap)
+        self.assertIn("Rabbit Tail and Meteorite Bracer", duplicate_gap)
+        self.assertIn("other same-name accessories", duplicate_gap)
+        self.assertIn("all Monster Heart duplicate/stacking behavior remain unknown",
+                      duplicate_gap)
+        self.assertIn("numeric formula and cap remain unknown", duplicate_gap)
+        self.assertNotIn("only one current-version source", duplicate_gap)
         self.assertEqual(len(report["mechanics"]), 6)
         slot_counts = {row["slot_name"]: row["numeric_value"]
                        for row in report["mechanics"]
@@ -516,6 +523,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("verified finite", hearts["acceptance_condition"])
         _, troll = self.get_json("/api/monster-hearts/heart_troll")
         self.assertEqual(troll["available_from_checkpoint_id"], "cp_019_aeolus")
+
         self.assertEqual(len(troll["routes"]), 1)
         route = troll["routes"][0]
         self.assertEqual(route["supply_type"], "finite")
@@ -540,6 +548,57 @@ class GuideServerTests(unittest.TestCase):
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])
+
+    def test_unresolved_conflict_api_exposes_both_sourced_claims(self):
+        db_path = Path(self.temp.name) / "unresolved-conflict.sqlite"
+        shutil.copy(ROOT / "data" / "dq7_reimagined.sqlite", db_path)
+        with sqlite3.connect(db_path) as connection:
+            source_ids = [row[0] for row in connection.execute(
+                "SELECT source_id FROM sources ORDER BY source_id LIMIT 2"
+            )]
+            claim_rows = [
+                ("claim_api_unresolved_a", source_ids[0], json.dumps("alpha")),
+                ("claim_api_unresolved_b", source_ids[1], json.dumps("beta")),
+            ]
+            connection.executemany(
+                """INSERT INTO claims (
+                    claim_id, subject_key, predicate, value_json, claim_kind,
+                    scope_json, source_id, locator, confidence,
+                    verification_status
+                ) VALUES (?, 'test:api_conflict', 'test_value', ?, 'fact',
+                    '{"game":"DQ7 Reimagined"}', ?, 'synthetic locator',
+                    'provisional', 'synthetic_test')""",
+                [(claim_id, value, source_id)
+                 for claim_id, source_id, value in claim_rows],
+            )
+            connection.execute(
+                """INSERT INTO conflicts (
+                    conflict_id, conflict_key, claim_a_id, claim_b_id, status,
+                    rationale, detection_method
+                ) VALUES ('conflict_api_unresolved',
+                    'test:api_conflict|test_value|synthetic',
+                    'claim_api_unresolved_a', 'claim_api_unresolved_b',
+                    'unresolved', NULL, 'synthetic_test')"""
+            )
+        server = create_server("127.0.0.1", 0, db_path, self.state, ROOT / "web")
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urlopen(f"http://127.0.0.1:{server.server_port}/api/conflicts") as response:
+                payload = json.load(response)
+            conflict = next(row for row in payload
+                            if row["id"] == "conflict_api_unresolved")
+            self.assertEqual(conflict["status"], "unresolved")
+            self.assertEqual({claim["value"] for claim in conflict["claims"]},
+                             {"alpha", "beta"})
+            self.assertTrue(all(claim["source"]["url"].startswith("https://")
+                                and claim["locator"] == "synthetic locator"
+                                for claim in conflict["claims"]))
+            self.assertIn("Direct current-version", conflict["required_evidence"])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
 
     def test_progress_audits_every_completion_ledger_without_false_zeroes(self):
         state_path = Path(self.temp.name) / "ledger-state.json"
@@ -810,6 +869,11 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(drop["drop_rate_status"], "unknown")
         self.assertIsNone(drop["drop_rate"])
         self.assertEqual(drop["dlc_scope_status"], "unknown")
+        _, troll_heart = self.get_json("/api/monster-hearts/heart_troll")
+        self.assertEqual(troll_heart["availability_source_title"],
+                         "Troll Heart Acquisition and Performance")
+        self.assertTrue(troll_heart["availability_source_url"].startswith("https://"))
+        self.assertIn("lines 60-67", troll_heart["availability_locator"])
 
     def test_dlc_hearts_require_explicit_entitlement_before_available(self):
         state_path = Path(self.temp.name) / "dlc-heart-state.json"
