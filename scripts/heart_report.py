@@ -4,16 +4,31 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sqlite3
 from pathlib import Path
 
 from build_kb import DEFAULT_DB
 
 
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_STATE = ROOT / "player" / "ryan-save-state.json"
+
+
 def load_heart_report(db_path: Path, query: str | None = None,
-                      checkpoint_id: str | None = None) -> dict:
+                      checkpoint_id: str | None = None,
+                      state_path: Path | None = None) -> dict:
     if not db_path.exists():
         raise FileNotFoundError(f"Database not found: {db_path}")
+    entitlements = {}
+    if state_path is not None:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        entitlements = state.get("dlc_entitlements", {})
+        if not isinstance(entitlements, dict) or any(
+            not isinstance(scope, str) or not isinstance(owned, bool)
+            for scope, owned in entitlements.items()
+        ):
+            raise ValueError("dlc_entitlements must map DLC scope names to booleans")
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     try:
@@ -85,16 +100,27 @@ def load_heart_report(db_path: Path, query: str | None = None,
             if not rows:
                 raise ValueError(f"Unknown Monster Heart: {query}")
         for row in rows:
+            entitlement = entitlements.get(row["dlc_scope"]) if row["dlc_scope"] else None
+            row["dlc_ownership_status"] = (
+                "owned" if entitlement is True else
+                "not_owned" if entitlement is False else
+                "unknown" if row["dlc_scope"] else "not_applicable"
+            )
             if checkpoint_sequence is None or row["available_sequence"] is None:
                 row["available_now"] = None
             else:
                 row["available_now"] = row["available_sequence"] <= checkpoint_sequence
+            if row["dlc_scope"] and row["dlc_ownership_status"] != "owned":
+                row["available_now"] = (
+                    False if row["dlc_ownership_status"] == "not_owned" else None
+                )
+                row["availability_status"] = "requires_dlc_ownership_confirmation"
         return {
             "checkpoint_id": checkpoint_id,
             "checkpoint_name": checkpoint_name,
             "hearts": rows,
             "verified_available": sum(row["available_now"] is True for row in rows),
-            "unknown_availability": sum(row["available_sequence"] is None for row in rows),
+            "unknown_availability": sum(row["available_now"] is None for row in rows),
         }
     finally:
         connection.close()
@@ -106,7 +132,11 @@ def print_heart_report(report: dict, include_sources: bool = False) -> None:
     else:
         print("Monster Hearts:")
     for row in report["hearts"]:
-        if row["available_now"] is True:
+        if row["dlc_ownership_status"] == "unknown":
+            gate = f"requires {row['dlc_scope']} ownership confirmation"
+        elif row["dlc_ownership_status"] == "not_owned":
+            gate = f"{row['dlc_scope']} reported not owned"
+        elif row["available_now"] is True:
             gate = f"available from {row['available_checkpoint']}"
         elif row["available_now"] is False:
             gate = f"later: {row['available_checkpoint']}"
@@ -130,10 +160,11 @@ def main() -> None:
     parser.add_argument("--checkpoint", help="Compare verified availability with this checkpoint")
     parser.add_argument("--sources", action="store_true")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
+    parser.add_argument("--state", type=Path, default=DEFAULT_STATE)
     args = parser.parse_args()
     try:
         print_heart_report(
-            load_heart_report(args.db, args.heart, args.checkpoint), args.sources
+            load_heart_report(args.db, args.heart, args.checkpoint, args.state), args.sources
         )
     except (FileNotFoundError, ValueError) as error:
         raise SystemExit(str(error)) from error

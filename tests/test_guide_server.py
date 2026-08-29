@@ -281,11 +281,14 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v4', worker)
-            self.assertIn(b'dq7-guide-data-v4', worker)
+            self.assertIn(b'dq7-guide-shell-v5', worker)
+            self.assertIn(b'dq7-guide-data-v5', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
+            response_guard = worker.index(b'X-DQ7-Pairing-Required')
+            self.assertLess(response_guard, data_cache)
+            self.assertIn(b'await caches.delete(DATA_CACHE)', worker)
             self.assertIn(b'event.respondWith(fetch(request));', worker)
             self.assertIn(b'fetch(request).then', worker)
         with urlopen(self.base + "/api/state-backup") as response:
@@ -375,6 +378,7 @@ class GuideServerTests(unittest.TestCase):
             with self.assertRaises(HTTPError) as context:
                 urlopen(base + "/api/health")
             self.assertEqual(context.exception.code, 401)
+            self.assertEqual(context.exception.headers["X-DQ7-Pairing-Required"], "true")
             self.assertIn("Phone not paired", context.exception.read().decode())
             with self.assertRaises(HTTPError) as context:
                 urlopen(Request(base + "/api/health", method="HEAD"))
@@ -389,6 +393,7 @@ class GuideServerTests(unittest.TestCase):
                     base + "/?pair=one-launch-token&paired=1#walkthrough",
                 )
             with opener.open(base + "/api/health") as response:
+                self.assertEqual(response.headers["X-DQ7-Pairing-Required"], "true")
                 self.assertEqual(json.load(response), {"status": "ok"})
 
             request = Request(base + "/api/health", headers={"X-DQ7-Pair": "one-launch-token"})
@@ -399,6 +404,7 @@ class GuideServerTests(unittest.TestCase):
                            method="HEAD")
             with urlopen(head) as response:
                 self.assertEqual(response.status, 200)
+                self.assertEqual(response.headers["X-DQ7-Pairing-Required"], "true")
                 self.assertEqual(response.read(), b"")
 
             with self.assertRaises(HTTPError) as context:

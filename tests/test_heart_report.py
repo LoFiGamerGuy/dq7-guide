@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import sys
+import tempfile
 import unittest
 
 
@@ -19,7 +21,7 @@ class HeartReportTests(unittest.TestCase):
         )
         self.assertGreaterEqual(len(report["hearts"]), 12)
         self.assertGreaterEqual(report["verified_available"], 1)
-        self.assertEqual(report["unknown_availability"], 0)
+        self.assertEqual(report["unknown_availability"], 5)
         golem = next(row for row in report["hearts"] if row["heart_id"] == "heart_golem")
         self.assertIs(golem["available_now"], True)
         self.assertTrue(golem["source_url"].startswith("https://"))
@@ -51,6 +53,34 @@ class HeartReportTests(unittest.TestCase):
         self.assertTrue(troll["availability_source_url"].startswith("https://"))
         self.assertIn("lines 60-67", troll["availability_locator"])
         self.assertEqual(troll["availability_status"], "heart_gate")
+
+    def test_dlc_hearts_require_entitlement_in_cli_report(self):
+        db = ROOT / "data" / "dq7_reimagined.sqlite"
+        with tempfile.TemporaryDirectory() as directory:
+            state_path = Path(directory) / "state.json"
+            state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            row = load_heart_report(
+                db, "heart_metal_slime", "cp_003_ballymolloy", state_path
+            )["hearts"][0]
+            self.assertIsNone(row["available_now"])
+            self.assertEqual(row["availability_status"],
+                             "requires_dlc_ownership_confirmation")
+
+            state["dlc_entitlements"] = {"Jam-Packed Swag Bag": True}
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            row = load_heart_report(
+                db, "heart_metal_slime", "cp_003_ballymolloy", state_path
+            )["hearts"][0]
+            self.assertTrue(row["available_now"])
+
+            state["dlc_entitlements"]["Jam-Packed Swag Bag"] = False
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            row = load_heart_report(
+                db, "heart_metal_slime", "cp_003_ballymolloy", state_path
+            )["hearts"][0]
+            self.assertFalse(row["available_now"])
+            self.assertEqual(row["dlc_ownership_status"], "not_owned")
 
 
 if __name__ == "__main__":

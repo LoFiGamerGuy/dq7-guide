@@ -2002,6 +2002,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            if pairing_token is not None:
+                self.send_header("X-DQ7-Pairing-Required", "true")
             self.end_headers()
             self._write_body(body)
 
@@ -2012,6 +2014,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            if pairing_token is not None:
+                self.send_header("X-DQ7-Pairing-Required", "true")
             self.end_headers()
 
         def _download_json(self, payload, filename):
@@ -2021,6 +2025,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            if pairing_token is not None:
+                self.send_header("X-DQ7-Pairing-Required", "true")
             self.end_headers()
             self._write_body(body)
 

@@ -67,16 +67,18 @@ reachability separately. If the Deck host disappears after a successful load,
 Phone Setup reports cached/offline data and disabled writes instead of contradicting
 the recovery banner. Golden retrieval coverage also locks the resolved lifetime-gold
 and exact metal-family achievement evidence to precise, multi-publisher claims.
-Paired API responses are network-only and never enter the service-worker cache, so
-rotating the private pairing identity cannot leave an authorized player snapshot
-available offline. Troll Heart detail separately labels its cp019 route as a finite
+Paired API responses are network-only and never enter the service-worker cache.
+The server marks pairing-required responses, covering explicit headers and
+HttpOnly-cookie sessions; cache v5 purges older snapshots. Rotating the private
+pairing identity therefore cannot leave an authorized player snapshot available
+offline. Troll Heart detail separately labels its cp019 route as a finite
 one-copy pickup with no proven repeatable route and two-source acquisition evidence.
 The CLI Heart report mirrors the browser's earliest-route fallback: 39 Hearts derive
 their gate from normalized item routes and five retain explicit Heart gates. Only
 Metal Slime and Gold Golem Hearts have a structured Jam-Packed Swag Bag gate at
 first player control. Contents and Claim Special Rewards are independently
 corroborated; exact earliest timing remains single-source. Because Ryan has not
-reported DLC ownership, the API and phone deliberately keep all five DLC Hearts
+reported DLC ownership, the CLI, API, and phone deliberately keep all five DLC Hearts
 out of “available” until entitlement is explicit. Heart detail now provides a
 reversible three-state DLC-access control; “Not reported” removes the optional
 state key and restores conservative unknown availability.
