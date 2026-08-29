@@ -371,8 +371,8 @@ class GuideServerTests(unittest.TestCase):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
         self.assertEqual(audit["total"], 8)
         self.assertEqual(audit["single_source"], 1)
-        self.assertEqual(audit["unsupported"], 2)
-        self.assertEqual(audit["corroborated_but_unresolved"], 5)
+        self.assertEqual(audit["unsupported"], 1)
+        self.assertEqual(audit["corroborated_but_unresolved"], 6)
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
@@ -408,8 +408,13 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("end of cp022 before cp023", blue_button["summary"])
         self.assertIn("immediately before", blue_button["acceptance_condition"])
         self.assertEqual(by_id["gap_finite_container_members"]["source_count"], 8)
-        self.assertEqual(by_id["gap_duplicate_equipment_stacking"]
-                         ["verification_tier"], "unsupported")
+        duplicates = by_id["gap_duplicate_equipment_stacking"]
+        self.assertEqual(duplicates["verification_tier"],
+                         "corroborated_but_unresolved")
+        self.assertEqual(duplicates["source_count"], 3)
+        self.assertEqual(len(duplicates["supporting_claims"]), 4)
+        self.assertIn("Rabbit Tail only", duplicates["summary"])
+        self.assertIn("Monster Hearts", duplicates["acceptance_condition"])
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])
         counters = by_id["gap_achievement_counter_semantics"]

@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 648 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 651 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 648
+- sources: 651
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,808
+- claims: 1,812
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -53,7 +53,7 @@ Expected after `python scripts/build_kb.py`:
 - monsters: 333
 - monster encounters / drops: 476 / 227
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 113
+- ready-for-play checkpoint advice: 114
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
 - item aliases / acquisition paths: 5 / 747
@@ -78,22 +78,30 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** two automatically detected claim-pairs remain unresolved: the `Stella Fan` / `Stellar Fan` display name and whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 648 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 651 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
 2. Verify the six individual finite-container members without inferring positions within a published container group.
 3. Seek explicit rematch/respawn evidence for repeatable Hearts.
-4. Resolve the six exact remaining achievement-counter questions and duplicate/stacking mechanics from direct evidence.
+4. Resolve the six exact remaining achievement-counter questions, non-Rabbit-Tail accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence.
 5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors this complete eight-item evidence-blocked
-queue: 1 single-source, 2 unsupported, and 5 corroborated-but-unresolved rows.
+queue: 1 single-source, 1 unsupported, and 6 corroborated-but-unresolved rows.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The Rabbit Tail mechanics batch narrows the duplicate-equipment gap without
+generalizing it. Masakun's PS5 guide recommends two Rabbit Tails on every party
+member, Katorasu explicitly reports that their effects stack across ten equipped
+copies, and Chocomint shows Mervyn wearing two. Phone advice now exposes this
+quantity-guarded farming loadout from cp011, with the per-copy increase and cap
+still unknown. Other identical accessories and all same-name Monster Heart
+legality/stacking remain unresolved.
 
 The chronology adjudication pass resolves Fishnet Stockings to the Present
 Frobisher inn's right-room wardrobe: Game8's dedicated Frobisher Past/Present
@@ -436,7 +444,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 648 source records currently have retrieval dates within 180
+- **Freshness:** all 651 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -446,8 +454,9 @@ matches Game8 Japan for Party Dress (Maribel and Aishe) and Metal King Armour
 (Hero, Maribel, Ruff, Aishe, and Sir Mervyn), using visible active-character
 icons and matching item stats to bridge the Japanese display-name variants.
 This raises two-publisher compatibility coverage to all 311 rows. The later slot-layout
-batch separately verifies the one-each non-accessory counts; same-item accessory/Heart
-duplicate and effect-stacking behavior remains unverified.
+batch separately verifies the one-each non-accessory counts. Rabbit Tail now has a
+narrow two-publisher duplicate/qualitative-stacking resolution; other identical
+accessories and all Monster Heart duplicate/stacking behavior remain unverified.
 
 The next compatibility adjudication adds GameWith's weapon and shield matrices.
 Its active-character icons match Gamers-High for Liquid Metal Sword (Hero,
@@ -463,8 +472,8 @@ HyperWiki, establishing the final two-publisher audit consensus. Game8 Japan,
 GameWith, Gamers-High, and GameDeep publish differing lists; each claim remains
 stored and conflicted rather than overwritten. Character compatibility is now
 normalized for all 311 equipment rows. Non-accessory slot counts are now separately
-verified; same-item accessory/Heart duplicate and effect-stacking behavior remains
-unverified.
+verified. Rabbit Tail's two-copy legality and qualitative stacking are separately
+corroborated; other identical accessories and Monster Heart behavior remain unverified.
 
 The slot-layout batch promotes one weapon, one shield, one helmet/head item, and one
 armour/torso item per playable character. Gamers-High directly states that accessories
@@ -472,9 +481,9 @@ alone receive two equipment slots; Hobby Consolas independently and consistently
 enumerates one of each non-accessory category plus Accessory 1 and Accessory 2 across
 early-, mid-, and late-game character loadouts. Character legality remains governed by
 the complete 311-row compatibility matrix. Monster Hearts still consume accessory
-slots. Hobby Consolas shows one repeated accessory in a sample loadout, but no second
-independent current-version source establishes same-item legality or effect stacking,
-so that narrower duplicate rule remains explicitly unpromoted.
+slots. Rabbit Tail now has separate two-publisher evidence for two-copy legality and
+qualitative stacking. That item-specific result is not promoted into a universal
+same-accessory or Monster Heart rule, and its numeric formula/cap remains unknown.
 
 The cp009 Hero power batch independently verifies Cautery Sword's +42 Attack and
 one-group battle-use flame effect between Game8's dedicated English item page and

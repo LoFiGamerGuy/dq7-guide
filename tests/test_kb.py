@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 648)
+        self.assertEqual(self.counts["sources"], 651)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -69,7 +69,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
-        self.assertEqual(self.counts["checkpoint_advice"], 113)
+        self.assertEqual(self.counts["checkpoint_advice"], 114)
         self.assertEqual(self.counts["boss_skill_recommendations"], 9)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -3492,17 +3492,25 @@ class KnowledgeBaseTests(unittest.TestCase):
             "cp_011_la_bravoure",
             "cp_011_la_bravoure",
         )
-        rows = [row for row in report["blocks"][0]["advice"]
-                if row["advice_type"] == "grind"]
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["subject"], "Optional Metal King Slime grind")
-        self.assertEqual(rows[0]["confidence"], "verified")
-        self.assertEqual(rows[0]["verification_status"],
+        rows = {row["subject"]: row for row in report["blocks"][0]["advice"]
+                if row["advice_type"] == "grind"}
+        self.assertEqual(set(rows), {
+            "Optional Metal King Slime grind",
+            "Rabbit Tail drop-farm setup",
+        })
+        metal = rows["Optional Metal King Slime grind"]
+        self.assertEqual(metal["confidence"], "verified")
+        self.assertEqual(metal["verification_status"],
                          "two_source_verified_repeatable_location_and_critical_tactic_rate_and_ceiling_unknown")
-        applicability = json.loads(rows[0]["applicability_json"])
+        applicability = json.loads(metal["applicability_json"])
         self.assertEqual(applicability["time_period"], "Present")
         self.assertEqual(applicability["rate"], "unknown")
         self.assertEqual(applicability["ceiling"], "unknown")
+        rabbit = rows["Rabbit Tail drop-farm setup"]
+        rabbit_scope = json.loads(rabbit["applicability_json"])
+        self.assertIn("Only equip copies explicitly owned",
+                      rabbit_scope["quantity_guard"])
+        self.assertIn("per-copy drop increase", rabbit_scope["unknowns"])
 
     def test_checkpoint_advice_requires_object_applicability(self):
         normalized = normalize_checkpoint_advice([

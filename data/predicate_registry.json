@@ -29,5 +29,7 @@
     "achievement_counter_unit": {"comparison": "single"},
     "achievement_counter_definition": {"comparison": "single"},
     "achievement_counter_aggregation": {"comparison": "single"},
-    "achievement_counter_exclusion": {"comparison": "single"}
+    "achievement_counter_exclusion": {"comparison": "single"},
+    "same_item_equip_legality": {"comparison": "single"},
+    "duplicate_effect_stacking": {"comparison": "single"}
 }
