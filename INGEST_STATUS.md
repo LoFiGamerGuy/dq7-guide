@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 578 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 584 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 578
+- sources: 584
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,588
+- claims: 1,615
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 577 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 584 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -336,7 +336,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 577 source records currently have retrieval dates within 180
+- **Freshness:** all 584 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -449,9 +449,25 @@ gear remain explicitly single-source. Smothers's offence/healing cycle and
 Neoseeker's physical-weakness plus encounter-regeneration observations also
 remain single-source; no damage estimates or recommended levels were promoted.
 
+The cp030/cp032 postgame pass independently corroborates The Almighty's
+elemental defence, group-recovery, and post-dispel support loop with Game8 and
+GameWith. Xenlon's Fire/Ice protection and healer-plus-buffer roles now have
+independent GameWith/gameplay support alongside Game8. Exact status counters,
+revival-item economy, defensive pre-Burst buffs, breath reflection, and Astoron
+remain attributed single-source tools. Suggested levels, numeric HP floors,
+turn targets, and weaknesses were deliberately not promoted.
+
 The cp028 final Orgodemir pass matches Game8's Cathedral walkthrough and
 Korosenai's direct phase guide on sustained Magic Barrier coverage and group
 attacks against the phase-four hands. The phone plan leads with those verified
 survival anchors. Priest Benediction for the phase-three max-HP curse remains
 explicitly one-publisher evidence, and no exact level, heart loadout, weakness,
 or scripted damage rotation is normalized.
+
+The cp032 Spirits pass now keeps its two encounters separate. For the standalone
+Four Spirits, Game8 and Neoseeker agree on Water Spirit first and Magic Barrier
+after Water falls; Dieamend stocking remains Game8-only. For the later Almighty
+plus Spirits fight, both agree to remove spirits before tether and switch to the
+Almighty once they are linked. Their exact pre-tether order conflicts—Game8 says
+Wind then Fire, while Neoseeker says Water then Wind—so both claims remain visible
+and unresolved rather than being collapsed into a false canonical order.

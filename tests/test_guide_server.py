@@ -945,6 +945,38 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("mastered by Hero",
                       champion["saved_state_applicability"]["reason"])
 
+    def test_cp033_solo_arena_plan_uses_story_and_mastery_gates(self):
+        db_path = Path(self.temp.name) / "arena-gated-power.sqlite"
+        build_database(db_path)
+        state_path = Path(self.temp.name) / "arena-gated-power.json"
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["story"]["checkpoint_id"] = "cp_019_aeolus"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        early = _checkpoint_view(
+            db_path, state_path, "cp_033_arena_achievement_cleanup",
+        )["power_plan"]
+        self.assertNotIn("Solo cups: Hero Divide burst",
+                         {row["subject"] for row in early["strongest_now"]})
+
+        state["story"]["checkpoint_id"] = "cp_033_arena_achievement_cleanup"
+        state["party"]["members"]["Hero"]["vocation_mastery"] = {
+            "vocation_gladiator": True,
+            "vocation_paladin": True,
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        legal = _checkpoint_view(
+            db_path, state_path, "cp_033_arena_achievement_cleanup",
+        )["power_plan"]
+        arena = next(row for row in legal["strongest_now"]
+                     if row["id"] == "advice_cp033_champion_arena_burst")
+        self.assertEqual(arena["saved_state_applicability"]["status"], "satisfied")
+        self.assertIn("reaches cp_020_buccanham",
+                      arena["saved_state_applicability"]["reason"])
+        self.assertIn("mastered by Hero",
+                      arena["saved_state_applicability"]["reason"])
+        self.assertEqual(arena["applicability"]["arena_scope"],
+                         "Standard solo Bronze, Silver, and Gold cups only")
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"
