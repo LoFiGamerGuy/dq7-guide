@@ -40,6 +40,12 @@ Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
 Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
 refinements remain separate evidence gaps.
 
+The subsequent current-version walkthrough audit refines 28 finite routes and
+reduces the exact-container residual from 31 to 13. Eighteen routes have exact
+containers; ten preserve a narrower room, route, or paired-container ambiguity.
+Do not collapse those remaining pair-member unknowns or the disputed Frobisher
+Fishnet Stockings area into invented directions.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.

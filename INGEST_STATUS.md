@@ -70,7 +70,7 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
-- **Items:** 31 finite acquisition rows retain an unknown exact container, exact room, or exact member of a published chest pair. These are route refinements, not Heroic Hoarder route gaps. The three formerly untyped shop-like rows now have direct prices and typed shop inventory records.
+- **Items:** 13 finite acquisition rows retain an unknown exact container or exact member of a published container pair. These are route refinements, not Heroic Hoarder route gaps. The three formerly untyped shop-like rows now have direct prices and typed shop inventory records.
 - **Lucky Panel:** `Shell Shield` is the sole published standard-matrix name not linked to a current canonical item identity. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. Entry is independently verified as free. hyperWiki publishes source-native numeric selection cells (including 100, 50, 1, and 0), but no denominator or selection algorithm; they are retained as single-source weights and never displayed as item probabilities. All 302 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
@@ -89,6 +89,18 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The finite-container refinement batch applies the current-version RPG Site
+walkthrough's exact directions to 28 formerly area-only routes. Eighteen now
+identify the precise chest, closet, or drawer; ten more identify the exact room,
+route, or container pair without guessing which paired container holds the item.
+The unresolved finite-route queue falls from 31 to 13. Notable phone-ready
+directions include both Prologue Leather Hats, the Rainbow Mines Pointy Hat,
+L'Arca Hairband and Rabbit Ears, Grotta del Sigillo and Allblades Iron Lances,
+Frobisher Scale Armour, Bandits' Base Silk Robe, Mount Gora Ogre Shield, and the
+Alltrades Abbey B1 northeast Lucida Shard. Fishnet Stockings in Frobisher stays
+unresolved because the direct walkthrough's item list does not support that
+dedicated-page area claim.
 
 The shop-price closure batch types the last three purchase-like acquisition rows.
 Direct current-version Game8 pages establish Dragon Robe at 19,000 gold and

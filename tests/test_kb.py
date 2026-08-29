@@ -1110,7 +1110,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
-        self.assertTrue(all("exact_container_unknown" in row["verification_status"] for row in rows))
+        self.assertTrue(all(row["verification_status"] == "source_checked_exact_container"
+                            for row in rows))
 
     def test_early_armour_pages_add_finite_free_routes(self):
         rows = self.connection.execute(
@@ -1135,7 +1136,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
-        self.assertTrue(all("exact_container_unknown" in row["verification_status"] for row in rows))
+        self.assertTrue(all(row["verification_status"] == "source_checked_exact_container"
+                            for row in rows))
 
     def test_early_accessory_routes_are_direct_and_container_safe(self):
         rows = self.connection.execute(
@@ -1170,10 +1172,10 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE acquisition_id = 'acq_kamikazee_bracer_likeness_great_evil_past'"""
         ).fetchone()
         self.assertEqual(tuple(row[:7]), (
-            "chest", "Likeness of the Great Evil", "Past",
+            "chest", "Likeness of the Great Evil 5F", "Past",
             "cp_011_la_bravoure", "finite", 1, 1,
         ))
-        self.assertIn("container_unknown", row[7])
+        self.assertIn("pair_member_unknown", row[7])
 
     def test_missables_have_precise_provenance_and_exact_blue_button_cutoff(self):
         rows = self.connection.execute(
@@ -1375,7 +1377,12 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
-        self.assertTrue(all("container_unknown" in row["verification_status"] for row in rows))
+        self.assertEqual(by_item["item_hairband"]["verification_status"],
+                         "source_checked_exact_container")
+        self.assertEqual(by_item["item_rabbit_ears"]["verification_status"],
+                         "source_checked_exact_container")
+        self.assertIn("container_unknown",
+                      by_item["item_coagulant"]["verification_status"])
 
     def test_late_panel_only_helmets_have_finite_free_alternatives(self):
         rows = self.connection.execute(
@@ -1401,9 +1408,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             (steel["location_text"], steel["time_period"],
              steel["available_from_checkpoint_id"]),
-            ("Rucker Castle", "Past", "cp_027_deja_vous_rucker"),
+            ("Rucker Castle 2F east room", "Past", "cp_027_deja_vous_rucker"),
         )
-        self.assertIn("container_unknown", steel["verification_status"])
+        self.assertIn("pair_member_unknown", steel["verification_status"])
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
@@ -1419,10 +1426,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(
             tuple(garter[:7]),
-            ("other", "Greenthumb Gardens Region", "Present",
+            ("other", "Wilted Heart Mayor's House 2F", "Present",
              "cp_015_greenthumb", "finite", 1, 1),
         )
-        self.assertIn("container_unknown", garter[7])
+        self.assertEqual(garter[7], "source_checked_exact_container")
 
         drops = self.connection.execute(
             """SELECT location_text, time_period, available_from_checkpoint_id,
@@ -1515,7 +1522,15 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 and row["is_free"] == 1 for row in rows))
         self.assertTrue(all(row["locator"] for row in rows))
-        self.assertTrue(all("container_unknown" in row["verification_status"] for row in rows))
+        by_id = {row["acquisition_id"]: row for row in rows}
+        self.assertIn("pair_member_unknown", by_id[
+            "acq_knuckledusters_pilgrims_perdition_past"]["verification_status"])
+        self.assertIn("container_unknown", by_id[
+            "acq_yggdrasil_leaf_burnmont_past"]["verification_status"])
+        self.assertEqual(by_id["acq_iron_lance_grotta_sigillo_past"][
+            "verification_status"], "source_checked_exact_container")
+        self.assertEqual(by_id["acq_iron_lance_allblades_arena_past"][
+            "verification_status"], "source_checked_exact_container")
 
     def test_tablet_registry_is_complete_and_resolves_achievement(self):
         totals = self.connection.execute(
@@ -2267,6 +2282,44 @@ class KnowledgeBaseTests(unittest.TestCase):
             ('acq_pilchard_pie_shop_pilchard', 'shop',
              'game8_pilchard_bay_map', 10),
         ])
+
+    def test_walkthrough_refines_finite_routes_without_erasing_pair_unknowns(self):
+        exact_ids = {
+            'acq_leather_hat_pilchard_bay_present',
+            'acq_leather_hat_estard_present',
+            'acq_pointy_hat_rainbow_mines_past',
+            'acq_hardwood_headwear_ballymolloy_present',
+            'acq_hairband_treasure_larca_past',
+            'acq_rabbit_ears_treasure_larca_present',
+            'acq_divine_dagger_burnmont_past',
+            'acq_iron_lance_grotta_sigillo_past',
+            'acq_scale_armour_frobisher_past',
+            'acq_hardwood_headwear_faraday_castle_past',
+            'acq_edged_boomerang_faraday_castle_past',
+            'acq_noble_garb_institute_past',
+            'acq_prayer_ring_tunnel_to_abbey_past',
+            'acq_iron_lance_allblades_arena_past',
+            'acq_silk_robe_bandits_base_present',
+            'acq_ogre_shield_treasure_mount_gora_past',
+            'acq_garter_greenthumb_region_present',
+            'acq_lucida_shard_alltrades_past',
+        }
+        rows = self.connection.execute(
+            f"""SELECT acquisition_id, source_id, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN ({','.join('?' for _ in exact_ids)})""",
+            tuple(sorted(exact_ids)),
+        ).fetchall()
+        self.assertEqual({row['acquisition_id'] for row in rows}, exact_ids)
+        self.assertTrue(all(row['source_id'] == 'rpgsite_walkthrough' for row in rows))
+        self.assertTrue(all(row['verification_status'] == 'source_checked_exact_container'
+                            for row in rows))
+
+        residual = self.connection.execute(
+            """SELECT COUNT(*) FROM item_acquisition_paths
+            WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
+        ).fetchone()[0]
+        self.assertEqual(residual, 13)
 
     def test_route_level_supply_does_not_create_item_exclusivity(self):
         rows = self.connection.execute(
