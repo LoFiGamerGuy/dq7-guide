@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 565 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 571 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 565
+- sources: 571
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,532
+- claims: 1,553
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 565 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 571 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -102,6 +102,8 @@ the strategy corroboration. Game8's explicit conserve-HP/MP framing remains a
 single-source detail for the four-fight sequence.
 
 The Glowering Inferno pass adds a two-source cp004 phase plan: use Ice/Water attacks normally, then switch to physical attacks while its glow raises Ice resistance. Hero support and frequent party-shield Let Loose use are independently corroborated. GameWith's full-party Defend response after Muster Strength remains explicitly single-source; suggested level, approximate HP, and numeric resistance values are not promoted.
+
+The remaining Allblades Arena pass independently corroborates round 2 multi-target damage plus recovery, round 3 Muddy Hand priority plus Hero's Let Loose, and round 4 multi-target damage, Bound restraint, and green-HP safety. Nava's Repel/physical response and default-vocation Ruff Call of the Wild tactic remain explicit single-source options.
 
 The cp011–cp020 boss pass fills Skeleton Squire, Setesh, Sunken Spirits, King Slime, Ethereal Serpent, Rainiac, The Envoy, and Vaipur. Consecutive-fight recovery and counter/Fizzle windows are kept in encounter order without importing the source pages' suggested character levels.
 
@@ -302,7 +304,7 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 
 ## Authoritative residual-evidence audit
 
-Audited 2026-08-28 against a clean generated database. The browser's five-item
+Audited 2026-08-29 against a clean generated database. The browser's five-item
 evidence-gap list is a curated research queue, not the total number of disputed
 database facts. The API therefore reports it separately from automatic conflict
 pairs.
@@ -334,7 +336,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 565 source records currently have retrieval dates within 180
+- **Freshness:** all 571 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -417,3 +419,10 @@ while Buff and Ruff support remain single-source. The Guardians' Hero-plus-Aishe
 constraint, healing-item preparation, and Jovan/highest-physical-threat priority
 are two-source; best-gear wording and defending after charge-up remain explicitly
 single-source. Skill-rank evidence remains separately scoped.
+
+The cp017 power pass independently matches Game8 and Power Up Gaming on
+Gladiator's Flashback role: high physical boss burst in exchange for abandoning
+Defence. The phone advice is now conditional on explicit Warrior and Martial
+Artist mastery, so reaching Hubble alone never asserts that Gladiator is legal.
+Power Up Gaming's global tier placement remains attributed opinion rather than
+canonical truth.

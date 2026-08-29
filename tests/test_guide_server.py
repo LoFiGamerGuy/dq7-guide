@@ -352,6 +352,18 @@ class GuideServerTests(unittest.TestCase):
         stellar = by_id["gap_stellar_fan_ui_name"]
         self.assertEqual(stellar["verification_tier"], "corroborated_but_unresolved")
         self.assertIn("English", stellar["acceptance_condition"])
+        blue_button = by_id["gap_blue_button_cutoff"]
+        self.assertEqual(blue_button["subject"],
+                         "Little Blue Button checkpoint mapping")
+        self.assertEqual(blue_button["source_ids"], [
+            "game8_jp_missables", "gamewith_little_blue_button",
+        ])
+        self.assertEqual(len(blue_button["supporting_claims"]), 2)
+        self.assertEqual(
+            {row["value"] for row in blue_button["supporting_claims"]},
+            {"The late-game Cataclysm (異変)"},
+        )
+        self.assertIn("cp022-before-cp023", blue_button["summary"])
         status, endpoint = self.get_json("/api/evidence-gaps")
         self.assertEqual(status, 200)
         self.assertEqual(endpoint["gaps"], audit["gaps"])

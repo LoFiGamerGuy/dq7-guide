@@ -873,6 +873,9 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
     source_rows = {row["source_id"]: row for row in _rows(db_path, """SELECT
         source_id, title, publisher, url, source_class, updated_at, retrieved_at
         FROM sources""")}
+    claim_rows = {row["claim_id"]: row for row in _rows(db_path, """SELECT
+        claim_id, subject_key, predicate, value_json, source_id, locator,
+        confidence, verification_status FROM claims""")}
     today = date.today()
     for source in source_rows.values():
         try:
@@ -888,6 +891,19 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
                    if source_id not in source_rows]
         if missing:
             raise ValueError(f"Unknown evidence-gap source ID(s): {missing}")
+        missing_claims = [claim_id for claim_id in gap.get("claim_ids", [])
+                          if claim_id not in claim_rows]
+        if missing_claims:
+            raise ValueError(f"Unknown evidence-gap claim ID(s): {missing_claims}")
+        gap["supporting_claims"] = []
+        for claim_id in gap.get("claim_ids", []):
+            claim = dict(claim_rows[claim_id])
+            if claim["source_id"] not in gap["source_ids"]:
+                raise ValueError(
+                    f"Evidence-gap claim {claim_id} uses unlisted source {claim['source_id']}"
+                )
+            claim["value"] = json.loads(claim.pop("value_json"))
+            gap["supporting_claims"].append(claim)
         gap["sources"] = [source_rows[source_id] for source_id in gap["source_ids"]]
         gap["source_count"] = len(gap["sources"])
         gap["verification_tier"] = (

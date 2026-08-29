@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 569)
+        self.assertEqual(self.counts["sources"], 571)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -77,6 +77,44 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_aliases"], 4)
         self.assertEqual(self.counts["item_acquisition_paths"], 747)
         self.assertEqual(self.counts["monster_hearts"], 46)
+
+    def test_cp017_gladiator_burst_is_conditional_and_two_source_attributed(self):
+        advice = self.connection.execute(
+            """SELECT applicability_json, confidence, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id = 'advice_cp017_gladiator_burst'"""
+        ).fetchone()
+        self.assertIsNotNone(advice)
+        applicability = json.loads(advice["applicability_json"])
+        self.assertEqual(applicability["requires"]["mastered"],
+                         ["Warrior", "Martial Artist"])
+        self.assertIn("does not prove unlock", applicability["availability_note"])
+        self.assertIn("defence", applicability["tradeoff"].lower())
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertEqual(
+            advice["verification_status"],
+            "two_independent_current_version_editorial_sources_mechanic_and_role_match",
+        )
+
+        claims = self.connection.execute(
+            """SELECT source_id, value_json, claim_kind, verification_status
+            FROM claims
+            WHERE subject_key = 'vocation:gladiator'
+              AND predicate = 'recommended_power_role'
+            ORDER BY source_id"""
+        ).fetchall()
+        self.assertEqual(
+            {claim["source_id"] for claim in claims},
+            {"game8_vocation_gladiator", "powerupgaming_vocation_tier_list"},
+        )
+        self.assertEqual(len({claim["value_json"] for claim in claims}), 1)
+        self.assertTrue(all(claim["claim_kind"] == "recommendation"
+                            for claim in claims))
+        self.assertTrue(all(
+            claim["verification_status"] ==
+            "two_independent_current_version_editorial_sources"
+            for claim in claims
+        ))
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -2567,6 +2605,42 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             advice["verification_status"],
             "core_plan_two_source_verified_single_source_muster_defend")
+
+    def test_remaining_allblades_rounds_separate_verified_core_from_nava_options(self):
+        claims = self.connection.execute(
+            """SELECT claim_id, predicate, confidence, verification_status
+               FROM claims
+               WHERE claim_id IN (
+                 'claim_bronson_plan_game8', 'claim_bronson_plan_noobfeed',
+                 'claim_hans_plan_game8', 'claim_hans_plan_noobfeed',
+                 'claim_nava_plan_game8', 'claim_nava_plan_noobfeed',
+                 'claim_nava_repel_physical_intoindiegames',
+                 'claim_nava_ruff_call_wild_intoindiegames')
+               ORDER BY claim_id"""
+        ).fetchall()
+        self.assertEqual(len(claims), 8)
+        self.assertEqual(len([row for row in claims if
+                             row["verification_status"] ==
+                             "two_independent_current_version_sources"]), 6)
+        provisional = [row for row in claims if
+                       row["verification_status"].startswith("single_")]
+        self.assertEqual(len(provisional), 2)
+        self.assertTrue(all(row["confidence"] == "high" for row in provisional))
+        advice = self.connection.execute(
+            """SELECT advice_id, confidence, verification_status
+               FROM checkpoint_advice
+               WHERE advice_id IN ('advice_cp009_arena_bronson',
+                                   'advice_cp009_arena_hans',
+                                   'advice_cp009_arena_nava')
+               ORDER BY display_order"""
+        ).fetchall()
+        self.assertEqual([row["confidence"] for row in advice],
+                         ["verified", "verified", "verified"])
+        self.assertEqual(advice[0]["verification_status"],
+                         "two_independent_current_version_sources")
+        self.assertEqual(advice[1]["verification_status"],
+                         "two_independent_current_version_sources")
+        self.assertIn("single_source", advice[2]["verification_status"])
 
     def test_cp011_through_cp020_boss_sequences_are_complete(self):
         expected = {
