@@ -47,7 +47,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "dlc-entitlement",
     "vocation-mastered", "vocation-undo",
     "party-level", "party-vocations", "party-setup",
-    "missable-completed", "missable-undo",
+    "missable-completed", "missable-missed", "missable-undo",
     "accessory-set", "equipment-set",
 }
 
@@ -1951,6 +1951,17 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
             db_path, state_path,
             unquote(path.removeprefix("/api/checkpoints/")), intent,
         )
+    if path.startswith("/api/missables/"):
+        missable_id = unquote(path.removeprefix("/api/missables/"))
+        status = payload.get("status")
+        if status is not None:
+            if status not in ("unknown", "completed", "missed"):
+                raise ValueError("status must be unknown, completed, or missed")
+            command = {"unknown": "missable-undo", "completed": "missable-completed",
+                       "missed": "missable-missed"}[status]
+        else:
+            command = "missable-completed" if completed else "missable-undo"
+        return update_progress(state_path, db_path, command, [missable_id])
     if not isinstance(completed, bool):
         raise ValueError("completed must be true or false")
     mappings = {
@@ -1971,11 +1982,6 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
         vocation_id = unquote(path.removeprefix("/api/vocations/"))
         command = "vocation-mastered" if completed else "vocation-undo"
         return update_progress(state_path, db_path, command, [character, vocation_id])
-    if path.startswith("/api/missables/"):
-        missable_id = unquote(path.removeprefix("/api/missables/"))
-        return update_progress(state_path, db_path,
-                               "missable-completed" if completed else "missable-undo",
-                               [missable_id])
     raise ValueError("Unsupported resource mutation")
 
 

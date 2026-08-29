@@ -1557,6 +1557,25 @@ class GuideServerTests(unittest.TestCase):
         _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
         self.assertTrue(reopened["stop_actions"])
 
+    def test_missable_three_state_api_is_reversible_and_blocks_missed(self):
+        path = "/api/missables/missable_fish_bits"
+        self.patch_json(path, {"status": "missed"})
+        _, missed = self.get_json(path)
+        self.assertEqual(missed["progress_status"], "missed")
+        _, checkpoint = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertEqual(checkpoint["advancement_readiness"]["status"],
+                         "completion_failed")
+        self.assertFalse(checkpoint["advancement_readiness"]
+                         ["can_confirm_and_save_next"])
+        self.patch_json(path, {"status": "completed"})
+        _, completed = self.get_json(path)
+        self.assertEqual(completed["progress_status"], "completed")
+        self.patch_json(path, {"status": "unknown"})
+        _, unknown = self.get_json(path)
+        self.assertEqual(unknown["progress_status"], "unknown")
+        _, reopened = self.get_json("/api/checkpoints/cp_001_prologue")
+        self.assertTrue(reopened["stop_actions"])
+
     def test_parallel_browser_writes_do_not_lose_progress(self):
         _, items = self.get_json("/api/items?limit=12")
         item_ids = [row["item_id"] for row in items["items"]]

@@ -366,7 +366,7 @@ def update_progress(
                     obtained.discard(item_id)
                 state["completion"]["items_obtained"] = sorted(obtained)
                 message = f"Recorded {quantity} explicitly owned copy/copies of {item_id}."
-        elif command in ("missable-completed", "missable-undo"):
+        elif command in ("missable-completed", "missable-missed", "missable-undo"):
             links = {row[0]: row[1] for row in connection.execute(
                 "SELECT missable_id, obligation_id FROM missables")}
             known = set(links)
@@ -382,8 +382,16 @@ def update_progress(
                     set(state["completion"]["obligations_completed"])
                     | {links[value] for value in values if links[value]})
                 message = f"Recorded completed missable(s): {', '.join(values)}."
+            elif command == "missable-missed":
+                missed.update(values)
+                completed.difference_update(values)
+                state["completion"]["obligations_completed"] = sorted(
+                    set(state["completion"]["obligations_completed"])
+                    | {links[value] for value in values if links[value]})
+                message = f"Recorded missed missable(s): {', '.join(values)}."
             else:
                 completed.difference_update(values)
+                missed.difference_update(values)
                 state["completion"]["obligations_completed"] = sorted(
                     set(state["completion"]["obligations_completed"])
                     - {links[value] for value in values if links[value]})
@@ -644,7 +652,7 @@ def main() -> None:
         progress.add_argument("values", nargs="+", metavar="ITEM_ID")
     progress = subparsers.add_parser("item-quantity")
     progress.add_argument("values", nargs="+", metavar="ITEM_ID_COUNT_OR_RESTORE_STATUS")
-    for name in ("missable-completed", "missable-undo"):
+    for name in ("missable-completed", "missable-missed", "missable-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="MISSABLE_ID")
     for name in ("tablet-found", "tablet-undo"):

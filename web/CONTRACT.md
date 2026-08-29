@@ -251,6 +251,11 @@ remain `unknown`, not zero; an explicit `mini_medal_count: 0` is an exact zero.
 has not itself been recorded. This distinction applies to Heroic Hoarder, Monster
 List, Vicious encounters, tablets, vocations, and medals.
 
+Missables use an explicit three-state result: `unknown`, `completed`, or `missed`.
+Recording `missed` requires destructive confirmation, clears any contradictory
+completed state, and blocks 100% advancement with recovery guidance. Changing the
+result to completed or unknown is reversible; no missable result is inferred.
+
 Achievement details retain every counter-semantic claim and every resolved or
 unresolved counter conflict. A resolved row includes its `resolution` claim and
 rationale; the browser displays the winning rule without hiding the losing claim.
