@@ -68,7 +68,8 @@ Ring, Burnmount's Yggdrasil Leaf, Present Poolside Cave Fur Cape, and Hubble
 Inquisitory Coagulant now have exact container directions. Do not collapse the six
 remaining pair-member/container unknowns into invented directions. Fishnet
 Stockings is no longer part of that residual: it is resolved to the Present inn
-wardrobe.
+wardrobe. Each of the six remaining grouped-container routes now has an independent
+current-version walkthrough claim that preserves the unknown individual member.
 
 Six additional power cards now carry two-publisher atomic evidence: Tribulators
 healing-item safety, the Present La Bravoure Metal King Slime route and critical

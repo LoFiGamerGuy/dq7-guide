@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 635)
+        self.assertEqual(self.counts["sources"], 640)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2364,6 +2364,24 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
         self.assertEqual(residual, 6)
+        corroborating = self.connection.execute(
+            """SELECT c.subject_key, c.value_json, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.predicate='container_group_description'
+              AND c.claim_id IN (
+                'claim_strength_ring_faraday_drawer_pair_neoseeker',
+                'claim_knuckledusters_strom_dresser_pair_neoseeker',
+                'claim_silk_robe_temple_dresser_pair_neoseeker',
+                'claim_dragon_shield_treasure_house_group_neoseeker',
+                'claim_pirates_hat_buccanham_dresser_pair_neoseeker',
+                'claim_steel_helmet_rucker_chest_pair_neoseeker'
+              ) ORDER BY c.subject_key"""
+        ).fetchall()
+        self.assertEqual(len(corroborating), 6)
+        self.assertTrue(all(row["publisher"] == "Neoseeker"
+                            for row in corroborating))
+        self.assertTrue(all(json.loads(row["value_json"])["individual_member"] ==
+                            "unknown" for row in corroborating))
 
     def test_pirates_hat_period_conflict_is_resolved_but_visible(self):
         rows = self.connection.execute(
