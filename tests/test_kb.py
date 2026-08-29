@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 696)
+        self.assertEqual(self.counts["sources"], 698)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2605,8 +2605,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 for evidence in result["evidence"]:
                     self.assertTrue(evidence["source_url"])
                     self.assertTrue(evidence["locator"])
-                if gap_id == "gap_reproducible_farm_rates":
-                    self.assertEqual(result["evidence"], [])
+                self.assertTrue(result["evidence"])
 
         ruby = search(self.db_path, "Ruby of Protection left drawer", limit=4)
         self.assertIn(ruby[0]["document_id"], {

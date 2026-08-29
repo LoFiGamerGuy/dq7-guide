@@ -501,8 +501,8 @@ class GuideServerTests(unittest.TestCase):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
         self.assertEqual(audit["total"], 6)
         self.assertEqual(audit["single_source"], 1)
-        self.assertEqual(audit["unsupported"], 1)
-        self.assertEqual(audit["corroborated_but_unresolved"], 4)
+        self.assertEqual(audit["unsupported"], 0)
+        self.assertEqual(audit["corroborated_but_unresolved"], 5)
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
@@ -533,7 +533,12 @@ class GuideServerTests(unittest.TestCase):
         self.assertNotIn("gap_scarewell_exact_route", by_id)
         self.assertNotIn("gap_final_tablet_unlock", by_id)
         self.assertNotIn("gap_super_seed_reward_pool", by_id)
-        self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
+        farm_gap = by_id["gap_reproducible_farm_rates"]
+        self.assertEqual(farm_gap["verification_tier"],
+                         "corroborated_but_unresolved")
+        self.assertEqual(farm_gap["supporting_claim_publisher_count"], 2)
+        self.assertTrue(all(claim["locator"]
+                            for claim in farm_gap["supporting_claims"]))
         self.assertNotIn("gap_shell_shield_identity", by_id)
         self.assertNotIn("gap_stellar_fan_ui_name", by_id)
         self.assertNotIn("gap_ruby_of_protection_drawer", by_id)
