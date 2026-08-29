@@ -248,19 +248,29 @@ def _build_database(db_path: Path) -> dict[str, int]:
         }
         equipment_compatibility_audits = []
         equipment_compatibility_claims = []
+        preserved_compatibility_claims = {
+            "item_liquid_metal_sword": (
+                "HKMRAS", "hyperwiki_equipment_sword",
+                "Equipment list > はぐれメタルの剣 > equipment characters",
+            ),
+            "item_white_shield": (
+                "HMAS", "hyperwiki_equipment_shield",
+                "Equipment list > ホワイトシールド > equipment characters",
+            ),
+        }
         for (item_id, source_name, kind, hyper_page, game8_chars, hyper_chars,
              _prior_status, gamers_high_chars) in equipment_matrix:
             source_b_id = (
-                "gamewith_jp_equipment_armor"
-                if hyper_page == "gamewith_armor"
+                f"gamewith_jp_equipment_{hyper_page.removeprefix('gamewith_')}"
+                if hyper_page and hyper_page.startswith("gamewith_")
                 else f"hyperwiki_equipment_{hyper_page}" if hyper_page else None
             )
             source_b_locator = (
-                "Armour list > " + {
+                "Equipment list > " + {
                     "パーティドレス": "パーティードレス",
                     "メタルキングのよろい": "メタルキングよろい",
                 }.get(source_name, source_name) + " > compatible-character icons"
-                if hyper_page == "gamewith_armor"
+                if hyper_page and hyper_page.startswith("gamewith_")
                 else f"Equipment list > {source_name} > equipment characters"
                 if hyper_page else None
             )
@@ -321,7 +331,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             for suffix, characters, source_id, locator in (
                 ("game8jp", source_a_characters, "game8_jp_equipment_matrix",
                  f"Equipment list > {source_name} > compatible characters"),
-                ("gamewith" if hyper_page == "gamewith_armor" else "hyperwiki",
+                ("gamewith" if hyper_page and hyper_page.startswith("gamewith_") else "hyperwiki",
                  source_b_characters,
                  source_b_id, source_b_locator),
                 ("gamershigh", source_c_characters,
@@ -343,6 +353,22 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "confidence": "high",
                     "verification_status": "source_checked_row_level_compatibility",
                     "notes": "Source-specific character list retained for automatic conflict detection.",
+                })
+            if item_id in preserved_compatibility_claims:
+                codes, source_id, locator = preserved_compatibility_claims[item_id]
+                equipment_compatibility_claims.append({
+                    "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_hyperwiki",
+                    "subject_key": f"item:{item_id.removeprefix('item_')}",
+                    "predicate": "equipment_compatible_characters",
+                    "value": {"characters": [character_codes[code] for code in codes]},
+                    "claim_kind": "fact",
+                    "scope": {"game": "DQ7 Reimagined", "platform": "unknown",
+                              "patch": "patch_unknown"},
+                    "source_id": source_id,
+                    "locator": locator,
+                    "confidence": "high",
+                    "verification_status": "source_checked_row_level_compatibility",
+                    "notes": "Disagreeing source-specific list preserved after independent adjudication.",
                 })
         accessory_sources = (
             ("game8jp", "game8_jp_equipment_matrix"),

@@ -203,6 +203,14 @@ function compactApplicability(value) {
   return Object.entries(value).filter(([key]) => key !== "tradeoff").map(([key, item]) => `${key.replaceAll("_", " ")}: ${typeof item === "object" ? JSON.stringify(item) : item}`).join(" · ");
 }
 
+function renderPowerPlan(plan = {}) {
+  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [];
+  const partyText = party.length ? party.map(row => `${row.name}: ${row.level ? `Lv ${row.level}` : "level ?"} · ${row.primary_vocation || "vocation ?"}${row.secondary_vocation ? ` + ${row.secondary_vocation}` : ""}`).join(" / ") : "Party levels and vocations not recorded — recommendations remain source-only.";
+  const conciseRows = strongest.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span>${row.saved_state_applicability?.reason !== "No supported saved-state gate" ? `<small class="applicability-${escapeHtml(row.saved_state_applicability?.status || "unknown")}">${escapeHtml(row.saved_state_applicability?.reason || "Saved-state fit unknown")}</small>` : ""}</li>`).join("");
+  const gearRows = gear.filter(row => row.availability_status === "route_available").slice(0, 4).map(row => `<li><strong>${escapeHtml([row.character, row.item_name].filter(Boolean).join(" · "))}</strong><span>${escapeHtml(row.ownership_status === "recorded" ? "Owned" : "Ownership unknown")} · ${escapeHtml((row.compatibility_status || "compatibility unknown").replaceAll("_", " "))}</span></li>`).join("");
+  target.innerHTML = `<p class="power-party"><strong>Recorded party</strong><span>${escapeHtml(partyText)}</span></p>${conciseRows ? `<h4>Strongest now</h4><ol class="power-list">${conciseRows}</ol>` : '<p class="muted">No separate immediate-power recommendation is sourced here.</p>'}${gearRows ? `<h4>Gear checks</h4><ul class="power-list">${gearRows}</ul>` : ""}${grind.length ? `<h4>Optional grind ceiling</h4><ul class="power-list">${grind.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("")}</ul>` : '<p class="muted">No checkpoint-specific grind is recommended.</p>'}${farms.length ? `<details class="farm-options"><summary>Other farms available by now (${farms.length})</summary><p class="muted">${escapeHtml(plan.farm_note)}</p>${farms.map(row => `<div><strong>${escapeHtml(row.target)}</strong><span>${escapeHtml(row.location)}${row.time_period ? ` · ${escapeHtml(row.time_period)}` : ""}</span></div>`).join("")}</details>` : ""}`;
+}
+
 function renderDashboard() {
   const d = state.dashboard || {};
   renderStop($("#stopBanner"), d.stop_warnings || []);
@@ -225,6 +233,7 @@ function renderCheckpoint() {
   $("#checkpointMeta").textContent = [c.name, c.time_period, c.region].filter(Boolean).join(" · ");
   renderStopActions($("#checkpointStop"), c.stop_actions || []);
   renderCheckpointActions($("#actions"), c.actions || [], $("#hideCompleted").checked);
+  renderPowerPlan(c.power_plan || {});
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"), adviceGroups = [
     ["completion_safe", "Completion-safe"],

@@ -59,17 +59,17 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 532)
+        self.assertEqual(self.counts["sources"], 534)
         self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
-        self.assertEqual(self.counts["equipment_compatibility"], 1848)
+        self.assertEqual(self.counts["equipment_compatibility"], 1860)
         self.assertEqual(self.counts["item_identity_redirects"], 1)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 222)
-        self.assertEqual(self.counts["checkpoint_advice"], 110)
+        self.assertEqual(self.counts["checkpoint_advice"], 111)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
@@ -78,19 +78,19 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["monster_hearts"], 46)
 
     def test_equipment_compatibility_requires_two_source_row_agreement(self):
-        disputed = self.connection.execute(
+        adjudicated = self.connection.execute(
             """SELECT agreement_status, allowed_characters_json,
                 source_a_characters_json, source_b_characters_json
             FROM equipment_compatibility_audits
             WHERE item_id='item_liquid_metal_sword'"""
         ).fetchone()
-        self.assertEqual(disputed["agreement_status"], "source_disagreement")
-        self.assertIsNone(disputed["allowed_characters_json"])
-        self.assertNotEqual(disputed["source_a_characters_json"],
-                            disputed["source_b_characters_json"])
+        self.assertEqual(adjudicated["agreement_status"], "two_source_agreement")
+        self.assertIsNotNone(adjudicated["allowed_characters_json"])
+        self.assertNotEqual(adjudicated["source_a_characters_json"],
+                            adjudicated["source_b_characters_json"])
         self.assertEqual(self.connection.execute(
             "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_liquid_metal_sword'"
-        ).fetchone()[0], 0)
+        ).fetchone()[0], 6)
         open_conflict = self.connection.execute(
             """SELECT status FROM conflicts
             WHERE conflict_key LIKE 'item:liquid_metal_sword|equipment_compatible_characters|%'
@@ -2231,6 +2231,25 @@ class KnowledgeBaseTests(unittest.TestCase):
         with redirect_stdout(output):
             print_walkthrough(report)
         self.assertIn("If you have 15 medals", output.getvalue())
+
+    def test_la_bravoure_surfaces_single_source_metal_grind_without_fake_rate(self):
+        report = load_walkthrough(
+            self.db_path,
+            ROOT / "player" / "ryan-save-state.json",
+            "cp_011_la_bravoure",
+            "cp_011_la_bravoure",
+        )
+        rows = [row for row in report["blocks"][0]["advice"]
+                if row["advice_type"] == "grind"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["subject"], "Optional Metal King Slime grind")
+        self.assertEqual(rows[0]["confidence"], "medium")
+        self.assertEqual(rows[0]["verification_status"],
+                         "single_source_checked_rate_and_ceiling_unknown")
+        applicability = json.loads(rows[0]["applicability_json"])
+        self.assertEqual(applicability["time_period"], "Present")
+        self.assertEqual(applicability["rate"], "unknown")
+        self.assertEqual(applicability["ceiling"], "unknown")
 
     def test_checkpoint_advice_requires_object_applicability(self):
         normalized = normalize_checkpoint_advice([

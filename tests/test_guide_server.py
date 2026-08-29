@@ -80,8 +80,8 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(coverage["status"], "partial_two_source_matrix")
         self.assertEqual(coverage["catalog_item_rows"], 311)
         self.assertEqual(coverage["audited_item_rows"], 311)
-        self.assertEqual(coverage["verified_item_rows"], 308)
-        self.assertEqual(coverage["conflicted_item_rows"], 3)
+        self.assertEqual(coverage["verified_item_rows"], 310)
+        self.assertEqual(coverage["conflicted_item_rows"], 1)
         self.assertEqual(coverage["single_source_item_rows"], 0)
         self.assertEqual(coverage["unaudited_item_rows"], 0)
         accessories = next(row for row in coverage["by_category"]
@@ -369,6 +369,15 @@ class GuideServerTests(unittest.TestCase):
         _, alltrades = self.get_json("/api/checkpoints/cp_009_alltrades")
         groups = {row["decision_group"] for row in alltrades["advice"]}
         self.assertEqual(groups, {"completion_safe", "strongest_now", "optional_grind"})
+        plan = alltrades["power_plan"]
+        self.assertEqual(plan["state_scope"], "explicit_saved_state_only")
+        self.assertEqual(plan["state_status"], "unknown")
+        self.assertEqual(plan["party"], [])
+        self.assertTrue(plan["strongest_now"])
+        self.assertTrue(plan["grind_ceiling"])
+        self.assertTrue(all(row["availability_status"] == "available_by_checkpoint"
+                            for row in plan["available_farms"]))
+        self.assertIn("not a ranking", plan["farm_note"])
         self.assertTrue(all(row["goal"] in ("completion_safe", "immediate_power", "both")
                             for row in alltrades["advice"]))
         _, alltrades_present = self.get_json("/api/checkpoints/cp_010_alltrades_present")
@@ -388,6 +397,7 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn("locator", claim)
             self.assertTrue(claim["source"]["url"])
             self.assertIn("retrieved_at", claim["source"])
+
         self.assertTrue(conflicts[0]["required_evidence"])
         self.assertFalse(any("tempest shield" in row["subject"]
                              for row in conflicts))
@@ -524,6 +534,23 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(drop["drop_rate_status"], "unknown")
         self.assertIsNone(drop["drop_rate"])
         self.assertEqual(drop["dlc_scope_status"], "unknown")
+
+    def test_power_plan_uses_only_explicit_party_state_and_saved_checkpoint_gear(self):
+        state_path = Path(self.temp.name) / "power-plan-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_009_alltrades"
+        hero = state["party"]["members"]["Hero"]
+        hero["level"] = 18
+        hero["primary_vocation"] = "vocation_warrior"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                state_path, "cp_009_alltrades")["power_plan"]
+        self.assertEqual(plan["state_status"], "recorded")
+        self.assertEqual(plan["party"], [{
+            "name": "Hero", "level": 18,
+            "primary_vocation": "vocation_warrior", "secondary_vocation": None,
+        }])
+        self.assertTrue(plan["gear_checks"])
 
     def test_monster_heart_api_starts_explicit_ledger_and_reverses(self):
         state = json.loads(self.state.read_text(encoding="utf-8"))

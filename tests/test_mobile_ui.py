@@ -57,6 +57,10 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('data-play-jump="power"', html)
         self.assertIn("function scrollToPlayPriority()", js)
         self.assertIn('[aria-labelledby="advice-strongest_now"]', js)
+        self.assertIn('id="powerPlan"', html)
+        self.assertIn("function renderPowerPlan", js)
+        self.assertIn("Optional grind ceiling", js)
+        self.assertIn("Other farms available by now", js)
         self.assertIn("(max-width: 900px) and (pointer: coarse)", css)
 
     def test_mobile_restore_and_long_details_are_keyboard_and_overflow_safe(self):
@@ -272,7 +276,7 @@ class MobileUiContractTests(unittest.TestCase):
                     finally:
                         gaming.terminate()
                         self.assertEqual(gaming.wait(timeout=5), 0)
-                with self.assertRaises(URLError):
+                with self.assertRaises((URLError, ConnectionResetError)):
                     urlopen(gaming_clean + "/api/health", timeout=0.5)
 
                 runtime.mkdir(exist_ok=True)

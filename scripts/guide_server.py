@@ -1157,6 +1157,46 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "can_confirm_and_save_next": bool(next_checkpoint and saved_checkpoint_match
                                            and readiness_status == "manual_confirmation"),
     }
+    advice = [{
+        "id": row["advice_id"], "type": row["advice_type"],
+        "subject": row["subject"], "text": row["advice_text"],
+        "goal": row["recommendation_goal"],
+        "decision_group": ("optional_grind" if row["advice_type"] == "grind"
+                           else "completion_safe" if row["recommendation_goal"] in ("completion_safe", "both")
+                           else "strongest_now"),
+        "applicability": json.loads(row["applicability_json"]),
+        "tradeoff": json.loads(row["applicability_json"]).get("tradeoff"),
+        "source": {"id": row["source_id"], "title": row["source_title"],
+                   "url": row["source_url"], "locator": row["locator"]},
+        "confidence": row["confidence"],
+        "verification_status": row["verification_status"],
+        "saved_state_applicability": _advice_applicability(
+            db_path, player_state, json.loads(row["applicability_json"])),
+    } for row in block["advice"]]
+    party_members = player_state.get("party", {}).get("members", {})
+    explicit_party = [{
+        "name": name, "level": member.get("level"),
+        "primary_vocation": member.get("primary_vocation"),
+        "secondary_vocation": member.get("secondary_vocation"),
+    } for name, member in party_members.items() if any((
+        member.get("level") is not None, member.get("primary_vocation") is not None,
+        member.get("secondary_vocation") is not None))]
+    farm_options = _farms(db_path, {
+        "through_checkpoint": [checkpoint_id], "limit": ["100"]
+    })["farms"]
+    equipment = (_equipment_readiness(db_path, state_path)
+                 if saved_checkpoint_match else {"recommendations": []})
+    power_plan = {
+        "state_scope": "explicit_saved_state_only",
+        "state_status": "recorded" if explicit_party else "unknown",
+        "party": explicit_party,
+        "strongest_now": [row for row in advice if row["decision_group"] == "strongest_now"],
+        "grind_ceiling": [row for row in advice if row["decision_group"] == "optional_grind"],
+        "gear_checks": equipment["recommendations"],
+        "available_farms": farm_options,
+        "farm_note": ("Available sourced options, not a ranking. Use the attributed grind ceiling above when present."
+                      if farm_options else "No checkpoint-gated farm is verified as available yet."),
+    }
     return {
         "id": checkpoint_id, "name": checkpoint["name"],
         "time_period": checkpoint["time_period"], "region": checkpoint["region"],
@@ -1178,22 +1218,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
             "source": {"id": row["source_id"], "title": row["source_title"],
                        "url": row["source_url"], "locator": row["locator"]},
         } for index, row in enumerate(block["now"])],
-        "advice": [{
-            "id": row["advice_id"], "type": row["advice_type"],
-            "subject": row["subject"], "text": row["advice_text"],
-            "goal": row["recommendation_goal"],
-            "decision_group": ("optional_grind" if row["advice_type"] == "grind"
-                               else "completion_safe" if row["recommendation_goal"] in ("completion_safe", "both")
-                               else "strongest_now"),
-            "applicability": json.loads(row["applicability_json"]),
-            "tradeoff": json.loads(row["applicability_json"]).get("tradeoff"),
-            "source": {"id": row["source_id"], "title": row["source_title"],
-                       "url": row["source_url"], "locator": row["locator"]},
-            "confidence": row["confidence"],
-            "verification_status": row["verification_status"],
-            "saved_state_applicability": _advice_applicability(
-                db_path, player_state, json.loads(row["applicability_json"])),
-        } for row in block["advice"]],
+        "advice": advice,
+        "power_plan": power_plan,
         "medals": [{"number": row["medal_number"], "location": row["location"],
                      "detail": row["detail"], "found": row["medal_number"] in found_medals,
                      "timing": timing,
