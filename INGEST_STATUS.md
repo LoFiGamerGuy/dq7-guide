@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 592 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 599 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 592
+- sources: 599
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,649
+- claims: 1,673
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 592 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 599 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -336,7 +336,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 592 source records currently have retrieval dates within 180
+- **Freshness:** all 599 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -515,3 +515,28 @@ rows that claim a two-source tier explicit `evidence_claim_ids`. Each linked
 core resolves to at least two distinct publishers. Mixed advice links only the
 corroborated core: exact skills, rotations, recovery timing, resistance notes,
 and other one-publisher extras remain outside the phone badge evidence.
+
+The Rainiac/Hybris evidence pass verifies only the independently corroborated
+phone core. Game8 and Neoseeker support safe-HP recovery against Rainiac's
+possible second action and party-wide attack; Buff, Fire/Light, status cures,
+Dazzle, and Kasap remain publisher-specific. Game8 and Neoseeker support
+physical offence during Hybris's Magic Barrier and multi-target healing; exact
+buffs and GameWith's named elemental-mitigation skills remain single-source.
+No recommended level, numeric HP, resistance, or weakness table was promoted.
+
+The cp020 boss pass verifies Togrus Maximus party-Defence setup across Game8 and
+Korosenai; exact double-Kabuff, resurrection, and multi-target-healing details
+remain publisher-specific. For the Slamphibians, both publishers verify group
+damage across all three enemies. Target priority stays disputed because Game8's
+dedicated boss page and Korosenai say smaller frogs first while Game8's own 100%
+walkthrough says Mossferatu first due to revival. Poison-cure preparation remains
+Game8-only and is excluded from the verified-core evidence badge.
+
+The late single-source boss audit promotes Macho Picchu's party-Defence setup
+and post-Let-Loose burst window after direct current-version agreement between
+Game8 and Korosenai. Great Leveller, attack reduction, exact stack counts,
+party composition, levels, weaknesses, and rotations remain source-specific or
+unknown. No second direct actionable source was found for the Time Being or
+Lourgh/Disorder. Neoseeker provides a second current-version first-Orgodemir
+page, but this batch did not promote a shared tactic without completing direct
+page-level adjudication; those three phone rows remain explicitly single-source.

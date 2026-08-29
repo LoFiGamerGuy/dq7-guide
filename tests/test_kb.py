@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 592)
+        self.assertEqual(self.counts["sources"], 599)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -519,6 +519,45 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(len(extras), 4)
         self.assertTrue(all(row["verification_status"].startswith("single_")
                             for row in extras))
+
+    def test_cp020_boss_core_links_keep_targeting_and_preparation_scope(self):
+        rows = self.connection.execute(
+            """SELECT advice_id, applicability_json, confidence,
+                verification_status FROM checkpoint_advice
+            WHERE advice_id IN ('advice_cp020_togrus_maximus',
+                                'advice_cp020_slamphibians')"""
+        ).fetchall()
+        advice = {row["advice_id"]: row for row in rows}
+        self.assertEqual(set(advice), {
+            "advice_cp020_togrus_maximus", "advice_cp020_slamphibians"})
+        for row in advice.values():
+            applicability = json.loads(row["applicability_json"])
+            claim_ids = applicability["evidence_claim_ids"]
+            placeholders = ",".join("?" for _ in claim_ids)
+            claims = self.connection.execute(
+                f"SELECT claim_id, source_id FROM claims "
+                f"WHERE claim_id IN ({placeholders})", claim_ids
+            ).fetchall()
+            self.assertEqual(len(claims), len(claim_ids))
+            self.assertEqual(len({claim["source_id"] for claim in claims}), 2)
+            self.assertEqual(row["confidence"], "verified")
+
+        slam = json.loads(
+            advice["advice_cp020_slamphibians"]["applicability_json"])
+        self.assertIn("target_priority", slam["source_dispute"])
+        self.assertEqual(slam["single_source_extras"]["source_publisher"],
+                         "Game8")
+        priorities = self.connection.execute(
+            """SELECT value_json, source_id, verification_status FROM claims
+            WHERE subject_key='boss:slamphibians'
+              AND predicate='recommended_target_priority'"""
+        ).fetchall()
+        self.assertEqual(len(priorities), 3)
+        self.assertEqual(len({row["value_json"] for row in priorities}), 2)
+        self.assertIn("single_publisher_conflicting_guidance",
+                      {row["verification_status"] for row in priorities})
+        poison_id = "claim_slamphibians_poison_prep_game8"
+        self.assertNotIn(poison_id, slam["evidence_claim_ids"])
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(

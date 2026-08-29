@@ -1034,6 +1034,16 @@ class GuideServerTests(unittest.TestCase):
                 )
         self.assertGreaterEqual(len(audited), 11)
 
+        macho = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_025_wind_spirit",
+        )["advice"] if row["id"] == "advice_cp025_macho_picchu")
+        self.assertEqual(macho["evidence"]["tier"],
+                         "two_source_core_single_source_extras")
+        self.assertEqual(
+            {claim["source_id"] for claim in macho["evidence"]["claims"]},
+            {"game8_boss_macho_picchu", "korosenai_macho_picchu"},
+        )
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"
