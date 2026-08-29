@@ -104,7 +104,7 @@ function renderPhoneSetup() {
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const localOnly = ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
   const workerCapable = secure && "serviceWorker" in navigator;
-  const online = navigator.onLine && !state.usingCachedData && state.dashboard !== null;
+  const online = navigator.onLine && state.hostReachable !== false && !state.usingCachedData && state.dashboard !== null;
   const mode = secure ? (localOnly ? "Host-local secure context" : "Secure network origin") : "Local-network HTTP · online only";
   const rows = [
     ["Connection", online ? "Fresh host data loaded" : "Offline / cached / not loaded", online ? "ok" : "warning"],

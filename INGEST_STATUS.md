@@ -470,7 +470,9 @@ pairs.
   until reported.
 - **Lucky Panel probabilities:** requires a published draw algorithm/denominator
   or controlled sampling/source-code evidence. Source-native numeric weights are
-  not probabilities.
+  not probabilities. A later public data-dump lead exposes additional ratio and
+  configuration cells, but lacks extraction/build scope, selection control flow,
+  a denominator, and independent publication, so no probability was normalized.
 - **Repeatable Heart farming and numeric farm rates:** requires explicit
   respawn/rematch evidence for a Heart route and, for rate claims, a reproducible
   benchmark with patch, platform, difficulty, party/build, route, duration,

@@ -62,6 +62,12 @@ Game8 boss page's Present label remains visible as the losing claim.
 
 Lucky Panel entry is independently verified as free. Its single-source numeric selection cells remain raw weights, not probabilities, because no denominator or draw algorithm is published.
 
+The phone connection summary treats browser network status and actual guide-host
+reachability separately. If the Deck host disappears after a successful load,
+Phone Setup reports cached/offline data and disabled writes instead of contradicting
+the recovery banner. Golden retrieval coverage also locks the resolved lifetime-gold
+and exact metal-family achievement evidence to precise, multi-publisher claims.
+
 The final three unpublished purchase prices are now typed shop inventory:
 Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
 Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container

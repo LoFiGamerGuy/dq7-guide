@@ -8,7 +8,7 @@
 | Live play | Responsive walkthrough, thumb controls, direct validated writes, visible save failures and undo | Ready |
 | Backup | Download link on Dashboard, Phone Setup, and Progress | Ready while host is reachable |
 | Restore/recovery | File validation, explicit confirmation, atomic replacement, timestamped pre-restore copy | Ready; recovery files stay on host |
-| Diagnostics | Startup readiness timeout plus `status`, `logs`, and `doctor`; in-app connection/security/write status | Ready |
+| Diagnostics | Startup readiness timeout plus `status`, `logs`, and `doctor`; in-app connection/security/write status requires actual host reachability before reporting direct writes | Ready |
 | Cleanup | `stop`, removable shortcut, ignored repo-local runtime files, no root/service/autostart | Ready |
 | Offline/PWA | Service worker only on secure origins; LAN HTTP is explicitly online-only | Intentional browser limitation |
 | SteamOS lifecycle | Suspend, reboot, network change, or Desktop/Gaming Mode transition may require restart | Platform limitation |

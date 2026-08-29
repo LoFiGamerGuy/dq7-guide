@@ -64,7 +64,52 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
             "safe_advance_alltrades", "strongest_legal_gear_alltrades",
             "champion_vocation_path", "available_farm_alltrades",
             "cactiball_heart", "visible_conflicts", "duplicate_accessory_power",
+            "achievement_counter_rules",
         })
+
+    def test_achievement_counter_bundle_preserves_resolution_and_consensus(self):
+        question = self.questions["achievement_counter_rules"]
+        self.assertTrue(question["requires_source_diversity"])
+
+        gold_claims = self.connection.execute(
+            """SELECT c.value_json, c.locator, c.confidence, s.source_id, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:massively_minted'
+              AND c.predicate='achievement_counter_condition'"""
+        ).fetchall()
+        lifetime = [row for row in gold_claims
+                    if json.loads(row["value_json"]) == "lifetime total gold acquired"]
+        self.assertGreaterEqual(len({row["publisher"] for row in lifetime}), 2)
+        for row in gold_claims:
+            self.assert_current_version_source(row["source_id"], row["locator"])
+
+        conflict = self.connection.execute(
+            """SELECT status, resolution_claim_id FROM conflicts
+            WHERE conflict_key LIKE
+              'achievement:massively_minted|achievement_counter_condition|%'"""
+        ).fetchone()
+        self.assertEqual(conflict["status"], "resolved")
+        resolution_value = self.connection.execute(
+            "SELECT value_json FROM claims WHERE claim_id=?",
+            (conflict["resolution_claim_id"],),
+        ).fetchone()[0]
+        self.assertEqual(json.loads(resolution_value), "lifetime total gold acquired")
+
+        roster_claims = self.connection.execute(
+            """SELECT c.value_json, c.locator, s.source_id, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:metal_mangler'
+              AND c.predicate='achievement_counter_members'"""
+        ).fetchall()
+        self.assertGreaterEqual(len({row["publisher"] for row in roster_claims}), 2)
+        rosters = {row["value_json"] for row in roster_claims}
+        self.assertEqual(len(rosters), 1)
+        self.assertEqual(set(json.loads(rosters.pop())), {
+            "Metal Slime", "Liquid Metal Slime", "Metal King Slime",
+            "Platinum King",
+        })
+        for row in roster_claims:
+            self.assert_current_version_source(row["source_id"], row["locator"])
 
     def test_duplicate_accessory_bundle_requires_evidence_and_exact_quantity(self):
         question = self.questions["duplicate_accessory_power"]
