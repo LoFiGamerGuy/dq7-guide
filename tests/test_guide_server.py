@@ -619,6 +619,26 @@ class GuideServerTests(unittest.TestCase):
             "active": False,
         }])
         self.assertTrue(plan["gear_checks"])
+        snooze_stick = next(row for row in plan["gear_checks"]
+                            if row["item_name"] == "Snooze Stick")
+        self.assertEqual(snooze_stick["verified_stats"]["mp_absorption_percent"]["value"], 8)
+        self.assertEqual(snooze_stick["verified_stats"]["battle_use_effect"]["value"],
+                         "Attempts to put one enemy to sleep")
+        for stat in snooze_stick["verified_stats"].values():
+            self.assertGreaterEqual(len({source["id"] for source in stat["sources"]}), 2)
+
+    def test_phone_power_gear_exposes_verified_tradeoff_stats(self):
+        state_path = Path(self.temp.name) / "power-tradeoff-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_005_larca"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                state_path, "cp_005_larca")["power_plan"]
+        hammer = next(row for row in plan["gear_checks"]
+                      if row["item_name"] == "Sledgehammer")
+        self.assertEqual(hammer["verified_stats"]["attack_bonus"]["value"], 26)
+        self.assertEqual(hammer["verified_stats"]["agility_bonus"]["value"], -20)
+        self.assertEqual(hammer["availability_status"], "route_available")
 
     def test_power_plan_hides_vocation_tracking_until_alltrades(self):
         for checkpoint_id in ("cp_001_prologue", "cp_002_estard_shrine",
@@ -770,6 +790,18 @@ class GuideServerTests(unittest.TestCase):
                     row["availability_status"] == "available_by_checkpoint"
                     for row in plan["available_farms"]
                 ))
+        dual_goal_subjects = {
+            "cp_006_regenstein": "Free Regenstein Boomerang",
+            "cp_012_roamer_return": "Activate Moonlighting immediately",
+            "cp_022_almighty": "Ultimate Key free gear",
+            "cp_031_testy_road_gold_gate": "Testy Road fixed rewards",
+        }
+        for checkpoint_id, subject in dual_goal_subjects.items():
+            plan = _checkpoint_view(
+                ROOT / "data" / "dq7_reimagined.sqlite", self.state, checkpoint_id
+            )["power_plan"]
+            self.assertIn(subject, {row["subject"] for row in plan["strongest_now"]})
+            self.assertIn(subject, {row["subject"] for row in plan["safe_power"]})
 
     def test_power_plan_hides_explicitly_unmet_medal_power_but_preserves_unknown(self):
         state_path = Path(self.temp.name) / "power-plan-medals.json"

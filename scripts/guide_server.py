@@ -603,9 +603,10 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             JOIN sources s USING(source_id)
             WHERE c.claim_kind='fact' AND c.confidence='verified'
               AND c.verification_status LIKE 'two_independent%'
-              AND c.predicate IN ('attack_bonus', 'defence_bonus',
+              AND c.predicate IN ('attack_bonus', 'defence_bonus', 'agility_bonus',
                 'magical_might_bonus', 'magical_mending_bonus',
-                'elemental_damage_reduction_percent')
+                'elemental_damage_reduction_percent',
+                'mp_absorption_percent', 'battle_use_effect')
             ORDER BY i.item_id, c.predicate, c.source_id"""
         )]
         stat_groups = {}
@@ -1251,7 +1252,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
     equipment = (_equipment_readiness(db_path, state_path)
                  if saved_checkpoint_match else {"recommendations": []})
     strongest_candidates = [
-        row for row in advice if row["decision_group"] == "strongest_now"
+        row for row in advice if row["type"] != "grind"
+        and row["goal"] in ("immediate_power", "both")
         and row["saved_state_applicability"]["status"] != "unmet"
     ]
     concise_strongest = []
