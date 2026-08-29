@@ -56,7 +56,10 @@ checkpoint. Status is `blocked_by_stop`, `required_actions_open`, or
 conditions are complete: `safe_condition_requires_player_confirmation` remains true.
 The browser enables “Confirm and set next current” only for the saved checkpoint when
 no structured blocker remains. Clicking it is the player's explicit confirmation;
-the guide never advances automatically. Browsing Next/Previous does not change state.
+the guide never advances automatically. Each nonzero ledger gap is a large navigation
+button that opens the matching collapsed ledger, focuses its summary, and scrolls it
+below the sticky phone controls. These buttons never mutate progress. Browsing
+Next/Previous does not change state.
 
 Checkpoint detail also includes `tablet_fragments` available from that checkpoint.
 Rows carry the stable fragment ID and ordinal, tablet/color, location/detail,

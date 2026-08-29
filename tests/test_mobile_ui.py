@@ -287,12 +287,35 @@ class MobileUiContractTests(unittest.TestCase):
     def test_play_view_prioritizes_stop_next_and_collapses_secondary_ledgers(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
         self.assertLess(html.index('id="checkpointStop"'), html.index('id="actions"'))
-        self.assertLess(html.index('id="actions"'), html.index('id="checkpointTablets"'))
+        self.assertLess(html.index('id="actions"'), html.index('id="powerAdvice"'))
+        ledger_ids = ("ledgerTablets", "ledgerItems", "ledgerAchievements", "ledgerMissables", "ledgerMedals")
+        for ledger_id in ledger_ids:
+            self.assertEqual(html.count(f'id="{ledger_id}"'), 1)
+            self.assertLess(html.index('id="powerAdvice"'), html.index(f'id="{ledger_id}"'))
+            self.assertLess(html.index(f'id="{ledger_id}"'), html.index('id="advancePanel"'))
         self.assertEqual(html.count('class="panel secondary-ledger"'), 6)
         self.assertNotIn('class="panel secondary-ledger" open', html)
         self.assertIn("ledger.open = !mobileLayout()", js)
         self.assertIn('$("#hideCompleted")', js)
+        for readiness_key, target in (
+            ("unrecorded_available_medal_count", "ledgerMedals"),
+            ("unrecorded_checkpoint_tablet_fragment_count", "ledgerTablets"),
+            ("unrecorded_finite_hoarder_item_count", "ledgerItems"),
+            ("unrecorded_due_achievement_count", "ledgerAchievements"),
+            ("unrecorded_checkpoint_missable_count", "ledgerMissables"),
+        ):
+            self.assertIn(f'["{readiness_key}",', js)
+            self.assertIn(f'"{target}"]', js)
+        self.assertIn('aria-controls="${target}"', js)
+        self.assertIn('ledger.open = true', js)
+        self.assertIn('window.requestAnimationFrame', js)
+        self.assertIn('ledger.querySelector(":scope > summary")?.focus', js)
+        self.assertIn('(prefers-reduced-motion: reduce)', js)
+        self.assertIn('reducedMotion ? "auto" : "smooth"', js)
+        self.assertIn('.ledger-gap-list .ledger-jump { width: 100%; min-height: 2.75rem', css)
+        self.assertIn('.secondary-ledger { scroll-margin-top: calc(7.2rem + env(safe-area-inset-top)); }', css)
 
     def test_next_power_move_precedes_party_and_battle_detail(self):
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")

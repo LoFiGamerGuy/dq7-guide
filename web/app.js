@@ -391,14 +391,14 @@ function renderCheckpoint() {
   $("#advanceStatus").textContent = labels[readiness.status] || "Unknown";
   $("#advanceReason").textContent = readiness.reason || "Readiness is not machine-verifiable.";
   const ledgerLabels = [
-    ["unrecorded_available_medal_count", "available Mini Medals"],
-    ["unrecorded_checkpoint_tablet_fragment_count", "checkpoint Tablet Fragments"],
-    ["unrecorded_finite_hoarder_item_count", "finite Heroic Hoarder items"],
-    ["unrecorded_due_achievement_count", "achievements due here"],
-    ["unrecorded_checkpoint_missable_count", "checkpoint missables needing a result"],
+    ["unrecorded_available_medal_count", "available Mini Medals", "ledgerMedals"],
+    ["unrecorded_checkpoint_tablet_fragment_count", "checkpoint Tablet Fragments", "ledgerTablets"],
+    ["unrecorded_finite_hoarder_item_count", "finite Heroic Hoarder items", "ledgerItems"],
+    ["unrecorded_due_achievement_count", "achievements due here", "ledgerAchievements"],
+    ["unrecorded_checkpoint_missable_count", "checkpoint missables needing a result", "ledgerMissables"],
   ];
   $("#advanceLedgerGaps").innerHTML = ledgerLabels.filter(([key]) => Number(readiness[key]) > 0)
-    .map(([key, label]) => `<li><strong>${readiness[key]}</strong> ${escapeHtml(label)}</li>`).join("");
+    .map(([key, label, target]) => `<li><button type="button" class="secondary ledger-jump" data-ledger-jump="${target}" aria-controls="${target}"><strong>${readiness[key]}</strong><span>${escapeHtml(label)}</span><span aria-hidden="true">Review →</span></button></li>`).join("");
   const advanceButton = $("#advanceCheckpointButton"); advanceButton.disabled = !readiness.can_confirm_and_save_next;
   $("#advancePanel").classList.toggle("advance-ready", Boolean(readiness.can_confirm_and_save_next));
   advanceButton.dataset.nextCheckpoint = readiness.next_checkpoint?.id || "";
@@ -694,6 +694,21 @@ async function recordCommand(command, values) {
 }
 
 document.addEventListener("click", event => {
+  const ledgerJump = event.target.closest("[data-ledger-jump]");
+  if (ledgerJump) {
+    const allowed = new Set(["ledgerMedals", "ledgerTablets", "ledgerItems", "ledgerAchievements", "ledgerMissables"]);
+    const targetId = ledgerJump.dataset.ledgerJump;
+    const ledger = allowed.has(targetId) ? document.getElementById(targetId) : null;
+    if (ledger) {
+      ledger.open = true;
+      window.requestAnimationFrame(() => {
+        ledger.querySelector(":scope > summary")?.focus({ preventScroll: true });
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        ledger.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      });
+    }
+    return;
+  }
   const previewCheckpoint = event.target.closest("[data-preview-checkpoint]");
   if (previewCheckpoint) {
     const id = previewCheckpoint.dataset.previewCheckpoint;
