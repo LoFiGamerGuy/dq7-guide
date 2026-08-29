@@ -67,6 +67,10 @@ reachability separately. If the Deck host disappears after a successful load,
 Phone Setup reports cached/offline data and disabled writes instead of contradicting
 the recovery banner. Golden retrieval coverage also locks the resolved lifetime-gold
 and exact metal-family achievement evidence to precise, multi-publisher claims.
+Paired API responses are network-only and never enter the service-worker cache, so
+rotating the private pairing identity cannot leave an authorized player snapshot
+available offline. Troll Heart detail separately labels its cp019 route as a finite
+one-copy pickup with no proven repeatable route and two-source acquisition evidence.
 
 The final three unpublished purchase prices are now typed shop inventory:
 Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle

@@ -29,6 +29,21 @@ class HeartReportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unknown Monster Heart"):
             load_heart_report(ROOT / "data" / "dq7_reimagined.sqlite", "invented heart")
 
+    def test_troll_heart_exposes_checkpoint_and_distinct_route_provenance(self):
+        report = load_heart_report(
+            ROOT / "data" / "dq7_reimagined.sqlite", "Troll Heart",
+            checkpoint_id="cp_019_aeolus",
+        )
+        troll = report["hearts"][0]
+        self.assertIs(troll["available_now"], True)
+        self.assertEqual(troll["available_from_checkpoint_id"], "cp_019_aeolus")
+        self.assertIn("field sparkle", troll["availability_notes"])
+        self.assertIn("second copy", troll["availability_notes"])
+        self.assertEqual(troll["availability_source_title"],
+                         "Troll Heart Acquisition and Performance")
+        self.assertTrue(troll["availability_source_url"].startswith("https://"))
+        self.assertIn("lines 60-67", troll["availability_locator"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,10 +32,13 @@ def load_heart_report(db_path: Path, query: str | None = None,
         rows = [dict(row) for row in connection.execute(
             """SELECT h.*, cp.name AS available_checkpoint,
                 cp.sequence_no AS available_sequence,
-                s.title AS source_title, s.url AS source_url
+                s.title AS source_title, s.url AS source_url,
+                avs.title AS availability_source_title,
+                avs.url AS availability_source_url
             FROM monster_hearts h
             LEFT JOIN checkpoints cp ON cp.checkpoint_id=h.available_from_checkpoint_id
             JOIN sources s USING(source_id)
+            LEFT JOIN sources avs ON avs.source_id=h.availability_source_id
             ORDER BY h.name"""
         )]
         if query:
@@ -76,7 +79,12 @@ def print_heart_report(report: dict, include_sources: bool = False) -> None:
         if row["availability_notes"]:
             print(f"  Note: {row['availability_notes']}")
         if include_sources:
-            print(f"  Source: {row['source_title']} — {row['source_url']} ({row['locator']})")
+            print(f"  Effect: {row['source_title']} — {row['source_url']} ({row['locator']})")
+            if row["availability_source_url"]:
+                print("  Availability: "
+                      f"{row['availability_source_title']} — "
+                      f"{row['availability_source_url']} "
+                      f"({row['availability_locator']})")
 
 
 def main() -> None:

@@ -481,6 +481,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("does not establish a second copy",
                       hearts["acceptance_condition"])
         self.assertIn("verified finite", hearts["acceptance_condition"])
+        _, troll = self.get_json("/api/monster-hearts/heart_troll")
+        self.assertEqual(troll["available_from_checkpoint_id"], "cp_019_aeolus")
+        self.assertEqual(len(troll["routes"]), 1)
+        route = troll["routes"][0]
+        self.assertEqual(route["supply_type"], "finite")
+        self.assertEqual(route["finite_total"], 1)
+        self.assertEqual(route["quantity"], 1)
+        self.assertNotEqual(route["method"], "drop")
+        self.assertIn("two_independent", route["verification_status"])
         counters = by_id["gap_achievement_counter_semantics"]
         self.assertEqual(counters["source_count"], 5)
         self.assertEqual(len(counters["supporting_claims"]), 9)

@@ -1150,7 +1150,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM monster_hearts
             WHERE available_from_checkpoint_id IS NULL"""
         ).fetchone()[0]
-        self.assertEqual(unknown, 42)
+        self.assertEqual(unknown, 41)
         missing_provenance = self.connection.execute(
             """SELECT COUNT(*) FROM monster_hearts h
             LEFT JOIN sources s USING(source_id)

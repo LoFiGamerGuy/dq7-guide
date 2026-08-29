@@ -475,6 +475,22 @@ function sourceLink(row) {
   if (!row?.source_url) return row?.locator ? `<span class="muted">${escapeHtml(row.locator)}</span>` : "";
   return `<a href="${escapeHtml(row.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(row.source_title || "Source")}</a><br><span class="muted">${escapeHtml(row.locator || "")}</span>`;
 }
+function heartRouteSafety(route) {
+  if (route.supply_type === "finite") {
+    const copies = Number(route.finite_total ?? route.quantity);
+    const quantity = Number.isFinite(copies) && copies > 0
+      ? ` · ${copies} ${copies === 1 ? "copy" : "copies"}` : "";
+    return `Finite pickup${quantity} · No repeatable Heart route established`;
+  }
+  return route.method === "drop"
+    ? "Drop listed · rate and repeatability unknown"
+    : "Repeatability not established";
+}
+function heartRouteEvidence(route) {
+  const status = String(route.verification_status || "");
+  return status.includes("two_") || status.includes("cross_source")
+    ? "Two-source route" : "Sourced route";
+}
 function renderRichDetail(detail, summary) {
   const target = $("#catalogDetail");
   if (state.domain === "items") {
@@ -500,7 +516,7 @@ function renderRichDetail(detail, summary) {
   } else if (state.domain === "hearts") {
     const routes = detail.routes || [];
     const ownershipNote = detail.ownership_status === "unknown" ? "Ownership unreported. Checking this starts the explicit Heart ledger; it does not infer other Hearts." : "Only explicit saved ownership is shown.";
-    target.innerHTML = `<p class="eyebrow">Monster Heart</p><h3>${escapeHtml(detail.name)}</h3><div class="callout"><strong>Effect</strong><span>${escapeHtml(detail.effect_text)}</span></div><h4>Earliest verified gate</h4><p>${escapeHtml(detail.available_checkpoint || "Unknown")}${detail.availability_notes ? `<br><span class="muted">${escapeHtml(detail.availability_notes)}</span>` : ""}</p><h4>Get it</h4><div class="detail-list">${routes.map(route => `<div><strong>${escapeHtml(route.route_label)}</strong><span>${escapeHtml([route.location_text, route.time_period, route.available_checkpoint].filter(Boolean).join(" · "))}</span><span>${route.method === "drop" ? "Drop rate unknown" : escapeHtml(route.method)}</span>${sourceLink(route)}${route.dlc_scope_status === "unknown" ? '<span>DLC scope unknown</span>' : ""}</div>`).join("") || '<p class="empty">No acquisition route normalized yet.</p>'}</div><h4>Effect source</h4><p>${sourceLink(detail)}</p><label class="progress-toggle"><input type="checkbox" data-catalog-progress="heart" data-progress-id="${escapeHtml(detail.heart_id)}" ${detail.owned === true ? "checked" : ""}> Explicitly mark owned</label><p class="muted">${escapeHtml(ownershipNote)} Unknown rates and DLC scope are not inferred.</p>`;
+    target.innerHTML = `<p class="eyebrow">Monster Heart</p><h3>${escapeHtml(detail.name)}</h3><div class="callout"><strong>Effect</strong><span>${escapeHtml(detail.effect_text)}</span></div><h4>Earliest verified gate</h4><p>${escapeHtml(detail.available_checkpoint || "Unknown")}${detail.availability_notes ? `<br><span class="muted">${escapeHtml(detail.availability_notes)}</span>` : ""}</p><h4>Get it</h4><div class="detail-list">${routes.map(route => `<div><strong>${escapeHtml(route.route_label)}</strong><span>${escapeHtml([route.location_text, route.time_period, route.available_checkpoint].filter(Boolean).join(" · "))}</span><span>${escapeHtml(heartRouteSafety(route))}</span><small class="tag">${escapeHtml(heartRouteEvidence(route))}</small>${sourceLink(route)}${route.dlc_scope_status === "unknown" ? '<span>DLC scope unknown</span>' : ""}</div>`).join("") || '<p class="empty">No acquisition route normalized yet.</p>'}</div><h4>Effect source</h4><p>${sourceLink(detail)}</p><label class="progress-toggle"><input type="checkbox" data-catalog-progress="heart" data-progress-id="${escapeHtml(detail.heart_id)}" ${detail.owned === true ? "checked" : ""}> Explicitly mark owned</label><p class="muted">${escapeHtml(ownershipNote)} Unknown rates and DLC scope are not inferred.</p>`;
   } else if (state.domain === "missables") {
     const unresolved = detail.window_status !== "verified";
     target.innerHTML = `<p class="eyebrow">${escapeHtml(detail.severity)} missable</p><h3>${escapeHtml(detail.name)}</h3>${unresolved ? `<div class="uncertain-banner"><strong>Exact cutoff unknown</strong><span>${escapeHtml(detail.window_gap_reason || "Do not use this row as a STOP warning yet.")}</span></div>` : '<span class="tag">Verified window</span>'}<h4>Window</h4><dl><dt>From</dt><dd>${escapeHtml(detail.available_from || "Unknown")}</dd><dt>Until</dt><dd>${escapeHtml(detail.unavailable_after || "Unknown — complete promptly")}</dd></dl><h4>Consequence</h4><p>${escapeHtml(detail.consequence)}</p><p><a href="${escapeHtml(detail.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(detail.source_title)}</a><br><span class="muted">${detail.locator ? escapeHtml(detail.locator) : "Precise locator not yet stored"}</span></p><p class="muted">Confidence: ${escapeHtml(detail.confidence)} · ${escapeHtml(detail.verification_status)}</p><label class="progress-toggle"><input type="checkbox" data-catalog-progress="missable" data-progress-id="${escapeHtml(detail.missable_id)}" ${detail.progress_status === "completed" ? "checked" : ""}> Explicitly mark completed</label>`;

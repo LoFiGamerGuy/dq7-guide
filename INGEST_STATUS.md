@@ -94,6 +94,12 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The Troll Heart retrieval pass closes the mismatch between its normalized item route
+and the dedicated Heart views. Heart/API/CLI guidance now gates the finite field
+sparkle at cp019 with separate effect and availability provenance. Phone detail shows
+the one-copy finite supply, the absence of a proven repeatable route, and the
+two-source route strength instead of the raw method label `other`.
+
 The Troll Heart conflict pass prevents a dangerous false farm route from entering
 active guidance. Game8 Japan and GAME攻略BOX independently place the Heart at the
 Aeolus Vale Past field sparkle exposed after defeating the seated Troll. XboxPlay's

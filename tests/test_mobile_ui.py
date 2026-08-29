@@ -357,6 +357,16 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('href="/api/state-backup"',
                       (ROOT / "web" / "index.html").read_text(encoding="utf-8"))
 
+    def test_heart_routes_show_finite_supply_and_evidence_strength(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function heartRouteSafety(route)", js)
+        self.assertIn('route.supply_type === "finite"', js)
+        self.assertIn("route.finite_total ?? route.quantity", js)
+        self.assertIn("Finite pickup", js)
+        self.assertIn("No repeatable Heart route established", js)
+        self.assertIn("function heartRouteEvidence(route)", js)
+        self.assertIn("Two-source route", js)
+
     def test_steam_deck_manager_full_isolated_lifecycle(self):
         manager = ROOT / "manage-steam-deck-guide.sh"
         with tempfile.TemporaryDirectory() as directory:
