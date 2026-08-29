@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 672)
+        self.assertEqual(self.counts["sources"], 675)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1150,7 +1150,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM monster_hearts
             WHERE available_from_checkpoint_id IS NULL"""
         ).fetchone()[0]
-        self.assertEqual(unknown, 41)
+        self.assertEqual(unknown, 39)
         missing_provenance = self.connection.execute(
             """SELECT COUNT(*) FROM monster_hearts h
             LEFT JOIN sources s USING(source_id)
@@ -1159,13 +1159,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(missing_provenance, 0)
         dlc_scoped = self.connection.execute(
             """SELECT name FROM monster_hearts
-            WHERE verification_status = 'source_checked_effect_dlc_scope_not_fully_normalized'
+            WHERE dlc_scope = 'Jam-Packed Swag Bag'
             ORDER BY name"""
         ).fetchall()
         self.assertEqual(
             [row[0] for row in dlc_scoped],
             ["Gold Golem Heart", "Metal Slime Heart"],
         )
+        self.assertEqual(self.connection.execute(
+            """SELECT COUNT(*) FROM monster_hearts
+            WHERE dlc_scope IS NOT NULL AND dlc_source_id IS NOT NULL
+              AND trim(dlc_locator) <> ''"""
+        ).fetchone()[0], 5)
         dlc_arena_routes = self.connection.execute(
             """SELECT name, availability_notes, availability_source_id,
                 availability_locator, available_from_checkpoint_id,
@@ -3389,6 +3394,19 @@ class KnowledgeBaseTests(unittest.TestCase):
                 ROOT / "player" / "ryan-save-state.json",
                 "cp_missing",
             )
+
+    def test_checkpoint_report_hides_recorded_obligations_and_medals(self):
+        state_path = Path(self.tempdir.name) / "checkpoint-report-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["obligations_completed"] = ["obl_prologue_fish_bits"]
+        state["completion"]["mini_medals_found"] = [6, 7]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        report = load_report(self.db_path, state_path, "cp_001_prologue")
+        self.assertFalse(any(row["stop_before_advancing"]
+                             for row in report["obligations"]))
+        self.assertEqual(report["medals"], [])
+        self.assertEqual(report["completed_hidden_count"], 1)
+        self.assertEqual(report["found_medals_hidden_count"], 2)
 
     def test_early_walkthrough_orders_range_and_classifies_medals(self):
         report = load_walkthrough(

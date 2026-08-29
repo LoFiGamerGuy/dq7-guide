@@ -921,12 +921,14 @@ def _build_database(db_path: Path) -> dict[str, int]:
             """INSERT INTO monster_hearts(
                 heart_id, name, effect_text, available_from_checkpoint_id,
                 availability_notes, availability_source_id,
-                availability_locator, source_id, locator, confidence,
+                availability_locator, dlc_scope, dlc_claim_method,
+                dlc_source_id, dlc_locator, source_id, locator, confidence,
                 verification_status
             ) VALUES (
                 :heart_id, :name, :effect_text, :available_from_checkpoint_id,
                 :availability_notes, :availability_source_id,
-                :availability_locator, :source_id, :locator, :confidence,
+                :availability_locator, :dlc_scope, :dlc_claim_method,
+                :dlc_source_id, :dlc_locator, :source_id, :locator, :confidence,
                 :verification_status
             )""",
             [
@@ -938,6 +940,10 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "availability_notes": heart.get("availability_notes"),
                     "availability_source_id": heart.get("availability_source_id"),
                     "availability_locator": heart.get("availability_locator"),
+                    "dlc_scope": heart.get("dlc_scope"),
+                    "dlc_claim_method": heart.get("dlc_claim_method"),
+                    "dlc_source_id": heart.get("dlc_source_id"),
+                    "dlc_locator": heart.get("dlc_locator"),
                 }
                 for heart in seed.get("monster_hearts", [])
             ],

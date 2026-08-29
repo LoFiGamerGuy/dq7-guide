@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from guide_server import (_access_urls, _advice_evidence, _checkpoint_view,
                           _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
+                          _monster_hearts,
                           _validate_database, _vocation_unlock_progress,
                           create_server, make_handler)
 from build_kb import build_database
@@ -773,6 +774,33 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(drop["drop_rate_status"], "unknown")
         self.assertIsNone(drop["drop_rate"])
         self.assertEqual(drop["dlc_scope_status"], "unknown")
+
+    def test_dlc_hearts_require_explicit_entitlement_before_available(self):
+        state_path = Path(self.temp.name) / "dlc-heart-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["story"]["checkpoint_id"] = "cp_020_buccanham"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        rows = {row["heart_id"]: row for row in _monster_hearts(
+            ROOT / "data" / "dq7_reimagined.sqlite", {}, state_path)["hearts"]}
+        for heart_id in ("heart_dragonlord", "heart_malroth", "heart_zoma"):
+            self.assertIsNone(rows[heart_id]["available_now"])
+            self.assertEqual(rows[heart_id]["dlc_ownership_status"], "unknown")
+            self.assertEqual(rows[heart_id]["availability_status"],
+                             "requires_dlc_ownership_confirmation")
+
+        state["dlc_entitlements"] = {"Road of Regal Wretches": True}
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        rows = {row["heart_id"]: row for row in _monster_hearts(
+            ROOT / "data" / "dq7_reimagined.sqlite", {}, state_path)["hearts"]}
+        self.assertTrue(rows["heart_dragonlord"]["available_now"])
+        self.assertEqual(rows["heart_dragonlord"]["dlc_ownership_status"], "owned")
+
+        state["dlc_entitlements"]["Road of Regal Wretches"] = False
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        rows = {row["heart_id"]: row for row in _monster_hearts(
+            ROOT / "data" / "dq7_reimagined.sqlite", {}, state_path)["hearts"]}
+        self.assertFalse(rows["heart_dragonlord"]["available_now"])
+        self.assertEqual(rows["heart_dragonlord"]["dlc_ownership_status"], "not_owned")
 
     def test_power_plan_uses_only_explicit_party_state_and_saved_checkpoint_gear(self):
         state_path = Path(self.temp.name) / "power-plan-state.json"

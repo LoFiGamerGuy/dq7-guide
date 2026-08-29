@@ -19,7 +19,7 @@ class HeartReportTests(unittest.TestCase):
         )
         self.assertGreaterEqual(len(report["hearts"]), 12)
         self.assertGreaterEqual(report["verified_available"], 1)
-        self.assertEqual(report["unknown_availability"], 2)
+        self.assertEqual(report["unknown_availability"], 0)
         golem = next(row for row in report["hearts"] if row["heart_id"] == "heart_golem")
         self.assertIs(golem["available_now"], True)
         self.assertTrue(golem["source_url"].startswith("https://"))

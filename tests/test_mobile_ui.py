@@ -39,6 +39,14 @@ class _MobileContractParser(HTMLParser):
 
 
 class MobileUiContractTests(unittest.TestCase):
+    def test_dlc_hearts_show_ownership_warning_before_availability_detail(self):
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        warning = js.index("DLC ownership unconfirmed")
+        detail = js.index("Earliest verified gate", warning)
+        self.assertLess(warning, detail)
+        self.assertIn('detail.dlc_ownership_status === "unknown"', js)
+        self.assertIn("not shown as currently obtainable", js)
+
     def test_verified_seed_pool_and_achievement_conflicts_are_visible(self):
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
         self.assertIn("Verified eligible pool", js)

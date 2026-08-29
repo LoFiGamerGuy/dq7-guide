@@ -18,6 +18,17 @@ def load_report(db_path: Path, state_path: Path, checkpoint_id: str | None = Non
     if not db_path.exists():
         raise FileNotFoundError(f"Database not found: {db_path}")
     state = json.loads(state_path.read_text(encoding="utf-8"))
+    completion = state.get("completion", {})
+    completed = completion.get("obligations_completed", [])
+    found_medals = completion.get("mini_medals_found", [])
+    if not isinstance(completed, list) or any(not isinstance(value, str) for value in completed):
+        raise ValueError("completion.obligations_completed must be a list of strings")
+    if not isinstance(found_medals, list) or any(
+        not isinstance(value, int) or isinstance(value, bool) for value in found_medals
+    ):
+        raise ValueError("completion.mini_medals_found must be a list of integers")
+    completed_ids = set(completed)
+    found_numbers = set(found_medals)
     selected = checkpoint_id or state["story"]["checkpoint_id"]
     if not selected:
         raise ValueError(
@@ -54,8 +65,16 @@ def load_report(db_path: Path, state_path: Path, checkpoint_id: str | None = Non
         return {
             "player_checkpoint_matches": state["story"]["checkpoint_id"] == selected,
             "checkpoint": dict(checkpoint),
-            "obligations": [dict(row) for row in obligations],
-            "medals": [dict(row) for row in medals],
+            "obligations": [dict(row) for row in obligations
+                            if row["obligation_id"] not in completed_ids],
+            "medals": [dict(row) for row in medals
+                       if row["medal_number"] not in found_numbers],
+            "completed_hidden_count": sum(
+                row["obligation_id"] in completed_ids for row in obligations
+            ),
+            "found_medals_hidden_count": sum(
+                row["medal_number"] in found_numbers for row in medals
+            ),
         }
     finally:
         connection.close()

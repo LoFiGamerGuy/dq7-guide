@@ -73,8 +73,11 @@ available offline. Troll Heart detail separately labels its cp019 route as a fin
 one-copy pickup with no proven repeatable route and two-source acquisition evidence.
 The CLI Heart report mirrors the browser's earliest-route fallback: 39 Hearts derive
 their gate from normalized item routes and five retain explicit Heart gates. Only
-Metal Slime and Gold Golem Hearts keep unknown checkpoint availability because their
-DLC notes do not establish a normalized access gate.
+Metal Slime and Gold Golem Hearts have a structured Jam-Packed Swag Bag gate at
+first player control. Contents and Claim Special Rewards are independently
+corroborated; exact earliest timing remains single-source. Because Ryan has not
+reported DLC ownership, the API and phone deliberately keep all five DLC Hearts
+out of “available” until entitlement is explicit.
 
 The final three unpublished purchase prices are now typed shop inventory:
 Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle

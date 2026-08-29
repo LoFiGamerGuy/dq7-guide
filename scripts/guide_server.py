@@ -858,10 +858,13 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
     rows = _rows(db_path, """SELECT h.heart_id, h.name, h.effect_text,
         h.available_from_checkpoint_id, c.name AS available_checkpoint,
         h.availability_notes, h.confidence, h.verification_status,
+        h.dlc_scope, h.dlc_claim_method, h.dlc_source_id, h.dlc_locator,
+        ds.title AS dlc_source_title, ds.url AS dlc_source_url,
         h.source_id, s.title AS source_title, s.url AS source_url, h.locator
         FROM monster_hearts h
         LEFT JOIN checkpoints c ON c.checkpoint_id=h.available_from_checkpoint_id
         JOIN sources s USING(source_id)
+        LEFT JOIN sources ds ON ds.source_id=h.dlc_source_id
         ORDER BY COALESCE(c.sequence_no, 999), h.name""")
     player_state = _state(state_path) if state_path else {}
     completion = player_state.get("completion", {})
@@ -870,6 +873,7 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
     canonical_ids = {row["heart_id"] for row in rows}
     owned = recorded_owned & canonical_ids
     checkpoint_id = player_state.get("story", {}).get("checkpoint_id")
+    entitlements = player_state.get("dlc_entitlements", {})
     checkpoint_sequence = None
     if checkpoint_id:
         with sqlite3.connect(db_path) as connection:
@@ -891,6 +895,12 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
         row["owned"] = (row["heart_id"] in owned) if tracking_known else None
         row["ownership_status"] = ("owned" if row["owned"] is True else
                                    "not_owned" if row["owned"] is False else "unknown")
+        if row["dlc_scope"]:
+            entitlement = entitlements.get(row["dlc_scope"])
+            row["dlc_ownership_status"] = ("owned" if entitlement is True else
+                                           "not_owned" if entitlement is False else "unknown")
+        else:
+            row["dlc_ownership_status"] = "not_applicable"
         if checkpoint_sequence is None or not row["available_from_checkpoint_id"]:
             row["available_now"] = None
         else:
@@ -900,6 +910,10 @@ def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) 
                     (row["available_from_checkpoint_id"],),
                 ).fetchone()
             row["available_now"] = bool(gate and gate[0] <= checkpoint_sequence)
+        if row["dlc_scope"] and row["dlc_ownership_status"] != "owned":
+            row["available_now"] = (False if row["dlc_ownership_status"] == "not_owned"
+                                    else None)
+            row["availability_status"] = "requires_dlc_ownership_confirmation"
     page = _page(rows, query, ("heart_id", "name", "effect_text",
         "available_checkpoint", "availability_notes"))
     page["hearts"] = page.pop("results")
