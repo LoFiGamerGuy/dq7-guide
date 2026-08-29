@@ -3003,6 +3003,48 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("Kiefer Let Loose",
                       notes["advice_cp007_tinpot_dictator"])
 
+    def test_cp001_through_cp009_two_source_advice_has_atomic_evidence_links(self):
+        expected = {
+            "advice_cp003_golem", "advice_cp003_crabble_maeve_sequence",
+            "advice_cp004_glowering_inferno", "advice_cp005_hackrobat",
+            "advice_cp005_fixed_weapon_sweep",
+            "advice_cp007_tinpot_dictator", "advice_cp007_slaughtomaton",
+            "advice_cp007_windcheater_spike", "advice_cp008_florin",
+            "advice_cp008_guardians_roamers",
+            "advice_cp009_hero_practical_gear",
+            "advice_cp009_ruff_practical_gear", "advice_cp009_cardinal_sin",
+            "advice_cp009_arena_numpton", "advice_cp009_arena_bronson",
+            "advice_cp009_arena_hans", "advice_cp009_arena_nava",
+            "advice_cp009_vocations_arena_power",
+            "advice_cp009_rashers_stripes",
+        }
+        rows = self.connection.execute(
+            """SELECT advice_id, applicability_json, verification_status
+               FROM checkpoint_advice
+               WHERE CAST(substr(checkpoint_id, 4, 3) AS INTEGER) <= 9
+                 AND (verification_status LIKE '%two_source%'
+                      OR verification_status LIKE '%two_independent%')"""
+        ).fetchall()
+        self.assertEqual({row["advice_id"] for row in rows}, expected)
+        mixed = 0
+        for row in rows:
+            claim_ids = json.loads(row["applicability_json"])[
+                "evidence_claim_ids"]
+            self.assertGreaterEqual(len(claim_ids), 2, row["advice_id"])
+            placeholders = ",".join("?" for _ in claim_ids)
+            claims = self.connection.execute(
+                f"""SELECT claim_id, source_id, verification_status
+                    FROM claims WHERE claim_id IN ({placeholders})""", claim_ids
+            ).fetchall()
+            self.assertEqual(len(claims), len(set(claim_ids)), row["advice_id"])
+            self.assertGreaterEqual(len({claim["source_id"] for claim in claims}),
+                                    2, row["advice_id"])
+            self.assertTrue(all(not claim["verification_status"].startswith(
+                "single_") for claim in claims), row["advice_id"])
+            if "single_source" in row["verification_status"]:
+                mixed += 1
+        self.assertGreater(mixed, 0)
+
     def test_glowering_inferno_phase_plan_is_corroborated_without_promoting_single_source_defend(self):
         claims = self.connection.execute(
             """SELECT claim_id, predicate, confidence, verification_status
@@ -4097,6 +4139,44 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(shepherd["max_hp"], "increased")
         self.assertEqual(shepherd["attack"], "decreased")
         self.assertEqual(shepherd["agility"], "decreased")
+
+    def test_cp010_through_cp019_two_source_advice_has_atomic_evidence_links(self):
+        expected = {
+            "advice_cp010_mild_bunch", "advice_cp010_mighty_pip",
+            "advice_cp011_skeleton_squire", "advice_cp011_setesh",
+            "advice_cp013_sunken_spirits", "advice_cp013_king_slime",
+            "advice_cp013_ethereal_serpent", "advice_cp013_gracos",
+            "advice_cp014_gracos_v", "advice_cp016_envoy",
+            "advice_cp016_advanced_path_routing",
+            "advice_cp017_gladiator_burst", "advice_cp018_gasputin",
+            "advice_cp019_vaipur", "advice_cp019_cumulus_vex",
+        }
+        rows = self.connection.execute(
+            """SELECT advice_id, applicability_json FROM checkpoint_advice
+            WHERE checkpoint_id BETWEEN 'cp_010_alltrades_present'
+                AND 'cp_019_aeolus'"""
+        ).fetchall()
+        linked = {}
+        for row in rows:
+            if row[0] not in expected:
+                continue
+            claim_ids = json.loads(row[1]).get("evidence_claim_ids", [])
+            self.assertGreaterEqual(len(claim_ids), 2, row[0])
+            placeholders = ",".join("?" for _ in claim_ids)
+            claims = self.connection.execute(
+                f"SELECT claim_id, source_id FROM claims "
+                f"WHERE claim_id IN ({placeholders})", claim_ids
+            ).fetchall()
+            self.assertEqual(len(claims), len(set(claim_ids)), row[0])
+            self.assertGreaterEqual(len({claim[1] for claim in claims}), 2, row[0])
+            linked[row[0]] = set(claim_ids)
+        self.assertEqual(set(linked), expected)
+        self.assertNotIn("claim_gasputin_item_fallback_game8",
+                         linked["advice_cp018_gasputin"])
+        self.assertNotIn("claim_gracos_dazzle_game8",
+                         linked["advice_cp013_gracos"])
+        self.assertNotIn("claim_cumulus_vex_wind_resistance_game8",
+                         linked["advice_cp019_cumulus_vex"])
 
 
 if __name__ == "__main__":

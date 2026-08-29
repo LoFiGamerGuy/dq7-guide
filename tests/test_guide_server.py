@@ -1003,9 +1003,36 @@ class GuideServerTests(unittest.TestCase):
             db_path, self.state, "cp_028_cathedral_of_blight",
         )["advice"] if row["id"] == "advice_cp028_orgodemir_final")
         self.assertEqual(orgodemir["evidence"]["tier"],
-                         "declared_two_source_audit_pending")
-        self.assertIn("lacks explicit atomic claim links",
-                      orgodemir["evidence"]["reason"])
+                         "two_source_core_single_source_extras")
+        self.assertEqual(orgodemir["evidence"]["source_count"], 2)
+
+    def test_late_and_postgame_two_source_advice_has_atomic_badge_evidence(self):
+        db_path = Path(self.temp.name) / "late-advice-evidence.sqlite"
+        build_database(db_path)
+        audited = []
+        with sqlite3.connect(db_path) as connection:
+            checkpoint_ids = [row[0] for row in connection.execute(
+                "SELECT checkpoint_id FROM checkpoints "
+                "WHERE sequence_no BETWEEN 20 AND 33 ORDER BY sequence_no"
+            )]
+        for checkpoint_id in checkpoint_ids:
+            for row in _checkpoint_view(db_path, self.state, checkpoint_id)["advice"]:
+                status = row["verification_status"]
+                if "two_source" not in status and "two_independent" not in status:
+                    continue
+                audited.append(row["id"])
+                self.assertIn(
+                    row["evidence"]["tier"],
+                    {"two_source", "two_source_core_single_source_extras"},
+                    row["id"],
+                )
+                self.assertGreaterEqual(row["evidence"]["source_count"], 2, row["id"])
+                self.assertEqual(
+                    row["evidence"]["source_count"],
+                    len({claim["source_id"] for claim in row["evidence"]["claims"]}),
+                    row["id"],
+                )
+        self.assertGreaterEqual(len(audited), 11)
 
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"

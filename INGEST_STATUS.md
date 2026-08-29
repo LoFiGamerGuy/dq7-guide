@@ -474,6 +474,12 @@ boundaries: Golem's exact role/resource note, Maeve's Dazzle resistance, and the
 Tinpot Dictator Kiefer Let Loose caution. No underlying tactics or player state
 were changed.
 
+The cp001-cp009 evidence-link migration now gives all 19 early advice rows that
+claim a two-source tier explicit `evidence_claim_ids`. Every linked core resolves
+to at least two distinct source IDs. Mixed rows link only their corroborated
+core; source-specific options remain represented by their existing advice status
+and are not included as badge evidence.
+
 The cp028 final Orgodemir pass matches Game8's Cathedral walkthrough and
 Korosenai's direct phase guide on sustained Magic Barrier coverage and group
 attacks against the phase-four hands. The phone plan leads with those verified
@@ -503,3 +509,9 @@ Game8 describes a broader skill lock instead; that scope remains explicitly
 disputed, and its healing/revival-item fallback, poison cures, and pre-lock
 debuff plan remain source-specific. Korosenai's Magic Barrier/Slow rotation is
 also retained only as a single-source extra.
+
+The cp010-cp019 evidence-link migration gives all 15 remaining midgame advice
+rows that claim a two-source tier explicit `evidence_claim_ids`. Each linked
+core resolves to at least two distinct publishers. Mixed advice links only the
+corroborated core: exact skills, rotations, recovery timing, resistance notes,
+and other one-publisher extras remain outside the phone badge evidence.
