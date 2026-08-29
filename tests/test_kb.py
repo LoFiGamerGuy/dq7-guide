@@ -2551,6 +2551,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(panel_probability[0]["evidence"][0]["claim_id"],
                          "claim_lucky_panel_numeric_cells")
 
+        gap_queries = {
+            "Blue Button before Cataclysm": "gap_blue_button_cutoff",
+            "farming EXP rate": "gap_reproducible_farm_rates",
+            "duplicate accessory stacking": "gap_duplicate_equipment_stacking",
+            "achievement counter persistence": "gap_achievement_counter_semantics",
+        }
+        for query, gap_id in gap_queries.items():
+            with self.subTest(query=query):
+                result = search(self.db_path, query, limit=4)[0]
+                self.assertEqual(result["document_id"], f"evidence-gap:{gap_id}")
+                self.assertIn("Needed:", result["body"])
+
     def test_search_does_not_create_missing_database(self):
         missing = Path(self.tempdir.name) / "missing.sqlite"
         with self.assertRaises(FileNotFoundError):

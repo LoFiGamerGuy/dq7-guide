@@ -13,6 +13,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
 DEFAULT_EVIDENCE_GAPS = ROOT / "data" / "evidence_gaps.json"
+EVIDENCE_GAP_SEARCH_TERMS = {
+    "gap_blue_button_cutoff": "Blue Button before Cataclysm cutoff missable",
+    "gap_lucky_panel_probabilities":
+        "Lucky Panel probability probabilities odds chance draw rate weights denominator",
+    "gap_reproducible_farm_rates":
+        "farming farm EXP experience gold drop encounter rate rates efficiency benchmark",
+    "gap_repeatable_monster_hearts":
+        "repeatable renewable farm farming Monster Heart respawn rematch drop",
+    "gap_duplicate_equipment_stacking":
+        "duplicate same item accessory accessories Monster Heart stacking stack legality "
+        "Rabbit Tail formula cap",
+    "gap_achievement_counter_semantics":
+        "achievement trophy counter persistence save reset New Game demo import overlap "
+        "quick win Field Day Monster Masher Metal Mangler",
+}
 
 
 def normalize_query(query: str) -> str | None:
@@ -89,11 +104,20 @@ def _structured_rows(connection: sqlite3.Connection, tokens: list[str], limit: i
 def _evidence_gap_rows(connection: sqlite3.Connection, tokens: list[str]) -> list[dict]:
     """Return curated unknowns before generic matches when every query token matches."""
     gaps = json.loads(DEFAULT_EVIDENCE_GAPS.read_text(encoding="utf-8"))
+    gap_ids = {gap["gap_id"] for gap in gaps}
+    if gap_ids != set(EVIDENCE_GAP_SEARCH_TERMS):
+        raise ValueError(
+            "Evidence-gap search vocabulary is out of sync: "
+            f"missing={sorted(gap_ids - set(EVIDENCE_GAP_SEARCH_TERMS))}, "
+            f"extra={sorted(set(EVIDENCE_GAP_SEARCH_TERMS) - gap_ids)}"
+        )
     rows = []
     for gap in gaps:
         search_text = " ".join((gap["gap_id"], gap["subject"], gap["summary"],
-                                gap["acceptance_condition"])).casefold()
-        if not all(token.casefold() in search_text for token in tokens):
+                                gap["acceptance_condition"],
+                                EVIDENCE_GAP_SEARCH_TERMS.get(gap["gap_id"], "")))
+        search_tokens = {token.casefold() for token in _tokens(search_text)}
+        if not all(token.casefold() in search_tokens for token in tokens):
             continue
         claim_ids = gap.get("claim_ids", [])
         evidence = []

@@ -30,6 +30,7 @@ structured claims and item aliases, and only then broad OR fallback. Regression
 queries cover Shell Shield, Slime Earring, Stella Fan, and Orgodemir Magic
 Barrier so exact priority identities and conflicts do not disappear into generic
 shield, slime, or spell results. Curated evidence gaps take priority when every
-query term matches their subject, summary, or acceptance condition. Those results
+query term matches their subject, summary, acceptance condition, or maintained
+player-query vocabulary. Matching uses whole tokens rather than substrings. Those results
 state the unresolved conclusion and evidence needed, and expose the precise
 supporting-claim URLs and locators rather than letting generic results imply closure.

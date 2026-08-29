@@ -100,7 +100,9 @@ now leads with the verified finite-route boundary and explicit lack of a proven
 repeatable route; `Lucky Panel probability` leads with the missing algorithm and
 denominator. Both expose precise supporting-claim URLs and locators, and the Lucky
 Panel gap now directly links its normalized numeric-cell claim. No probability,
-rate, or repeatability is inferred.
+rate, or repeatability is inferred. Maintained whole-token vocabulary now covers
+all six gaps, including `farming EXP rate` and `achievement counter persistence`;
+the query layer fails loudly if that vocabulary and the curated queue diverge.
 
 The Troll Heart retrieval pass closes the mismatch between its normalized item route
 and the dedicated Heart views. Heart/API/CLI guidance now gates the finite field
