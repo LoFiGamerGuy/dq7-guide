@@ -393,10 +393,11 @@ pairs.
 - **Curated research queue:** 5 items: 2 single-source, 1 unsupported, and 2
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence.
-- **Automatic conflicts:** 16 unresolved claim-pairs represent 12 distinct fact
+- **Automatic conflicts:** 18 unresolved claim-pairs represent 13 distinct fact
   scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts);
   one is the Stella/Stellar Fan display name; one is the Fishnet Stockings
-  Frobisher period. Resolving the first eleven requires a legible
+  Frobisher period (two claim-pairs); and one is Marshal Lourgh's Past/Present
+  encounter scope. Resolving the equipment/name facts requires a legible
   current-version English equipment/inventory UI capture that shows the relevant
   character list or full item name. Additional guide consensus is not treated as
   equivalent to direct UI evidence.
@@ -418,7 +419,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 621 source records currently have retrieval dates within 180
+- **Freshness:** all 632 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -643,14 +644,16 @@ as Liquid Metal Slime farms across Game8 and GameWith. Both recommend critical-
 hit and multi-hit skills. The phone card keeps this grind optional and retains
 unknown encounter rate and numeric stopping level instead of inventing a target.
 
-The late single-source boss audit promotes Macho Picchu's party-Defence setup
+The earlier late single-source boss audit promoted Macho Picchu's party-Defence setup
 and post-Let-Loose burst window after direct current-version agreement between
 Game8 and Korosenai. Great Leveller, attack reduction, exact stack counts,
 party composition, levels, weaknesses, and rotations remain source-specific or
-unknown. No second direct actionable source was found for the Time Being or
-Lourgh/Disorder. Neoseeker provides a second current-version first-Orgodemir
-page, but this batch did not promote a shared tactic without completing direct
-page-level adjudication; those three phone rows remain explicitly single-source.
+unknown. A later direct-page audit found independent actionable sources for Time
+Being and Lourgh/Disorder: their narrow shared cores and source-specific extras
+are now normalized above, and Lourgh's chronology disagreement is an explicit
+automatic conflict. Neoseeker also supplies the independently adjudicated
+first-Orgodemir phase-one Magic Barrier core; phase-two recommendations remain
+split and visible.
 
 The advanced-vocation audit promotes Hero's worked-up ability gate and exact
 unlock rule after direct Game8/GameWith agreement: Hero requires mastery of any
