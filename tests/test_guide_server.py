@@ -506,7 +506,10 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
-        self.assertEqual(audit["unresolved_conflicts"], 0)
+        self.assertEqual(audit["unresolved_conflicts"], 1)
+        self.assertEqual(audit["unresolved_conflicts_by_predicate"], [{
+            "predicate": "starting_roster", "count": 1,
+        }])
         self.assertEqual(audit["source_freshness"]["total"], sum(
             audit["source_freshness"][key]
             for key in ("within_180_days", "over_180_days", "unknown")
@@ -822,7 +825,12 @@ class GuideServerTests(unittest.TestCase):
         self.assertTrue(panel["source"]["locator"])
         self.assertIn("two_source_verified", panel["verification_status"])
         _, conflicts = self.get_json("/api/conflicts")
-        self.assertEqual(conflicts, [])
+        self.assertEqual(len(conflicts), 1)
+        self.assertEqual(conflicts[0]["subject"],
+                         "arena:simmering road round 3")
+        self.assertEqual(conflicts[0]["predicate"], "starting roster")
+        self.assertEqual(conflicts[0]["status"], "unresolved")
+        self.assertEqual(len(conflicts[0]["claims"]), 2)
         _, tempest_item = self.get_json("/api/items/Tempest%20Shield")
         tempest_chests = {row["location_text"] for row in tempest_item["routes"]
                           if row["method"] == "chest"}

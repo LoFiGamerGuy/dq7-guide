@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 701)
+        self.assertEqual(self.counts["sources"], 704)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1505,9 +1505,41 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertIsNotNone(conflict)
         unresolved = self.connection.execute(
-            "SELECT COUNT(*) FROM conflicts WHERE status='unresolved'"
-        ).fetchone()[0]
-        self.assertEqual(unresolved, 0)
+            """SELECT conflict_key FROM conflicts
+            WHERE status='unresolved'"""
+        ).fetchall()
+        self.assertEqual(len(unresolved), 1)
+        self.assertIn("arena:simmering_road_round_3",
+                      unresolved[0]["conflict_key"])
+
+    def test_rampaging_encounters_have_exact_road_round_with_one_visible_omission(self):
+        rows = self.connection.execute(
+            """SELECT e.encounter_id, m.english_name, e.location_text,
+                e.source_id, e.verification_status
+            FROM monster_encounters e JOIN monsters m USING(monster_id)
+            WHERE e.encounter_id LIKE 'enc_rampaging_%_rampage_roads'"""
+        ).fetchall()
+        self.assertEqual(len(rows), 34)
+        self.assertTrue(all("Round" in row["location_text"] for row in rows))
+        self.assertTrue(all("category unresolved" not in row["location_text"]
+                            for row in rows))
+        sunken = next(row for row in rows
+                      if row["english_name"] == "Rampaging Sunken Spirit")
+        self.assertEqual(sunken["location_text"],
+                         "Simmering Road Round 3 (Buccanham Arena)")
+        self.assertIn("single_source", sunken["verification_status"])
+        summons = [row for row in rows if row["english_name"] in {
+            "Rampaging Miry Hand", "Rampaging Miry Mudraker"
+        }]
+        self.assertEqual(len(summons), 2)
+        self.assertTrue(all("summoned by" in row["location_text"]
+                            for row in summons))
+        conflict = self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE conflict_key LIKE
+                'arena:simmering_road_round_3|starting_roster|%'"""
+        ).fetchone()
+        self.assertEqual(conflict["status"], "unresolved")
 
     def test_direct_item_pages_resolve_verified_panel_name_variants(self):
         aliases = dict(self.connection.execute(
@@ -1825,7 +1857,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 SUM(source_id NOT LIKE 'game8_monster_%')
             FROM monster_encounters"""
         ).fetchone()
-        self.assertEqual(tuple(early), (333, "cp_001_prologue", 98))
+        self.assertEqual(tuple(early), (333, "cp_001_prologue", 132))
         cactiball_drops = {
             row[0] for row in self.connection.execute(
                 "SELECT item_name FROM monster_drops WHERE monster_id='monster_009'"
@@ -1880,7 +1912,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         rampage_completion_routes = self.connection.execute(
             """SELECT COUNT(*), COUNT(DISTINCT monster_id)
             FROM monster_encounters
-            WHERE location_text LIKE 'Rampage Roads (Buccanham Arena;%'
+            WHERE encounter_id LIKE 'enc_rampaging_%_rampage_roads'
+              AND location_text LIKE '%Road Round %'
               AND available_from_checkpoint_id='cp_031_testy_road_gold_gate'"""
         ).fetchone()
         self.assertEqual(tuple(rampage_completion_routes), (34, 34))
