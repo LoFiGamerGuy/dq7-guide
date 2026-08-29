@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 537 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 538 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous two-vocation learning, current-vocation-only skills, and dual skill/stat access normalized | High for published behavior; legal-pair restrictions remain unpublished | Resolve legal-pair restrictions only from direct evidence |
@@ -18,7 +18,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Missables / choices | 7/7 direct-source records with precise locators; 6 exact choice/window cutoffs and Little Blue Button explicitly unresolved | High for documented consequences; medium where the source omits a cutoff | Resolve Little Blue Button's story cutoff; it is not STOP-eligible until then |
 | Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` remains the sole exact-name gap. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify Shell Shield, the legacy row, and numerical probabilities only if directly published |
-| Equipment | 110 ready-for-play advice rows; all 311 canonical rows have two-publisher agreement; all 74 accessories/Hearts verified; safe accessory-only editor | High for normalized compatibility; disagreeing source claims remain visible; accessory writes require explicit ownership, verified compatibility, and distinct IDs | Verify one-each non-accessory slot counts before enabling non-accessory writes; duplicate effects remain unmodeled |
+| Equipment | 110 ready-for-play advice rows; all 311 canonical rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated | High for normalized compatibility and slot layout; disagreeing source claims remain visible; duplicate effects remain unmodeled | Keep same-item accessory/Heart duplicates constrained until a second current-version source verifies legality and effect stacking |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 537
+- sources: 538
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** Little Blue Button is the sole record without an exact named story cutoff and remains structurally excluded from STOP warnings.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 537 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 538 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -306,7 +306,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 537 source records currently have retrieval dates within 180
+- **Freshness:** all 538 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -315,8 +315,9 @@ single-source armour compatibility rows. GameWith's current-version armour list
 matches Game8 Japan for Party Dress (Maribel and Aishe) and Metal King Armour
 (Hero, Maribel, Ruff, Aishe, and Sir Mervyn), using visible active-character
 icons and matching item stats to bridge the Japanese display-name variants.
-This raises two-publisher compatibility coverage to all 311 rows; it does not relax non-accessory editing while
-slot-count and duplicate behavior remain unverified.
+This raises two-publisher compatibility coverage to all 311 rows. The later slot-layout
+batch separately verifies the one-each non-accessory counts; same-item accessory/Heart
+duplicate and effect-stacking behavior remains unverified.
 
 The next compatibility adjudication adds GameWith's weapon and shield matrices.
 Its active-character icons match Gamers-High for Liquid Metal Sword (Hero,
@@ -331,8 +332,19 @@ compatible-character list (Hero, Kiefer, Ruff, Aishe, and Sir Mervyn) matches
 HyperWiki, establishing the final two-publisher audit consensus. Game8 Japan,
 GameWith, Gamers-High, and GameDeep publish differing lists; each claim remains
 stored and conflicted rather than overwritten. Character compatibility is now
-normalized for all 311 equipment rows, while non-accessory writes remain disabled
-until slot-count and duplicate-equip behavior are separately verified.
+normalized for all 311 equipment rows. Non-accessory slot counts are now separately
+verified; same-item accessory/Heart duplicate and effect-stacking behavior remains
+unverified.
+
+The slot-layout batch promotes one weapon, one shield, one helmet/head item, and one
+armour/torso item per playable character. Gamers-High directly states that accessories
+alone receive two equipment slots; Hobby Consolas independently and consistently
+enumerates one of each non-accessory category plus Accessory 1 and Accessory 2 across
+early-, mid-, and late-game character loadouts. Character legality remains governed by
+the complete 311-row compatibility matrix. Monster Hearts still consume accessory
+slots. Hobby Consolas shows one repeated accessory in a sample loadout, but no second
+independent current-version source establishes same-item legality or effect stacking,
+so that narrower duplicate rule remains explicitly unpromoted.
 
 The Arena roster corroboration batch matches all ten Silver and Gold Cup members
 between RPG Site and Nerthing's independent current-version Steam achievement

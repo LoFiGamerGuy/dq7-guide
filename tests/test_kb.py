@@ -59,8 +59,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 537)
-        self.assertEqual(self.counts["equipment_rules"], 2)
+        self.assertEqual(self.counts["sources"], 538)
+        self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
         self.assertEqual(self.counts["item_identity_redirects"], 1)
@@ -2474,7 +2474,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         for values, message in (
             (["Hero", "accessory_2", "item_prayer_ring"], "Duplicate"),
             (["Hero", "accessory_2", "item_strength_ring"], "not explicitly owned"),
-            (["Hero", "accessory_2", "item_cypress_stick"], "Only accessory"),
+            (["Hero", "accessory_2", "item_cypress_stick"], "does not match"),
         ):
             with self.assertRaisesRegex(ValueError, message):
                 update_progress(state_path, self.db_path, "accessory-set", values)
@@ -2485,6 +2485,31 @@ class KnowledgeBaseTests(unittest.TestCase):
         recorded = json.loads(state_path.read_text())["party"]["members"]["Hero"]["equipment"]
         self.assertNotIn("accessory_1", recorded)
         self.assertEqual(recorded["accessory_2"], "item_slime_heart")
+
+    def test_standard_equipment_writes_require_slot_rule_ownership_category_and_compatibility(self):
+        state_path = Path(self.tempdir.name) / "equipment-progress.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["items_obtained"] = ["item_cautery_sword", "item_prayer_ring",
+                                                   "item_siren_sword"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        update_progress(state_path, self.db_path, "equipment-set",
+                        ["Hero", "weapon", "item_cautery_sword"])
+        equipment = json.loads(state_path.read_text())["party"]["members"]["Hero"]["equipment"]
+        self.assertEqual(equipment["weapon"], "item_cautery_sword")
+        before = state_path.read_text()
+        for values, message in (
+            (["Hero", "shield", "item_cautery_sword"], "does not match"),
+            (["Hero", "weapon", "item_cypress_stick"], "not explicitly owned"),
+            (["Hero", "weapon", "item_siren_sword"], "Compatibility is not verified"),
+            (["Hero", "accessory_1", "item_prayer_ring"], "Unsupported equipment slot"),
+        ):
+            with self.assertRaisesRegex(ValueError, message):
+                update_progress(state_path, self.db_path, "equipment-set", values)
+            self.assertEqual(state_path.read_text(), before)
+        update_progress(state_path, self.db_path, "equipment-set",
+                        ["Hero", "weapon", "unknown"])
+        equipment = json.loads(state_path.read_text())["party"]["members"]["Hero"]["equipment"]
+        self.assertNotIn("weapon", equipment)
 
     def test_player_progress_done_is_stable_idempotent_and_reversible(self):
         state_path = Path(self.tempdir.name) / "explicit-done.json"

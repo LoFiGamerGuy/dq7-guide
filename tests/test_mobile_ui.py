@@ -106,6 +106,17 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn('id="advanceStatus" class="tag" role="status"', html)
         self.assertIn('showUndo("Accessory saved."', js)
         self.assertIn('showUndo("Checkpoint saved."', js)
+        self.assertIn('data-power-item-owned=', js)
+        self.assertIn("Ownership tracking only · does not equip", js)
+        self.assertIn("does not equip it", js)
+        self.assertIn('showUndo("Item marked owned."', js)
+        self.assertNotIn("Mark equipped", js)
+        self.assertIn('data-power-equip-item=', js)
+        self.assertIn('/equipment/slots/', js)
+        self.assertIn('showUndo("Equipment saved."', js)
+        self.assertIn("Validated equipment tracking enabled", js)
+        self.assertIn("member?.standard_slots?.[slot]", js)
+        self.assertIn("Replace the currently recorded ${slot}?", js)
 
     def test_narrow_and_landscape_dom_contract_has_no_duplicate_controls(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")

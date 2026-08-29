@@ -81,8 +81,12 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         self.state.write_text(json.dumps(state), encoding="utf-8")
         report = _equipment_readiness(self.db, self.state)
         self.assertTrue(report["recommendations"])
-        self.assertFalse(report["editor_supported"])
-        self.assertGreater(report["compatibility_coverage"]["verified_item_rows"], 0)
+        self.assertTrue(report["editor_supported"])
+        self.assertTrue(report["non_accessory_editor_supported"])
+        self.assertEqual(report["compatibility_coverage"]["verified_item_rows"], 311)
+        self.assertEqual(report["compatibility_coverage"]["status"],
+                         "complete_two_source_compatibility_matrix")
+        self.assertEqual(len(report["mechanics"]), 6)
         for row in report["recommendations"]:
             self.assertEqual(row["availability_status"], "route_available")
             self.assert_current_version_source(row["source"]["id"],

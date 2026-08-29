@@ -71,15 +71,23 @@ class GuideServerTests(unittest.TestCase):
         state_path.write_text(json.dumps(state), encoding="utf-8")
         report = _equipment_readiness(ROOT / "data" / "dq7_reimagined.sqlite",
                                       state_path)
-        self.assertFalse(report["editor_supported"])
-        self.assertTrue(any("two-source-agreeing" in gap for gap in report["gaps"]))
-        self.assertEqual(len(report["mechanics"]), 2)
+        self.assertTrue(report["editor_supported"])
+        self.assertTrue(report["non_accessory_editor_supported"])
+        self.assertFalse(any("One-each weapon" in gap for gap in report["gaps"]))
+        self.assertTrue(any("Duplicate accessory" in gap for gap in report["gaps"]))
+        self.assertEqual(len(report["mechanics"]), 6)
+        slot_counts = {row["slot_name"]: row["numeric_value"]
+                       for row in report["mechanics"]
+                       if row["rule_type"] == "slot_count"}
+        self.assertEqual(slot_counts, {
+            "accessory": 2, "armour": 1, "helmet": 1, "shield": 1, "weapon": 1,
+        })
         accessory = next(row for row in report["mechanics"]
                          if row["rule_type"] == "slot_count")
         self.assertEqual(accessory["numeric_value"], 2)
         self.assertEqual(accessory["confidence"], "verified")
         coverage = report["compatibility_coverage"]
-        self.assertEqual(coverage["status"], "partial_two_source_matrix")
+        self.assertEqual(coverage["status"], "complete_two_source_compatibility_matrix")
         self.assertEqual(coverage["catalog_item_rows"], 311)
         self.assertEqual(coverage["audited_item_rows"], 311)
         self.assertEqual(coverage["verified_item_rows"], 311)
@@ -102,8 +110,8 @@ class GuideServerTests(unittest.TestCase):
 
         status, endpoint = self.get_json("/api/equipment")
         self.assertEqual(status, 200)
-        self.assertFalse(endpoint["editor_supported"])
-        self.assertEqual(len(endpoint["mechanics"]), 2)
+        self.assertTrue(endpoint["editor_supported"])
+        self.assertEqual(len(endpoint["mechanics"]), 6)
 
     def test_accessory_api_lists_owned_compatible_options_and_reverses(self):
         self.patch_json("/api/items/item_prayer_ring", {"completed": True})
@@ -124,6 +132,21 @@ class GuideServerTests(unittest.TestCase):
         _, report = self.get_json("/api/equipment")
         hero = next(row for row in report["members"] if row["name"] == "Hero")
         self.assertIsNone(hero["accessory_slots"]["accessory_1"])
+
+    def test_standard_equipment_api_requires_owned_compatible_matching_slot_and_reverses(self):
+        self.patch_json("/api/items/item_cautery_sword", {"completed": True})
+        status, _ = self.patch_json("/api/equipment/slots/Hero/weapon",
+                                    {"item_id": "item_cautery_sword"})
+        self.assertEqual(status, 200)
+        _, report = self.get_json("/api/equipment")
+        hero = next(row for row in report["members"] if row["name"] == "Hero")
+        self.assertEqual(hero["standard_slots"]["weapon"], "item_cautery_sword")
+        with self.assertRaises(HTTPError) as wrong_slot:
+            self.patch_json("/api/equipment/slots/Hero/shield",
+                            {"item_id": "item_cautery_sword"})
+        self.assertEqual(wrong_slot.exception.code, 400)
+        self.patch_json("/api/equipment/slots/Hero/weapon", {"item_id": None})
+        self.patch_json("/api/items/item_cautery_sword", {"completed": False})
 
     def test_health_checkpoints_dashboard_and_static_assets(self):
         launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")

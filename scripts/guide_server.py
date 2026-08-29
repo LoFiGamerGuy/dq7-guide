@@ -46,7 +46,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "vocation-mastered", "vocation-undo",
     "party-level", "party-vocations", "party-setup",
     "missable-completed", "missable-undo",
-    "accessory-set",
+    "accessory-set", "equipment-set",
 }
 
 
@@ -410,19 +410,17 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
     result = {
         "editor_supported": False,
         "accessory_editor_supported": True,
+        "non_accessory_editor_supported": False,
         "comparison_scope": "current_checkpoint_attributed_recommendations",
         "checkpoint_id": checkpoint_id,
         "gaps": [
-            "Only two-source-agreeing compatibility rows are normalized; disputed and single-source rows remain read-only.",
             "Duplicate accessory/Heart equip and effect-stacking behavior has only one current-version source and is not normalized.",
-            "One-each weapon, shield, head, and torso slot counts lack direct two-source evidence.",
-            "Three compatibility rows conflict and two armour rows remain single-source.",
         ],
         "mechanics": [],
         "compatibility_coverage": {
             "verified_item_character_pairs": 0,
             "conflicted_item_rows": 0,
-            "status": "partial_two_source_matrix",
+            "status": "complete_two_source_compatibility_matrix",
         },
         "compatibility_audits": [],
         "members": [],
@@ -509,8 +507,18 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             "single_source_item_rows": states["single_source"],
             "unaudited_item_rows": sum(row["unaudited_item_rows"] for row in catalog_rows),
             "by_category": catalog_rows,
-            "status": "partial_two_source_matrix",
+            "status": "complete_two_source_compatibility_matrix",
         }
+        standard_slot_rules = {row["slot_name"] for row in result["mechanics"]
+                               if row["rule_type"] == "slot_count"
+                               and row["numeric_value"] == 1
+                               and row["corroborating_source_id"]}
+        standard_editor_supported = (standard_slot_rules == {
+            "weapon", "shield", "helmet", "armour"
+        } and states["two_source_agreement"] == len(audit_rows))
+        result["non_accessory_editor_supported"] = standard_editor_supported
+        result["editor_supported"] = (result["accessory_editor_supported"]
+                                      and standard_editor_supported)
         obtained_items = set(state.get("completion", {}).get("items_obtained", []))
         owned_hearts = set(state.get("completion", {}).get("monster_hearts_owned", []))
         owned_accessories = [dict(row) for row in connection.execute(
@@ -526,6 +534,9 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                           "SELECT item_id, character_name FROM equipment_compatibility WHERE can_equip=1")}
         for member_row in result["members"]:
             equipment = member_row["recorded_equipment"]
+            member_row["standard_slots"] = {
+                slot: equipment.get(slot) for slot in ("weapon", "shield", "helmet", "armour")
+            }
             member_row["accessory_slots"] = {
                 slot: equipment.get(slot) for slot in ("accessory_1", "accessory_2")
             }
@@ -1466,6 +1477,18 @@ def _record_accessory_progress(db_path: Path, state_path: Path, path: str, paylo
                            [parts[0], parts[1], item_id or "unknown"])
 
 
+def _record_equipment_progress(db_path: Path, state_path: Path, path: str, payload: dict) -> str:
+    suffix = path.removeprefix("/api/equipment/slots/")
+    parts = [unquote(value) for value in suffix.split("/")]
+    if len(parts) != 2:
+        raise ValueError("Equipment path must identify character and slot")
+    item_id = payload.get("item_id")
+    if item_id is not None and not isinstance(item_id, str):
+        raise ValueError("item_id must be a canonical item ID or null")
+    return update_progress(state_path, db_path, "equipment-set",
+                           [parts[0], parts[1], item_id or "unknown"])
+
+
 def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                  pairing_token: str | None = None, trust_loopback: bool = True):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
@@ -1807,6 +1830,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                 with state_write_lock:
                     if path == "/api/progress":
                         message = _record_ui_progress(db_path, state_path, payload)
+                    elif path.startswith("/api/equipment/slots/"):
+                        message = _record_equipment_progress(db_path, state_path, path, payload)
                     elif path.startswith("/api/equipment/accessories/"):
                         message = _record_accessory_progress(db_path, state_path, path, payload)
                     elif any(path.startswith(prefix) for prefix in (

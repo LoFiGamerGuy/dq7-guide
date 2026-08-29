@@ -387,13 +387,23 @@ def update_progress(
             members[character]["primary_vocation"] = (None if str(primary_text).casefold() == "unknown" else primary_text)
             members[character]["secondary_vocation"] = (None if str(secondary_text).casefold() == "unknown" else secondary_text)
             message = f"Recorded {character} current vocations."
-        elif command == "accessory-set":
+        elif command in ("accessory-set", "equipment-set"):
             character, slot, item_text = values
             members = state["party"]["members"]
             if character not in members:
                 raise ValueError(f"Unknown party member: {character}")
-            if slot not in ("accessory_1", "accessory_2"):
-                raise ValueError("Accessory slot must be accessory_1 or accessory_2")
+            allowed_slots = (("accessory_1", "accessory_2") if command == "accessory-set"
+                             else ("weapon", "shield", "helmet", "armour"))
+            if slot not in allowed_slots:
+                raise ValueError("Unsupported equipment slot")
+            if command == "equipment-set":
+                rule = connection.execute(
+                    """SELECT numeric_value, source_id, corroborating_source_id
+                    FROM equipment_rules WHERE rule_type='slot_count' AND slot_name=?""",
+                    (slot,),
+                ).fetchone()
+                if rule is None or rule["numeric_value"] != 1 or not rule["corroborating_source_id"]:
+                    raise ValueError(f"Equipment slot rule is not independently verified: {slot}")
             equipment = members[character]["equipment"]
             if str(item_text).casefold() == "unknown":
                 equipment.pop(slot, None)
@@ -419,8 +429,12 @@ def update_progress(
                 ).fetchone()
                 if row is None:
                     raise ValueError(f"Unknown item ID: {item_id}")
-                if row["category"] != "Accessories":
-                    raise ValueError("Only accessory-slot writes are supported")
+                expected_category = {"weapon": "Weapons", "shield": "Shields",
+                                     "helmet": "Head", "armour": "Armour",
+                                     "accessory_1": "Accessories",
+                                     "accessory_2": "Accessories"}[slot]
+                if row["category"] != expected_category:
+                    raise ValueError(f"Item category does not match {slot}")
                 if row["agreement_status"] != "two_source_agreement" or row["can_equip"] != 1:
                     raise ValueError(f"Compatibility is not verified for {character}: {item_id}")
                 item_owned = item_id in set(state["completion"]["items_obtained"])
@@ -428,9 +442,10 @@ def update_progress(
                                row["heart_id"] in set(state["completion"].get("monster_hearts_owned", [])))
                 if not (item_owned or heart_owned):
                     raise ValueError(f"Item is not explicitly owned: {item_id}")
-                other_slot = "accessory_2" if slot == "accessory_1" else "accessory_1"
-                if equipment.get(other_slot) == item_id:
-                    raise ValueError("Duplicate accessory IDs are not supported")
+                if command == "accessory-set":
+                    other_slot = "accessory_2" if slot == "accessory_1" else "accessory_1"
+                    if equipment.get(other_slot) == item_id:
+                        raise ValueError("Duplicate accessory IDs are not supported")
                 equipment[slot] = item_id
                 message = f"Recorded {character} {slot}: {item_id}."
         elif command in ("monster-defeated", "monster-undo"):
@@ -506,6 +521,8 @@ def main() -> None:
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="HEART_ID")
     progress = subparsers.add_parser("accessory-set")
+    progress.add_argument("values", nargs=3, metavar=("CHARACTER", "SLOT", "ITEM_ID_OR_UNKNOWN"))
+    progress = subparsers.add_parser("equipment-set")
     progress.add_argument("values", nargs=3, metavar=("CHARACTER", "SLOT", "ITEM_ID_OR_UNKNOWN"))
     args = parser.parse_args()
     try:
