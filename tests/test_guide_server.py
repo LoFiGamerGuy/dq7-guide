@@ -690,6 +690,11 @@ class GuideServerTests(unittest.TestCase):
         state_path.write_text(json.dumps(state), encoding="utf-8")
         plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
                                 state_path, "cp_010_alltrades_present")["power_plan"]
+        self.assertEqual(
+            [row["subject"] for row in plan["boss_tactics"]],
+            ["Mild Bunch", "The Mighty Pip"],
+        )
+        self.assertTrue(all(row["source"]["url"] for row in plan["boss_tactics"]))
         fizzle = next(row for row in plan["boss_skill_prep"]
                       if row["skill"] == "Fizzle")
         self.assertEqual(fizzle["state_status"], "rank_progress_unknown")
@@ -724,13 +729,25 @@ class GuideServerTests(unittest.TestCase):
         cp008 = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
                                  self.state, "cp_008_roamer")["power_plan"]
         self.assertEqual(cp001["boss_skill_prep"], [])
-        self.assertEqual(len(cp008["boss_skill_prep"]), 1)
-        florin = cp008["boss_skill_prep"][0]
+        self.assertEqual(len(cp008["boss_skill_prep"]), 2)
+        florin = next(row for row in cp008["boss_skill_prep"]
+                      if row["skill"] == "Lightning Slash")
         self.assertEqual((florin["boss"], florin["skill"], florin["vocation"],
                           florin["rank"], florin["characters"]),
                          ("Florin", "Lightning Slash", "Heir Apparent", 5,
                           ["Kiefer"]))
         self.assertEqual(florin["recommendation_strength"], "recommended")
+        self.assertEqual(florin["recommendation_verification_status"],
+                         "two_source_verified")
+        self.assertEqual(florin["corroborating_source"]["id"],
+                         "gamewith_florin")
+        aqua = next(row for row in cp008["boss_skill_prep"]
+                    if row["skill"] == "Aqua Slash")
+        self.assertEqual(aqua["characters"], ["Hero"])
+        self.assertEqual(aqua["recommendation_verification_status"],
+                         "two_source_verified")
+        self.assertEqual(aqua["corroborating_source"]["id"],
+                         "neoseeker_poolside_cave")
 
     def test_party_setup_atomically_records_checkpoint_active_party_and_unknowns(self):
         state_path = Path(self.temp.name) / "quick-party-state.json"

@@ -208,7 +208,14 @@ function compactApplicability(value) {
 }
 
 function renderPowerPlan(plan = {}) {
-  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [], bossPrep = plan.boss_skill_prep || [];
+  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [], bossTactics = plan.boss_tactics || [], bossPrep = plan.boss_skill_prep || [];
+  const recommendationEvidence = row => {
+    const status = row.verification_status || "";
+    if (status === "componentwise_two_source_editorial_exact_trio_single_source") return "Roles 2-source · exact trio 1-source";
+    if (status.includes("two_independent_sources") && status.includes("single")) return "Core 2-source · extras 1-source";
+    if (status.includes("two_source") || status.includes("two_independent")) return "2-source";
+    return "1-source";
+  };
   const bossNames = [...new Set(bossPrep.map(row => row.boss))];
   const bossRows = bossPrep.map(row => {
     const stateText = row.state_status === "skill_available" ? "Recorded mastered + equipped · skill available" : row.state_status === "mastered_not_equipped" ? "Mastered · equip this vocation" : row.state_status === "rank_progress_unknown" ? "Current vocation · rank unknown" : "Mastery/rank unknown";
@@ -227,15 +234,11 @@ function renderPowerPlan(plan = {}) {
     const evidenceText = row.recommendation_verification_status === "two_source_verified" ? "2-source tactic" : "1-source tactic";
     return `<li><strong>${escapeHtml(row.boss)}: ${escapeHtml(row.skill)}</strong><span>${escapeHtml(row.characters.join(" / "))} · ${escapeHtml(row.vocation)} ${escapeHtml(row.rank)}★</span><small class="applicability-${row.state_status === "skill_available" ? "satisfied" : "unknown"}">${escapeHtml(stateText)} · ${escapeHtml(evidenceText)} · rank 1-source</small></li>`;
   }).join("");
-  const battlePlan = (recordedRoles || battleBossRows) ? `<section class="battle-plan" aria-labelledby="battlePlanHeading"><div class="battle-plan-heading"><h4 id="battlePlanHeading">Battle plan</h4><span>Saved roles · sourced tactics · no ranking</span></div>${recordedRoles ? `<p class="battle-plan-label">Party roles</p><ul class="battle-plan-list">${recordedRoles}</ul>` : `<p class="muted">Party roles are not recorded.</p>`}${battleBossRows ? `<p class="battle-plan-label">Boss prep</p><ul class="battle-plan-list">${battleBossRows}</ul>` : ""}</section>` : "";
+  const battleTacticRow = row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span><small class="evidence-strength">${escapeHtml(recommendationEvidence(row))}</small></li>`;
+  const visibleBattleTactics = bossTactics.slice(0, 2).map(battleTacticRow).join("");
+  const laterBattleTactics = bossTactics.slice(2).map(battleTacticRow).join("");
+  const battlePlan = (recordedRoles || visibleBattleTactics || battleBossRows) ? `<section class="battle-plan" aria-labelledby="battlePlanHeading"><div class="battle-plan-heading"><h4 id="battlePlanHeading">Battle plan</h4><span>Saved roles · sourced tactics · no ranking</span></div>${recordedRoles ? `<p class="battle-plan-label">Party roles</p><ul class="battle-plan-list">${recordedRoles}</ul>` : `<p class="muted">Party roles are not recorded.</p>`}${visibleBattleTactics ? `<p class="battle-plan-label">Fight plan</p><ol class="battle-plan-list">${visibleBattleTactics}</ol>${laterBattleTactics ? `<details class="battle-plan-more"><summary>${bossTactics.length - 2} later fights</summary><ol class="battle-plan-list">${laterBattleTactics}</ol></details>` : ""}` : ""}${battleBossRows ? `<p class="battle-plan-label">Skill prep</p><ul class="battle-plan-list">${battleBossRows}</ul>` : ""}</section>` : "";
   const partyText = party.length ? party.map(row => `${row.name}: ${row.active ? "Active · " : ""}${row.level ? `Lv ${row.level}` : "level ?"} · ${row.primary_vocation || "vocation ?"}${row.secondary_vocation ? ` + ${row.secondary_vocation}` : ""}`).join(" / ") : "Party levels and vocations not recorded — recommendations remain source-only.";
-  const recommendationEvidence = row => {
-    const status = row.verification_status || "";
-    if (status === "componentwise_two_source_editorial_exact_trio_single_source") return "Roles 2-source · exact trio 1-source";
-    if (status.includes("two_independent_sources") && status.includes("single")) return "Core 2-source · extras 1-source";
-    if (status.includes("two_source") || status.includes("two_independent")) return "2-source";
-    return "1-source";
-  };
   const powerRow = row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span><small class="evidence-strength">${escapeHtml(recommendationEvidence(row))}</small>${row.saved_state_applicability?.reason !== "No supported saved-state gate" ? `<small class="applicability-${escapeHtml(row.saved_state_applicability?.status || "unknown")}">${escapeHtml(row.saved_state_applicability?.reason || "Saved-state fit unknown")}</small>` : ""}</li>`;
   const primaryPowerRow = strongest[0] ? powerRow(strongest[0]) : "";
   const morePowerRows = strongest.slice(1).map(powerRow).join("");

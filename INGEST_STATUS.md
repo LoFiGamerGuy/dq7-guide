@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 558 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 565 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 558
+- sources: 565
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,502
+- claims: 1,532
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 558 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 565 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -91,6 +91,8 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 ## Latest completed batch
 
 The early-game vertical slice now includes direct tactical coverage for the Tribulators, Golem, Tinpot Dictator, and Florin alongside the existing bosses through Alltrades. It supports explicit completed-check tracking, checkpoint-focused output, honest medal state, conditional threshold advice, operational STOP warnings, and checkpoint-scoped conflict alerts. Unsupported advice remains an explicit gap; no levels or grind rates were invented.
+
+The Ballymolloy/Frobisher corroboration pass independently confirms Golem's Buff plan, Crabble-Rouser's Dazzle/Fire/Buff plan, Maeve's Fire/Buff/support plan, and Tinpot Dictator's focused-target Buff, group-damage, and resource-conservation plan. Golem's Fire weakness and Maeve's inability to be Dazzled remain explicit single-independent-source findings with no invented numeric resistance. Tinpot Dictator is correctly scoped to `cp_007_frobisher`; Emberdale's `cp_004_emberdale` boss remains Glowering Inferno.
 
 The cp011–cp020 boss pass fills Skeleton Squire, Setesh, Sunken Spirits, King Slime, Ethereal Serpent, Rainiac, The Envoy, and Vaipur. Consecutive-fight recovery and counter/Fizzle windows are kept in encounter order without importing the source pages' suggested character levels.
 
@@ -323,7 +325,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 558 source records currently have retrieval dates within 180
+- **Freshness:** all 565 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -390,3 +392,19 @@ the cp028 final Orgodemir battle; no unsupported turn or phase number is added.
 Searches found only area-level or generic farming corroboration for Scarewell,
 not a second source matching Neoseeker's exact fixed position west of Hardlypool,
 so that last route remains explicitly single-source.
+
+The early Hackrobat/Slaughtomaton pass adds two direct current-version NoobFeed
+full pages as independent corroboration for the existing Game8 plans. Hackrobat's
+Fire damage, Hero support role, and Hero Aqua Slash into Kiefer Lightning setup
+are now two-source verified; the Buff opener remains explicitly single-source.
+Slaughtomaton's Crack, Lightning Slash, Aqua Slash setup, and Hero Buff/Heal role
+are likewise two-source verified, while NoobFeed's Ruff MP fallback remains
+single-source. Aqua Slash's rank-4 unlock evidence stays separate and is not
+upgraded merely because the boss tactic is corroborated.
+
+The cp008 pass adds direct GameWith corroboration for Florin and the Guardians of
+the Roamers. Florin's Aqua Slash and Lightning Slash setup is now two-source,
+while Buff and Ruff support remain single-source. The Guardians' Hero-plus-Aishe
+constraint, healing-item preparation, and Jovan/highest-physical-threat priority
+are two-source; best-gear wording and defending after charge-up remain explicitly
+single-source. Skill-rank evidence remains separately scoped.

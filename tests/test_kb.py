@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 558)
+        self.assertEqual(self.counts["sources"], 565)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -70,7 +70,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
         self.assertEqual(self.counts["checkpoint_advice"], 111)
-        self.assertEqual(self.counts["boss_skill_recommendations"], 8)
+        self.assertEqual(self.counts["boss_skill_recommendations"], 9)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
@@ -84,17 +84,58 @@ class KnowledgeBaseTests(unittest.TestCase):
                 corroborating_source_id, corroborating_locator
             FROM boss_skill_recommendations"""
         ).fetchall()
-        self.assertEqual(len(rows), 8)
+        self.assertEqual(len(rows), 9)
         self.assertEqual(sum(row["recommendation_verification_status"] == "single_source"
-                             for row in rows), 6)
+                             for row in rows), 3)
         self.assertEqual(sum(row["recommendation_verification_status"] == "two_source_verified"
-                             for row in rows), 2)
+                             for row in rows), 6)
         self.assertTrue(all(
             (row["corroborating_source_id"] is not None and
              row["corroborating_locator"] is not None) ==
             (row["recommendation_verification_status"] == "two_source_verified")
             for row in rows
         ))
+
+    def test_early_aqua_slash_boss_tactics_have_independent_corroboration(self):
+        rows = self.connection.execute(
+            """SELECT boss_name, recommendation_verification_status,
+                corroborating_source_id, k.proficiency_rank,
+                k.verification_status AS rank_verification_status
+            FROM boss_skill_recommendations b
+            JOIN vocation_rank_skills k USING(vocation_skill_id)
+            WHERE b.boss_name IN ('Hackrobat', 'Slaughtomaton')
+            ORDER BY boss_name"""
+        ).fetchall()
+        self.assertEqual([row["boss_name"] for row in rows],
+                         ["Hackrobat", "Slaughtomaton"])
+        self.assertTrue(all(row["recommendation_verification_status"] ==
+                            "two_source_verified" for row in rows))
+        self.assertEqual(
+            {row["corroborating_source_id"] for row in rows},
+            {"noobfeed_bosses_larca", "noobfeed_bosses_frobisher"},
+        )
+        self.assertEqual({row["proficiency_rank"] for row in rows}, {4})
+        self.assertTrue(all(not row["rank_verification_status"].startswith("two_")
+                            for row in rows))
+
+        verified_pairs = self.connection.execute(
+            """SELECT subject_key, predicate, COUNT(DISTINCT source_id) AS sources
+            FROM claims
+            WHERE subject_key IN ('boss:hackrobat', 'boss:slaughtomaton')
+              AND verification_status='two_independent_current_version_sources'
+            GROUP BY subject_key, predicate
+            ORDER BY subject_key, predicate"""
+        ).fetchall()
+        self.assertEqual(
+            {(row["subject_key"], row["predicate"], row["sources"])
+             for row in verified_pairs},
+            {
+                ("boss:hackrobat", "recommended_damage_setup", 2),
+                ("boss:hackrobat", "recommended_hero_role", 2),
+                ("boss:slaughtomaton", "recommended_damage_setup", 2),
+                ("boss:slaughtomaton", "recommended_hero_role", 2),
+            },
+        )
 
     def test_equipment_compatibility_requires_two_source_row_agreement(self):
         adjudicated = self.connection.execute(
@@ -2434,8 +2475,36 @@ class KnowledgeBaseTests(unittest.TestCase):
         ])
         self.assertTrue(all(row["source_id"].startswith("game8_") for row in rows))
         self.assertTrue(all(row["locator"] for row in rows))
-        self.assertTrue(all(row["verification_status"] == "source_checked"
-                            for row in rows))
+        self.assertTrue(all(
+            row["verification_status"] == "source_checked" or
+            row["verification_status"].startswith("two_independent_current_version_sources") or
+            row["verification_status"].startswith("core_plan_two_source_verified")
+            for row in rows
+        ))
+
+    def test_early_boss_tactics_preserve_source_diversity_and_single_source_limits(self):
+        claims = self.connection.execute(
+            """SELECT predicate, confidence, verification_status
+               FROM claims
+               WHERE claim_id IN (
+                 'claim_golem_physical_buff_game8',
+                 'claim_golem_physical_buff_noobfeed',
+                 'claim_golem_fire_weakness_thegameslayer',
+                 'claim_crabble_plan_game8', 'claim_crabble_plan_noobfeed',
+                 'claim_maeve_plan_game8', 'claim_maeve_plan_noobfeed',
+                 'claim_maeve_dazzle_resistance_game8',
+                 'claim_tinpot_plan_game8', 'claim_tinpot_plan_noobfeed')
+               ORDER BY claim_id"""
+        ).fetchall()
+        self.assertEqual(len(claims), 10)
+        verified = [row for row in claims if row["verification_status"] ==
+                    "two_independent_current_version_sources"]
+        self.assertEqual(len(verified), 8)
+        provisional = [row for row in claims if
+                       row["verification_status"].startswith("single_")]
+        self.assertEqual({row["predicate"] for row in provisional},
+                         {"elemental_weakness", "dazzle_susceptibility"})
+        self.assertTrue(all(row["confidence"] == "high" for row in provisional))
 
     def test_cp011_through_cp020_boss_sequences_are_complete(self):
         expected = {

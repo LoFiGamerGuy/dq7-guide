@@ -1440,6 +1440,8 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "grind_ceiling": [row for row in advice if row["decision_group"] == "optional_grind"],
         "gear_checks": equipment["recommendations"],
         "vocation_paths": vocation_paths,
+        "boss_tactics": [row for row in advice if row["type"] == "boss"
+                         and row["saved_state_applicability"]["status"] != "unmet"],
         "boss_skill_prep": boss_skill_prep,
         "available_farms": farm_options,
         "farm_note": ("Available sourced options, not a ranking. Use the attributed grind ceiling above when present."
