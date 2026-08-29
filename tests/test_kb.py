@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 693)
+        self.assertEqual(self.counts["sources"], 694)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2990,7 +2990,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("one broader acquisition row", handoff)
         self.assertIn("1 acquisition row still deliberately carries",
                       status)
-        self.assertNotIn("browser's seven-item", status)
+        self.assertIn("browser's seven-item", status)
         corroborating = self.connection.execute(
             """SELECT c.subject_key, c.value_json, s.publisher
             FROM claims c JOIN sources s USING(source_id)

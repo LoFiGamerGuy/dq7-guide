@@ -15,6 +15,8 @@ DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
 DEFAULT_EVIDENCE_GAPS = ROOT / "data" / "evidence_gaps.json"
 EVIDENCE_GAP_SEARCH_TERMS = {
     "gap_blue_button_cutoff": "Blue Button before Cataclysm cutoff missable",
+    "gap_ruby_of_protection_drawer":
+        "Ruby of Protection Faraday Castle throne bedroom drawer drawers container",
     "gap_lucky_panel_probabilities":
         "Lucky Panel probability probabilities odds chance draw rate weights denominator",
     "gap_reproducible_farm_rates":

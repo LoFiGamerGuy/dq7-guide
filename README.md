@@ -166,7 +166,7 @@ the guide does not claim offline installation in that mode.
 The Dashboard and Phone Setup screens both expose one-tap progress backup; restore
 stays under Progress to prevent an accidental replacement during play.
 
-The Sources view also provides a dated six-item audit of the maintained
+The Sources view also provides a dated seven-item audit of the maintained
 single-source, unsupported, and corroborated-but-unresolved evidence queue.
 The local query tool searches that queue before generic documents when all query
 terms match, so questions such as `repeatable Monster Heart` or `Lucky Panel

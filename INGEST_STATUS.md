@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 693 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 694 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Ruby of Protection is the sole grouped-container residual: the Faraday Castle throne-bedroom drawer pair is known, but its individual drawer remains intentionally unknown.
 
-- sources: 693
+- sources: 694
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,879
+- claims: 1,880
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -79,7 +79,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** all 413 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired because GameWith, Game8 Japan, and Altema publish the same explicit cumulative condition and independently match Maestros del Mando; the isolated simultaneous-balance instruction remains visible as losing evidence. Troll Heart is resolved to the Aeolus Vale Past field sparkle by two dedicated current-version pages; the isolated respawning-drop claim remains visible and does not establish a farm. `Stellar Fan` is resolved by a legible launch-period English acquisition toast. Fourteen pairwise equipment conflicts use two-publisher consensus claims. Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 693 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 694 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -87,12 +87,18 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 2. Resolve the three remaining achievement-counter questions, additional named accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence. Meteorite Bracer and Rabbit Tail are already item-specific verified cases.
 3. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
-The phone Sources view now mirrors this complete six-item evidence-blocked
-queue: 1 single-source, 1 unsupported, and 4 corroborated-but-unresolved rows.
+The phone Sources view now mirrors this complete seven-item evidence-blocked
+queue: 1 single-source, 1 unsupported, and 5 corroborated-but-unresolved rows.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The final Ruby drawer audit registers Lord Fenton's continuous English PC
+Faraday Present footage. At 18:40-19:08 it enters the throne-adjacent bedroom,
+but uninterrupted NPC dialogue is followed by departure without opening either
+drawer. That observation cannot map Ruby of Protection versus 200 gold, so the
+individual drawer remains a source-backed retrieval gap instead of being guessed.
 
 The Rabbit Tail active-party batch adds AppMedia and GameWith as independent
 current-version publishers for qualitative count-based stacking. AppMedia alone
@@ -533,12 +539,12 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 
 ## Authoritative residual-evidence audit
 
-Audited 2026-08-29 against a clean generated database. The browser's six-item
+Audited 2026-08-29 against a clean generated database. The browser's seven-item
 evidence-gap list is a curated research queue, not the total number of disputed
 database facts. The API therefore reports it separately from automatic conflict
 pairs.
 
-- **Curated research queue:** 6 items: 1 single-source, 1 unsupported, and 4
+- **Curated research queue:** 7 items: 1 single-source, 1 unsupported, and 5
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence. The Blue Button row now isolates only immediate pre-trigger
   presence; its cp022-to-cp023 event mapping is directly evidenced.
