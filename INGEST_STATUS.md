@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 667 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 668 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 667
+- sources: 668
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -79,7 +79,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** all 411 claim-pairs are resolved. Massively Minted is adjudicated to lifetime total gold acquired because GameWith, Game8 Japan, and Altema publish the same explicit cumulative condition and independently match Maestros del Mando; the isolated simultaneous-balance instruction remains visible as losing evidence. `Stellar Fan` is resolved by a legible launch-period English acquisition toast. Fourteen pairwise equipment conflicts use two-publisher consensus claims. Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 667 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 668 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -387,7 +387,7 @@ The Phase 2 equipment batches established typed item, shop, and Lucky Panel acqu
 
 The achievement-readiness batch makes all 29 structured completion dependencies state-aware in the API and browser. Heroic Hoarder, Monster List, Vicious, tablet, vocation, and medal progress now distinguishes explicit partial counts, met counters with an unrecorded unlock, and unknown tracking. Empty identity arrays are no longer presented as zero; only a deliberately saved numeric Mini Medal count can establish exact zero.
 
-The achievement-semantics audit narrows the cumulative-counter residual to six explicit questions. Altema and the platform registry establish individual-monster units for Monster Masher and Metal Mangler and in-battle wins for Winning Machine; Maestros attributes successful pre-battle strikes, no-combat quick wins, and party-wide Let Loose aggregation. A PS5 firsthand answer says quick wins do not increment battle wins, retained at single-firsthand strength. Massively Minted remains a visible conflict because one current guide says to hold 300,000 gold simultaneously while another says lifetime acquisition persists after spending. No overlap, metal-roster, or save/reset behavior is inferred.
+The achievement-semantics audit originally narrowed the cumulative-counter residual to six explicit questions. Altema and the platform registry establish individual-monster units for Monster Masher and Metal Mangler and in-battle wins for Winning Machine; Maestros attributes successful pre-battle strikes, no-combat quick wins, and party-wide Let Loose aggregation. GameFAQs and Platinum Hunter now independently agree that field-attack instant kills do not increment Winning Machine's battle-win counter. Later evidence resolves lifetime-gold semantics and the metal-family roster as summarized above. No quick-win overlap, defeated-monster telemetry, multi-enemy unit, or save/reset behavior is inferred.
 
 The equipment-readiness audit confirms that item categories provide nominal slots and checkpoint advice provides a bounded set of attributed character/item recommendations, but the KB has no complete current-version character equipability matrix, accessory slot count, or duplicate-equip rules. The browser therefore keeps equipment writes disabled and exposes a read-only saved-checkpoint comparison with canonical items, route availability, explicit ownership, raw recorded gear, and the precise validation gaps instead of accepting potentially invalid loadouts.
 
@@ -481,7 +481,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 667 source records currently have retrieval dates within 180
+- **Freshness:** all 668 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

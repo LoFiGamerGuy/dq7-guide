@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 667)
+        self.assertEqual(self.counts["sources"], 668)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -930,7 +930,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("individual_monsters", statuses["monsters_defeated"])
         self.assertIn("individual_metal_family_members",
                       statuses["metal_monsters_defeated"])
-        self.assertIn("quick_win_exclusion_single_firsthand",
+        self.assertIn("quick_win_exclusion_two_publishers",
                       statuses["battles_won"])
         self.assertIn("lifetime_total_semantics", statuses["gold_acquired"])
         self.assertIn("roster_verified", statuses["metal_monsters_defeated"])
@@ -981,6 +981,15 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(len(units), 4)
         self.assertEqual({row["publisher"] for row in units},
                          {"Altema", "Maestros del Mando"})
+
+        exclusion_publishers = self.connection.execute(
+            """SELECT COUNT(DISTINCT s.publisher)
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='achievement:winning_machine'
+              AND c.predicate='achievement_counter_exclusion'
+              AND c.value_json='"field-attack instant kills do not count as battle wins"'"""
+        ).fetchone()[0]
+        self.assertEqual(exclusion_publishers, 2)
 
     def test_achievement_report_uses_only_explicit_player_progress(self):
         report = load_achievement_report(
