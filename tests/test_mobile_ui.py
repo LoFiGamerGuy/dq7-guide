@@ -7,7 +7,8 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-from urllib.error import HTTPError
+import time
+from urllib.error import HTTPError, URLError
 from urllib.request import HTTPCookieProcessor, build_opener, urlopen
 
 
@@ -94,6 +95,16 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("bottom: calc(4.35rem + env(safe-area-inset-bottom))", css)
         self.assertIn("#walkthrough > .section-heading { position: sticky", css)
 
+    def test_play_view_prioritizes_stop_next_and_collapses_secondary_ledgers(self):
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertLess(html.index('id="checkpointStop"'), html.index('id="actions"'))
+        self.assertLess(html.index('id="actions"'), html.index('id="checkpointTablets"'))
+        self.assertEqual(html.count('class="panel secondary-ledger"'), 6)
+        self.assertNotIn('class="panel secondary-ledger" open', html)
+        self.assertIn("ledger.open = !mobileLayout()", js)
+        self.assertIn('$("#hideCompleted")', js)
+
     def test_phone_setup_diagnoses_security_and_exposes_recovery(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
@@ -119,6 +130,7 @@ class MobileUiContractTests(unittest.TestCase):
     def test_steam_deck_manager_is_explicit_reversible_and_repo_contained(self):
         manager = ROOT / "manage-steam-deck-guide.sh"
         template = ROOT / "steam-deck" / "DQ7 Guide.desktop.in"
+        gaming_wrapper = ROOT / "steam-deck" / "run-dq7-guide-gaming-mode.sh"
         script = manager.read_text(encoding="utf-8")
         desktop = template.read_text(encoding="utf-8")
         subprocess.run(["sh", "-n", str(manager)], check=True)
@@ -135,6 +147,9 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertNotIn("sudo", script)
         self.assertNotIn("systemctl", script)
         self.assertIn("@REPO@/manage-steam-deck-guide.sh", desktop)
+        self.assertIn('manage-steam-deck-guide.sh" foreground',
+                      gaming_wrapper.read_text(encoding="utf-8"))
+        subprocess.run(["sh", "-n", str(gaming_wrapper)], check=True)
         self.assertIn('href="/api/state-backup"',
                       (ROOT / "web" / "index.html").read_text(encoding="utf-8"))
 
@@ -203,6 +218,37 @@ class MobileUiContractTests(unittest.TestCase):
                     self.assertEqual(response.status, 200)
                 self.assertIn("stopped", manage("stop"))
                 self.assertIn("stopped", manage("status"))
+
+                gaming_log = isolated / "gaming-mode.log"
+                with gaming_log.open("w+", encoding="utf-8") as output:
+                    gaming = subprocess.Popen(
+                        [str(ROOT / "steam-deck" / "run-dq7-guide-gaming-mode.sh")],
+                        cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT,
+                        text=True,
+                    )
+                    try:
+                        deadline = time.monotonic() + 5
+                        gaming_url = None
+                        while time.monotonic() < deadline:
+                            output.flush()
+                            contents = gaming_log.read_text(encoding="utf-8")
+                            urls = [line.split(": ", 1)[1] for line in contents.splitlines()
+                                    if line.startswith("DQ7 guide (phone):")]
+                            if urls:
+                                gaming_url = urls[0]
+                                break
+                            if gaming.poll() is not None:
+                                self.fail(f"Gaming Mode wrapper exited early: {contents}")
+                            time.sleep(0.05)
+                        self.assertIsNotNone(gaming_url)
+                        gaming_clean = gaming_url.split("/?pair=", 1)[0]
+                        with rotated_opener.open(gaming_clean + "/api/health") as response:
+                            self.assertEqual(json.load(response), {"status": "ok"})
+                    finally:
+                        gaming.terminate()
+                        self.assertEqual(gaming.wait(timeout=5), 0)
+                with self.assertRaises(URLError):
+                    urlopen(gaming_clean + "/api/health", timeout=0.5)
 
                 runtime.mkdir(exist_ok=True)
                 (runtime / "server.pid").write_text(f"{os.getpid()}\n")

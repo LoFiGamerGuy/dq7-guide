@@ -21,6 +21,12 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 const mobileLayout = () => matchMedia("(max-width: 900px) and (pointer: coarse), (max-width: 520px)").matches;
 function focusMainAtTop() { scrollToTop(); $("#main").focus({ preventScroll: true }); }
+function syncSecondaryLedgers() {
+  document.querySelectorAll(".secondary-ledger:not([data-density-ready])").forEach(ledger => {
+    ledger.open = !mobileLayout();
+    ledger.dataset.densityReady = "true";
+  });
+}
 function showUndo(message, action) {
   window.clearTimeout(state.undoTimer);
   state.undoAction = action;
@@ -412,6 +418,7 @@ async function loadAll() {
   const savedCheckpoint = state.dashboard?.checkpoint?.is_saved ? state.dashboard.checkpoint.id : null;
   const select = $("#checkpointSelect"); select.innerHTML = state.checkpoints.map(c => `<option value="${escapeHtml(c.id)}">${String(c.sequence).padStart(2,"0")} · ${escapeHtml(c.name)}${c.id === savedCheckpoint ? " (saved)" : ""}</option>`).join("");
   const current = state.dashboard?.checkpoint?.id || state.checkpoints[0]?.id; if (current) { select.value = current; await loadCheckpoint(current); }
+  syncSecondaryLedgers();
   if (!$("#phone-setup").hidden) renderPhoneSetup();
   setStatus("");
 }

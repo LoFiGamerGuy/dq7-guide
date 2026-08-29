@@ -13,6 +13,7 @@ import mimetypes
 import os
 from pathlib import Path
 import secrets
+import signal
 import socket
 import sqlite3
 import threading
@@ -112,7 +113,7 @@ def _lan_addresses() -> list[str]:
 def _access_urls(host: str, port: int, pairing_token: str | None = None) -> tuple[str, list[str]]:
     """Return the same-device URL and any practical phone URLs."""
     local_url = f"http://127.0.0.1:{port}"
-    suffix = f"/?pair={pairing_token}" if pairing_token else ""
+    suffix = f"/?pair={pairing_token}#walkthrough" if pairing_token else ""
     phone_urls = ([f"http://{address}:{port}{suffix}" for address in _lan_addresses()]
                   if host in {"0.0.0.0", "::"} else [])
     return local_url, phone_urls
@@ -1457,7 +1458,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             if not supplied or not hmac.compare_digest(supplied, pairing_token):
                 return False
             self.send_response(HTTPStatus.SEE_OTHER)
-            self.send_header("Location", "/")
+            self.send_header("Location", "/#walkthrough")
             self.send_header(
                 "Set-Cookie",
                 f"dq7_pair={pairing_token}; Path=/; Max-Age=315360000; HttpOnly; SameSite=Strict",
@@ -1832,6 +1833,9 @@ def main():
               flush=True)
     if args.open_browser:
         webbrowser.open(local_url)
+    def stop_on_signal(_signal_number, _frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, stop_on_signal)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

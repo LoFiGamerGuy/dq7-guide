@@ -14,6 +14,13 @@ the repository prevents unpaired Wi-Fi clients from reading or editing the guide
 keeps the phone bookmark useful across restarts. Run the phone launcher with
 `--rotate-pairing` to revoke all prior pairings. Still use trusted Wi-Fi and keep the
 pairing URL private.
+
+Gaming Mode is supported through the repo-contained
+`steam-deck/run-dq7-guide-gaming-mode.sh` wrapper, manually added to Steam once as a
+Non-Steam Game. It runs the server in Steam's foreground, shares the same persistent
+Desktop pairing/bookmark, and exits when the shortcut is stopped. It does not edit
+Steam configuration or install a service. SteamOS updates may change whether a second
+running app is suspended; Desktop Mode remains the reliable fallback.
 The ordinary LAN URL is online-to-host only. Offline installation/caching requires
 localhost or a secure HTTPS origin due to browser rules; cached data is visibly
 read-only, and changes are never queued. Progress JSON can be exported from and
@@ -24,7 +31,9 @@ An optional repo-contained Steam Deck manager supports background start, status,
 stop, restart, and an explicitly installed/removable Desktop shortcut. It makes no
 root, service, or autostart changes. It is only guaranteed within the current
 Desktop Mode session; suspend, reboot, network changes, and Gaming Mode transitions
-may require a restart and new pairing URL. Backup is linked from Dashboard, Phone
+may require a restart. Normal restarts retain the bookmarked pairing; only explicit
+rotation revokes it, while a Wi-Fi address change requires updating the bookmark.
+Backup is linked from Dashboard, Phone
 Setup, and Progress; restore remains confirmation-gated under Progress.
 
 ## Verified surface
@@ -44,6 +53,9 @@ Setup, and Progress; restore remains confirmation-gated under Progress.
   Current returns to the saved checkpoint while Prev/Next only browse. Long
   details wrap safely and restore confirmation is keyboard reachable. Failed
   checkbox saves roll back visibly.
+- Phone pairing, reloads, and home-screen launches open the saved checkpoint's
+  Play view. STOP and open actions stay first; completed actions remain hidden
+  and six secondary checkpoint ledgers start collapsed on phones.
 - Player writes are validated, serialized, and atomic. Checkpoint advancement
   and STOP clearance require explicit confirmation. Reversible live-play writes
   offer a compact Undo action, ignore duplicate taps while saving, and retain the

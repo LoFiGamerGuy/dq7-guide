@@ -12,6 +12,7 @@
 | Cleanup | `stop`, removable shortcut, ignored repo-local runtime files, no root/service/autostart | Ready |
 | Offline/PWA | Service worker only on secure origins; LAN HTTP is explicitly online-only | Intentional browser limitation |
 | SteamOS lifecycle | Suspend, reboot, network change, or Desktop/Gaming Mode transition may require restart | Platform limitation |
+| Gaming Mode flow | One-time manual Non-Steam wrapper plus foreground server reusing the Desktop pairing identity | Tested; secondary-app survival remains SteamOS-dependent |
 
 Residual operational needs: keep the Deck awake and reachable, use trusted Wi-Fi,
 allow Python through a private-network firewall if one is enabled, and retain a

@@ -89,6 +89,27 @@ folder; the manager does not write its credential into a system configuration pa
 `logs` shows recent server errors and may include the private pairing URL. `doctor`
 checks Python, the database, process status, and prints the shortest connection fixes.
 
+#### Use beside DQ7 in Gaming Mode
+
+First pair and bookmark the phone once with the Desktop manager above. Then perform
+one manual Steam setup:
+
+1. In Desktop Mode choose **Games → Add a Non-Steam Game → Browse**.
+2. Select `steam-deck/run-dq7-guide-gaming-mode.sh` in this repository.
+3. Rename the library entry to **DQ7 Phone Guide**, then return to Gaming Mode.
+
+For each play session, launch **DQ7 Phone Guide**, leave it running, launch or switch
+to Dragon Quest VII, and use the existing phone bookmark. Use Steam's **Stop Game**
+on the guide shortcut when finished. The server is owned by that foreground shortcut,
+so stopping it ends sharing. Desktop and Gaming Mode reuse the same pairing identity;
+no Steam configuration is edited programmatically and no service is installed.
+See `docs/STEAM_DECK_GAMING_MODE.md` for the exact one-time and per-session flow,
+including stop, backup, recovery, and re-pair troubleshooting.
+
+SteamOS multitasking behavior can change between updates. If it suspends or stops the
+guide when DQ7 launches, use DQ7 and the background manager together in Desktop Mode.
+A changed Deck Wi-Fi address also requires opening the newly printed Desktop URL once.
+
 For a visible one-session launcher instead, run `./start-guide-phone.sh`; keep its
 Konsole open and press `Ctrl+C` to stop. On Windows, use `start-guide-phone.bat`.
 
@@ -212,6 +233,7 @@ python scripts/player_progress.py heart-obtained heart_slime
 - `INGEST_STATUS.md` — coverage ledger and next concrete targets.
 - `docs/PRODUCT_READINESS.md` — verified interactive surface and intentional gaps.
 - `docs/PHONE_COMPANION_READINESS.md` — cold-start, recovery, and SteamOS residual audit.
+- `docs/STEAM_DECK_GAMING_MODE.md` — one-time pairing and Gaming Mode session steps.
 - `docs/INGESTION_ROADMAP.md` — phased roadmap with acceptance gates.
 - `docs/RETRIEVAL_QUALITY.md` — golden question/evidence audit and boundaries.
 - `docs/PROVENANCE_AND_CONFLICT_POLICY.md` — evidence, citation, confidence, and conflict rules.

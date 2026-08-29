@@ -202,7 +202,7 @@ class GuideServerTests(unittest.TestCase):
         local, phone = _access_urls("0.0.0.0", 8765, "launch-secret")
         self.assertEqual(local, "http://127.0.0.1:8765")
         self.assertTrue(all(url.startswith("http://") and
-                            url.endswith(":8765/?pair=launch-secret")
+                            url.endswith(":8765/?pair=launch-secret#walkthrough")
                             for url in phone))
 
     def test_live_play_mutations_support_server_round_trip_undo(self):
@@ -242,7 +242,7 @@ class GuideServerTests(unittest.TestCase):
             opener = build_opener(HTTPCookieProcessor(CookieJar()))
             with opener.open(base + "/?pair=one-launch-token") as response:
                 self.assertEqual(response.status, 200)
-                self.assertEqual(response.geturl(), base + "/")
+                self.assertEqual(response.geturl(), base + "/#walkthrough")
             with opener.open(base + "/api/health") as response:
                 self.assertEqual(json.load(response), {"status": "ok"})
 

@@ -34,6 +34,7 @@ main { min-width: 0; padding: clamp(1rem, 3vw, 2.4rem); }
 .summary-card strong { display: block; font-size: 1.65rem; color: var(--forest); }
 .summary-card span, .muted { color: var(--muted); font-size: .85rem; }
 .panel { margin-bottom: 1rem; }
+.secondary-ledger > summary { min-height: 2.75rem; display: flex; align-items: center; justify-content: space-between; gap: .7rem; cursor: pointer; list-style-position: inside; }.secondary-ledger > summary::marker { color: var(--forest-2); }.secondary-ledger[open] > summary { margin-bottom: .45rem; padding-bottom: .45rem; border-bottom: 1px solid var(--line); }
 .stop-banner { margin-bottom: 1rem; padding: .9rem 1rem; color: #6f1613; background: var(--danger-bg); border: 2px solid #db877f; border-radius: .7rem; font-weight: 700; }
 .stop-banner::before { content: "STOP  "; color: var(--danger); font-size: .8rem; letter-spacing: .08em; }
 .walk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }.span-two { grid-column: 1 / -1; }

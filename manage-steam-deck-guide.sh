@@ -17,17 +17,17 @@ is_guide_process() { check_pid=$1; [ -r "/proc/$check_pid/cmdline" ] || return 1
 is_running() { running_pid=$(read_pid) || return 1; kill -0 "$running_pid" 2>/dev/null && is_guide_process "$running_pid"; }
 require_python() { command -v python3 >/dev/null 2>&1 || { echo "Python 3.10 or newer is required." >&2; exit 1; }; python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' || { echo "Python 3.10 or newer is required." >&2; exit 1; }; }
 show_access() { [ -f "$log_file" ] || return 0; sed -n '/DQ7 guide (this device):/p; /DQ7 guide (phone):/p; /Phone address unavailable/p' "$log_file"; }
+pairing_requirement() { if [ "${DQ7_GUIDE_FORCE_PAIRING:-0}" = "1" ]; then printf '%s\n' --require-pairing-everywhere; fi; }
 
 start_server() {
   require_python
   if is_running; then echo "DQ7 phone guide is already running (PID $running_pid)."; show_access; return 0; fi
   mkdir -p "$runtime_dir"; chmod 700 "$runtime_dir"; : > "$log_file"; chmod 600 "$log_file"; cd "$repo_dir"
-  pairing_requirement=
-  if [ "${DQ7_GUIDE_FORCE_PAIRING:-0}" = "1" ]; then pairing_requirement=--require-pairing-everywhere; fi
+  pairing_option=$(pairing_requirement)
   if [ "${1:-}" = "rotate" ]; then
-    nohup python3 -u scripts/guide_server.py --lan --port "$server_port" --state "$state_file" --pairing-file "$pairing_file" $pairing_requirement --rotate-pairing >"$log_file" 2>&1 &
+    nohup python3 -u scripts/guide_server.py --lan --port "$server_port" --state "$state_file" --pairing-file "$pairing_file" $pairing_option --rotate-pairing >"$log_file" 2>&1 &
   else
-    nohup python3 -u scripts/guide_server.py --lan --port "$server_port" --state "$state_file" --pairing-file "$pairing_file" $pairing_requirement >"$log_file" 2>&1 &
+    nohup python3 -u scripts/guide_server.py --lan --port "$server_port" --state "$state_file" --pairing-file "$pairing_file" $pairing_option >"$log_file" 2>&1 &
   fi
   server_pid=$!; printf '%s\n' "$server_pid" > "$pid_file"; chmod 600 "$pid_file"; attempts=0
   while [ "$attempts" -lt 20 ]; do
@@ -79,10 +79,23 @@ install_shortcut() {
 
 remove_shortcut() { target="$(desktop_dir)/DQ7 Phone Guide.desktop"; if [ -f "$target" ]; then rm -f "$target"; echo "Removed: $target"; else echo "Shortcut is not installed."; fi; }
 
+foreground_server() {
+  require_python
+  if is_running; then
+    echo "The Desktop background guide is already running (PID $running_pid). Stop it before launching the Gaming Mode shortcut." >&2
+    exit 1
+  fi
+  mkdir -p "$runtime_dir"; chmod 700 "$runtime_dir"; cd "$repo_dir"
+  pairing_option=$(pairing_requirement)
+  echo "Starting the phone guide for Gaming Mode. Use Steam's Stop/Exit when finished."
+  exec python3 -u scripts/guide_server.py --lan --port "$server_port" \
+    --state "$state_file" --pairing-file "$pairing_file" $pairing_option
+}
+
 command_name=${1:-status}
 case "$command_name" in
   start) start_server ;; stop) stop_server ;; restart) stop_server; start_server ;; rotate) stop_server; start_server rotate ;; status) show_status ;; logs) show_logs ;; doctor) doctor ;;
-  foreground) cd "$repo_dir"; exec "$repo_dir/start-guide-phone.sh" ;;
+  foreground) foreground_server ;;
   install-shortcut) install_shortcut ;; remove-shortcut) remove_shortcut ;;
   *) echo "Usage: $0 {start|stop|restart|rotate|status|logs|doctor|foreground|install-shortcut|remove-shortcut}" >&2; exit 2 ;;
 esac
