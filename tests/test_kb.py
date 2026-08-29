@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 584)
+        self.assertEqual(self.counts["sources"], 590)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -187,6 +187,47 @@ class KnowledgeBaseTests(unittest.TestCase):
             json.loads(row["scope_json"])["dlc"] ==
             "not_applicable_standard_cups" for row in claims
         ))
+
+    def test_cp026_nottagen_boss_core_is_corroborated_and_extras_stay_single(self):
+        advice = {row["advice_id"]: row for row in self.connection.execute(
+            """SELECT advice_id, advice_text, applicability_json, confidence,
+            verification_status FROM checkpoint_advice
+            WHERE checkpoint_id='cp_026_elemental_cleanup_nottagen'
+            AND advice_id IN ('advice_cp026_moostapha',
+                              'advice_cp026_malign_vine')"""
+        ).fetchall()}
+        self.assertEqual(set(advice), {"advice_cp026_moostapha",
+                                       "advice_cp026_malign_vine"})
+        moostapha = json.loads(advice["advice_cp026_moostapha"]["applicability_json"])
+        self.assertIn("Kabuff", moostapha["verified_core"]["defence"])
+        self.assertEqual(moostapha["single_source_extras"]["source_id"],
+                         "game8_boss_moostapha")
+        self.assertIn("No exact level", moostapha["unknowns"])
+        vine = json.loads(advice["advice_cp026_malign_vine"]["applicability_json"])
+        self.assertFalse(vine["verified_core"]["target"].startswith("Defeat roots"))
+        self.assertEqual(vine["single_source_extras"]["source_id"],
+                         "game8_boss_malign_vine")
+        self.assertIn("root-respawn", vine["unknowns"])
+        self.assertTrue(all(row["confidence"] == "verified" for row in advice.values()))
+
+        for subject, predicate, sources in (
+            ("boss:moostapha", "recommended_physical_defence",
+             {"game8_boss_moostapha", "neoseeker_nottagen_past"}),
+            ("boss:malign_vine", "recommended_target_priority",
+             {"game8_boss_malign_vine", "steam_achievement_walkthrough"}),
+        ):
+            claims = self.connection.execute(
+                """SELECT source_id, value_json, claim_kind, verification_status
+                FROM claims WHERE subject_key=? AND predicate=?""",
+                (subject, predicate),
+            ).fetchall()
+            self.assertEqual({row["source_id"] for row in claims}, sources)
+            self.assertEqual(len({row["value_json"] for row in claims}), 1)
+            self.assertTrue(all(row["claim_kind"] == "recommendation"
+                                for row in claims))
+            self.assertTrue(all(row["verification_status"] ==
+                                "two_independent_current_version_guides"
+                                for row in claims))
 
     def test_cp016_power_route_is_two_source_and_keeps_the_grind_optional(self):
         advice = self.connection.execute(
@@ -388,6 +429,56 @@ class KnowledgeBaseTests(unittest.TestCase):
             {row["source_id"] for row in orders},
             {"game8_boss_almighty_spirits", "neoseeker_yet_another_world"},
         )
+
+    def test_envoy_and_vaipur_verified_core_keeps_source_specific_extras(self):
+        advice_rows = self.connection.execute(
+            """SELECT advice_id, applicability_json, confidence
+            FROM checkpoint_advice
+            WHERE advice_id IN ('advice_cp016_envoy', 'advice_cp019_vaipur')"""
+        ).fetchall()
+        advice = {row["advice_id"]: row for row in advice_rows}
+        envoy = json.loads(advice["advice_cp016_envoy"]["applicability_json"])
+        vaipur = json.loads(advice["advice_cp019_vaipur"]["applicability_json"])
+        self.assertIn("physical", envoy["verified_core"]["offence"].lower())
+        self.assertEqual(set(envoy["source_mechanism_notes"]),
+                         {"game8", "korosenai"})
+        self.assertEqual(set(envoy["single_source_extras"]),
+                         {"game8", "korosenai"})
+        self.assertIn("spell resistance", vaipur["verified_core"]["defence"])
+        self.assertIn("buffer", vaipur["verified_core"]["support"])
+        self.assertEqual(set(vaipur["single_source_extras"]),
+                         {"game8", "korosenai"})
+        self.assertTrue(all(row["confidence"] == "verified"
+                            for row in advice_rows))
+
+        expected = {
+            ("boss:the_envoy", "recommended_antimagic_response"):
+                {"game8_boss_envoy", "korosenai_envoy"},
+            ("boss:vaipur", "recommended_spell_defence"):
+                {"game8_boss_vaipur", "korosenai_vaipur"},
+            ("boss:vaipur", "recommended_support_role"):
+                {"game8_boss_vaipur", "korosenai_vaipur"},
+        }
+        for (subject, predicate), sources in expected.items():
+            rows = self.connection.execute(
+                """SELECT source_id, value_json, confidence
+                FROM claims WHERE subject_key=? AND predicate=?""",
+                (subject, predicate),
+            ).fetchall()
+            self.assertEqual({row["source_id"] for row in rows}, sources)
+            self.assertEqual(len({row["value_json"] for row in rows}), 1)
+            self.assertTrue(all(row["confidence"] == "verified" for row in rows))
+
+        envoy_extras = self.connection.execute(
+            """SELECT value_json, verification_status FROM claims
+            WHERE subject_key='boss:the_envoy'
+              AND predicate='recommended_support_extra'"""
+        ).fetchall()
+        self.assertEqual(len(envoy_extras), 2)
+        self.assertEqual(len({row["value_json"] for row in envoy_extras}), 2)
+        self.assertTrue(all(row["verification_status"] ==
+                            "single_independent_source"
+                            for row in envoy_extras))
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -2821,6 +2912,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["locator"] for row in rows))
         self.assertTrue(all(
             row["verification_status"] == "source_checked" or
+            row["verification_status"].startswith("single_independent_source") or
             row["verification_status"].startswith("two_independent_current_version_sources") or
             row["verification_status"].startswith("core_plan_two_source_verified")
             for row in rows
@@ -3030,6 +3122,53 @@ class KnowledgeBaseTests(unittest.TestCase):
                             for row in advice))
         self.assertTrue(all("no_level_claim_no_turn_or_weakness_claim" in
                             row["verification_status"] for row in advice))
+        self.assertTrue(all("alone" in row["advice_text"] for row in advice))
+
+    def test_remaining_early_mid_bosses_keep_two_source_core_and_attributed_extras(self):
+        claim_ids = (
+            "claim_mild_bunch_rogue_control_game8",
+            "claim_mild_bunch_rogue_control_gamewith",
+            "claim_mild_bunch_aoe_fizzle_game8",
+            "claim_mild_bunch_target_defend_gamewith",
+            "claim_skeleton_squire_buff_game8",
+            "claim_skeleton_squire_buff_gamewith",
+            "claim_skeleton_squire_group_recovery_game8",
+            "claim_skeleton_squire_group_recovery_gamewith",
+            "claim_skeleton_squire_element_mp_gamewith",
+            "claim_setesh_buff_game8", "claim_setesh_buff_gamewith",
+            "claim_setesh_counter_heal_game8",
+            "claim_setesh_counter_heal_gamewith",
+            "claim_setesh_ice_gamewith", "claim_setesh_priest_game8",
+            "claim_tribulators_tutorial_plan_game8",
+        )
+        placeholders = ",".join("?" for _ in claim_ids)
+        claims = self.connection.execute(
+            f"""SELECT claim_id, confidence, verification_status FROM claims
+                WHERE claim_id IN ({placeholders})""", claim_ids
+        ).fetchall()
+        self.assertEqual(len(claims), 16)
+        verified = [row for row in claims if
+                    row["verification_status"].startswith(
+                        "two_independent_current_version_sources")]
+        self.assertEqual(len(verified), 10)
+        provisional = [row for row in claims if
+                       row["verification_status"].startswith("single_")]
+        self.assertEqual(len(provisional), 6)
+        advice = self.connection.execute(
+            """SELECT advice_id, advice_text, confidence, verification_status
+               FROM checkpoint_advice WHERE advice_id IN (
+                 'advice_cp002_tribulators', 'advice_cp010_mild_bunch',
+                 'advice_cp011_skeleton_squire', 'advice_cp011_setesh')"""
+        ).fetchall()
+        self.assertEqual(len(advice), 4)
+        tribulators = next(row for row in advice if
+                           row["advice_id"] == "advice_cp002_tribulators")
+        self.assertEqual(tribulators["confidence"], "high")
+        self.assertTrue(tribulators["verification_status"].startswith("single_"))
+        corroborated = [row for row in advice if row is not tribulators]
+        self.assertTrue(all(row["confidence"] == "verified" for row in corroborated))
+        self.assertTrue(all("two_source_verified" in row["verification_status"]
+                            for row in corroborated))
         self.assertTrue(all("alone" in row["advice_text"] for row in advice))
 
     def test_cp011_through_cp020_boss_sequences_are_complete(self):
