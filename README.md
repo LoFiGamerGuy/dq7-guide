@@ -159,6 +159,11 @@ stays under Progress to prevent an accidental replacement during play.
 
 The Sources view also provides a dated six-item audit of the maintained
 single-source, unsupported, and corroborated-but-unresolved evidence queue.
+The local query tool searches that queue before generic documents when all query
+terms match, so questions such as `repeatable Monster Heart` or `Lucky Panel
+probability` lead with the preserved unknown, the evidence needed to resolve it,
+and precise supporting-claim locators instead of implying that a general guide page
+answers the mechanic.
 
 ```powershell
 python scripts/build_kb.py

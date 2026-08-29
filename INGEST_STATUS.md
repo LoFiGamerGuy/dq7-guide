@@ -94,6 +94,14 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The unresolved-query retrieval pass makes the curated evidence queue searchable
+ahead of generic FTS results when all query terms match. `repeatable Monster Heart`
+now leads with the verified finite-route boundary and explicit lack of a proven
+repeatable route; `Lucky Panel probability` leads with the missing algorithm and
+denominator. Both expose precise supporting-claim URLs and locators, and the Lucky
+Panel gap now directly links its normalized numeric-cell claim. No probability,
+rate, or repeatability is inferred.
+
 The Troll Heart retrieval pass closes the mismatch between its normalized item route
 and the dedicated Heart views. Heart/API/CLI guidance now gates the finite field
 sparkle at cp019 with separate effect and availability provenance. Phone detail shows

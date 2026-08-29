@@ -29,4 +29,7 @@ The local `query_kb.py` search uses exact-term FTS matches first, then sourced
 structured claims and item aliases, and only then broad OR fallback. Regression
 queries cover Shell Shield, Slime Earring, Stella Fan, and Orgodemir Magic
 Barrier so exact priority identities and conflicts do not disappear into generic
-shield, slime, or spell results.
+shield, slime, or spell results. Curated evidence gaps take priority when every
+query term matches their subject, summary, or acceptance condition. Those results
+state the unresolved conclusion and evidence needed, and expose the precise
+supporting-claim URLs and locators rather than letting generic results imply closure.

@@ -2539,6 +2539,18 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["source_url"] and row["locator"]
                             for row in (shell[0], stella[0])))
 
+        repeatable_heart = search(self.db_path, "repeatable Monster Heart", limit=4)
+        self.assertEqual(repeatable_heart[0]["domain"], "evidence gap")
+        self.assertIn("No checked source proves a repeatable", repeatable_heart[0]["body"])
+        self.assertTrue(repeatable_heart[0]["evidence"])
+        self.assertTrue(all(row["locator"] for row in repeatable_heart[0]["evidence"]))
+
+        panel_probability = search(self.db_path, "Lucky Panel probability", limit=4)
+        self.assertEqual(panel_probability[0]["document_id"],
+                         "evidence-gap:gap_lucky_panel_probabilities")
+        self.assertEqual(panel_probability[0]["evidence"][0]["claim_id"],
+                         "claim_lucky_panel_numeric_cells")
+
     def test_search_does_not_create_missing_database(self):
         missing = Path(self.tempdir.name) / "missing.sqlite"
         with self.assertRaises(FileNotFoundError):

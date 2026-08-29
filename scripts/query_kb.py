@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sqlite3
 from pathlib import Path
@@ -11,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
+DEFAULT_EVIDENCE_GAPS = ROOT / "data" / "evidence_gaps.json"
 
 
 def normalize_query(query: str) -> str | None:
@@ -84,6 +86,51 @@ def _structured_rows(connection: sqlite3.Connection, tokens: list[str], limit: i
     return [dict(row) for row in rows]
 
 
+def _evidence_gap_rows(connection: sqlite3.Connection, tokens: list[str]) -> list[dict]:
+    """Return curated unknowns before generic matches when every query token matches."""
+    gaps = json.loads(DEFAULT_EVIDENCE_GAPS.read_text(encoding="utf-8"))
+    rows = []
+    for gap in gaps:
+        search_text = " ".join((gap["gap_id"], gap["subject"], gap["summary"],
+                                gap["acceptance_condition"])).casefold()
+        if not all(token.casefold() in search_text for token in tokens):
+            continue
+        claim_ids = gap.get("claim_ids", [])
+        evidence = []
+        if claim_ids:
+            placeholders = ",".join("?" for _ in claim_ids)
+            evidence = [dict(row) for row in connection.execute(
+                f"""SELECT c.claim_id, c.locator, c.source_id, s.title AS source_title,
+                    s.url AS source_url, s.updated_at AS source_updated_at,
+                    s.retrieved_at AS source_retrieved_at
+                FROM claims c JOIN sources s USING(source_id)
+                WHERE c.claim_id IN ({placeholders}) ORDER BY c.claim_id""",
+                claim_ids,
+            ).fetchall()]
+            found_claim_ids = {row["claim_id"] for row in evidence}
+            missing_claim_ids = set(claim_ids) - found_claim_ids
+            if missing_claim_ids:
+                raise ValueError(f"Unknown evidence-gap claim ID(s): {sorted(missing_claim_ids)}")
+        rows.append({
+            "document_id": f"evidence-gap:{gap['gap_id']}",
+            "title": f"Open evidence gap · {gap['subject']}",
+            "body": f"{gap['summary']} Needed: {gap['acceptance_condition']}",
+            "domain": "evidence gap",
+            "checkpoint_key": None,
+            "confidence": "unknown preserved",
+            "reconstruction_status": gap["status"],
+            "locator": None,
+            "source_id": None,
+            "source_title": None,
+            "source_url": None,
+            "source_updated_at": None,
+            "source_retrieved_at": None,
+            "score": -200.0,
+            "evidence": evidence,
+        })
+    return rows
+
+
 def search(db_path: Path, query: str, limit: int = 8):
     tokens = _tokens(query)
     if not tokens:
@@ -95,7 +142,8 @@ def search(db_path: Path, query: str, limit: int = 8):
     try:
         exact = " AND ".join(f'"{token}"' for token in tokens)
         broad = " OR ".join(f'"{token}"' for token in tokens)
-        results = _fts_rows(connection, exact, limit)
+        results = _evidence_gap_rows(connection, tokens)
+        results.extend(_fts_rows(connection, exact, limit))
         results.extend(_structured_rows(connection, tokens, limit))
         if len({row["document_id"] for row in results}) < limit:
             results.extend(_fts_rows(connection, broad, limit))
@@ -143,6 +191,10 @@ def main() -> None:
                 f"updated={row['source_updated_at'] or 'unknown'}, "
                 f"retrieved={row['source_retrieved_at']}"
             )
+        for evidence in row.get("evidence", []):
+            print(f"Supporting claim: {evidence['source_title']} — {evidence['source_url']}")
+            print(f"Source ID: {evidence['source_id']}")
+            print(f"Locator: {evidence['locator']}")
         print(f"Record status: {row['reconstruction_status']}")
         print()
 
