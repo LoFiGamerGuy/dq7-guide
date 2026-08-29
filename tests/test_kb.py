@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 660)
+        self.assertEqual(self.counts["sources"], 663)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -69,7 +69,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
-        self.assertEqual(self.counts["checkpoint_advice"], 115)
+        self.assertEqual(self.counts["checkpoint_advice"], 116)
         self.assertEqual(self.counts["boss_skill_recommendations"], 9)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -2549,6 +2549,13 @@ class KnowledgeBaseTests(unittest.TestCase):
                       json.loads(strength_ring["prerequisite_json"])["container"])
         self.assertEqual(strength_ring["verification_status"],
                          "direct_video_exact_container_two_source_route")
+        handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
+        status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
+        self.assertIn("all maintained finite-container member gaps are resolved",
+                      handoff)
+        self.assertIn("all maintained finite-container member gaps are resolved",
+                      status)
+        self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
             """SELECT c.subject_key, c.value_json, s.publisher
             FROM claims c JOIN sources s USING(source_id)
@@ -3566,6 +3573,39 @@ class KnowledgeBaseTests(unittest.TestCase):
             normalize_checkpoint_advice([
                 {"advice_id": "bad", "applicability": ["normal"]}
             ])
+
+    def test_meteorite_bracer_duplicate_power_is_item_specific_and_quantity_guarded(self):
+        claims = self.connection.execute(
+            """SELECT claim_id, predicate, source_id, value_json
+            FROM claims
+            WHERE claim_id LIKE 'claim_meteorite_bracer_%'
+            ORDER BY claim_id"""
+        ).fetchall()
+        self.assertEqual(len(claims), 4)
+        self.assertEqual({row["source_id"] for row in claims},
+                         {"koshian_almighty_speedrun", "game8_jp_aishe_build"})
+        self.assertEqual({row["predicate"] for row in claims},
+                         {"same_item_equip_legality", "duplicate_effect_stacking"})
+        numeric = next(json.loads(row["value_json"]) for row in claims
+                       if row["claim_id"] ==
+                       "claim_meteorite_bracer_additive_agility_koshian")
+        self.assertEqual(numeric["two_copy_agility"], 200)
+
+        advice = self.connection.execute(
+            """SELECT checkpoint_id, advice_text, applicability_json,
+                      verification_status
+            FROM checkpoint_advice
+            WHERE advice_id='advice_cp030_aishe_double_meteorite'"""
+        ).fetchone()
+        self.assertEqual(advice["checkpoint_id"], "cp_030_postgame_another_world")
+        self.assertIn("+200 Agility", advice["advice_text"])
+        scope = json.loads(advice["applicability_json"])
+        self.assertEqual(scope["copies_required"], 2)
+        self.assertIn("binary collection ledger does not prove quantity",
+                      scope["quantity_guard"])
+        self.assertIn("no universal duplicate-accessory", scope["scope"])
+        self.assertEqual(advice["verification_status"],
+                         "two_publisher_meteorite_specific_duplicate_legality_and_additive_stat_stacking")
 
     def test_alltrades_boss_and_vocation_advice_is_chronological(self):
         report = load_walkthrough(

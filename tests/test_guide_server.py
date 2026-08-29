@@ -424,9 +424,10 @@ class GuideServerTests(unittest.TestCase):
         duplicates = by_id["gap_duplicate_equipment_stacking"]
         self.assertEqual(duplicates["verification_tier"],
                          "corroborated_but_unresolved")
-        self.assertEqual(duplicates["source_count"], 3)
-        self.assertEqual(len(duplicates["supporting_claims"]), 4)
-        self.assertIn("Rabbit Tail only", duplicates["summary"])
+        self.assertEqual(duplicates["source_count"], 6)
+        self.assertEqual(len(duplicates["supporting_claims"]), 9)
+        self.assertIn("Meteorite Bracer", duplicates["summary"])
+        self.assertIn("3 Strength Seeds", duplicates["summary"])
         self.assertIn("Monster Hearts", duplicates["acceptance_condition"])
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])

@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 660 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 663 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -16,7 +16,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
 | Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources and a continuous walkthrough directly maps its trigger to end-cp022 before cp023 | Preserve player-unknown state; never infer that the Button sidequest was completed |
-| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stellar Fan is resolved from direct English UI while Stella Fan remains a sourced losing alias | Expand remaining alternate free routes and exact finite-container evidence |
+| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; all maintained finite-container member gaps are resolved; Stellar Fan is resolved from direct English UI while Stella Fan remains a sourced losing alias | Expand alternate free routes only where direct current-version evidence adds practical value |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. The stale Version 1 Rank 2 Slime Earring route is preserved only as a contradicted historical claim; one source publishes raw numeric selection cells but no probability formula | Verify numerical probabilities only if directly published |
 | Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
 | Farming | 11/11 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
@@ -32,7 +32,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 660
+- sources: 663
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
@@ -53,7 +53,7 @@ Expected after `python scripts/build_kb.py`:
 - monsters: 333
 - monster encounters / drops: 476 / 227
 - Vicious species / encounters: 10 / 11
-- ready-for-play checkpoint advice: 115
+- ready-for-play checkpoint advice: 116
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
 - item aliases / acquisition paths: 5 / 747
@@ -79,12 +79,12 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** one automatically detected claim-pair remains unresolved: whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. `Stellar Fan` is resolved by a legible launch-period English acquisition toast, while RPG Site's `Stella Fan` wording remains visible as the losing claim. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
 - **Conflict-safe phone action:** Massively Minted remains unresolved, but its detail now labels a conservative synthesis: hold 300,000 gold simultaneously before spending. That satisfies either registered claim and is not presented as evidence for either counter implementation.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 660 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 663 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Seek explicit repeat evidence for a non-Vicious Heart route; defeated Vicious/strong encounters are verified finite.
-2. Resolve the six exact remaining achievement-counter questions, non-Rabbit-Tail accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence.
+2. Resolve the six exact remaining achievement-counter questions, additional named accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence. Meteorite Bracer and Rabbit Tail are already item-specific verified cases.
 3. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors this complete six-item evidence-blocked
@@ -431,7 +431,7 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 
 ## Authoritative residual-evidence audit
 
-Audited 2026-08-29 against a clean generated database. The browser's seven-item
+Audited 2026-08-29 against a clean generated database. The browser's six-item
 evidence-gap list is a curated research queue, not the total number of disputed
 database facts. The API therefore reports it separately from automatic conflict
 pairs.
@@ -447,8 +447,9 @@ pairs.
   supported complete list is neither losing value. Fishnet Stockings and Marshal
   Lourgh chronology are now resolved from location-specific and continuous
   walkthrough evidence, with their losing claims preserved. Resolving the
-  remaining fan-name fact requires a legible current-version English Item List,
-  inventory, shop, or acquisition-result capture showing the full name.
+  former fan-name fact is resolved by a legible current-version English
+  acquisition-result capture showing `stellar fan`; the losing `Stella Fan`
+  claim remains visible.
 - **Little Blue Button:** Game8 Japan and GameWith independently name the
   late-game Cataclysm (`異変`) as the boundary. A separate continuous Game8
   Japan walkthrough places the trigger when leaving Estard Castle after the
@@ -466,7 +467,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 660 source records currently have retrieval dates within 180
+- **Freshness:** all 663 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -495,7 +496,10 @@ GameWith, Gamers-High, and GameDeep publish differing lists; each claim remains
 stored and conflicted rather than overwritten. Character compatibility is now
 normalized for all 311 equipment rows. Non-accessory slot counts are now separately
 verified. Rabbit Tail's two-copy legality and qualitative stacking are separately
-corroborated; other identical accessories and Monster Heart behavior remain unverified.
+corroborated, and a 100-kill zero-versus-ten-tail sample strengthens the qualitative
+case without proving a formula or cap. Meteorite Bracer separately has two-publisher
+evidence for two-copy legality and additive +100-per-copy Agility. Other identical
+accessories and Monster Heart behavior remain unverified.
 
 The slot-layout batch promotes one weapon, one shield, one helmet/head item, and one
 armour/torso item per playable character. Gamers-High directly states that accessories
@@ -504,8 +508,10 @@ enumerates one of each non-accessory category plus Accessory 1 and Accessory 2 a
 early-, mid-, and late-game character loadouts. Character legality remains governed by
 the complete 311-row compatibility matrix. Monster Hearts still consume accessory
 slots. Rabbit Tail now has separate two-publisher evidence for two-copy legality and
-qualitative stacking. That item-specific result is not promoted into a universal
-same-accessory or Monster Heart rule, and its numeric formula/cap remains unknown.
+qualitative stacking; Meteorite Bracer independently establishes a second named
+two-copy case and additive +200 Agility total. Neither item-specific result is
+promoted into a universal same-accessory or Monster Heart rule, and Rabbit Tail's
+numeric formula/cap remains unknown.
 
 The cp009 Hero power batch independently verifies Cautery Sword's +42 Attack and
 one-group battle-use flame effect between Game8's dedicated English item page and
