@@ -1446,6 +1446,19 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "available_farms": farm_options,
         "farm_note": ("Available sourced options, not a ranking. Use the attributed grind ceiling above when present."
                       if farm_options else "No checkpoint-gated farm is verified as available yet."),
+        "play_brief": {
+            "power_now": (concise_strongest[0] if concise_strongest else None),
+            "completion_safe": (safe_power_candidates[0]
+                                if safe_power_candidates else None),
+            "optional_grind": next((row for row in advice
+                                    if row["decision_group"] == "optional_grind"), None),
+            "advancement": {
+                "status": advancement_readiness["status"],
+                "reason": advancement_readiness["reason"],
+                "safe_condition": checkpoint["safe_exit_condition"],
+                "requires_player_confirmation": True,
+            },
+        },
     }
     return {
         "id": checkpoint_id, "name": checkpoint["name"],

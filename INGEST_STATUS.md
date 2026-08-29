@@ -94,6 +94,15 @@ The early-game vertical slice now includes direct tactical coverage for the Trib
 
 The Ballymolloy/Frobisher corroboration pass independently confirms Golem's Buff plan, Crabble-Rouser's Dazzle/Fire/Buff plan, Maeve's Fire/Buff/support plan, and Tinpot Dictator's focused-target Buff, group-damage, and resource-conservation plan. Golem's Fire weakness and Maeve's inability to be Dazzled remain explicit single-independent-source findings with no invented numeric resistance. Tinpot Dictator is correctly scoped to `cp_007_frobisher`; Emberdale's `cp_004_emberdale` boss remains Glowering Inferno.
 
+The first Allblades Arena control pass independently matches Game8 and NoobFeed
+on Numpton's opening round: use multi-target damage on the three Drake Slimes and
+have Ruff use Aooo! to stop Numpton. The tactic is now two-source verified, while
+the Wolf Boy rank-4 unlock cell remains separately sourced and is not promoted by
+the strategy corroboration. Game8's explicit conserve-HP/MP framing remains a
+single-source detail for the four-fight sequence.
+
+The Glowering Inferno pass adds a two-source cp004 phase plan: use Ice/Water attacks normally, then switch to physical attacks while its glow raises Ice resistance. Hero support and frequent party-shield Let Loose use are independently corroborated. GameWith's full-party Defend response after Muster Strength remains explicitly single-source; suggested level, approximate HP, and numeric resistance values are not promoted.
+
 The cp011–cp020 boss pass fills Skeleton Squire, Setesh, Sunken Spirits, King Slime, Ethereal Serpent, Rainiac, The Envoy, and Vaipur. Consecutive-fight recovery and counter/Fizzle windows are kept in encounter order without importing the source pages' suggested character levels.
 
 The next chronological slice adds 45 ordered obligations across Alltrades Present, the desert arc, Aishe/Moonlighting, the Flying Carpet route, and Sir Mervyn. No irreversible STOP was asserted without evidence. `walkthrough.py` is now the canonical checkpoint-generic command; `early_walkthrough.py` remains compatible.

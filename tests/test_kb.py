@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 565)
+        self.assertEqual(self.counts["sources"], 569)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -86,9 +86,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual(len(rows), 9)
         self.assertEqual(sum(row["recommendation_verification_status"] == "single_source"
-                             for row in rows), 3)
+                             for row in rows), 2)
         self.assertEqual(sum(row["recommendation_verification_status"] == "two_source_verified"
-                             for row in rows), 6)
+                             for row in rows), 7)
         self.assertTrue(all(
             (row["corroborating_source_id"] is not None and
              row["corroborating_locator"] is not None) ==
@@ -136,6 +136,39 @@ class KnowledgeBaseTests(unittest.TestCase):
                 ("boss:slaughtomaton", "recommended_hero_role", 2),
             },
         )
+
+    def test_numpton_aooo_tactic_is_corroborated_but_rank_stays_separate(self):
+        row = self.connection.execute(
+            """SELECT b.recommendation_verification_status,
+                b.corroborating_source_id, b.corroborating_locator,
+                k.proficiency_rank, k.verification_status AS rank_status
+            FROM boss_skill_recommendations b
+            JOIN vocation_rank_skills k USING(vocation_skill_id)
+            WHERE b.boss_name=\"Numpton's Numpties\"
+              AND k.skill_name='Aooo!'"""
+        ).fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(row["recommendation_verification_status"],
+                         "two_source_verified")
+        self.assertEqual(row["corroborating_source_id"],
+                         "noobfeed_bosses_alltrades")
+        self.assertIn("Aooo!", row["corroborating_locator"])
+        self.assertEqual(row["proficiency_rank"], 4)
+        self.assertFalse(row["rank_status"].startswith("two_"))
+
+        claims = self.connection.execute(
+            """SELECT source_id, value_json, verification_status
+            FROM claims
+            WHERE subject_key='boss:numptons_numpties'
+              AND predicate='recommended_arena_plan'
+            ORDER BY source_id"""
+        ).fetchall()
+        self.assertEqual({claim["source_id"] for claim in claims},
+                         {"game8_allblades_arena", "noobfeed_bosses_alltrades"})
+        self.assertEqual(len({claim["value_json"] for claim in claims}), 1)
+        self.assertTrue(all(claim["verification_status"] ==
+                            "two_independent_current_version_sources"
+                            for claim in claims))
 
     def test_equipment_compatibility_requires_two_source_row_agreement(self):
         adjudicated = self.connection.execute(
@@ -2505,6 +2538,35 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual({row["predicate"] for row in provisional},
                          {"elemental_weakness", "dazzle_susceptibility"})
         self.assertTrue(all(row["confidence"] == "high" for row in provisional))
+
+    def test_glowering_inferno_phase_plan_is_corroborated_without_promoting_single_source_defend(self):
+        claims = self.connection.execute(
+            """SELECT claim_id, predicate, confidence, verification_status
+               FROM claims
+               WHERE claim_id LIKE 'claim_glowering_%'
+               ORDER BY claim_id"""
+        ).fetchall()
+        self.assertEqual(len(claims), 9)
+        verified = [row for row in claims if row["verification_status"] ==
+                    "two_independent_current_version_sources"]
+        self.assertEqual(len(verified), 8)
+        provisional = [row for row in claims if
+                       row["verification_status"] == "single_independent_source"]
+        self.assertEqual(len(provisional), 1)
+        self.assertEqual(provisional[0]["predicate"],
+                         "recommended_muster_strength_response")
+        self.assertEqual(provisional[0]["confidence"], "high")
+        advice = self.connection.execute(
+            """SELECT advice_text, confidence, verification_status
+               FROM checkpoint_advice
+               WHERE advice_id='advice_cp004_glowering_inferno'"""
+        ).fetchone()
+        self.assertIn("When it glows, switch to physical attacks", advice["advice_text"])
+        self.assertIn("GameWith alone", advice["advice_text"])
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertEqual(
+            advice["verification_status"],
+            "core_plan_two_source_verified_single_source_muster_defend")
 
     def test_cp011_through_cp020_boss_sequences_are_complete(self):
         expected = {

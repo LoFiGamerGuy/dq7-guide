@@ -826,6 +826,15 @@ class GuideServerTests(unittest.TestCase):
                     row["availability_status"] == "available_by_checkpoint"
                     for row in plan["available_farms"]
                 ))
+                brief = plan["play_brief"]
+                self.assertEqual(set(brief), {
+                    "power_now", "completion_safe", "optional_grind", "advancement",
+                })
+                self.assertTrue(brief["advancement"]["safe_condition"])
+                self.assertTrue(brief["advancement"]["requires_player_confirmation"])
+                self.assertIn(brief["advancement"]["status"], {
+                    "blocked_by_stop", "required_actions_open", "manual_confirmation",
+                })
         dual_goal_subjects = {
             "cp_006_regenstein": "Free Regenstein Boomerang",
             "cp_012_roamer_return": "Activate Moonlighting immediately",
