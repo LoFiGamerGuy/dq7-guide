@@ -53,6 +53,12 @@ phase-one Magic Barrier. Orgodemir phase two deliberately retains the visible
 Magic Barrier versus Insulatle recommendation split; vocation role/timing advice
 remains labeled as editorial synthesis beyond the verified mechanics.
 
+Four fixed-gear sweep cards now separate two-publisher route cores from their
+remaining one-walkthrough extras. Verified pickups cover Ice Shield; Dragon
+Claws and Staff of Sentencing; Duplic Hat and Staff of Antimagic; and Silver
+Mail, Lightning Staff, and Falcon Blade. Collection advice does not imply a
+universal best wearer.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.
