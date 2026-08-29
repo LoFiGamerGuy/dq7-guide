@@ -294,6 +294,15 @@ PATCH /api/achievements/{achievement_id} {"completed":true}
 PATCH /api/checkpoints/{checkpoint_id} {"selected":true}
 ```
 
+Item ownership and quantity are distinct. `completion.items_obtained` records identity for completion; optional `completion.item_quantities` records an exact non-negative copy total. Missing means unknown, not zero. A positive exact total adds identity, while exact zero removes it. Clearing a total restores unknown quantity and normally retains identity.
+
+```text
+PATCH /api/items/{item_id}/quantity {"quantity":2}
+PATCH /api/items/{item_id}/quantity {"quantity":null}
+```
+
+A reversible client undo may send `{"quantity":null,"obtained":false}` when the item was not obtained before the edit. Equipment allocation is checked globally. Unknown quantity supports at most one explicitly owned copy; exact totals cap all allocations. Using the same accessory ID in both slots additionally requires at least two exact copies and two independent publishers explicitly supporting that item's same-item legality. This is item-specific and does not establish a universal duplicate-accessory or Monster Heart rule.
+
 The Progress screen also reuses the allowlisted command endpoint for explicit values:
 
 ```json

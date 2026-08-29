@@ -170,6 +170,44 @@ class GuideServerTests(unittest.TestCase):
         hero = next(row for row in report["members"] if row["name"] == "Hero")
         self.assertIsNone(hero["accessory_slots"]["accessory_1"])
 
+    def test_item_quantity_api_enables_only_two_source_duplicate_accessories(self):
+        self.patch_json("/api/items/item_rabbit_tail/quantity", {"quantity": 2})
+        _, item = self.get_json("/api/items/item_rabbit_tail")
+        self.assertEqual(item["item"]["quantity"], 2)
+        self.assertEqual(item["item"]["quantity_status"], "exact")
+        _, report = self.get_json("/api/equipment")
+        hero = next(row for row in report["members"] if row["name"] == "Hero")
+        rabbit = next(row for row in hero["accessory_options"]
+                      if row["item_id"] == "item_rabbit_tail")
+        self.assertTrue(rabbit["duplicate_legal"])
+        self.assertEqual(rabbit["quantity"], 2)
+
+        for slot in ("accessory_1", "accessory_2"):
+            self.patch_json(f"/api/equipment/accessories/Hero/{slot}",
+                            {"item_id": "item_rabbit_tail"})
+        with self.assertRaises(HTTPError) as overallocated:
+            self.patch_json("/api/equipment/accessories/Maribel/accessory_1",
+                            {"item_id": "item_rabbit_tail"})
+        self.assertEqual(overallocated.exception.code, 400)
+        with self.assertRaises(HTTPError) as stranded:
+            self.patch_json("/api/items/item_rabbit_tail/quantity", {"quantity": 1})
+        self.assertEqual(stranded.exception.code, 400)
+        for slot in ("accessory_2", "accessory_1"):
+            self.patch_json(f"/api/equipment/accessories/Hero/{slot}", {"item_id": None})
+        self.patch_json("/api/items/item_rabbit_tail/quantity",
+                        {"quantity": None, "obtained": False})
+
+        self.patch_json("/api/items/item_prayer_ring/quantity", {"quantity": 2})
+        self.patch_json("/api/equipment/accessories/Hero/accessory_1",
+                        {"item_id": "item_prayer_ring"})
+        with self.assertRaises(HTTPError) as unsupported:
+            self.patch_json("/api/equipment/accessories/Hero/accessory_2",
+                            {"item_id": "item_prayer_ring"})
+        self.assertEqual(unsupported.exception.code, 400)
+        self.patch_json("/api/equipment/accessories/Hero/accessory_1", {"item_id": None})
+        self.patch_json("/api/items/item_prayer_ring/quantity",
+                        {"quantity": None, "obtained": False})
+
     def test_standard_equipment_api_requires_owned_compatible_matching_slot_and_reverses(self):
         self.patch_json("/api/items/item_cautery_sword", {"completed": True})
         status, _ = self.patch_json("/api/equipment/slots/Hero/weapon",

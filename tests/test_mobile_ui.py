@@ -166,6 +166,20 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("overflow-wrap: anywhere", css)
         self.assertIn("scrollIntoView", js)
 
+    def test_item_quantity_controls_preserve_unknowns_and_large_touch_targets(self):
+        css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")
+        js = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("Copies: unknown · not zero", js)
+        self.assertIn('inputmode="numeric" min="0" max="99"', js)
+        self.assertIn("Clear to unknown", js)
+        self.assertIn("Routes never change this value", js)
+        self.assertIn("item-quantity", js)
+        self.assertIn("previousObtained", js)
+        self.assertIn("currently Rabbit Tail and Meteorite Bracer qualify", js)
+        self.assertIn("Monster Heart duplicates remain unsupported", js)
+        self.assertIn(".callout [data-item-quantity-input]", css)
+        self.assertIn("[data-item-quantity-clear] { min-height: 2.75rem", css)
+
     def test_active_play_writes_are_guarded_reversible_and_context_preserving(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         css = (ROOT / "web" / "styles.css").read_text(encoding="utf-8")

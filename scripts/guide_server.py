@@ -41,6 +41,7 @@ MAX_BODY_BYTES = 64 * 1024
 ALLOWED_PROGRESS_COMMANDS = {
     "checkpoint", "medal-found", "medal-undo", "medal-count", "done", "undo",
     "achievement-unlocked", "achievement-undo", "item-obtained", "item-undo",
+    "item-quantity",
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
     "heart-obtained", "heart-undo",
     "vocation-mastered", "vocation-undo",
@@ -300,13 +301,25 @@ def _page(rows: list[dict], query: dict, searchable: tuple[str, ...]) -> dict:
             "results": rows[offset:offset + limit]}
 
 
+def _item_quantity_state(state: dict, item_id: str) -> dict:
+    quantities = state.get("completion", {}).get("item_quantities", {})
+    if item_id in quantities:
+        return {"quantity": quantities[item_id], "quantity_status": "exact"}
+    obtained = state.get("completion", {}).get("items_obtained", [])
+    if item_id in obtained:
+        return {"quantity": None, "quantity_status": "at_least_one"}
+    return {"quantity": None, "quantity_status": "unknown"}
+
+
 def _items(db_path: Path, state_path: Path, query: dict) -> dict:
-    obtained = set(_state(state_path).get("completion", {}).get("items_obtained", []))
+    state = _state(state_path)
+    obtained = set(state.get("completion", {}).get("items_obtained", []))
     rows = _rows(db_path, """SELECT i.item_id, i.name, i.category_id,
         c.name AS category, i.heroic_hoarder_required, i.heroic_hoarder_ordinal
         FROM items i JOIN item_categories c USING(category_id) ORDER BY i.name""")
     for row in rows:
         row["obtained"] = row["item_id"] in obtained
+        row.update(_item_quantity_state(state, row["item_id"]))
     page = _page(rows, query, ("item_id", "name", "category"))
     page["items"] = page.pop("results")
     return page
@@ -614,7 +627,15 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         result["editor_supported"] = (result["accessory_editor_supported"]
                                       and standard_editor_supported)
         obtained_items = set(state.get("completion", {}).get("items_obtained", []))
+        quantities = state.get("completion", {}).get("item_quantities", {})
         owned_hearts = set(state.get("completion", {}).get("monster_hearts_owned", []))
+        duplicate_legal = {row["item_id"] for row in connection.execute(
+            """SELECT i.item_id
+            FROM items i JOIN claims c ON c.subject_key=i.canonical_key
+            JOIN sources s ON s.source_id=c.source_id
+            WHERE c.predicate='same_item_equip_legality' AND c.claim_kind='fact'
+            GROUP BY i.item_id HAVING COUNT(DISTINCT s.publisher) >= 2"""
+        )}
         owned_accessories = [dict(row) for row in connection.execute(
             """SELECT i.item_id, i.name, mh.heart_id
             FROM items i JOIN item_categories c USING(category_id)
@@ -636,7 +657,17 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             }
             member_row["accessory_options"] = [row for row in owned_accessories
                                                if (row["item_id"], member_row["name"]) in compatible]
-            member_row["accessory_editor_status"] = "supported_owned_verified_distinct_only"
+            for option in member_row["accessory_options"]:
+                option.update(_item_quantity_state(state, option["item_id"]))
+                option["duplicate_legal"] = option["item_id"] in duplicate_legal
+                option["equipped_count"] = sum(
+                    equipped_id == option["item_id"]
+                    for candidate in state.get("party", {}).get("members", {}).values()
+                    for equipped_id in candidate.get("equipment", {}).values()
+                )
+            member_row["accessory_editor_status"] = (
+                "supported_explicit_quantity_and_item_specific_duplicates"
+            )
     if not checkpoint_id:
         result["status"] = "unknown_checkpoint"
         return result
@@ -694,7 +725,7 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 c.source_id, c.locator, s.title AS source_title,
                 s.url AS source_url
             FROM items i JOIN claims c ON c.subject_key=i.canonical_key
-            JOIN sources s USING(source_id)
+            JOIN sources s ON s.source_id=c.source_id
             WHERE c.claim_kind='fact' AND c.confidence='verified'
               AND c.verification_status LIKE 'two_independent%'
               AND c.predicate IN ('attack_bonus', 'defence_bonus', 'agility_bonus',
@@ -747,20 +778,59 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 continue
             slot = stated_slot or slot_for_category.get(item["category"].casefold())
             recorded = members.get(character, {}).get("equipment", {}) if character else {}
-            recorded_value = recorded.get(slot) if isinstance(recorded, dict) and slot else None
-            matches = recorded_value in (item["item_id"], item["name"])
+            required_quantity = applicability.get("copies_required", 1)
+            if (not isinstance(required_quantity, int) or isinstance(required_quantity, bool)
+                    or required_quantity < 1):
+                required_quantity = 1
+            quantity_state = _item_quantity_state(state, item["item_id"])
+            if quantity_state["quantity_status"] == "exact":
+                quantity_fit = ("met" if quantity_state["quantity"] >= required_quantity
+                                else "unmet")
+            elif (quantity_state["quantity_status"] == "at_least_one"
+                  and required_quantity == 1):
+                quantity_fit = "met"
+            else:
+                quantity_fit = "unknown"
+            if slot == "accessory" and required_quantity == 2:
+                recorded_values = [recorded.get("accessory_1"), recorded.get("accessory_2")]
+                recorded_value = recorded_values
+                matches = all(value in (item["item_id"], item["name"])
+                              for value in recorded_values)
+                slot = "accessory_1+accessory_2"
+            else:
+                recorded_value = recorded.get(slot) if isinstance(recorded, dict) and slot else None
+                matches = recorded_value in (item["item_id"], item["name"])
             compatibility = compatibility_by_pair.get((item["item_id"], character))
             audit_status = compatibility_status_by_item.get(item["item_id"], "not_audited")
+            evidence = _advice_evidence(
+                db_path, applicability, advice["verification_status"], advice["source_id"]
+            )
+            availability_status = ("route_available" if item["item_id"] in available
+                                   else "route_not_proven_by_checkpoint")
+            equip_block_reason = None
+            if availability_status != "route_available":
+                equip_block_reason = "No verified route is available by this checkpoint."
+            elif compatibility is not True:
+                equip_block_reason = "Character compatibility is not verified."
+            elif quantity_fit != "met":
+                equip_block_reason = (
+                    f"Record an exact owned quantity of at least {required_quantity}."
+                )
             result["recommendations"].append({
                 "advice_id": advice["advice_id"], "character": character,
                 "slot": slot, "item_id": item["item_id"], "item_name": item["name"],
                 "category": item["category"],
-                "availability_status": "route_available" if item["item_id"] in available else "route_not_proven_by_checkpoint",
+                "availability_status": availability_status,
                 "obtainable_routes": available_routes.get(item["item_id"], []),
                 "route_display_policy": "Free routes first, then source order; this does not rank item strength.",
                 "verified_stats": verified_stats_by_item.get(item["item_id"], {}),
                 "stat_display_policy": "Only matching numeric cells from at least two independent sources are shown.",
                 "ownership_status": "recorded" if item["item_id"] in obtained else "unknown",
+                "required_quantity": required_quantity,
+                "quantity": quantity_state["quantity"],
+                "quantity_status": quantity_state["quantity_status"],
+                "quantity_fit": quantity_fit,
+                "equip_block_reason": equip_block_reason,
                 "comparison_status": "matches_recommendation" if matches else "current_equipment_unknown" if recorded_value is None else "different_recorded_value",
                 "recorded_value": recorded_value,
                 "recommendation": advice["advice_text"],
@@ -769,6 +839,7 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                            "url": advice["source_url"], "locator": advice["locator"]},
                 "confidence": advice["confidence"],
                 "verification_status": advice["verification_status"],
+                "evidence": evidence,
                 "compatibility_status": (
                     "verified_can_equip" if compatibility is True else
                     "verified_cannot_equip" if compatibility is False else audit_status
@@ -1773,6 +1844,22 @@ def _record_ui_progress(db_path: Path, state_path: Path, payload: dict) -> str:
 
 
 def _record_resource_progress(db_path: Path, state_path: Path, path: str, payload: dict) -> str:
+    if path.startswith("/api/items/") and path.endswith("/quantity"):
+        item_id = unquote(path.removeprefix("/api/items/").removesuffix("/quantity"))
+        quantity = payload.get("quantity")
+        obtained = payload.get("obtained")
+        if quantity is not None and (
+            not isinstance(quantity, int) or isinstance(quantity, bool)
+        ):
+            raise ValueError("quantity must be an integer or null")
+        if obtained is not None and not isinstance(obtained, bool):
+            raise ValueError("obtained must be true, false, or omitted")
+        values = [item_id, "unknown" if quantity is None else str(quantity)]
+        if quantity is None and obtained is False:
+            values.append("not_obtained")
+        return update_progress(
+            state_path, db_path, "item-quantity", values,
+        )
     completed = payload.get("completed")
     if path.startswith("/api/checkpoints/"):
         if payload.get("selected") is not True:
@@ -2115,8 +2202,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                 if parsed.path.startswith("/api/items/"):
                     query = unquote(parsed.path.removeprefix("/api/items/"))
                     item, routes = load_item_routes(db_path, query)
+                    state = _state(state_path)
                     item["obtained"] = item["item_id"] in set(
-                        _state(state_path).get("completion", {}).get("items_obtained", []))
+                        state.get("completion", {}).get("items_obtained", []))
+                    item.update(_item_quantity_state(state, item["item_id"]))
                     return self._json({"item": item, "routes": routes})
                 if parsed.path == "/api/conflicts":
                     query = parse_qs(parsed.query)

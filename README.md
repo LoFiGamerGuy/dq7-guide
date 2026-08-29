@@ -44,6 +44,8 @@ The seed includes:
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
 
+The browser's item details support optional exact copy totals. Missing totals remain unknown; explicit totals enable global equipment-allocation checks without changing identity-based Heroic Hoarder progress. Same-item double accessories additionally require item-specific legality from two independent publishers.
+
 ## Quick start
 
 Requires Python 3.10+; there are no third-party runtime dependencies.

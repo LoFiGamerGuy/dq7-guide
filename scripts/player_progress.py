@@ -29,6 +29,20 @@ def _load_state(state_path: Path) -> dict:
     items = state.get("completion", {}).get("items_obtained")
     if not isinstance(items, list) or any(not isinstance(value, str) for value in items):
         raise ValueError("completion.items_obtained must be a list of strings")
+    quantities = state.get("completion", {}).get("item_quantities")
+    if quantities is not None and (
+        not isinstance(quantities, dict)
+        or any(
+            not isinstance(item_id, str)
+            or not isinstance(quantity, int)
+            or isinstance(quantity, bool)
+            or quantity < 0
+            for item_id, quantity in quantities.items()
+        )
+    ):
+        raise ValueError(
+            "completion.item_quantities must map item IDs to non-negative integers when present"
+        )
     fragments = state.get("completion", {}).get("tablet_fragments")
     if not isinstance(fragments, list) or any(
         not isinstance(value, str) for value in fragments
@@ -280,9 +294,71 @@ def update_progress(
                 obtained.update(values)
                 message = f"Recorded item(s): {', '.join(values)}."
             else:
+                equipped = {
+                    item_id
+                    for member in state["party"]["members"].values()
+                    for item_id in member.get("equipment", {}).values()
+                }
+                in_use = sorted(set(values) & equipped)
+                if in_use:
+                    raise ValueError(
+                        f"Clear equipped item(s) before reopening ownership: {in_use}"
+                    )
                 obtained.difference_update(values)
+                quantities = state["completion"].get("item_quantities", {})
+                if isinstance(quantities, dict):
+                    for item_id in values:
+                        quantities.pop(item_id, None)
                 message = f"Reopened item(s): {', '.join(values)}."
             state["completion"]["items_obtained"] = sorted(obtained)
+        elif command == "item-quantity":
+            item_id, quantity_text = values[:2]
+            restore_identity = values[2] if len(values) > 2 else "retain"
+            redirect = connection.execute(
+                "SELECT canonical_item_id FROM item_identity_redirects WHERE legacy_item_id=?",
+                (item_id,),
+            ).fetchone()
+            if redirect:
+                item_id = redirect[0]
+            known = {row[0] for row in connection.execute("SELECT item_id FROM items")}
+            if item_id not in known:
+                raise ValueError(f"Unknown item ID: {item_id}")
+            quantities = state["completion"].setdefault("item_quantities", {})
+            if str(quantity_text).casefold() == "unknown":
+                quantities.pop(item_id, None)
+                if restore_identity == "not_obtained":
+                    equipped = any(
+                        equipped_id == item_id
+                        for member in state["party"]["members"].values()
+                        for equipped_id in member.get("equipment", {}).values()
+                    )
+                    if equipped:
+                        raise ValueError("Clear equipped copies before reopening ownership")
+                    obtained = set(state["completion"]["items_obtained"])
+                    obtained.discard(item_id)
+                    state["completion"]["items_obtained"] = sorted(obtained)
+                message = f"Cleared explicit quantity for {item_id} to unknown."
+            else:
+                quantity = int(quantity_text)
+                if quantity < 0 or quantity > 99:
+                    raise ValueError("Item quantity must be between 0 and 99 or unknown")
+                equipped_count = sum(
+                    equipped_id == item_id
+                    for member in state["party"]["members"].values()
+                    for equipped_id in member.get("equipment", {}).values()
+                )
+                if quantity < equipped_count:
+                    raise ValueError(
+                        f"Clear equipped copies before reducing quantity below {equipped_count}"
+                    )
+                quantities[item_id] = quantity
+                obtained = set(state["completion"]["items_obtained"])
+                if quantity > 0:
+                    obtained.add(item_id)
+                else:
+                    obtained.discard(item_id)
+                state["completion"]["items_obtained"] = sorted(obtained)
+                message = f"Recorded {quantity} explicitly owned copy/copies of {item_id}."
         elif command in ("missable-completed", "missable-undo"):
             links = {row[0]: row[1] for row in connection.execute(
                 "SELECT missable_id, obligation_id FROM missables")}
@@ -442,10 +518,41 @@ def update_progress(
                                row["heart_id"] in set(state["completion"].get("monster_hearts_owned", [])))
                 if not (item_owned or heart_owned):
                     raise ValueError(f"Item is not explicitly owned: {item_id}")
+                other_equipped_copies = sum(
+                    equipped_id == item_id
+                    for member_name, member in members.items()
+                    for equipped_slot, equipped_id in member.get("equipment", {}).items()
+                    if not (member_name == character and equipped_slot == slot)
+                )
+                exact_quantity = state["completion"].get("item_quantities", {}).get(item_id)
+                available_copies = (exact_quantity if exact_quantity is not None
+                                    else 1 if item_owned or heart_owned else 0)
+                if other_equipped_copies + 1 > available_copies:
+                    qualifier = (f"exact quantity {exact_quantity}" if exact_quantity is not None
+                                 else "quantity unknown")
+                    raise ValueError(
+                        f"Not enough explicitly owned copies for this equipment allocation ({qualifier})"
+                    )
                 if command == "accessory-set":
                     other_slot = "accessory_2" if slot == "accessory_1" else "accessory_1"
                     if equipment.get(other_slot) == item_id:
-                        raise ValueError("Duplicate accessory IDs are not supported")
+                        quantity = state["completion"].get("item_quantities", {}).get(item_id)
+                        if quantity is None or quantity < 2:
+                            raise ValueError(
+                                "Two explicitly owned copies are required for duplicate accessories"
+                            )
+                        duplicate_publishers = connection.execute(
+                            """SELECT COUNT(DISTINCT s.publisher)
+                            FROM claims c JOIN sources s USING(source_id)
+                            WHERE c.subject_key=(SELECT canonical_key FROM items WHERE item_id=?)
+                              AND c.predicate='same_item_equip_legality'
+                              AND c.claim_kind='fact'""",
+                            (item_id,),
+                        ).fetchone()[0]
+                        if duplicate_publishers < 2:
+                            raise ValueError(
+                                "Duplicate legality is not independently verified for this accessory"
+                            )
                 equipment[slot] = item_id
                 message = f"Recorded {character} {slot}: {item_id}."
         elif command in ("monster-defeated", "monster-undo"):
@@ -505,6 +612,8 @@ def main() -> None:
     for name in ("item-obtained", "item-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="ITEM_ID")
+    progress = subparsers.add_parser("item-quantity")
+    progress.add_argument("values", nargs="+", metavar="ITEM_ID_COUNT_OR_RESTORE_STATUS")
     for name in ("missable-completed", "missable-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="MISSABLE_ID")

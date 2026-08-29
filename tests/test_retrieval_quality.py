@@ -21,6 +21,7 @@ from guide_server import (  # noqa: E402
     _monster_hearts,
     _vocation_unlock_progress,
 )
+from player_progress import update_progress  # noqa: E402
 from vocation_report import load_vocation_details  # noqa: E402
 
 
@@ -62,8 +63,38 @@ class GoldenRetrievalQualityTests(unittest.TestCase):
         self.assertEqual(set(self.questions), {
             "safe_advance_alltrades", "strongest_legal_gear_alltrades",
             "champion_vocation_path", "available_farm_alltrades",
-            "cactiball_heart", "visible_conflicts",
+            "cactiball_heart", "visible_conflicts", "duplicate_accessory_power",
         })
+
+    def test_duplicate_accessory_bundle_requires_evidence_and_exact_quantity(self):
+        question = self.questions["duplicate_accessory_power"]
+        with tempfile.TemporaryDirectory() as temp:
+            state_path = Path(temp) / "state.json"
+            shutil.copy(ROOT / "player" / "ryan-save-state.json", state_path)
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            state["story"]["checkpoint_id"] = question["checkpoint_id"]
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            before = _equipment_readiness(self.db, state_path)
+            row = next(row for row in before["recommendations"]
+                       if row["advice_id"] == "advice_cp030_aishe_double_meteorite")
+            self.assertEqual(row["required_quantity"], 2)
+            self.assertEqual(row["quantity_fit"], "unknown")
+            self.assertEqual(row["evidence"]["tier"], "two_source")
+            self.assertEqual(row["evidence"]["source_count"], 2)
+            self.assertIn("exact owned quantity", row["equip_block_reason"])
+
+            update_progress(state_path, self.db, "item-quantity",
+                            ["item_meteorite_bracer", "2"])
+            for slot in ("accessory_1", "accessory_2"):
+                update_progress(state_path, self.db, "accessory-set",
+                                ["Aishe", slot, "item_meteorite_bracer"])
+            after = _equipment_readiness(self.db, state_path)
+            row = next(row for row in after["recommendations"]
+                       if row["advice_id"] == "advice_cp030_aishe_double_meteorite")
+            self.assertEqual(row["quantity_fit"], "met")
+            self.assertEqual(row["comparison_status"], "matches_recommendation")
+            self.assertIsNone(row["equip_block_reason"])
+            self.assertEqual(row["slot"], "accessory_1+accessory_2")
 
     def test_safe_advance_bundle_is_checkpoint_scoped_and_cited(self):
         question = self.questions["safe_advance_alltrades"]

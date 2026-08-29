@@ -37,7 +37,7 @@ from monster_report import (  # noqa: E402
     print_monster_report,
 )
 from hoarder_report import load_hoarder_report  # noqa: E402
-from player_progress import update_progress  # noqa: E402
+from player_progress import _load_state, update_progress  # noqa: E402
 from query_kb import search  # noqa: E402
 from vocation_report import load_vocation_details, print_vocation_details  # noqa: E402
 from update_state import update_state  # noqa: E402
@@ -3248,6 +3248,29 @@ class KnowledgeBaseTests(unittest.TestCase):
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"))
         self.assertIsNone(state["story"]["checkpoint_id"])
         self.assertEqual(state["source_type"], "player_report")
+        self.assertNotIn("item_quantities", state["completion"])
+
+    def test_optional_item_quantity_ledger_rejects_false_precision(self):
+        base = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "state.json"
+            for invalid in (
+                [], {"item_rabbit_tail": -1}, {"item_rabbit_tail": True},
+                {"item_rabbit_tail": 1.5},
+            ):
+                state = json.loads(json.dumps(base))
+                state["completion"]["item_quantities"] = invalid
+                path.write_text(json.dumps(state), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "item_quantities"):
+                    _load_state(path)
+            state = json.loads(json.dumps(base))
+            state["completion"]["item_quantities"] = {
+                "item_rabbit_tail": 0,
+                "item_meteorite_bracer": 2,
+            }
+            path.write_text(json.dumps(state), encoding="utf-8")
+            self.assertEqual(_load_state(path)["completion"]["item_quantities"]
+                             ["item_meteorite_bracer"], 2)
 
     def test_player_state_update_targets_explicit_file(self):
         source = ROOT / "player" / "ryan-save-state.json"
@@ -4112,7 +4135,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(state["completion"]["mini_medal_count"], 5)
         self.assertEqual(state["completion"]["mini_medals_found"], [2])
 
-    def test_accessory_writes_require_owned_verified_distinct_items_and_reverse(self):
+    def test_accessory_writes_require_owned_verified_quantity_and_reverse(self):
         state_path = Path(self.tempdir.name) / "accessory-progress.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
         state["completion"]["items_obtained"] = ["item_prayer_ring"]
@@ -4129,7 +4152,7 @@ class KnowledgeBaseTests(unittest.TestCase):
 
         before_rejection = state_path.read_text()
         for values, message in (
-            (["Hero", "accessory_2", "item_prayer_ring"], "Duplicate"),
+            (["Hero", "accessory_2", "item_prayer_ring"], "explicitly owned copies"),
             (["Hero", "accessory_2", "item_strength_ring"], "not explicitly owned"),
             (["Hero", "accessory_2", "item_cypress_stick"], "does not match"),
         ):
@@ -4142,6 +4165,50 @@ class KnowledgeBaseTests(unittest.TestCase):
         recorded = json.loads(state_path.read_text())["party"]["members"]["Hero"]["equipment"]
         self.assertNotIn("accessory_1", recorded)
         self.assertEqual(recorded["accessory_2"], "item_slime_heart")
+
+    def test_explicit_quantities_allow_only_verified_duplicates_and_guard_allocation(self):
+        state_path = Path(self.tempdir.name) / "quantity-progress.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+
+        update_progress(state_path, self.db_path, "item-obtained",
+                        ["item_rabbit_tail"])
+        legacy = json.loads(state_path.read_text())
+        self.assertNotIn("item_quantities", legacy["completion"])
+        update_progress(state_path, self.db_path, "item-quantity",
+                        ["item_rabbit_tail", "2"])
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_1", "item_rabbit_tail"])
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_2", "item_rabbit_tail"])
+        with self.assertRaisesRegex(ValueError, "Not enough explicitly owned copies"):
+            update_progress(state_path, self.db_path, "accessory-set",
+                            ["Maribel", "accessory_1", "item_rabbit_tail"])
+        with self.assertRaisesRegex(ValueError, "reducing quantity below 2"):
+            update_progress(state_path, self.db_path, "item-quantity",
+                            ["item_rabbit_tail", "1"])
+
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_2", "unknown"])
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_1", "unknown"])
+        update_progress(state_path, self.db_path, "item-quantity",
+                        ["item_rabbit_tail", "0"])
+        saved = json.loads(state_path.read_text())
+        self.assertEqual(saved["completion"]["item_quantities"]["item_rabbit_tail"], 0)
+        self.assertNotIn("item_rabbit_tail", saved["completion"]["items_obtained"])
+        update_progress(state_path, self.db_path, "item-quantity",
+                        ["item_rabbit_tail", "unknown"])
+        saved = json.loads(state_path.read_text())
+        self.assertNotIn("item_rabbit_tail", saved["completion"]["item_quantities"])
+
+        update_progress(state_path, self.db_path, "item-quantity",
+                        ["item_prayer_ring", "2"])
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_1", "item_prayer_ring"])
+        with self.assertRaisesRegex(ValueError, "Duplicate legality is not independently verified"):
+            update_progress(state_path, self.db_path, "accessory-set",
+                            ["Hero", "accessory_2", "item_prayer_ring"])
 
     def test_standard_equipment_writes_require_slot_rule_ownership_category_and_compatibility(self):
         state_path = Path(self.tempdir.name) / "equipment-progress.json"
