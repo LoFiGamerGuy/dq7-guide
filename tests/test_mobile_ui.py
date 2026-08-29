@@ -44,6 +44,9 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("Verified eligible pool", js)
         self.assertIn("Selection weights unknown", js)
         self.assertIn("Counter rule conflict — do not assume", js)
+        self.assertIn("Conflict-safe strategy · synthesis", js)
+        self.assertIn("Bank 300,000 gold at once before spending it", js)
+        self.assertIn('detail.achievement_id === "ach_massively_minted"', js)
         self.assertIn("requirement_verification_status", js)
 
     def test_phone_companion_controls_and_safe_area_support_are_present(self):
