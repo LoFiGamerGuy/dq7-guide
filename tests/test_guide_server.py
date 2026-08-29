@@ -1044,6 +1044,21 @@ class GuideServerTests(unittest.TestCase):
             {"game8_boss_macho_picchu", "korosenai_macho_picchu"},
         )
 
+        hero = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_030_postgame_another_world",
+        )["advice"] if row["id"] == "advice_cp030_hero_worked_up_role")
+        self.assertEqual(hero["evidence"]["tier"], "two_source")
+        self.assertEqual(hero["applicability"]["unlock_gate"], {
+            "any_n": 3,
+            "pool": ["Gladiator", "Sage", "Pirate", "Armamentalist",
+                     "Luminary", "Paladin", "Monster Wrangler"],
+        })
+        self.assertEqual(
+            {claim["source_id"] for claim in hero["evidence"]["claims"]},
+            {"game8_vocation_hero", "game8_vocations_advanced",
+             "gamewith_vocation_hero"},
+        )
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"

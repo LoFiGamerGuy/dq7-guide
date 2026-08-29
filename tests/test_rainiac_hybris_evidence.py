@@ -37,6 +37,20 @@ class RainiacHybrisEvidenceTests(unittest.TestCase):
             row = self.advice[advice_id]
             self.assertIn("no_level_weakness_claim", row["verification_status"])
 
+    def test_early_vocation_advice_has_two_source_gates(self):
+        for advice_id in (
+            "advice_cp009_vocations_prerequisite_progress",
+            "advice_cp012_activate_moonlighting",
+        ):
+            row = self.advice[advice_id]
+            linked = [self.claims[claim_id] for claim_id in row["applicability"]["evidence_claim_ids"]]
+            publishers = {self.sources[claim["source_id"]]["publisher"] for claim in linked}
+            self.assertGreaterEqual(len(publishers), 2)
+            self.assertTrue(all(claim["confidence"] == "verified" for claim in linked))
+        moonlighting = self.advice["advice_cp012_activate_moonlighting"]["applicability"]
+        self.assertEqual(moonlighting["trigger_location"], "Shrine of Mysteries")
+        self.assertEqual(moonlighting["activation_location"], "Alltrades Abbey")
+
 
 if __name__ == "__main__":
     unittest.main()

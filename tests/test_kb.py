@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 599)
+        self.assertEqual(self.counts["sources"], 600)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -558,6 +558,46 @@ class KnowledgeBaseTests(unittest.TestCase):
                       {row["verification_status"] for row in priorities})
         poison_id = "claim_slamphibians_poison_prep_game8"
         self.assertNotIn(poison_id, slam["evidence_claim_ids"])
+
+    def test_intermediate_power_roles_are_two_source_and_mastery_gated(self):
+        expected = {
+            "advice_cp018_paladin_survival": ["Martial Artist", "Priest"],
+            "advice_cp019_sailor_party_burst": [],
+            "advice_cp020_armamentalist_elemental_role": ["Warrior", "Mage"],
+            "advice_cp021_sage_spell_echo": ["Mage", "Priest"],
+            "advice_cp023_pirate_sustain": ["Thief", "Sailor"],
+        }
+        for advice_id, mastery in expected.items():
+            row = self.connection.execute(
+                """SELECT applicability_json, confidence, verification_status
+                FROM checkpoint_advice WHERE advice_id=?""", (advice_id,)
+            ).fetchone()
+            applicability = json.loads(row["applicability_json"])
+            self.assertEqual(row["confidence"], "verified")
+            self.assertIn("two_source_verified", row["verification_status"])
+            self.assertEqual(applicability["requires"]["mastered"], mastery)
+            claim_ids = applicability["evidence_claim_ids"]
+            self.assertEqual(len(claim_ids), 2)
+            placeholders = ",".join("?" for _ in claim_ids)
+            claims = self.connection.execute(
+                f"""SELECT value_json, source_id, verification_status
+                FROM claims WHERE claim_id IN ({placeholders})""", claim_ids
+            ).fetchall()
+            self.assertEqual(len(claims), 2)
+            self.assertEqual(len({claim["source_id"] for claim in claims}), 2)
+            self.assertEqual(len({claim["value_json"] for claim in claims}), 1)
+            self.assertTrue(all(
+                claim["verification_status"] ==
+                "two_independent_current_version_editorial_sources"
+                for claim in claims))
+
+        sailor = json.loads(self.connection.execute(
+            """SELECT applicability_json FROM checkpoint_advice
+            WHERE advice_id='advice_cp019_sailor_party_burst'"""
+        ).fetchone()[0])
+        self.assertEqual(sailor["requires"]["checkpoint_at_least"],
+                         "cp_009_alltrades_abbey")
+        self.assertIn("no prerequisite mastery", sailor["availability_note"])
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -3055,6 +3095,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             "advice_cp009_arena_numpton", "advice_cp009_arena_bronson",
             "advice_cp009_arena_hans", "advice_cp009_arena_nava",
             "advice_cp009_vocations_arena_power",
+            "advice_cp009_vocations_prerequisite_progress",
             "advice_cp009_rashers_stripes",
         }
         rows = self.connection.execute(
