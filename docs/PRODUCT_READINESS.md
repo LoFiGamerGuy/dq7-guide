@@ -75,7 +75,7 @@ Setup, and Progress; restore remains confirmation-gated under Progress.
 - Monster Heart ownership is editable through a dedicated reversible ledger. An absent ledger remains unknown; route or checkpoint availability never implies ownership.
 - Unknown encounter/drop/farm rates, repeatable Heart routes, duplicate-effect
   stacking, and other unresolved evidence remain unknown.
-- The Sources view exposes a dated five-gap audit with single-source, unsupported,
+- The Sources view exposes a dated twelve-gap audit with single-source, unsupported,
   and corroborated-but-unresolved tiers plus the exact evidence needed to close each gap.
 - First use does not infer an existing save; enter only known state.
 

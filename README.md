@@ -153,8 +153,8 @@ the guide does not claim offline installation in that mode.
 The Dashboard and Phone Setup screens both expose one-tap progress backup; restore
 stays under Progress to prevent an accidental replacement during play.
 
-The Sources view also provides a dated audit of the remaining single-source,
-unsupported, and corroborated-but-unresolved evidence gaps.
+The Sources view also provides a dated twelve-item audit of the maintained
+single-source, unsupported, and corroborated-but-unresolved evidence queue.
 
 ```powershell
 python scripts/build_kb.py

@@ -82,9 +82,14 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 
 ## Current residual batch order
 
-1. Verify the legacy Version 1 Rank 2 Slime Earring row and Lucky Panel probabilities only from direct current-version evidence.
-2. Seek explicit rematch or respawn evidence before adding any repeatable Heart route.
-3. Preserve the complete 100/100 cross-source Mini Medal evidence set unless a direct source publishes a correction.
+1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
+2. Verify the six individual finite-container members and the legacy Version 1 Rank 2 Slime Earring row without inferring positions or pool membership.
+3. Seek explicit rematch/respawn evidence for repeatable Hearts and independent exact-route evidence for Scarewell.
+4. Verify the Super Seed reward pool, final tablet unlock behavior, remaining achievement counters, and duplicate/stacking mechanics from direct evidence.
+5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
+
+The phone Sources view now mirrors this complete twelve-item evidence-blocked
+queue: 3 single-source, 2 unsupported, and 7 corroborated-but-unresolved rows.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
