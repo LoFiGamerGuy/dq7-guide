@@ -2423,6 +2423,37 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(state["completion"]["mini_medal_count"], 5)
         self.assertEqual(state["completion"]["mini_medals_found"], [2])
 
+    def test_accessory_writes_require_owned_verified_distinct_items_and_reverse(self):
+        state_path = Path(self.tempdir.name) / "accessory-progress.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["completion"]["items_obtained"] = ["item_prayer_ring"]
+        state["completion"]["monster_hearts_owned"] = ["heart_slime"]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_1", "item_prayer_ring"])
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_2", "item_slime_heart"])
+        recorded = json.loads(state_path.read_text())["party"]["members"]["Hero"]["equipment"]
+        self.assertEqual(recorded, {"accessory_1": "item_prayer_ring",
+                                    "accessory_2": "item_slime_heart"})
+
+        before_rejection = state_path.read_text()
+        for values, message in (
+            (["Hero", "accessory_2", "item_prayer_ring"], "Duplicate"),
+            (["Hero", "accessory_2", "item_strength_ring"], "not explicitly owned"),
+            (["Hero", "accessory_2", "item_cypress_stick"], "Only accessory"),
+        ):
+            with self.assertRaisesRegex(ValueError, message):
+                update_progress(state_path, self.db_path, "accessory-set", values)
+            self.assertEqual(state_path.read_text(), before_rejection)
+
+        update_progress(state_path, self.db_path, "accessory-set",
+                        ["Hero", "accessory_1", "unknown"])
+        recorded = json.loads(state_path.read_text())["party"]["members"]["Hero"]["equipment"]
+        self.assertNotIn("accessory_1", recorded)
+        self.assertEqual(recorded["accessory_2"], "item_slime_heart")
+
     def test_player_progress_done_is_stable_idempotent_and_reversible(self):
         state_path = Path(self.tempdir.name) / "explicit-done.json"
         state_path.write_text(

@@ -8,8 +8,8 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 478 registered pages | High metadata / mixed page freshness | Add official and in-game evidence sources only where they close an explicit gap |
-| Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 7 progression rules, and 220 stat modifiers across all non-default vocations | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
+| Source registry | 531 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous two-vocation learning, current-vocation-only skills, and dual skill/stat access normalized | High for published behavior; legal-pair restrictions remain unpublished | Resolve legal-pair restrictions only from direct evidence |
 | Walkthrough checkpoints | 33 checkpoints; 222 obligations; cp001–cp033 ordered and progress-aware; all 33 have directly verified RPG Site section-range locators | High for chronology and locator provenance; optimization/content depth remains partial | Expand checkpoint-specific optimization without treating locator coverage as content completeness |
@@ -18,7 +18,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Missables / choices | 7/7 direct-source records with precise locators; 6 exact choice/window cutoffs and Little Blue Button explicitly unresolved | High for documented consequences; medium where the source omits a cutoff | Resolve Little Blue Button's story cutoff; it is not STOP-eligible until then |
 | Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
 | Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` remains the sole exact-name gap. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify Shell Shield, the legacy row, and numerical probabilities only if directly published |
-| Equipment | 110 ready-for-play advice rows; two accessory mechanics corroborated; all 311 canonical equipment rows audited, including all 74 ordinary accessories/Hearts | 306 rows have two-publisher agreement; 3 conflicts and 2 single-source rows remain unnormalized; the legacy `Meowgiican Heart` typo redirects to the sourced canonical identity | Resolve residual rows; corroborate duplicate/stack behavior and one-each non-accessory slot counts before enabling writes |
+| Equipment | 110 ready-for-play advice rows; all 311 canonical rows audited; all 74 accessories/Hearts verified; safe accessory-only editor | 306 rows have two-publisher agreement; 3 conflicts and 2 single-source rows remain; accessory writes require explicit ownership, verified compatibility, and distinct IDs | Resolve residual rows and one-each non-accessory slot counts before enabling non-accessory writes; duplicate effects remain unmodeled |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible ownership ledger in CLI/API/browser | High for effects and published routes; unreported ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
@@ -26,19 +26,19 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; 12 routes are explicitly single-independent-source | Seek independent confirmation for ten Arena members, Scarewell, and Miry Mudraker |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; the Moonlighting venue is resolved as Shrine trigger then Alltrades activation; 2 source conflicts remain unresolved | High for resolved routes and Moonlighting stages; conservative for Stella/Stellar spelling and conflicting Luminary numeric modifier cells | Resolve spelling and Luminary modifier cells with legible current-version UI evidence |
+| Conflicts | Automatic exact-scope detection active; 23 unresolved claim-pairs represent 11 disputed facts: 22 pairs across 10 equipment-compatibility identities, plus Stella/Stellar Fan | High for resolved routes and Moonlighting stages; conservative for equipment compatibility and English display spelling | Resolve only with legible current-version UI/equip-menu evidence; pair counts are not distinct-fact counts |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 478
+- sources: 531
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
-- vocation progression rules: 7
-- vocation stat modifiers: 220
-- claims: 31
+- vocation progression rules: 9
+- vocation stat modifiers: 454
+- claims: 1,422
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -60,6 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 115
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
+- conflicts: 393 total / 23 unresolved claim-pairs / 11 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -76,13 +77,13 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** Little Blue Button is the sole record without an exact named story cutoff and remains structurally excluded from STOP warnings.
-- **Conflicts:** exactly two remain unresolved: `Stella Fan` versus `Stellar Fan`, and conflicting numeric Luminary modifier cells. Both require legible current-version UI evidence.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. Source freshness remains mixed, and indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** 23 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed facts: 22 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. Luminary numeric cells have since been adjudicated and are no longer unresolved. The remaining facts require legible current-version equip/inventory UI evidence; raw pair totals rise combinatorially when more than two sources disagree.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 531 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Resolve the Little Blue Button cutoff only if a current-version source names the exact boundary.
-2. Resolve the Stella/Stellar spelling and Luminary numeric modifier conflicts only from legible current-version UI evidence.
+2. Resolve Stella/Stellar spelling and the ten disputed equipment-compatibility identities only from legible current-version inventory/equip UI evidence.
 3. Verify Shell Shield, the legacy Version 1 Rank 2 Slime Earring row, and Lucky Panel probabilities only from direct current-version evidence.
 4. Seek explicit rematch or respawn evidence before adding any repeatable Heart route.
 5. Preserve the complete 100/100 cross-source Mini Medal evidence set unless a direct source publishes a correction.
@@ -247,6 +248,13 @@ no explicitly PS1/3DS-scoped source leakage. Checkpoint actions now expose their
 own citations, farm retrieval supports `through_checkpoint`, and conflict rows
 expose both source IDs.
 
+The first-use end-to-end audit exercises a blank temporary save through the
+Prologue and early-game walkthrough over the HTTP server. It verifies STOP/action
+citations, medals, tablets, finite items, monsters, Hearts, vocations, checkpoint-
+available farms, and full rollback without touching Ryan's state. The browser now
+reloads checkpoint-scoped farms when the viewed checkpoint changes and labels
+future-gated Hearts as `later`, not `available`.
+
 The earlier Moonlighting venue re-audit kept the conflict unresolved because the English sources described different venues without showing the transition. A later expanded-source batch resolves it as process-stage ambiguity: three independent current-version Japanese walkthroughs agree that the Career Sphere event triggers at the Shrine of Mysteries, transports the party to Alltrades Abbey, and activates Moonlighting there.
 
 The expanded systems batch adds two-source Lucky Panel limits (three attempts per in-game day, reset by staying at an inn). A later audit independently corroborates free entry through GAME攻略BOX and Game8 Japan. hyperWiki's raw selection cells remain single-source, source-native weights because no denominator or draw algorithm is published; they are not probabilities. Official and independently maintained sources establish that both assigned Moonlighting vocations provide their skills/spells/perks and gain proficiency, while learned skills stop being available when their vocation is no longer assigned. Normal-setting proficiency is scoped to 1 point for an overworld instant defeat, 5 for a regular entered battle, and 10 for a boss/special battle. Luminary's matching two-source rank costs are normalized through 480 cumulative points; disagreeing numeric stat cells remain visible claims and are not promoted.
@@ -263,4 +271,41 @@ Phase 1 completed all 100 normalized Mini Medal locations, now with 100 independ
 - Exact patch / platform scope for current guide data.
 - Whether every editorial “best” build assumes Moonlighting, DLC, easy difficulty, or heavy grinding.
 - Full set of Lucky Panel exclusives and alternative enemy-drop sources.
-- Complete fixed Seed effects and the exact postgame Super Seed reward table.
+- Exact membership of the postgame random Super Seed reward pool; all 18 fixed Seed/Super Seed effects are already normalized.
+
+## Authoritative residual-evidence audit
+
+Audited 2026-08-28 against a clean generated database. The browser's five-item
+evidence-gap list is a curated research queue, not the total number of disputed
+database facts. The API therefore reports it separately from automatic conflict
+pairs.
+
+- **Curated research queue:** 5 items: 2 single-source, 1 unsupported, and 2
+  corroborated-but-unresolved. None can be safely closed from the currently
+  registered evidence.
+- **Automatic conflicts:** 23 unresolved claim-pairs represent 11 distinct fact
+  scopes. Ten are equipment-compatible-character lists (22 pairwise conflicts);
+  one is the Stella/Stellar Fan display name. Resolving these requires a legible
+  current-version English equipment/inventory UI capture that shows the relevant
+  character list or full item name. Additional guide consensus is not treated as
+  equivalent to direct UI evidence.
+- **Shell Shield:** requires a second independent current-version item identity
+  or English Item List capture. The single Lucky Panel table is insufficient to
+  decide whether this is a distinct item or an alias.
+- **Little Blue Button:** requires a continuous walkthrough or save test that
+  brackets the child's disappearance between exact story actions. Existing guides
+  establish eventual unavailability but not a STOP-safe boundary.
+- **Lucky Panel probabilities:** requires a published draw algorithm/denominator
+  or controlled sampling/source-code evidence. Source-native numeric weights are
+  not probabilities.
+- **Repeatable Heart farming and numeric farm rates:** requires explicit
+  respawn/rematch evidence for a Heart route and, for rate claims, a reproducible
+  benchmark with patch, platform, difficulty, party/build, route, duration,
+  attempts, and rewards. A monster drop listing alone does not prove repeatability
+  or a rate.
+- **Patch/platform scope and remaining editorial assumptions:** require source- or
+  UI-level version evidence. They remain answer-time qualifications rather than
+  silently inferred global facts.
+- **Freshness:** all 531 source records currently have retrieval dates within 180
+  days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
+  not whether a publisher updated a page for the current patch.

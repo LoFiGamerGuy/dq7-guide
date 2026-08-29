@@ -94,6 +94,26 @@ class GuideServerTests(unittest.TestCase):
         self.assertFalse(endpoint["editor_supported"])
         self.assertEqual(len(endpoint["mechanics"]), 2)
 
+    def test_accessory_api_lists_owned_compatible_options_and_reverses(self):
+        self.patch_json("/api/items/item_prayer_ring", {"completed": True})
+        status, report = self.get_json("/api/equipment")
+        self.assertEqual(status, 200)
+        self.assertTrue(report["accessory_editor_supported"])
+        hero = next(row for row in report["members"] if row["name"] == "Hero")
+        self.assertIn("item_prayer_ring", {row["item_id"] for row in hero["accessory_options"]})
+
+        self.patch_json("/api/equipment/accessories/Hero/accessory_1",
+                        {"item_id": "item_prayer_ring"})
+        _, report = self.get_json("/api/equipment")
+        hero = next(row for row in report["members"] if row["name"] == "Hero")
+        self.assertEqual(hero["accessory_slots"]["accessory_1"], "item_prayer_ring")
+
+        self.patch_json("/api/equipment/accessories/Hero/accessory_1", {"item_id": None})
+        self.patch_json("/api/items/item_prayer_ring", {"completed": False})
+        _, report = self.get_json("/api/equipment")
+        hero = next(row for row in report["members"] if row["name"] == "Hero")
+        self.assertIsNone(hero["accessory_slots"]["accessory_1"])
+
     def test_health_checkpoints_dashboard_and_static_assets(self):
         launcher = (ROOT / "start-guide.bat").read_text(encoding="utf-8")
         unix_launcher = (ROOT / "start-guide.sh").read_text(encoding="utf-8")

@@ -5,7 +5,7 @@ const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
   monsters: { title: "Monsters", singular: "monster", progressKind: "monster", filters: ["all","defeated","open"] },
-  hearts: { title: "Monster Hearts", singular: "heart", progressKind: "heart", filters: ["all","available","owned","open","unknown"] },
+  hearts: { title: "Monster Hearts", singular: "heart", progressKind: "heart", filters: ["all","available","later","owned","open","unknown"] },
   missables: { title: "Missables", singular: "missable", progressKind: "missable", filters: ["all","verified","unresolved","collector","major_choice"] },
   farms: { title: "Farms", singular: "farm", progressKind: null, filters: ["all","gold","proficiency","exp","seeds","other"] },
   seeds: { title: "Seed Mechanics", singular: "seed mechanic", progressKind: null, filters: ["all","standard","super","reward"] },
@@ -164,7 +164,8 @@ function renderProgress() {
   const equipment = state.equipment || {}, recommendations = equipment.recommendations || [];
   const mechanics = equipment.mechanics || [];
   const coverage = equipment.compatibility_coverage || {};
-  $("#equipmentReadiness").innerHTML = `<div class="uncertain-banner"><strong>Equipment editing unavailable</strong><span>${escapeHtml((equipment.gaps || ["Character/item compatibility is not normalized."])[0])}</span></div>${coverage.audited_item_rows ? `<h4>Compatibility evidence</h4><p class="muted">${escapeHtml(`${coverage.verified_item_rows}/${coverage.catalog_item_rows || coverage.audited_item_rows} catalog rows verified by two independent sources · ${coverage.conflicted_item_rows} disputed · ${coverage.single_source_item_rows} single-source · ${coverage.unaudited_item_rows || 0} unaudited`)}</p>` : ""}${mechanics.length ? `<h4>Verified mechanics</h4><div class="detail-list">${mechanics.map(row => `<div><strong>${escapeHtml(row.rule_type === "slot_count" ? `${row.numeric_value} accessory slots` : `Monster Heart uses ${row.numeric_value} accessory slot`)}</strong><span>${escapeHtml(row.applies_to)} · independently corroborated</span>${sourceLink({source_url: row.source_url, source_title: row.source_title, locator: row.locator})}${sourceLink({source_url: row.corroborating_source_url, source_title: row.corroborating_source_title, locator: row.corroborating_locator})}</div>`).join("")}</div>` : ""}${recommendations.length ? `<h4>Strongest-now comparison</h4><div class="detail-list">${recommendations.map(row => `<div><strong>${escapeHtml([row.character, row.slot, row.item_name].filter(Boolean).join(" · "))}</strong><span>${escapeHtml(row.comparison_status.replaceAll("_", " "))} · ownership ${escapeHtml(row.ownership_status)} · ${escapeHtml(row.availability_status.replaceAll("_", " "))} · compatibility ${escapeHtml((row.compatibility_status || "unknown").replaceAll("_", " "))}</span><span>${escapeHtml(row.recommendation)}</span>${sourceLink({source_url: row.source?.url, source_title: row.source?.title, locator: row.source?.locator})}</div>`).join("")}</div><p class="muted">These are attributed checkpoint recommendations; disputed rows remain unvalidated.</p>` : '<p class="muted">No sourced gear recommendation is normalized for the saved checkpoint.</p>'}`;
+  const accessoryEditor = equipment.accessory_editor_supported ? `<h4>Owned accessories</h4><p class="muted">Verified compatible items only. Duplicate item IDs are refused.</p><div class="detail-list">${(equipment.members || []).map(member => `<div><strong>${escapeHtml(member.name)}</strong>${["accessory_1","accessory_2"].map((slot, index) => `<label class="select-label">Slot ${index + 1}<select data-accessory-character="${escapeHtml(member.name)}" data-accessory-slot="${slot}"><option value="">Unknown</option>${(member.accessory_options || []).map(item => `<option value="${escapeHtml(item.item_id)}" ${member.accessory_slots?.[slot] === item.item_id ? "selected" : ""}>${escapeHtml(item.name)}</option>`).join("")}</select></label>`).join("")}</div>`).join("")}</div>` : "";
+  $("#equipmentReadiness").innerHTML = `<div class="uncertain-banner"><strong>Accessory-only editing enabled</strong><span>Weapon, shield, head, and torso writes remain unavailable.</span></div>${accessoryEditor}${coverage.audited_item_rows ? `<h4>Compatibility evidence</h4><p class="muted">${escapeHtml(`${coverage.verified_item_rows}/${coverage.catalog_item_rows || coverage.audited_item_rows} catalog rows verified by two independent sources · ${coverage.conflicted_item_rows} disputed · ${coverage.single_source_item_rows} single-source · ${coverage.unaudited_item_rows || 0} unaudited`)}</p>` : ""}${mechanics.length ? `<h4>Verified mechanics</h4><div class="detail-list">${mechanics.map(row => `<div><strong>${escapeHtml(row.rule_type === "slot_count" ? `${row.numeric_value} accessory slots` : `Monster Heart uses ${row.numeric_value} accessory slot`)}</strong><span>${escapeHtml(row.applies_to)} · independently corroborated</span>${sourceLink({source_url: row.source_url, source_title: row.source_title, locator: row.locator})}${sourceLink({source_url: row.corroborating_source_url, source_title: row.corroborating_source_title, locator: row.corroborating_locator})}</div>`).join("")}</div>` : ""}${recommendations.length ? `<h4>Strongest-now comparison</h4><div class="detail-list">${recommendations.map(row => `<div><strong>${escapeHtml([row.character, row.slot, row.item_name].filter(Boolean).join(" · "))}</strong><span>${escapeHtml(row.comparison_status.replaceAll("_", " "))} · ownership ${escapeHtml(row.ownership_status)} · ${escapeHtml(row.availability_status.replaceAll("_", " "))} · compatibility ${escapeHtml((row.compatibility_status || "unknown").replaceAll("_", " "))}</span><span>${escapeHtml(row.recommendation)}</span>${sourceLink({source_url: row.source?.url, source_title: row.source?.title, locator: row.source?.locator})}</div>`).join("")}</div><p class="muted">These are attributed checkpoint recommendations; disputed rows remain unvalidated.</p>` : '<p class="muted">No sourced gear recommendation is normalized for the saved checkpoint.</p>'}`;
 }
 function syncVocationChoices() {
   const character = $("#partyMemberSelect")?.value, select = $("#masteryVocationSelect");
@@ -297,7 +298,7 @@ function normalizeEntry(name, row) {
   if (name === "items") Object.assign(entry, { id: row.item_id, completed: row.obtained });
   if (name === "vocations") Object.assign(entry, { id: row.vocation_id, category: row.exclusive_character ? "character-exclusive" : row.tier, completed: null });
   if (name === "monsters") Object.assign(entry, { id: row.monster_id, name: row.english_name || `Monster #${row.source_ordinal}`, ordinal: row.source_ordinal, completed: row.defeated });
-  if (name === "hearts") Object.assign(entry, { id: row.heart_id, category: row.owned === true ? "owned" : row.available_from_checkpoint_id ? "available" : "unknown", summary: row.effect_text, location: row.available_checkpoint, completed: row.owned, progress_kind: "heart", source: { title: row.source_title, url: row.source_url, locator: row.locator } });
+  if (name === "hearts") Object.assign(entry, { id: row.heart_id, category: row.owned === true ? "owned" : row.available_now === true ? "available" : row.available_now === false ? "later" : "unknown", summary: row.effect_text, location: row.available_checkpoint, completed: row.owned, progress_kind: "heart", source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "missables") Object.assign(entry, { id: row.missable_id, category: row.severity, summary: row.window_status === "verified" ? `${row.available_from} → ${row.unavailable_after}` : "Window unresolved", completed: row.progress_status === "completed", progress_kind: "missable", source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "farms") Object.assign(entry, { id: row.farming_id, name: row.target, category: row.farm_type, summary: row.location, location: row.available_from, completed: null, progress_kind: null, source: { title: row.source_title, url: row.source_url, locator: row.locator } });
   if (name === "source_registry") { const role = row.role.toLowerCase(); const family = ["item","monster","vocation","boss","completion","farm"].find(value => role.includes(value)); Object.assign(entry, { id: row.source_id, name: row.title, category: family === "farm" ? "farming" : (family || "other"), summary: `${row.publisher} · ${row.role}`, completed: null, progress_kind: null }); }
@@ -313,7 +314,9 @@ async function loadCatalog(name) {
   let rows = [], offset = 0;
   do {
     const endpoint = name === "hearts" ? "monster-hearts" : name === "source_registry" ? "sources" : name;
-    const payload = await api(`/${endpoint}${paged ? `?limit=200&offset=${offset}` : ""}`);
+    const parameters = paged ? [`limit=200`, `offset=${offset}`] : [];
+    if (name === "farms" && state.checkpoint?.id) parameters.push(`through_checkpoint=${encodeURIComponent(state.checkpoint.id)}`);
+    const payload = await api(`/${endpoint}${parameters.length ? `?${parameters.join("&")}` : ""}`);
     const batch = payload[keys[name]] || [];
     rows.push(...batch);
     if (!paged || batch.length < 200) break;
@@ -324,7 +327,9 @@ async function loadCatalog(name) {
 
 async function loadCheckpoint(id) {
   setStatus("Loading checkpoint…");
-  state.checkpoint = await api(`/checkpoints/${encodeURIComponent(id)}`); renderCheckpoint(); setStatus("");
+  state.checkpoint = await api(`/checkpoints/${encodeURIComponent(id)}`);
+  delete state.catalogs.farms;
+  renderCheckpoint(); setStatus("");
 }
 async function stepCheckpoint(delta) {
   const select = $("#checkpointSelect"), next = select.selectedIndex + delta;
@@ -401,6 +406,13 @@ $("#medalCountForm").addEventListener("submit", event => { event.preventDefault(
 $("#vocationMasteryForm").addEventListener("submit", event => { event.preventDefault(); recordCommand($("#masteryAction").value, [$("#partyMemberSelect").value, $("#masteryVocationSelect").value]).catch(handleError); });
 $("#partyDetailsForm").addEventListener("submit", async event => { event.preventDefault(); const values = { character: $("#partyDetailsMember").value, level: $("#partyLevelInput").value || "unknown", primary: $("#primaryVocationSelect").value, secondary: $("#secondaryVocationSelect").value }; try { await recordCommand("party-level", [values.character, values.level]); await recordCommand("party-vocations", [values.character, values.primary, values.secondary]); } catch (error) { handleError(error); } });
 document.addEventListener("change", event => {
+  if (event.target.dataset.accessoryCharacter) {
+    const path = `/equipment/accessories/${encodeURIComponent(event.target.dataset.accessoryCharacter)}/${event.target.dataset.accessorySlot}`;
+    setStatus("Saving accessory…");
+    api(path, { method: "PATCH", body: JSON.stringify({ item_id: event.target.value || null }) })
+      .then(() => loadAll()).then(() => setStatus("Saved")).catch(handleError);
+    return;
+  }
   if (event.target.id === "sourcePublisher") { state.sourcePublisher = event.target.value; renderCatalog(); return; }
   if (event.target.id === "sourceFreshness") { state.sourceFreshness = event.target.value; renderCatalog(); return; }
   if (event.target.dataset.actionId) saveToggle(event.target, { kind: "action", id: event.target.dataset.actionId, completed: event.target.checked });

@@ -27,7 +27,7 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 478-page source registry with browser search and retrieval-freshness metadata;
+- a 531-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
@@ -85,6 +85,7 @@ python scripts/monster_report.py --coverage
 python scripts/heart_report.py --checkpoint cp_003_ballymolloy --sources
 python scripts/conflict_report.py
 python -m unittest tests.test_retrieval_quality -v
+python -m unittest tests.test_first_use_e2e -v
 python -m unittest discover -s tests -v
 ```
 

@@ -179,6 +179,10 @@ that checkpoint and labels returned rows `available_by_checkpoint`.
 
 Monster Hearts return `{total, limit, offset, ownership_tracking, owned_count, unknown_state_ids, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, locator, `owned`, and `ownership_status`. `owned: null` / `ownership_tracking: "unknown"` means Ryan has never reported Heart inventory; it is not false or zero. Only canonical registry IDs contribute to `owned_count`; stale or foreign saved IDs remain visible in `unknown_state_ids`.
 
+The browser derives Heart categories from `available_now`: `true` is available,
+`false` is later, and null is unknown. A future checkpoint gate alone never labels
+a Heart available at the current checkpoint.
+
 Heart checkboxes use `PATCH /api/monster-hearts/{heart_id}` with `{ "completed": true|false }`. The first explicit change creates `completion.monster_hearts_owned`; subsequent changes are reversible and accept only canonical IDs from the 46-Heart registry. Checkpoint or route availability never implies ownership.
 
 Heart detail also returns `routes`, reusing current-version item acquisition rows with their checkpoint, time period, method, supply, source, and locator. When the Heart row has no native gate, the earliest linked route supplies the displayed gate and `availability_status: "route_normalized"`; it does not overwrite the underlying effect claim. Drop routes return `drop_rate: null` and `drop_rate_status: "unknown"` because no numeric rate is stored. Acquisition DLC scope is likewise null/unknown unless directly sourced. Name mismatches or unlinked Hearts remain route-free rather than being guessed.
@@ -195,6 +199,9 @@ or automatically record a missed outcome. Checkpoint missable rows use the same
 ledger as the registry and show unresolved windows as “Cutoff unknown · not a STOP.”
 
 Farms return `{total, limit, offset, farms}` and support `GET /api/farms/{farming_id}`. Target, location, time period, checkpoint gate, qualitative frequency, confidence, and direct locator are sourced facts. Numeric rates remain `numeric_unpublished`. Strategy text is separately sourced and labeled `attributed_strategy`, not canonical fact. Farms are read-only and never mutate player progress.
+
+The browser requests farms through the checkpoint currently being viewed and
+invalidates its farm cache whenever that checkpoint changes.
 
 `farm_type: "proficiency"` identifies the cp013 Highendreigh Tower route after Moonlighting. Its factual gate and guarantee of proficiency per completed battle are separate from Game8's attributed recommendation to combine proficiency, EXP, gold, and possible Metal Slime encounters there. No proficiency-per-time rate is stored or implied.
 
@@ -228,7 +235,7 @@ remain `unknown`, not zero; an explicit `mini_medal_count: 0` is an exact zero.
 has not itself been recorded. This distinction applies to Heroic Hoarder, Monster
 List, Vicious encounters, tablets, vocations, and medals.
 
-`GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
+`GET /api/equipment` is an equipment-readiness and comparison endpoint with a narrow accessory editor.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
 reports a complete 311-row canonical weapon/shield/head/torso/accessory/Heart audit separately. Only rows where at
@@ -236,14 +243,17 @@ least two independent publishers agree are expanded into six explicit character
 decisions. `compatibility_audits` retains every agreeing,
 disputed, and single-source row with both character lists and exact source
 locators. Verified slot mechanics and partial matrix coverage must not be
-mistaken for accessory compatibility or duplicate-effect rules.
-It returns `editor_supported: false`, the exact normalization `gaps`, each party
+mistaken for duplicate-effect rules. `PATCH /api/equipment/accessories/{character}/{accessory_1|accessory_2}`
+accepts `{ "item_id": canonical_id_or_null }`. It permits only explicitly owned,
+verified-compatible canonical accessories, treats Hearts as accessories, refuses
+the same item ID in both slots, and clears a slot back to unknown with `null`.
+It returns `editor_supported: false`, `accessory_editor_supported: true`, the exact normalization `gaps`, each party
 member's raw explicitly recorded equipment with an `unvalidated_record` warning,
 and gear recommendations for the saved checkpoint. Recommendation rows resolve
 canonical item IDs and nominal category slots, route availability, explicit
 ownership, the recorded-value comparison, provenance, and an attributed
-compatibility status and basis. Clients must not offer equipment writes until
-the disputed rows, accessories, and duplicate-equip rules are resolved.
+compatibility status and basis. Clients must not offer weapon, shield, head, or
+torso writes until their remaining rules and disputed rows are resolved.
 
 The Python server derives these endpoints from the generated database and explicitly selected state file. Vocation mastery and whole-tablet status need dedicated workflows and remain read-only in the generic catalog.
 

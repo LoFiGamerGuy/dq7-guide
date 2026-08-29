@@ -68,6 +68,12 @@ def _load_state(state_path: Path) -> dict:
             value = member.get(field)
             if value is not None and not isinstance(value, str):
                 raise ValueError(f"party.members.{character}.{field} must be a vocation ID or null")
+        equipment = member.get("equipment")
+        if not isinstance(equipment, dict) or any(
+            not isinstance(key, str) or not isinstance(value, str)
+            for key, value in equipment.items()
+        ):
+            raise ValueError(f"party.members.{character}.equipment must map slot names to item IDs")
     return state
 
 
@@ -330,6 +336,52 @@ def update_progress(
             members[character]["primary_vocation"] = (None if str(primary_text).casefold() == "unknown" else primary_text)
             members[character]["secondary_vocation"] = (None if str(secondary_text).casefold() == "unknown" else secondary_text)
             message = f"Recorded {character} current vocations."
+        elif command == "accessory-set":
+            character, slot, item_text = values
+            members = state["party"]["members"]
+            if character not in members:
+                raise ValueError(f"Unknown party member: {character}")
+            if slot not in ("accessory_1", "accessory_2"):
+                raise ValueError("Accessory slot must be accessory_1 or accessory_2")
+            equipment = members[character]["equipment"]
+            if str(item_text).casefold() == "unknown":
+                equipment.pop(slot, None)
+                message = f"Cleared {character} {slot} to unknown."
+            else:
+                item_id = item_text
+                redirect = connection.execute(
+                    "SELECT canonical_item_id FROM item_identity_redirects WHERE legacy_item_id=?",
+                    (item_id,),
+                ).fetchone()
+                if redirect:
+                    item_id = redirect["canonical_item_id"]
+                row = connection.execute(
+                    """SELECT i.item_id, c.name AS category, ec.can_equip,
+                        a.agreement_status, mh.heart_id
+                    FROM items i JOIN item_categories c USING(category_id)
+                    LEFT JOIN equipment_compatibility_audits a USING(item_id)
+                    LEFT JOIN equipment_compatibility ec
+                      ON ec.item_id=i.item_id AND ec.character_name=?
+                    LEFT JOIN monster_hearts mh ON mh.name=i.name
+                    WHERE i.item_id=?""",
+                    (character, item_id),
+                ).fetchone()
+                if row is None:
+                    raise ValueError(f"Unknown item ID: {item_id}")
+                if row["category"] != "Accessories":
+                    raise ValueError("Only accessory-slot writes are supported")
+                if row["agreement_status"] != "two_source_agreement" or row["can_equip"] != 1:
+                    raise ValueError(f"Compatibility is not verified for {character}: {item_id}")
+                item_owned = item_id in set(state["completion"]["items_obtained"])
+                heart_owned = (row["heart_id"] is not None and
+                               row["heart_id"] in set(state["completion"].get("monster_hearts_owned", [])))
+                if not (item_owned or heart_owned):
+                    raise ValueError(f"Item is not explicitly owned: {item_id}")
+                other_slot = "accessory_2" if slot == "accessory_1" else "accessory_1"
+                if equipment.get(other_slot) == item_id:
+                    raise ValueError("Duplicate accessory IDs are not supported")
+                equipment[slot] = item_id
+                message = f"Recorded {character} {slot}: {item_id}."
         elif command in ("monster-defeated", "monster-undo"):
             monster_ids = _resolve_monsters(connection, values)
             entries = set(state["completion"]["monster_entries"])
@@ -402,6 +454,8 @@ def main() -> None:
     for name in ("heart-obtained", "heart-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="HEART_ID")
+    progress = subparsers.add_parser("accessory-set")
+    progress.add_argument("values", nargs=3, metavar=("CHARACTER", "SLOT", "ITEM_ID_OR_UNKNOWN"))
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))

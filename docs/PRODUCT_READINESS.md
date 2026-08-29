@@ -20,11 +20,15 @@ is the only runtime dependency.
   motion support. Failed checkbox saves roll back visibly.
 - Player writes are validated, serialized, and atomic. Checkpoint advancement
   always requires an explicit action.
+- A clean-state HTTP workflow verifies the Prologue preview, early STOPs and
+  citations, checkpoint selection, first-ten-hours guidance, and reversible
+  action/medal/tablet/item/monster/Heart/vocation updates.
 
 ## Intentional limits
 
-- Equipment remains read-only. The canonical non-accessory audit verifies only
-  two-source-agreeing rows and exposes every disputed or single-source row.
+- Equipment writes are accessory-only: two slots per character, explicitly owned
+  canonical items, verified compatibility, and distinct item IDs. Weapon, shield,
+  head, and torso writes remain disabled; every disputed or single-source row stays visible.
 - Monster Heart ownership is editable through a dedicated reversible ledger. An absent ledger remains unknown; route or checkpoint availability never implies ownership.
 - Unknown rates, mastery costs, and unresolved evidence remain unknown.
 - The Sources view exposes a dated five-gap audit with single-source, unsupported,
@@ -36,3 +40,6 @@ is the only runtime dependency.
 Run `python scripts/build_kb.py` and
 `python -m unittest discover -s tests -v`. When Node is installed, also run
 `node --check web/app.js`.
+The browser scopes farms to the checkpoint currently being viewed and classifies
+Hearts as available, later, or unknown from that checkpoint rather than treating
+every future-gated Heart as available now.

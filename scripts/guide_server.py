@@ -40,6 +40,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "vocation-mastered", "vocation-undo",
     "party-level", "party-vocations",
     "missable-completed", "missable-undo",
+    "accessory-set",
 }
 
 
@@ -333,6 +334,7 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
     members = state.get("party", {}).get("members", {})
     result = {
         "editor_supported": False,
+        "accessory_editor_supported": True,
         "comparison_scope": "current_checkpoint_attributed_recommendations",
         "checkpoint_id": checkpoint_id,
         "gaps": [
@@ -434,6 +436,27 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             "by_category": catalog_rows,
             "status": "partial_two_source_matrix",
         }
+        obtained_items = set(state.get("completion", {}).get("items_obtained", []))
+        owned_hearts = set(state.get("completion", {}).get("monster_hearts_owned", []))
+        owned_accessories = [dict(row) for row in connection.execute(
+            """SELECT i.item_id, i.name, mh.heart_id
+            FROM items i JOIN item_categories c USING(category_id)
+            LEFT JOIN monster_hearts mh ON mh.name=i.name
+            LEFT JOIN item_identity_redirects redirect ON redirect.legacy_item_id=i.item_id
+            WHERE c.name='Accessories' AND redirect.legacy_item_id IS NULL
+            ORDER BY i.name"""
+        ) if row["item_id"] in obtained_items or row["heart_id"] in owned_hearts]
+        compatible = {(row["item_id"], row["character_name"])
+                      for row in connection.execute(
+                          "SELECT item_id, character_name FROM equipment_compatibility WHERE can_equip=1")}
+        for member_row in result["members"]:
+            equipment = member_row["recorded_equipment"]
+            member_row["accessory_slots"] = {
+                slot: equipment.get(slot) for slot in ("accessory_1", "accessory_2")
+            }
+            member_row["accessory_options"] = [row for row in owned_accessories
+                                               if (row["item_id"], member_row["name"]) in compatible]
+            member_row["accessory_editor_status"] = "supported_owned_verified_distinct_only"
     if not checkpoint_id:
         result["status"] = "unknown_checkpoint"
         return result
@@ -1296,6 +1319,18 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
     raise ValueError("Unsupported resource mutation")
 
 
+def _record_accessory_progress(db_path: Path, state_path: Path, path: str, payload: dict) -> str:
+    suffix = path.removeprefix("/api/equipment/accessories/")
+    parts = [unquote(value) for value in suffix.split("/")]
+    if len(parts) != 2:
+        raise ValueError("Accessory path must identify character and slot")
+    item_id = payload.get("item_id")
+    if item_id is not None and not isinstance(item_id, str):
+        raise ValueError("item_id must be a canonical item ID or null")
+    return update_progress(state_path, db_path, "accessory-set",
+                           [parts[0], parts[1], item_id or "unknown"])
+
+
 def make_handler(db_path: Path, state_path: Path, static_dir: Path):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
     state_write_lock = threading.Lock()
@@ -1532,6 +1567,8 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                 with state_write_lock:
                     if path == "/api/progress":
                         message = _record_ui_progress(db_path, state_path, payload)
+                    elif path.startswith("/api/equipment/accessories/"):
+                        message = _record_accessory_progress(db_path, state_path, path, payload)
                     elif any(path.startswith(prefix) for prefix in (
                         "/api/items/", "/api/tablets/", "/api/achievements/",
                         "/api/vocations/", "/api/checkpoints/",
