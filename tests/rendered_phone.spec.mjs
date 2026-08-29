@@ -132,6 +132,34 @@ for (const viewport of [
       expect(height).toBeGreaterThanOrEqual(44);
     }
 
+    await page.evaluate(() => { location.hash = "sources"; });
+    await expect(page.locator("#sources")).toBeVisible();
+    const gapCards = page.locator(".evidence-gap-card");
+    await expect(gapCards).toHaveCount(7);
+    await expect(page.locator(".evidence-gap-card[open]")).toHaveCount(0);
+    await expect(page.locator("#evidenceGaps")).toContainText("5 corroborated but unresolved");
+    await expect(page.locator("#evidenceGaps")).toContainText("1 single-source");
+    await expect(page.locator("#evidenceGaps")).toContainText("1 unsupported");
+    await expect(page.locator("#evidenceGaps")).toContainText("Ruby of Protection individual Faraday drawer");
+    await expect(page.locator("#evidenceGaps")).toContainText("Lucky Panel probability algorithm");
+    const firstGap = gapCards.first();
+    await firstGap.locator("summary").click();
+    await expect(firstGap).toHaveAttribute("open", "");
+    await expect(firstGap).toContainText("Needed:");
+    const sourceMetrics = await page.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      stopVisible: Boolean(document.querySelector("#sourcesStop:not([hidden])")),
+      linkSizes: [...document.querySelectorAll(".evidence-gap-card[open] .evidence-claim a")]
+        .map(node => { const rect = node.getBoundingClientRect(); return [rect.width, rect.height]; }),
+    }));
+    expect(sourceMetrics.overflow).toBeLessThanOrEqual(1);
+    expect(sourceMetrics.stopVisible).toBe(true);
+    expect(sourceMetrics.linkSizes.length).toBeGreaterThan(0);
+    for (const [width, height] of sourceMetrics.linkSizes) {
+      expect(width).toBeGreaterThanOrEqual(44);
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+
     if (viewport.name === "portrait") {
       const cacheState = await page.evaluate(async () => {
         await navigator.serviceWorker.ready;
@@ -142,7 +170,7 @@ for (const viewport of [
         }))).flat().map(request => new URL(request.url).pathname);
         return { keys, apiRequests: requests.filter(pathname => pathname.startsWith("/api/")) };
       });
-      expect(cacheState.keys).toContain("dq7-guide-shell-v18");
+      expect(cacheState.keys).toContain("dq7-guide-shell-v19");
       expect(cacheState.apiRequests).toEqual([]);
     }
   });

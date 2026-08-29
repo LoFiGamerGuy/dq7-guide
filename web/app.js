@@ -467,10 +467,14 @@ function renderSources(sources = state.checkpoint?.sources || []) {
   const gapEvidence = gap => {
     const claims = (gap.supporting_claims || []).map(claim => `<div class="evidence-claim"><a href="${escapeHtml(claim.source?.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(claim.source?.title || claim.source_id)}</a><small>${escapeHtml(claim.locator)}</small></div>`).join("");
     const linkedSources = new Set((gap.supporting_claims || []).map(claim => claim.source_id));
-    const additional = gap.sources.filter(source => !linkedSources.has(source.source_id)).map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.title)}</a>`).join(" ");
+    const additional = gap.sources.filter(source => !linkedSources.has(source.source_id)).map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.title)}</a>`).join("");
     if (!claims && !additional) return '<span class="muted">No publishable source found.</span>';
-    return `${claims ? `<span><b>Supporting claim locators:</b></span><div class="evidence-claims">${claims}</div>` : ""}${additional ? `<span><b>Additional audited pages:</b> ${additional}</span>` : ""}`;
+    return `${claims ? `<span><b>Supporting claim locators:</b></span><div class="evidence-claims">${claims}</div>` : ""}${additional ? `<span><b>Additional audited pages:</b></span><div class="evidence-links">${additional}</div>` : ""}`;
   };
+  const openStops = state.checkpoint?.stop_actions || [];
+  const sourcesStop = $("#sourcesStop");
+  sourcesStop.hidden = !openStops.length;
+  sourcesStop.innerHTML = openStops.length ? `<strong>Active checkpoint STOP · ${openStops.length} open</strong><span>${escapeHtml(openStops[0].title)} — ${escapeHtml(openStops[0].action)}</span><a href="#walkthrough" data-view="walkthrough">Return to Now</a>` : "";
   const target = $("#sourceList"); target.innerHTML = sources.map(s => `<div class="source-item"><a href="${escapeHtml(s.url)}" target="_blank" rel="noreferrer">${escapeHtml(s.title)}</a><br><span class="muted">${escapeHtml(s.locator || "")}</span></div>`).join(""); if (!target.children.length) target.append(empty());
   const gapTarget = $("#evidenceGaps"), audit = state.evidenceGaps;
   const gapCards = audit?.gaps.map(gap => `<details class="evidence-gap-card"><summary><span class="evidence-gap-heading"><strong>${escapeHtml(gap.subject)}</strong><small class="evidence-strength">${escapeHtml(gapStrength(gap))}</small></span><span class="muted">Open question · ${escapeHtml(gapStatus(gap))}</span></summary><div class="evidence-gap-body"><span>${escapeHtml(gap.summary)}</span><span><b>Needed:</b> ${escapeHtml(gap.acceptance_condition)}</span>${gapEvidence(gap)}<span class="muted">${escapeHtml(gap.freshness_status.replaceAll("_", " "))} · audited ${escapeHtml(gap.last_audited)}</span></div></details>`).join("");

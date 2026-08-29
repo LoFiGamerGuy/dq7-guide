@@ -14,21 +14,33 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DB = ROOT / "data" / "dq7_reimagined.sqlite"
 DEFAULT_EVIDENCE_GAPS = ROOT / "data" / "evidence_gaps.json"
 EVIDENCE_GAP_SEARCH_TERMS = {
-    "gap_blue_button_cutoff": "Blue Button before Cataclysm cutoff missable",
+    "gap_blue_button_cutoff":
+        "Blue Button before Cataclysm cutoff missable Emberdale child disaster",
     "gap_ruby_of_protection_drawer":
-        "Ruby of Protection Faraday Castle throne bedroom drawer drawers container",
+        "Ruby of Protection Faraday Castle throne bedroom drawer container chest location",
     "gap_lucky_panel_probabilities":
         "Lucky Panel probability probabilities odds chance draw rate weights denominator",
     "gap_reproducible_farm_rates":
-        "farming farm EXP experience gold drop encounter rate rates efficiency benchmark",
+        "farming farm EXP experience gold drop encounter rate efficiency benchmark hour",
     "gap_repeatable_monster_hearts":
-        "repeatable renewable farm farming Monster Heart respawn rematch drop",
+        "repeatable renewable farm farming Monster Heart respawn rematch drop vicious",
     "gap_duplicate_equipment_stacking":
         "duplicate same item accessory accessories Monster Heart stacking stack legality "
-        "Rabbit Tail formula cap",
+        "Rabbit Tail formula cap equip two same work reserve",
     "gap_achievement_counter_semantics":
         "achievement trophy counter persistence save reset New Game demo import overlap "
-        "quick win Field Day Monster Masher Metal Mangler",
+        "quick win Field Day Monster Masher Metal Mangler carry over count",
+}
+
+EVIDENCE_GAP_STOPWORDS = {
+    "a", "an", "are", "can", "do", "does", "for", "get", "has", "how", "i",
+    "in", "is", "it", "much", "of", "per", "still", "the", "what", "which",
+}
+
+EVIDENCE_GAP_TOKEN_NORMALIZATIONS = {
+    "accessories": "accessory", "counters": "counter", "drawers": "drawer",
+    "hearts": "heart", "monsters": "monster", "odds": "probability",
+    "rates": "rate", "repeatedly": "repeatable", "wins": "win",
 }
 
 
@@ -41,6 +53,17 @@ def normalize_query(query: str) -> str | None:
 
 def _tokens(query: str) -> list[str]:
     return re.findall(r"[\w]+(?:['’][\w]+)?", query, flags=re.UNICODE)
+
+
+def _gap_tokens(value: str) -> list[str]:
+    """Normalize natural question phrasing without weakening ordinary FTS search."""
+    normalized = []
+    for token in _tokens(value):
+        token = token.casefold()
+        if token in EVIDENCE_GAP_STOPWORDS:
+            continue
+        normalized.append(EVIDENCE_GAP_TOKEN_NORMALIZATIONS.get(token, token))
+    return normalized
 
 
 def _fts_rows(connection: sqlite3.Connection, expression: str, limit: int) -> list[dict]:
@@ -118,8 +141,9 @@ def _evidence_gap_rows(connection: sqlite3.Connection, tokens: list[str]) -> lis
         search_text = " ".join((gap["gap_id"], gap["subject"], gap["summary"],
                                 gap["acceptance_condition"],
                                 EVIDENCE_GAP_SEARCH_TERMS.get(gap["gap_id"], "")))
-        search_tokens = {token.casefold() for token in _tokens(search_text)}
-        if not all(token.casefold() in search_tokens for token in tokens):
+        search_tokens = set(_gap_tokens(search_text))
+        query_tokens = _gap_tokens(" ".join(tokens))
+        if not query_tokens or not all(token in search_tokens for token in query_tokens):
             continue
         claim_ids = gap.get("claim_ids", [])
         evidence = []

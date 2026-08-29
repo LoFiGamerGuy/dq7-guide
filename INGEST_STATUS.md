@@ -158,8 +158,16 @@ repeatable route; `Lucky Panel probability` leads with the missing algorithm and
 denominator. Both expose precise supporting-claim URLs and locators, and the Lucky
 Panel gap now directly links its normalized numeric-cell claim. No probability,
 rate, or repeatability is inferred. Maintained whole-token vocabulary now covers
-all six gaps, including `farming EXP rate` and `achievement counter persistence`;
+all seven gaps, including `farming EXP rate`, the individual Ruby drawer, and
+`achievement counter persistence`;
 the query layer fails loudly if that vocabulary and the curated queue diverge.
+The follow-up natural-language regression covers all seven rows, including the
+Ruby drawer. Common question words no longer suppress a curated unknown, and a
+small explicit normalization map handles supported plurals and phrasing variants
+without fuzzy inference. The phone Sources screen keeps active STOP context above
+the collapsed queue, labels the 5 corroborated / 1 single-source / 1 unsupported
+split, and gives evidence links 44px touch targets. Portrait and landscape browser
+tests exercise these states directly; cache v19 delivers the update.
 
 The Troll Heart retrieval pass closes the mismatch between its normalized item route
 and the dedicated Heart views. Heart/API/CLI guidance now gates the finite field
@@ -579,7 +587,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 681 source records currently have retrieval dates within 180
+- **Freshness:** all 694 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -976,7 +984,7 @@ descriptive container and route metadata likewise does not block availability.
 Purchase advice cannot say a Medal reward is free-now when the saved count is
 unknown. Equipment responses select an explicit current `actionable_route`, and
 the phone uses that route (including exact shop price) rather than blindly using
-the first route in a mixed collection. The service-worker cache is v18.
+the first route in a mixed collection. The service-worker cache is v19.
 
 Catalog item detail now annotates every acquisition route against the explicitly
 saved checkpoint and Medal count. Current, later, expired, conditional, and
