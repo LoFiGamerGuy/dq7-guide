@@ -2620,11 +2620,11 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 2, "other": 16})
+                         {"chest": 4, "other": 14})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         self.assertIn("18 acquisition rows", status)
-        self.assertIn("16 broad or grouped-container `other` routes and two chest routes",
+        self.assertIn("14 broad or grouped-container `other` routes and four chest routes",
                       status)
         self.assertIn("18 broader acquisition rows", handoff)
 
@@ -2633,8 +2633,6 @@ class KnowledgeBaseTests(unittest.TestCase):
             "acq_gold_bracer_temple_palace_past": (
                 "Temple Palace hidden room behind Queen Fertiti's throne",
                 "hidden room behind throne"),
-            "acq_day_off_dress_another_world": (
-                "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
         }
         placeholders = ",".join("?" for _ in expected)
         rows = self.connection.execute(
@@ -2773,7 +2771,6 @@ class KnowledgeBaseTests(unittest.TestCase):
             "acq_gigant_armour_yet_another_world": "shop / Interior (jail)",
             "acq_super_seed_of_magic_yet_another_world": "shop / Interior (jail)",
             "acq_super_seed_of_agility_yet_another_world": "shop / Interior (jail)",
-            "acq_goddess_ring_yet_another_world": "Dock; Tower",
             "acq_super_seed_of_life_yet_another_world": "Dock; Tower",
             "acq_super_seed_of_deftness_yet_another_world": "Underground Level 1 (Stairs)",
             "acq_super_pretty_betsy_yet_another_world": "Forest Area",
@@ -2793,6 +2790,36 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertEqual(row["source_id"], "rpgsite_walkthrough")
             self.assertIn(expected[row["acquisition_id"]], row["locator"])
             self.assertIn("container_unspecified", row["verification_status"])
+
+    def test_game8_postgame_reclassifies_two_grouped_routes_as_chests(self):
+        expected = {
+            "acq_day_off_dress_another_world": ("three treasure chests", 3),
+            "acq_goddess_ring_yet_another_world": ("two treasure chests", 2),
+        }
+        rows = self.connection.execute(
+            """SELECT acquisition_id, method, source_id, prerequisite_json,
+                locator, verification_status FROM item_acquisition_paths
+            WHERE acquisition_id IN (
+                'acq_day_off_dress_another_world',
+                'acq_goddess_ring_yet_another_world')"""
+        ).fetchall()
+        self.assertEqual(len(rows), 2)
+        for row in rows:
+            group, size = expected[row["acquisition_id"]]
+            details = json.loads(row["prerequisite_json"])
+            self.assertEqual(row["method"], "chest")
+            self.assertEqual(row["source_id"], "game8_postgame")
+            self.assertEqual(details["container_group"], group)
+            self.assertEqual(len(details["group_rewards"]), size)
+            self.assertEqual(details["individual_member"], "unknown")
+            self.assertIn("treasure chest", row["locator"])
+            self.assertIn("container_unspecified", row["verification_status"])
+        claim_count = self.connection.execute(
+            """SELECT COUNT(*) FROM claims WHERE claim_id IN (
+                'claim_day_off_dress_another_world_chest_group_game8',
+                'claim_goddess_ring_yet_another_world_chest_group_game8')"""
+        ).fetchone()[0]
+        self.assertEqual(claim_count, 2)
 
     def test_game8_postgame_resolves_great_helm_exact_chest(self):
         row = self.connection.execute(
