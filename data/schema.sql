@@ -472,6 +472,26 @@ CREATE TABLE checkpoint_advice (
     UNIQUE(checkpoint_id, advice_type, display_order)
 );
 
+CREATE TABLE boss_skill_recommendations (
+    boss_skill_recommendation_id TEXT PRIMARY KEY,
+    checkpoint_id TEXT NOT NULL REFERENCES checkpoints(checkpoint_id),
+    advice_id TEXT NOT NULL REFERENCES checkpoint_advice(advice_id),
+    boss_name TEXT NOT NULL,
+    character_name TEXT NOT NULL,
+    vocation_skill_id TEXT NOT NULL REFERENCES vocation_rank_skills(vocation_skill_id),
+    recommendation_strength TEXT NOT NULL CHECK(recommendation_strength IN ('recommended', 'required')),
+    recommendation_verification_status TEXT NOT NULL CHECK(
+        recommendation_verification_status IN ('single_source', 'two_source_verified')
+    ),
+    corroborating_source_id TEXT REFERENCES sources(source_id),
+    corroborating_locator TEXT,
+    notes TEXT,
+    CHECK((corroborating_source_id IS NULL) = (corroborating_locator IS NULL)),
+    CHECK(recommendation_verification_status != 'two_source_verified'
+          OR corroborating_source_id IS NOT NULL),
+    UNIQUE(checkpoint_id, boss_name, character_name, vocation_skill_id)
+);
+
 CREATE TABLE achievements (
     achievement_id TEXT PRIMARY KEY,
     name TEXT NOT NULL COLLATE NOCASE UNIQUE,

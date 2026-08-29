@@ -1346,8 +1346,83 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
                 "decision_group": row["decision_group"],
                 "recommendation": row["text"], "source": row["source"],
             })
+    with sqlite3.connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        boss_skill_rows = [dict(row) for row in connection.execute(
+            """SELECT b.boss_skill_recommendation_id, b.boss_name,
+                b.character_name, b.recommendation_strength, b.notes,
+                b.recommendation_verification_status,
+                b.corroborating_source_id, b.corroborating_locator,
+                k.vocation_id, k.skill_name, k.proficiency_rank,
+                k.verification_status AS skill_verification_status,
+                e.name AS vocation_name,
+                a.source_id AS boss_source_id, a.locator AS boss_locator,
+                bs.title AS boss_source_title, bs.url AS boss_source_url,
+                k.source_id AS skill_source_id, k.locator AS skill_locator,
+                ks.title AS skill_source_title, ks.url AS skill_source_url,
+                cs.title AS corroborating_source_title,
+                cs.url AS corroborating_source_url
+            FROM boss_skill_recommendations b
+            JOIN checkpoint_advice a USING(advice_id)
+            JOIN sources bs ON bs.source_id=a.source_id
+            JOIN vocation_rank_skills k USING(vocation_skill_id)
+            JOIN vocations v USING(vocation_id)
+            JOIN entities e ON e.entity_id=v.vocation_id
+            JOIN sources ks ON ks.source_id=k.source_id
+            LEFT JOIN sources cs ON cs.source_id=b.corroborating_source_id
+            WHERE b.checkpoint_id=?
+            ORDER BY b.boss_skill_recommendation_id""", (checkpoint_id,)
+        )]
+    boss_skill_prep = []
+    for row in boss_skill_rows:
+        candidates = ([name.strip() for name in row["character_name"].split(" or ")]
+                      if " or " in row["character_name"] else [row["character_name"]])
+        candidate_state = []
+        for character in candidates:
+            member = party_members.get(character, {})
+            mastered = member.get("vocation_mastery", {}).get(row["vocation_id"]) is True
+            current = row["vocation_id"] in (
+                member.get("primary_vocation"), member.get("secondary_vocation"))
+            candidate_state.append({
+                "character": character,
+                "status": ("skill_available_by_explicit_mastery_and_current" if mastered and current else
+                           "mastered_not_currently_equipped" if mastered else
+                           "rank_progress_unknown" if current else "state_unknown"),
+            })
+        overall = ("skill_available" if any(item["status"] == "skill_available_by_explicit_mastery_and_current"
+                                             for item in candidate_state) else
+                   "mastered_not_equipped" if any(item["status"] == "mastered_not_currently_equipped"
+                                                    for item in candidate_state) else
+                   "rank_progress_unknown" if any(item["status"] == "rank_progress_unknown"
+                                                   for item in candidate_state) else
+                   "state_unknown")
+        boss_skill_prep.append({
+            "id": row["boss_skill_recommendation_id"], "boss": row["boss_name"],
+            "characters": candidates, "vocation_id": row["vocation_id"],
+            "vocation": row["vocation_name"], "skill": row["skill_name"],
+            "rank": row["proficiency_rank"],
+            "recommendation_strength": row["recommendation_strength"],
+            "state_status": overall, "candidate_state": candidate_state,
+            "notes": row["notes"],
+            "recommendation_verification_status": row["recommendation_verification_status"],
+            "rank_verification_status": "single_source",
+            "boss_source": {"id": row["boss_source_id"], "title": row["boss_source_title"],
+                            "url": row["boss_source_url"], "locator": row["boss_locator"]},
+            "corroborating_source": ({
+                "id": row["corroborating_source_id"],
+                "title": row["corroborating_source_title"],
+                "url": row["corroborating_source_url"],
+                "locator": row["corroborating_locator"],
+            } if row["corroborating_source_id"] else None),
+            "skill_source": {"id": row["skill_source_id"], "title": row["skill_source_title"],
+                             "url": row["skill_source_url"], "locator": row["skill_locator"],
+                             "verification_status": row["skill_verification_status"]},
+        })
     power_plan = {
         "state_scope": "explicit_saved_state_only",
+        "vocation_tracking_available": checkpoint_index >= next(
+            index for index, row in enumerate(checkpoint_rows)
+            if row["checkpoint_id"] == "cp_009_alltrades"),
         "state_status": party_status,
         "party_note": ("No party levels or vocations are recorded."
                        if party_status == "unknown" else
@@ -1362,6 +1437,7 @@ def _checkpoint_view(db_path: Path, state_path: Path, checkpoint_id: str) -> dic
         "grind_ceiling": [row for row in advice if row["decision_group"] == "optional_grind"],
         "gear_checks": equipment["recommendations"],
         "vocation_paths": vocation_paths,
+        "boss_skill_prep": boss_skill_prep,
         "available_farms": farm_options,
         "farm_note": ("Available sourced options, not a ranking. Use the attributed grind ceiling above when present."
                       if farm_options else "No checkpoint-gated farm is verified as available yet."),

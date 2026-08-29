@@ -1052,6 +1052,21 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )
 
         connection.executemany(
+            """INSERT INTO boss_skill_recommendations(
+                boss_skill_recommendation_id, checkpoint_id, advice_id,
+                boss_name, character_name, vocation_skill_id,
+                recommendation_strength, recommendation_verification_status,
+                corroborating_source_id, corroborating_locator, notes
+            ) VALUES (
+                :boss_skill_recommendation_id, :checkpoint_id, :advice_id,
+                :boss_name, :character_name, :vocation_skill_id,
+                :recommendation_strength, :recommendation_verification_status,
+                :corroborating_source_id, :corroborating_locator, :notes
+            )""",
+            seed.get("boss_skill_recommendations", []),
+        )
+
+        connection.executemany(
             """INSERT INTO achievements(
                 achievement_id, name, description, category, hidden, grade,
                 platform_scope, earliest_checkpoint_id,
@@ -1610,7 +1625,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "farming_spots", "seed_effects", "seed_reward_rules",
             "monster_hearts", "checkpoints", "conflicts"
             , "mini_medal_locations", "mini_medal_evidence", "checkpoint_obligations"
-            , "checkpoint_advice", "achievements", "achievement_aliases"
+            , "checkpoint_advice", "boss_skill_recommendations", "achievements", "achievement_aliases"
             , "achievement_requirements"
             , "monsters", "monster_encounters", "monster_drops"
             , "vicious_targets", "vicious_encounters"

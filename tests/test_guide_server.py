@@ -618,6 +618,16 @@ class GuideServerTests(unittest.TestCase):
         }])
         self.assertTrue(plan["gear_checks"])
 
+    def test_power_plan_hides_vocation_tracking_until_alltrades(self):
+        for checkpoint_id in ("cp_001_prologue", "cp_002_estard_shrine",
+                              "cp_003_ballymolloy", "cp_004_emberdale", "cp_005_larca"):
+            plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                    self.state, checkpoint_id)["power_plan"]
+            self.assertFalse(plan["vocation_tracking_available"], checkpoint_id)
+        plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                self.state, "cp_009_alltrades")["power_plan"]
+        self.assertTrue(plan["vocation_tracking_available"])
+
     def test_power_vocation_path_advances_only_from_explicit_mastery(self):
         state_path = Path(self.temp.name) / "power-vocation-state.json"
         state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
@@ -631,6 +641,55 @@ class GuideServerTests(unittest.TestCase):
                     if row["character"] == "Hero" and row["target_id"] == "vocation_warrior")
         self.assertEqual(hero["status"], "target_mastered")
         self.assertEqual(hero["next_options"], [])
+
+    def test_boss_skill_prep_preserves_choice_provenance_and_unknown_rank(self):
+        state_path = Path(self.temp.name) / "boss-prep-state.json"
+        state = json.loads((ROOT / "player" / "ryan-save-state.json").read_text())
+        state["party"]["members"]["Ruff"]["primary_vocation"] = "vocation_priest"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        plan = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                state_path, "cp_010_alltrades_present")["power_plan"]
+        fizzle = next(row for row in plan["boss_skill_prep"]
+                      if row["skill"] == "Fizzle")
+        self.assertEqual(fizzle["state_status"], "rank_progress_unknown")
+        self.assertEqual(fizzle["recommendation_verification_status"], "single_source")
+        self.assertIsNone(fizzle["corroborating_source"])
+        self.assertEqual(fizzle["skill_source"]["verification_status"], "source_checked")
+        self.assertTrue(fizzle["boss_source"]["locator"])
+        leg_sweep = next(row for row in plan["boss_skill_prep"]
+                         if row["skill"] == "Leg Sweep")
+        self.assertEqual(leg_sweep["characters"], ["Hero", "Ruff"])
+        self.assertEqual(leg_sweep["recommendation_verification_status"],
+                         "two_source_verified")
+        self.assertEqual(leg_sweep["corroborating_source"]["id"],
+                         "gamewith_mighty_pip")
+        self.assertEqual(leg_sweep["rank_verification_status"], "single_source")
+        self.assertNotIn("Hero or Ruff", {item["character"]
+                                          for item in leg_sweep["candidate_state"]})
+
+        state["party"]["members"]["Ruff"]["vocation_mastery"] = {
+            "vocation_priest": True,
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        mastered = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                    state_path, "cp_010_alltrades_present")["power_plan"]
+        fizzle = next(row for row in mastered["boss_skill_prep"]
+                      if row["skill"] == "Fizzle")
+        self.assertEqual(fizzle["state_status"], "skill_available")
+
+    def test_early_boss_skill_prep_is_checkpoint_scoped(self):
+        cp001 = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                 self.state, "cp_001_prologue")["power_plan"]
+        cp008 = _checkpoint_view(ROOT / "data" / "dq7_reimagined.sqlite",
+                                 self.state, "cp_008_roamer")["power_plan"]
+        self.assertEqual(cp001["boss_skill_prep"], [])
+        self.assertEqual(len(cp008["boss_skill_prep"]), 1)
+        florin = cp008["boss_skill_prep"][0]
+        self.assertEqual((florin["boss"], florin["skill"], florin["vocation"],
+                          florin["rank"], florin["characters"]),
+                         ("Florin", "Lightning Slash", "Heir Apparent", 5,
+                          ["Kiefer"]))
+        self.assertEqual(florin["recommendation_strength"], "recommended")
 
     def test_party_setup_atomically_records_checkpoint_active_party_and_unknowns(self):
         state_path = Path(self.temp.name) / "quick-party-state.json"

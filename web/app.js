@@ -208,7 +208,16 @@ function compactApplicability(value) {
 }
 
 function renderPowerPlan(plan = {}) {
-  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [];
+  const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [], bossPrep = plan.boss_skill_prep || [];
+  const bossNames = [...new Set(bossPrep.map(row => row.boss))];
+  const bossRows = bossPrep.map(row => {
+    const stateText = row.state_status === "skill_available" ? "Recorded mastered + equipped · skill available" : row.state_status === "mastered_not_equipped" ? "Mastered · equip this vocation" : row.state_status === "rank_progress_unknown" ? "Current vocation · rank unknown" : "Mastery/rank unknown";
+    const evidenceText = row.recommendation_verification_status === "two_source_verified" ? "Two-source boss recommendation" : "Single-source boss recommendation";
+    const corroboration = row.corroborating_source ? `<p><a href="${escapeHtml(row.corroborating_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.corroborating_source.title)}</a><br><span class="muted">${escapeHtml(row.corroborating_source.locator)}</span></p>` : "";
+    const rankEvidence = row.skill_source.verification_status === "two_source_verified" ? "two-source" : "single-source";
+    return `<li><strong>${escapeHtml(row.boss)} · ${escapeHtml(row.skill)}</strong><span>${escapeHtml(row.characters.join(" or "))} · ${escapeHtml(row.vocation)} ${escapeHtml(row.rank)}★ · ${escapeHtml(row.recommendation_strength)}, not required</span><small class="applicability-${row.state_status === "skill_available" ? "satisfied" : "unknown"}">${escapeHtml(stateText)}</small><details class="advice-evidence"><summary>Evidence · ${escapeHtml(evidenceText)}</summary><p><a href="${escapeHtml(row.boss_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.boss_source.title)}</a><br><span class="muted">${escapeHtml(row.boss_source.locator)}</span></p>${corroboration}<p><strong>Skill rank · ${escapeHtml(rankEvidence)}:</strong> <a href="${escapeHtml(row.skill_source.url)}" target="_blank" rel="noreferrer">${escapeHtml(row.skill_source.title)}</a><br><span class="muted">${escapeHtml(row.skill_source.locator)}</span></p></details></li>`;
+  }).join("");
+  const bossSection = bossRows ? `<details class="boss-prep"><summary>Prepare for ${escapeHtml(bossNames.length === 1 ? bossNames[0] : `${bossNames.length} upcoming bosses`)}</summary><ul class="power-list">${bossRows}</ul><p class="muted">Recommended is not required. State uses explicit mastery/current vocation only; missing rank stays unknown.</p></details>` : "";
   const partyText = party.length ? party.map(row => `${row.name}: ${row.active ? "Active · " : ""}${row.level ? `Lv ${row.level}` : "level ?"} · ${row.primary_vocation || "vocation ?"}${row.secondary_vocation ? ` + ${row.secondary_vocation}` : ""}`).join(" / ") : "Party levels and vocations not recorded — recommendations remain source-only.";
   const powerRow = row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span>${row.saved_state_applicability?.reason !== "No supported saved-state gate" ? `<small class="applicability-${escapeHtml(row.saved_state_applicability?.status || "unknown")}">${escapeHtml(row.saved_state_applicability?.reason || "Saved-state fit unknown")}</small>` : ""}</li>`;
   const primaryPowerRow = strongest[0] ? powerRow(strongest[0]) : "";
@@ -226,6 +235,7 @@ function renderPowerPlan(plan = {}) {
   }).join("");
   const vocationRows = vocationPaths.map(path => `<li><strong>${escapeHtml(path.character)} → ${escapeHtml(path.target_name)}</strong><span>${escapeHtml(path.decision_group === "completion_safe" ? "Completion-safe" : "Strongest now")} · ${escapeHtml(path.status === "target_mastered" ? "Target mastered" : "Next mastery")}</span>${path.status !== "target_mastered" ? `<div class="vocation-options">${path.next_options.map(option => { const skill = option.power_payoff?.earliest_skill, perk = option.power_payoff?.let_loose; return `<div class="vocation-option"><span><b>${escapeHtml(option.name)}</b>${skill ? ` · ${escapeHtml(skill.rank)}★ ${escapeHtml(skill.name)}` : ""}${perk ? `<br>Let Loose: ${escapeHtml(perk.name)} — ${escapeHtml(perk.description)}` : ""}</span><button class="secondary compact-button" type="button" data-power-vocation-mastered="${escapeHtml(option.vocation_id)}" data-power-vocation-character="${escapeHtml(path.character)}">Record mastered</button></div>`; }).join("")}</div>${path.next_options.length > 1 ? '<small>Branch choice preserved · payoffs shown, options not ranked.</small>' : ""}` : `${path.target_payoff?.let_loose ? `<span>Let Loose: ${escapeHtml(path.target_payoff.let_loose.name)} — ${escapeHtml(path.target_payoff.let_loose.description)}</span>` : ""}`}</li>`).join("");
   target.innerHTML = `<p class="power-party"><strong>Recorded party entries</strong><span>${escapeHtml(partyText)}</span><small>${escapeHtml(plan.party_note || "Unrecorded values remain unknown.")}</small></p>${primaryPowerRow ? `<h4>Next power move</h4><ol class="power-list primary-power">${primaryPowerRow}</ol>${morePowerRows ? `<details class="power-more"><summary>More strongest-now advice (${strongest.length - 1})</summary><ol class="power-list">${morePowerRows}</ol></details>` : ""}${plan.additional_strongest_count ? `<p class="muted">${plan.additional_strongest_count} more sourced power notes in Full sourced advice.</p>` : ""}` : '<p class="muted">No separate immediate-power recommendation is sourced here.</p>'}${vocationRows ? `<details class="power-more"><summary>Next vocation payoff (${vocationPaths.length})</summary><ul class="power-list">${vocationRows}</ul></details>` : ""}${safeRows ? `<h4>Completion-safe power</h4><ul class="power-list">${safeRows}</ul>${plan.additional_safe_power_count ? `<p class="muted">${plan.additional_safe_power_count} more safe-power notes below.</p>` : ""}` : ""}${gearRows ? `<h4>Gear checks</h4><ul class="power-list">${gearRows}</ul>` : ""}${grind.length ? `<h4>Optional grind ceiling</h4><ul class="power-list">${grind.map(row => `<li><strong>${escapeHtml(row.subject)}</strong><span>${escapeHtml(row.text)}</span></li>`).join("")}</ul>` : '<p class="muted">No checkpoint-specific grind is recommended.</p>'}${farms.length ? `<details class="farm-options"><summary>Other farms available by now (${farms.length})</summary><p class="muted">${escapeHtml(plan.farm_note)}</p>${farms.map(row => `<div><strong>${escapeHtml(row.target)}</strong><span>${escapeHtml(row.location)}${row.time_period ? ` · ${escapeHtml(row.time_period)}` : ""}</span></div>`).join("")}</details>` : ""}`;
+  if (bossSection) target.querySelector(".power-party").insertAdjacentHTML("afterend", bossSection);
 }
 
 function renderQuickSetup() {
@@ -250,7 +260,9 @@ function syncQuickMasteryChoices() {
   if (submit) submit.disabled = !select.options.length;
 }
 
-function renderQuickMastery() {
+function renderQuickMastery(available = false) {
+  $("#quickMastery").hidden = !available;
+  if (!available) { $("#quickMastery").open = false; return; }
   const members = state.progress?.party || [];
   $("#quickMasteryMember").innerHTML = members.map(row => `<option value="${escapeHtml(row.name)}">${escapeHtml(row.name)}</option>`).join("");
   syncQuickMasteryChoices();
@@ -285,7 +297,7 @@ function renderCheckpoint() {
   renderCheckpointActions($("#actions"), c.actions || [], $("#hideCompleted").checked);
   renderPowerPlan(c.power_plan || {});
   renderQuickSetup();
-  renderQuickMastery();
+  renderQuickMastery(Boolean(c.power_plan?.vocation_tracking_available));
   $("#actionCount").textContent = `${(c.actions || []).filter(a => !a.completed).length} open`;
   const advice = $("#advice"), adviceGroups = [
     ["completion_safe", "Completion-safe"],

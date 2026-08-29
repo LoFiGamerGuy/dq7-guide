@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 543)
+        self.assertEqual(self.counts["sources"], 544)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -70,12 +70,31 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
         self.assertEqual(self.counts["checkpoint_advice"], 111)
+        self.assertEqual(self.counts["boss_skill_recommendations"], 8)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
         self.assertEqual(self.counts["item_aliases"], 4)
         self.assertEqual(self.counts["item_acquisition_paths"], 747)
         self.assertEqual(self.counts["monster_hearts"], 46)
+
+    def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
+        rows = self.connection.execute(
+            """SELECT recommendation_verification_status,
+                corroborating_source_id, corroborating_locator
+            FROM boss_skill_recommendations"""
+        ).fetchall()
+        self.assertEqual(len(rows), 8)
+        self.assertEqual(sum(row["recommendation_verification_status"] == "single_source"
+                             for row in rows), 6)
+        self.assertEqual(sum(row["recommendation_verification_status"] == "two_source_verified"
+                             for row in rows), 2)
+        self.assertTrue(all(
+            (row["corroborating_source_id"] is not None and
+             row["corroborating_locator"] is not None) ==
+            (row["recommendation_verification_status"] == "two_source_verified")
+            for row in rows
+        ))
 
     def test_equipment_compatibility_requires_two_source_row_agreement(self):
         adjudicated = self.connection.execute(
@@ -3014,6 +3033,53 @@ class KnowledgeBaseTests(unittest.TestCase):
                 row[4] == "two_independent_current_version_sources"
                 for row in matching
             ))
+
+    def test_mighty_pip_control_advice_is_corroborated_and_rank_gated(self):
+        rows = self.connection.execute(
+            """SELECT value_json, source_id, claim_kind, confidence
+            FROM claims
+            WHERE subject_key='boss:the_mighty_pip'
+              AND predicate='recommended_control_tool'
+            ORDER BY source_id, claim_id"""
+        ).fetchall()
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(len({row[1] for row in rows}), 2)
+        self.assertTrue(all(row[2] == "recommendation" for row in rows))
+        self.assertTrue(all(row[3] == "verified" for row in rows))
+        values = [json.loads(row[0]) for row in rows]
+        for skill in ("Leg Sweep", "Dazzle"):
+            matching = [value for value in values if value["skill"] == skill]
+            self.assertEqual(len(matching), 2)
+            self.assertTrue(all("proficiency_rank" not in value for value in matching))
+        self.assertEqual(
+            {value["boss_resistance"] for value in values
+             if value["skill"] == "Dazzle"},
+            {"resisted"},
+        )
+        advice = self.connection.execute(
+            """SELECT advice_text, applicability_json, confidence
+            FROM checkpoint_advice WHERE advice_id='advice_cp010_mighty_pip'"""
+        ).fetchone()
+        applicability = json.loads(advice[1])
+        self.assertEqual(applicability["skill_gates"]["Leg Sweep"]["proficiency_rank"], 2)
+        self.assertEqual(applicability["skill_gates"]["Dazzle"]["proficiency_rank"], 2)
+        self.assertIn("resists", advice[0])
+        self.assertEqual(advice[2], "high")
+        structured = self.connection.execute(
+            """SELECT b.recommendation_verification_status,
+                b.corroborating_source_id, k.proficiency_rank,
+                k.verification_status
+            FROM boss_skill_recommendations b
+            JOIN vocation_rank_skills k USING(vocation_skill_id)
+            WHERE b.boss_name='The Mighty Pip'
+              AND k.skill_name IN ('Leg Sweep', 'Dazzle')
+            ORDER BY k.skill_name"""
+        ).fetchall()
+        self.assertEqual(len(structured), 2)
+        self.assertTrue(all(row[0] == "two_source_verified" for row in structured))
+        self.assertEqual({row[1] for row in structured}, {"gamewith_mighty_pip"})
+        self.assertEqual({row[2] for row in structured}, {2})
+        self.assertTrue(all(not row[3].startswith("two_") for row in structured))
 
     def test_advanced_vocation_stat_modifiers_are_complete_and_qualitative(self):
         for vocation_id in ("vocation_champion", "vocation_druid", "vocation_hero"):

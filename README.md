@@ -27,7 +27,7 @@ The seed includes:
 - 18 fixed Seed/Super Seed effects and one repeatable postgame reward rule with its unpublished pool left unknown;
 - all 46 Monster Heart identities and sourced effects, with 41 shared-item routes plus explicit acquisition evidence for the five DLC/non-Heroic identities;
 - ordered chronological checkpoints through the final postgame cleanup, all 33 with direct RPG Site section-range locators while guide-content coverage remains partial;
-- a 543-page source registry with browser search and retrieval-freshness metadata;
+- a 544-page source registry with browser search and retrieval-freshness metadata;
 - all 20 tablets and 71 tablet fragments;
 - all 333 Monster List ordinals and all 10 Vicious species;
 - all 333 source-verified English Monster List names;
@@ -38,6 +38,7 @@ The seed includes:
 - verified qualitative stat modifiers for all non-default vocations;
 - independently corroborated one-each weapon/shield/head/torso, two-accessory-slot, and Monster-Heart slot-use rules;
 - independently corroborated Magic Shield Defence, Magical Might, Magical Mending, and elemental-reduction values;
+- two-source Mighty Pip control advice with source-checked rank-2 Leg Sweep and Dazzle gates and Dazzle resistance disclosed;
 - an empty, user-editable player save-state.
 
 Records marked `reconstructed_seed` are based on the earlier task inventory and/or a fresh source check, not a recovered original row.
