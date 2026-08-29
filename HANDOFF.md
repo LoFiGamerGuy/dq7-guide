@@ -46,6 +46,13 @@ containers; ten preserve a narrower room, route, or paired-container ambiguity.
 Do not collapse those remaining pair-member unknowns or the disputed Frobisher
 Fishnet Stockings area into invented directions.
 
+Six additional power cards now carry two-publisher atomic evidence: Tribulators
+healing-item safety, the Present La Bravoure Metal King Slime route and critical
+tactic, Luminary/Monster Wrangler/Druid Let Loose mechanics, and first-Orgodemir
+phase-one Magic Barrier. Orgodemir phase two deliberately retains the visible
+Magic Barrier versus Insulatle recommendation split; vocation role/timing advice
+remains labeled as editorial synthesis beyond the verified mechanics.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.

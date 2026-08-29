@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 609)
+        self.assertEqual(self.counts["sources"], 614)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2321,6 +2321,42 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(residual, 13)
 
+    def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
+        advice_ids = {
+            'advice_cp002_tribulators',
+            'advice_cp011_la_bravoure_metal_king_grind',
+            'advice_cp024_luminary_setup',
+            'advice_cp025_monster_wrangler_summons',
+            'advice_cp028_druid_sustained_summon',
+            'advice_cp021_orgodemir_first',
+        }
+        rows = self.connection.execute(
+            f"""SELECT advice_id, applicability_json, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id IN ({','.join('?' for _ in advice_ids)})""",
+            tuple(sorted(advice_ids)),
+        ).fetchall()
+        self.assertEqual({row['advice_id'] for row in rows}, advice_ids)
+        for row in rows:
+            applicability = json.loads(row['applicability_json'])
+            claim_ids = applicability['evidence_claim_ids']
+            publishers = self.connection.execute(
+                f"""SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.claim_id IN ({','.join('?' for _ in claim_ids)})""",
+                tuple(claim_ids),
+            ).fetchall()
+            self.assertGreaterEqual(len(publishers), 2, row['advice_id'])
+
+        orgodemir = next(row for row in rows
+                         if row['advice_id'] == 'advice_cp021_orgodemir_first')
+        applicability = json.loads(orgodemir['applicability_json'])
+        self.assertEqual(applicability['source_specific_phase_two_options'], {
+            'game8': 'Magic Barrier',
+            'dq7reimagined.com': 'Insulatle',
+        })
+        self.assertIn('conflict_visible', orgodemir['verification_status'])
+
     def test_route_level_supply_does_not_create_item_exclusivity(self):
         rows = self.connection.execute(
             """SELECT method, supply_type FROM item_acquisition_paths
@@ -3075,7 +3111,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             print_walkthrough(report)
         self.assertIn("If you have 15 medals", output.getvalue())
 
-    def test_la_bravoure_surfaces_single_source_metal_grind_without_fake_rate(self):
+    def test_la_bravoure_surfaces_two_source_metal_grind_without_fake_rate(self):
         report = load_walkthrough(
             self.db_path,
             ROOT / "player" / "ryan-save-state.json",
@@ -3086,9 +3122,9 @@ class KnowledgeBaseTests(unittest.TestCase):
                 if row["advice_type"] == "grind"]
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["subject"], "Optional Metal King Slime grind")
-        self.assertEqual(rows[0]["confidence"], "medium")
+        self.assertEqual(rows[0]["confidence"], "verified")
         self.assertEqual(rows[0]["verification_status"],
-                         "single_source_checked_rate_and_ceiling_unknown")
+                         "two_source_verified_repeatable_location_and_critical_tactic_rate_and_ceiling_unknown")
         applicability = json.loads(rows[0]["applicability_json"])
         self.assertEqual(applicability["time_period"], "Present")
         self.assertEqual(applicability["rate"], "unknown")
@@ -3167,6 +3203,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             row["verification_status"] == "source_checked" or
             row["verification_status"].startswith("single_independent_source") or
             row["verification_status"].startswith("two_independent_current_version_sources") or
+            "two_source_verified" in row["verification_status"] or
             row["verification_status"].startswith("core_") and
             "two_source_verified" in row["verification_status"]
             for row in rows
@@ -3218,7 +3255,8 @@ class KnowledgeBaseTests(unittest.TestCase):
 
     def test_cp001_through_cp009_two_source_advice_has_atomic_evidence_links(self):
         expected = {
-            "advice_cp003_golem", "advice_cp003_crabble_maeve_sequence",
+            "advice_cp002_tribulators", "advice_cp003_golem",
+            "advice_cp003_crabble_maeve_sequence",
             "advice_cp004_glowering_inferno", "advice_cp005_hackrobat",
             "advice_cp005_fixed_weapon_sweep",
             "advice_cp007_tinpot_dictator", "advice_cp007_slaughtomaton",
@@ -3484,8 +3522,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(len(advice), 4)
         tribulators = next(row for row in advice if
                            row["advice_id"] == "advice_cp002_tribulators")
-        self.assertEqual(tribulators["confidence"], "high")
-        self.assertTrue(tribulators["verification_status"].startswith("single_"))
+        self.assertEqual(tribulators["confidence"], "verified")
+        self.assertIn("two_source_verified", tribulators["verification_status"])
         corroborated = [row for row in advice if row is not tribulators]
         self.assertTrue(all(row["confidence"] == "verified" for row in corroborated))
         self.assertTrue(all("two_source_verified" in row["verification_status"]
