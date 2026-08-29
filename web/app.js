@@ -213,16 +213,23 @@ function compactApplicability(value) {
   return Object.entries(value).filter(([key]) => key !== "tradeoff").map(([key, item]) => `${key.replaceAll("_", " ")}: ${typeof item === "object" ? JSON.stringify(item) : item}`).join(" · ");
 }
 
+function recommendationEvidence(row) {
+  const tier = row.evidence?.tier || "audit_pending";
+  if (tier === "two_source_core_single_source_extras") return "Core 2-source · extras 1-source";
+  if (tier === "two_source") return "2-source";
+  if (tier === "single_source") return "1-source";
+  if (tier === "declared_two_source_audit_pending") return "Declared corroboration · links missing";
+  return "Evidence audit pending";
+}
+
+function adviceEvidenceLinks(row) {
+  const claims = row.evidence?.claims || [];
+  if (claims.length) return claims.map(claim => `<p><a href="${escapeHtml(claim.url)}" target="_blank" rel="noreferrer">${escapeHtml(claim.publisher || claim.title)}</a><br><span class="muted">${escapeHtml(claim.locator)}</span></p>`).join("");
+  return sourceLink({source_url: row.source?.url, source_title: row.source?.title, locator: row.source?.locator});
+}
+
 function renderPowerPlan(plan = {}) {
   const target = $("#powerPlan"), party = plan.party || [], strongest = plan.strongest_now || [], safePower = plan.safe_power || [], grind = plan.grind_ceiling || [], gear = plan.gear_checks || [], farms = plan.available_farms || [], vocationPaths = plan.vocation_paths || [], bossTactics = plan.boss_tactics || [], bossPrep = plan.boss_skill_prep || [];
-  const recommendationEvidence = row => {
-    const tier = row.evidence?.tier || "audit_pending";
-    if (tier === "two_source_core_single_source_extras") return "Core 2-source · extras 1-source";
-    if (tier === "two_source") return "2-source";
-    if (tier === "single_source") return "1-source";
-    if (tier === "declared_two_source_audit_pending") return "Declared corroboration · links missing";
-    return "Evidence audit pending";
-  };
   const brief = plan.play_brief || {};
   const briefRow = (label, row, fallback) => `<li><b>${escapeHtml(label)}</b><span>${escapeHtml(row ? row.subject : fallback)}</span>${row ? `<small class="evidence-strength">${escapeHtml(recommendationEvidence(row))}</small>` : ""}</li>`;
   const advance = brief.advancement || {};
@@ -370,7 +377,7 @@ function renderCheckpoint() {
   advice.innerHTML = adviceGroups.map(([group, label]) => {
     const rows = (c.advice || []).filter(a => a.decision_group === group);
     if (!rows.length) return "";
-    return `<section class="advice-group" aria-labelledby="advice-${group}"><h4 id="advice-${group}">${label}</h4>${rows.map(a => { const applies = compactApplicability(a.applicability), saved = a.saved_state_applicability || { status: "unknown", reason: "Saved-state check unavailable" }, checked = saved.reason !== "No supported saved-state gate"; return `<div class="advice-item"><span class="tag goal-${escapeHtml(a.goal)}">${escapeHtml(a.type)} · ${escapeHtml(a.goal.replaceAll("_", " "))}</span>${checked ? `<span class="tag applicability-${escapeHtml(saved.status)}">${escapeHtml(saved.status === "satisfied" ? "State: met" : saved.status === "unmet" ? "State: unmet" : "State: unknown")}</span>` : ""}<strong>${escapeHtml(a.subject)}</strong><p>${escapeHtml(a.text)}</p><details class="advice-evidence"><summary>When, tradeoff & source</summary>${checked ? `<p><strong>Saved state:</strong> ${escapeHtml(saved.reason)}</p>` : ""}${applies ? `<p><strong>Applies:</strong> ${escapeHtml(applies)}</p>` : ""}${a.tradeoff ? `<p><strong>Tradeoff:</strong> ${escapeHtml(a.tradeoff)}</p>` : ""}<p><a href="${escapeHtml(a.source?.url || "#")}" target="_blank" rel="noreferrer">${escapeHtml(a.source?.title || "Source")}</a><br><span class="muted">${escapeHtml(a.source?.locator || "Locator unavailable")}</span></p><p class="muted">${escapeHtml(a.confidence || "unknown")} confidence · ${escapeHtml(a.verification_status || "status unknown")}</p></details></div>`; }).join("")}</section>`;
+    return `<section class="advice-group" aria-labelledby="advice-${group}"><h4 id="advice-${group}">${label}</h4>${rows.map(a => { const applies = compactApplicability(a.applicability), saved = a.saved_state_applicability || { status: "unknown", reason: "Saved-state check unavailable" }, checked = saved.reason !== "No supported saved-state gate", evidenceLabel = recommendationEvidence(a); return `<div class="advice-item"><span class="tag goal-${escapeHtml(a.goal)}">${escapeHtml(a.type)} · ${escapeHtml(a.goal.replaceAll("_", " "))}</span>${checked ? `<span class="tag applicability-${escapeHtml(saved.status)}">${escapeHtml(saved.status === "satisfied" ? "State: met" : saved.status === "unmet" ? "State: unmet" : "State: unknown")}</span>` : ""}<span class="tag evidence-strength">${escapeHtml(evidenceLabel)}</span><strong>${escapeHtml(a.subject)}</strong><p>${escapeHtml(a.text)}</p><details class="advice-evidence"><summary>When, tradeoff & evidence · ${escapeHtml(evidenceLabel)}</summary>${checked ? `<p><strong>Saved state:</strong> ${escapeHtml(saved.reason)}</p>` : ""}${applies ? `<p><strong>Applies:</strong> ${escapeHtml(applies)}</p>` : ""}${a.tradeoff ? `<p><strong>Tradeoff:</strong> ${escapeHtml(a.tradeoff)}</p>` : ""}${adviceEvidenceLinks(a)}<p class="muted">${escapeHtml(a.confidence || "unknown")} confidence · ${escapeHtml(a.verification_status || "status unknown")}</p></details></div>`; }).join("")}</section>`;
   }).join(""); if (!advice.children.length) advice.append(empty());
   const fragments = c.tablet_fragments || [], checkpointTablets = $("#checkpointTablets");
   $("#tabletFragmentCount").textContent = `${fragments.filter(row => row.found).length}/${fragments.length}`;

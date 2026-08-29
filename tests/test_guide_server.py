@@ -289,10 +289,10 @@ class GuideServerTests(unittest.TestCase):
             self.assertIn(b'request.method !== "GET"', worker)
             self.assertIn(b'/api/state-backup', worker)
             self.assertIn(b"DATA_CACHE", worker)
-            self.assertIn(b'dq7-guide-shell-v13', worker)
-            self.assertIn(b'dq7-guide-data-v13', worker)
-            self.assertNotIn(b'dq7-guide-shell-v12', worker)
-            self.assertNotIn(b'dq7-guide-data-v12', worker)
+            self.assertIn(b'dq7-guide-shell-v14', worker)
+            self.assertIn(b'dq7-guide-data-v14', worker)
+            self.assertNotIn(b'dq7-guide-shell-v13', worker)
+            self.assertNotIn(b'dq7-guide-data-v13', worker)
             paired_guard = worker.index(b'request.headers.has("X-DQ7-Pair")')
             data_cache = worker.index(b'caches.open(DATA_CACHE)')
             self.assertLess(paired_guard, data_cache)
@@ -698,6 +698,13 @@ class GuideServerTests(unittest.TestCase):
         _, alltrades = self.get_json("/api/checkpoints/cp_009_alltrades")
         groups = {row["decision_group"] for row in alltrades["advice"]}
         self.assertEqual(groups, {"completion_safe", "strongest_now", "optional_grind"})
+        hero_gear_advice = next(row for row in alltrades["advice"]
+                                if row["subject"] == "Hero Alltrades gear")
+        self.assertEqual(hero_gear_advice["evidence"]["tier"], "two_source")
+        self.assertEqual(len({claim["publisher"] for claim in
+                              hero_gear_advice["evidence"]["claims"]}), 2)
+        self.assertTrue(all(claim["url"] and claim["locator"] for claim in
+                            hero_gear_advice["evidence"]["claims"]))
         plan = alltrades["power_plan"]
         self.assertEqual(plan["state_scope"], "explicit_saved_state_only")
         self.assertEqual(plan["state_status"], "unknown")

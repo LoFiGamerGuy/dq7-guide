@@ -100,7 +100,7 @@ heuristic from those cards. The API now matches each normalized route to atomic
 the supporting claim URLs and locators. Troll Heart remains the only currently
 two-publisher route badge, correctly backed by Game8 Japan and GAME攻略BOX; every
 other Heart route remains simply sourced. Repeatability stays separate and
-unknown. Phone cache v11 forces the structured evidence card onto previously
+unknown. The current phone cache forces the structured evidence card onto previously
 paired devices.
 
 The evidence-independence regression uses two separately registered pages and two
@@ -868,5 +868,13 @@ The vocation-path phone pass now carries each recommendation's atomic evidence
 bundle into the derived power route. The compact card keeps the evidence tier
 beside the recommendation and puts every publisher link and precise locator in
 collapsed detail. This closes the former mismatch where two-source framing was
-valid but only the primary publisher was visible. Cache v13 refreshes the phone
+valid but only the primary publisher was visible. The current cache refreshes the phone
 shell without changing any recorded player state.
+
+The full-advice phone pass closes the same provenance-display gap outside the
+compact power route. Every checkpoint advice card now shows its evidence tier
+beside the recommendation and exposes every atomic-claim publisher and precise
+locator in collapsed detail, falling back to the primary source only when no
+claim bundle exists. This changes presentation only: mixed-core and single-source
+tiers remain intact, and no recommendation is promoted. Cache v14 refreshes the
+corrected shell on paired phones.
