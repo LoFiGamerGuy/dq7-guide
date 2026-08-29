@@ -94,6 +94,12 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The unscoped Heart CLI wording now distinguishes a known acquisition gate from a
+current-checkpoint comparison. Grody Gumpdrops Heart reports its finite Another
+World route as established instead of contradicting that route with “availability
+not yet established.” Checkpoint-scoped reports still say available or later, DLC
+ownership remains explicit, and no route is promoted to repeatable from a drop list.
+
 The unresolved-query retrieval pass makes the curated evidence queue searchable
 ahead of generic FTS results when all query terms match. `repeatable Monster Heart`
 now leads with the verified finite-route boundary and explicit lack of a proven

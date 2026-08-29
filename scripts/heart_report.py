@@ -140,6 +140,8 @@ def print_heart_report(report: dict, include_sources: bool = False) -> None:
             gate = f"available from {row['available_checkpoint']}"
         elif row["available_now"] is False:
             gate = f"later: {row['available_checkpoint']}"
+        elif report["checkpoint_id"] is None and row["available_checkpoint"]:
+            gate = f"route established from {row['available_checkpoint']}"
         else:
             gate = "availability not yet established"
         print(f"- {row['name']} — {row['effect_text']} ({gate})")

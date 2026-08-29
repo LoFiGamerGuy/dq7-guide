@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from contextlib import redirect_stdout
+from io import StringIO
 import json
 import sys
 import tempfile
@@ -10,7 +12,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from heart_report import load_heart_report
+from heart_report import load_heart_report, print_heart_report
 
 
 class HeartReportTests(unittest.TestCase):
@@ -37,6 +39,19 @@ class HeartReportTests(unittest.TestCase):
     def test_lookup_rejects_unknown_instead_of_returning_empty(self):
         with self.assertRaisesRegex(ValueError, "Unknown Monster Heart"):
             load_heart_report(ROOT / "data" / "dq7_reimagined.sqlite", "invented heart")
+
+    def test_unscoped_cli_prints_known_route_gate_without_claiming_current_access(self):
+        report = load_heart_report(
+            ROOT / "data" / "dq7_reimagined.sqlite", "Grody Gumpdrops Heart"
+        )
+        output = StringIO()
+        with redirect_stdout(output):
+            print_heart_report(report, include_sources=True)
+        rendered = output.getvalue()
+        self.assertIn("route established from Silver Fragment and Another World", rendered)
+        self.assertNotIn("availability not yet established", rendered)
+        self.assertIn("Earliest normalized item route: Defeat Grody Gumpdrops", rendered)
+        self.assertIn("Availability:", rendered)
 
     def test_troll_heart_exposes_checkpoint_and_distinct_route_provenance(self):
         report = load_heart_report(
