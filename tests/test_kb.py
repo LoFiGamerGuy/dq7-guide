@@ -1159,7 +1159,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIn("exact_container", rabbit["verification_status"])
         fishnet = by_id["acq_fishnet_stockings_frobisher_past"]
         self.assertEqual(fishnet["available_from_checkpoint_id"], "cp_007_frobisher")
-        self.assertIn("exact_container_unknown", fishnet["verification_status"])
+        self.assertEqual(fishnet["method"], "other")
+        self.assertEqual(fishnet["location_text"], "Frobisher inn right-hand room")
+        self.assertIn("resolved_present_exact_container",
+                      fishnet["verification_status"])
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
 
@@ -2319,7 +2322,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 9)
+        self.assertEqual(residual, 8)
 
     def test_pirates_hat_period_conflict_is_resolved_but_visible(self):
         rows = self.connection.execute(
@@ -2336,7 +2339,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             json.loads(row['value_b'])['time_period'],
         } == {'Past', 'Present'} for row in rows))
 
-    def test_fishnet_stockings_period_conflict_is_visible(self):
+    def test_fishnet_stockings_period_conflict_is_resolved_but_visible(self):
         rows = self.connection.execute(
             """SELECT c.status, a.value_json AS value_a, b.value_json AS value_b
             FROM conflicts c
@@ -2345,7 +2348,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE a.subject_key='item:fishnet_stockings_frobisher'"""
         ).fetchall()
         self.assertEqual(len(rows), 2)
-        self.assertTrue(all(row['status'] == 'unresolved' for row in rows))
+        self.assertTrue(all(row['status'] == 'resolved' for row in rows))
         self.assertTrue(all({
             json.loads(row['value_a'])['time_period'],
             json.loads(row['value_b'])['time_period'],
@@ -2452,15 +2455,19 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertNotIn('healing', time_being['verified_core'])
 
         lourgh = by_id['advice_cp027_lourgh_disorder'][0]
-        self.assertIn('conflicted', lourgh['time_period'])
-        conflict_claims = set(lourgh['chronology_conflict_claim_ids'])
+        self.assertEqual(lourgh['time_period'], 'Past')
+        conflict_claims = {
+            'claim_lourgh_location_game8_present',
+            'claim_lourgh_location_eliteguias_past',
+        }
         conflict = self.connection.execute(
             """SELECT status FROM conflicts
             WHERE claim_a_id IN (?, ?) AND claim_b_id IN (?, ?)""",
             tuple(sorted(conflict_claims)) * 2,
         ).fetchone()
         self.assertIsNotNone(conflict)
-        self.assertEqual(conflict['status'], 'unresolved')
+        self.assertEqual(conflict['status'], 'resolved')
+        self.assertIn('Game8 isolated boss page', lourgh['losing_source_claim'])
 
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {

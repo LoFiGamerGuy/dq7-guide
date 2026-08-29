@@ -50,10 +50,10 @@ Time Being's shared phone core is limited to group pressure on the Side Winders
 and survival while Time Stop disables characters; healer composition, item backup,
 resistance, and revival behavior remain attributed extras. Lourgh/Disorder's
 Magic Barrier, elemental protection, magic-damage response, and autonomous Kiefer
-contribution are independently corroborated. Its encounter chronology is now an
-explicit unresolved conflict: Game8 says Rucker Region Present, while Eliteguias
-places the encounter in the continuous Exposure Enclosure Past route. Use the
-cp027 route gate and do not expose the disputed Present label as settled fact.
+contribution are independently corroborated. Its encounter chronology is resolved
+to Past Exposure Enclosure: Game8's continuous Curious Tablet walkthrough defeats
+Lourgh before returning to the Present, matching Eliteguias and cp027. The isolated
+Game8 boss page's Present label remains visible as the losing claim.
 
 Lucky Panel entry is independently verified as free. Its single-source numeric selection cells remain raw weights, not probabilities, because no denominator or draw algorithm is published.
 
@@ -66,8 +66,8 @@ The subsequent current-version walkthrough audits reduce the exact-container
 residual from 31 to 9. Kamikazee Bracer, the Wilted Heart Mountain Path Strength
 Ring, and Burnmount's Yggdrasil Leaf now have exact chest directions from an
 independent current-version walkthrough. Do not collapse the nine remaining
-pair-member/container unknowns or the disputed Frobisher Fishnet Stockings period
-into invented directions.
+pair-member/container unknowns into invented directions. Fishnet Stockings is no
+longer part of that residual: it is resolved to the Present inn wardrobe.
 
 Six additional power cards now carry two-publisher atomic evidence: Tribulators
 healing-item safety, the Present La Bravoure Metal King Slime route and critical
@@ -84,10 +84,10 @@ universal best wearer.
 
 Pirate's Hat is resolved to Buccanham Palace Past: Neoseeker and Eliteguias
 independently agree on the 2F bedroom wardrobe pair. Both losing Present conflict
-pairs remain visible. Fishnet Stockings now carries two unresolved period pairs:
-Game8 says Frobisher Past, while GuíasPSN and independent Eliteguias chronology
-place it in the Present inn's right-hand wardrobe. Preserve every claim pending
-direct UI or in-game adjudication.
+pairs remain visible. Fishnet Stockings is resolved to the Present inn's
+right-hand wardrobe: Game8's dedicated Frobisher map agrees with Eliteguias and
+GuíasPSN, overriding the isolated Game8 item page's Past label while preserving
+that losing claim.
 
 ## Source methodology
 

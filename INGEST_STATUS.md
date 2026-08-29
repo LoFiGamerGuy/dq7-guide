@@ -26,7 +26,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell remains explicitly single-independent-source | Seek independent confirmation for Scarewell's exact fixed route |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 18 unresolved claim-pairs represent 13 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, Stella/Stellar Fan, two Fishnet Stockings period pairs, and Marshal Lourgh's Past/Present encounter scope | High for normalized compatibility where independent publishers agree; Pirate's Hat is resolved to Past with both losing Present pairs retained | Resolve equipment/name conflicts and the two chronology disputes with legible current-version UI or direct in-game evidence |
+| Conflicts | Automatic exact-scope detection active; 15 unresolved claim-pairs represent 11 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities plus Stella/Stellar Fan | High for normalized compatibility where independent publishers agree; Pirate's Hat, Fishnet Stockings, and Marshal Lourgh chronology conflicts retain their losing claims after resolution | Resolve equipment/name conflicts with legible current-version UI or direct in-game evidence |
 
 ## Database seed counts
 
@@ -38,7 +38,7 @@ Expected after `python scripts/build_kb.py`:
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,774
+- claims: 1,776
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 406 total / 18 unresolved claim-pairs / 13 unresolved fact scopes
+- conflicts: 406 total / 15 unresolved claim-pairs / 11 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,7 +77,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
-- **Conflicts:** 18 automatically detected claim-pairs remain unresolved, representing 13 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, one `Stella Fan` / `Stellar Fan` display-name fact, two independent Fishnet Stockings Frobisher Past/Present pairs, and Marshal Lourgh's Rucker Present versus Exposure Enclosure Past placement. Pirate's Hat is resolved to Past while both losing Present conflict pairs remain auditable. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
+- **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. Fishnet Stockings is resolved to Present Frobisher and Marshal Lourgh to the Past Exposure Enclosure route; every losing isolated-page claim remains auditable. Pirate's Hat likewise remains resolved to Past with both losing Present pairs visible. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
 - **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 632 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
@@ -90,14 +90,21 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The chronology adjudication pass resolves Fishnet Stockings to the Present
+Frobisher inn's right-room wardrobe: Game8's dedicated Frobisher Past/Present
+treasure tables agree with Eliteguias and override Game8's isolated item-page
+Past label. It also resolves Marshal Lourgh to the Past Exposure Enclosure route:
+Game8's continuous Curious Tablet walkthrough defeats him before returning to
+the Present, matching Eliteguias and cp027. All three losing conflict pairs remain
+visible and cited.
+
 The late-boss corroboration pass gives Time Being a two-publisher Side Winder
 group-pressure core while leaving multi-target-healer/item backup, resistance,
 and revival details source-specific. Lourgh/Disorder now has two-publisher support
 for Magic Barrier, elemental protection, magic damage during Barbatos physical
-impairment, and Kiefer's autonomous contribution. Game8's Rucker Region Present
-placement conflicts with Eliteguias's continuous Exposure Enclosure Past route;
-the phone card displays the conflict and follows the cp027 route rather than
-silently choosing either period.
+impairment, and Kiefer's autonomous contribution. That batch first exposed
+Game8's Rucker Region Present versus Eliteguias Past disagreement; the later
+chronology adjudication above resolves it to Past from Game8's continuous route.
 
 The late fixed-gear pass independently corroborates Malign Shrine's Sunderbolt
 Blade and Dark Robe, Estard Castle's Ultimate-Key Kingsblade/Pallium Regale/
@@ -122,8 +129,8 @@ in Likeness of the Great Evil, the Wilted Heart Mountain Path Strength Ring is
 the first chest before the bridge, and Burnmount's Yggdrasil Leaf is in the Level
 2 south-exit chest. The finite-container residual falls from 12 to 9. Eliteguias
 also independently places Fishnet Stockings in the Present Frobisher inn's
-right-hand wardrobe, so both Present claims remain visibly in conflict with
-Game8's Past route rather than being normalized by majority vote.
+right-hand wardrobe, initially exposing two conflicts with Game8's isolated Past
+item row. The later map-based adjudication above resolves both to Present.
 
 The container-conflict follow-up resolves Pirate's Hat to Buccanham Palace Past.
 Neoseeker's continuous palace route and Eliteguias's independent screenshot-rich
@@ -161,9 +168,9 @@ The unresolved finite-route queue falls from 31 to 13. Notable phone-ready
 directions include both Prologue Leather Hats, the Rainbow Mines Pointy Hat,
 L'Arca Hairband and Rabbit Ears, Grotta del Sigillo and Allblades Iron Lances,
 Frobisher Scale Armour, Bandits' Base Silk Robe, Mount Gora Ogre Shield, and the
-Alltrades Abbey B1 northeast Lucida Shard. Fishnet Stockings in Frobisher stays
-unresolved because the direct walkthrough's item list does not support that
-dedicated-page area claim.
+Alltrades Abbey B1 northeast Lucida Shard. Fishnet Stockings was still unresolved
+at that stage; the later dedicated Frobisher map and continuous walkthrough
+adjudication resolves it to Present.
 
 The shop-price closure batch types the last three purchase-like acquisition rows.
 Direct current-version Game8 pages establish Dragon Robe at 19,000 gold and
@@ -393,11 +400,12 @@ pairs.
 - **Curated research queue:** 5 items: 2 single-source, 1 unsupported, and 2
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence.
-- **Automatic conflicts:** 18 unresolved claim-pairs represent 13 distinct fact
-  scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts);
-  one is the Stella/Stellar Fan display name; one is the Fishnet Stockings
-  Frobisher period (two claim-pairs); and one is Marshal Lourgh's Past/Present
-  encounter scope. Resolving the equipment/name facts requires a legible
+- **Automatic conflicts:** 15 unresolved claim-pairs represent 11 distinct fact
+  scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts),
+  and one is the Stella/Stellar Fan display name. Fishnet Stockings and Marshal
+  Lourgh chronology are now resolved from location-specific and continuous
+  walkthrough evidence, with their losing claims preserved. Resolving the
+  remaining equipment/name facts requires a legible
   current-version English equipment/inventory UI capture that shows the relevant
   character list or full item name. Additional guide consensus is not treated as
   equivalent to direct UI evidence.
@@ -650,8 +658,9 @@ Game8 and Korosenai. Great Leveller, attack reduction, exact stack counts,
 party composition, levels, weaknesses, and rotations remain source-specific or
 unknown. A later direct-page audit found independent actionable sources for Time
 Being and Lourgh/Disorder: their narrow shared cores and source-specific extras
-are now normalized above, and Lourgh's chronology disagreement is an explicit
-automatic conflict. Neoseeker also supplies the independently adjudicated
+are now normalized above. Lourgh's chronology disagreement was then exposed as
+an automatic conflict and is now resolved to Past by continuous-route evidence.
+Neoseeker also supplies the independently adjudicated
 first-Orgodemir phase-one Magic Barrier core; phase-two recommendations remain
 split and visible.
 

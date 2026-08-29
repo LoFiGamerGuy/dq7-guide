@@ -1009,7 +1009,8 @@ class GuideServerTests(unittest.TestCase):
             db_path, self.state, "cp_027_deja_vous_rucker",
         )["advice"] if row["id"] == "advice_cp027_lourgh_disorder")
         self.assertEqual(lourgh["evidence"]["tier"], "two_source")
-        self.assertIn("conflicted", lourgh["applicability"]["time_period"])
+        self.assertEqual(lourgh["applicability"]["time_period"], "Past")
+        self.assertIn("Present", lourgh["applicability"]["losing_source_claim"])
 
         orgodemir = next(row for row in _checkpoint_view(
             db_path, self.state, "cp_028_cathedral_of_blight",
