@@ -59,6 +59,11 @@ Claws and Staff of Sentencing; Duplic Hat and Staff of Antimagic; and Silver
 Mail, Lightning Staff, and Falcon Blade. Collection advice does not imply a
 universal best wearer.
 
+Pirate's Hat now has an explicit unresolved Buccanham Palace period conflict:
+existing item evidence says Present, while Neoseeker's continuous palace route
+places the upstairs dresser pair in Past. Keep both claims visible and do not
+change the normalized period until chronology or save-tested evidence resolves it.
+
 ## Source methodology
 
 - **RPG Site**: chronological 100% route and Heroic Hoarder / Lucky Panel completeness backbone.

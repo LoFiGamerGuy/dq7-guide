@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 618 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 619 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -26,19 +26,19 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell remains explicitly single-independent-source | Seek independent confirmation for Scarewell's exact fixed route |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 15 unresolved claim-pairs represent 11 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, plus Stella/Stellar Fan | High for normalized compatibility where independent publishers agree; conservative for losing source claims and English display spelling | Resolve remaining claim conflicts only with legible current-version UI/equip-menu evidence; pair counts are not distinct-fact counts |
+| Conflicts | Automatic exact-scope detection active; 16 unresolved claim-pairs represent 12 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, Stella/Stellar Fan, and the Pirate's Hat Buccanham Palace period | High for normalized compatibility where independent publishers agree; conservative for losing source claims, English display spelling, and the period dispute | Resolve equipment/name conflicts with legible current-version UI evidence and the Pirate's Hat period with continuous chronology or save-tested evidence |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 618
+- sources: 619
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,744
+- claims: 1,746
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 401 total / 15 unresolved claim-pairs / 11 unresolved fact scopes
+- conflicts: 402 total / 16 unresolved claim-pairs / 12 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,8 +77,8 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
-- **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 618 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** 16 automatically detected claim-pairs remain unresolved, representing 12 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, one `Stella Fan` / `Stellar Fan` display-name fact, and the Pirate's Hat Buccanham Palace Past/Present route. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 619 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -89,6 +89,13 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The Pirate's Hat audit preserves a newly exposed Buccanham Palace period
+conflict. Existing item evidence places the closet route in Present, while
+Neoseeker's continuous palace walkthrough places the upstairs dresser pair in
+Past. Both atomic claims and locators remain visible; the normalized route is
+not silently changed until stronger chronology or save-tested evidence resolves
+the disagreement.
 
 The fixed-gear corroboration pass gives four more checkpoint cards explicit
 two-publisher cores: Hardlypool Tunnel's Ice Shield; Tallest Tower's Dragon
@@ -349,7 +356,7 @@ pairs.
 - **Curated research queue:** 5 items: 2 single-source, 1 unsupported, and 2
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence.
-- **Automatic conflicts:** 15 unresolved claim-pairs represent 11 distinct fact
+- **Automatic conflicts:** 16 unresolved claim-pairs represent 12 distinct fact
   scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts);
   one is the Stella/Stellar Fan display name. Resolving these requires a legible
   current-version English equipment/inventory UI capture that shows the relevant
@@ -373,7 +380,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 618 source records currently have retrieval dates within 180
+- **Freshness:** all 619 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

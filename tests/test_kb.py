@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 618)
+        self.assertEqual(self.counts["sources"], 619)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2320,6 +2320,22 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
         self.assertEqual(residual, 13)
+
+    def test_pirates_hat_period_conflict_is_visible(self):
+        rows = self.connection.execute(
+            """SELECT c.status, a.value_json AS value_a, b.value_json AS value_b
+            FROM conflicts c
+            JOIN claims a ON a.claim_id=c.claim_a_id
+            JOIN claims b ON b.claim_id=c.claim_b_id
+            WHERE a.subject_key='item:pirates_hat_buccanham_palace'"""
+        ).fetchall()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['status'], 'unresolved')
+        periods = {
+            json.loads(rows[0]['value_a'])['time_period'],
+            json.loads(rows[0]['value_b'])['time_period'],
+        }
+        self.assertEqual(periods, {'Past', 'Present'})
 
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {
