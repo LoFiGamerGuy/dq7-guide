@@ -360,22 +360,26 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                 c.name AS category, a.source_display_name, a.mapping_status,
                 a.agreement_status, a.allowed_characters_json,
                 a.source_a_characters_json, a.source_b_characters_json,
+                a.source_c_characters_json,
                 a.confidence, a.verification_status, a.notes,
-                a.source_a_locator, a.source_b_locator, a.mapping_locator,
+                a.source_a_locator, a.source_b_locator, a.source_c_locator,
+                a.mapping_locator,
                 sa.title AS source_a_title, sa.url AS source_a_url,
                 sb.title AS source_b_title, sb.url AS source_b_url,
+                sc.title AS source_c_title, sc.url AS source_c_url,
                 sm.title AS mapping_source_title, sm.url AS mapping_source_url
             FROM equipment_compatibility_audits a
             LEFT JOIN items i ON i.item_id=a.item_id
             LEFT JOIN item_categories c ON c.category_id=i.category_id
             JOIN sources sa ON sa.source_id=a.source_a_id
             LEFT JOIN sources sb ON sb.source_id=a.source_b_id
+            LEFT JOIN sources sc ON sc.source_id=a.source_c_id
             LEFT JOIN sources sm ON sm.source_id=a.mapping_source_id
             ORDER BY c.heroic_hoarder_order, i.heroic_hoarder_ordinal, i.name"""
         )]
         for row in audit_rows:
             for field in ("allowed_characters_json", "source_a_characters_json",
-                          "source_b_characters_json"):
+                          "source_b_characters_json", "source_c_characters_json"):
                 row[field.removesuffix("_json")] = (
                     json.loads(row.pop(field)) if row[field] is not None else None
                 )

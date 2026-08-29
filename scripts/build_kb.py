@@ -244,12 +244,25 @@ def _build_database(db_path: Path) -> dict[str, int]:
             "helm": "game8_en_helm_matrix", "armor": "game8_en_armour_matrix",
         }
         equipment_compatibility_audits = []
-        for item_id, source_name, kind, hyper_page, game8_chars, hyper_chars, status in equipment_matrix:
+        equipment_compatibility_claims = []
+        for (item_id, source_name, kind, hyper_page, game8_chars, hyper_chars,
+             _prior_status, gamers_high_chars) in equipment_matrix:
             source_a_characters = [character_codes[code] for code in game8_chars]
             source_b_characters = (
                 [character_codes[code] for code in hyper_chars]
                 if hyper_chars is not None else None
             )
+            source_c_characters = (
+                [character_codes[code] for code in gamers_high_chars]
+                if gamers_high_chars is not None else None
+            )
+            character_lists = [row for row in (
+                source_a_characters, source_b_characters, source_c_characters
+            ) if row is not None]
+            consensus = next((row for row in character_lists
+                              if character_lists.count(row) >= 2), None)
+            status = ("agree" if consensus is not None else
+                      "conflict" if len(character_lists) >= 2 else "single")
             equipment_compatibility_audits.append({
                 "audit_id": f"equipcompat_{item_id.removeprefix('item_')}",
                 "item_id": item_id,
@@ -260,16 +273,24 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "conflict": "source_disagreement",
                     "single": "single_source",
                 }[status],
-                "allowed_characters": source_a_characters if status == "agree" else None,
+                "allowed_characters": consensus,
                 "source_a_characters": source_a_characters,
                 "source_b_characters": source_b_characters,
+                "source_c_characters": source_c_characters,
                 "source_a_id": "game8_jp_equipment_matrix",
                 "source_b_id": f"hyperwiki_equipment_{hyper_page}" if hyper_page else None,
+                "source_c_id": (
+                    f"gamers_high_equipment_{kind}" if source_c_characters is not None else None
+                ),
                 "mapping_source_id": mapping_sources[kind],
                 "source_a_locator": f"Equipment list > {source_name} > compatible characters",
                 "source_b_locator": (
                     f"Equipment list > {source_name} > equipment characters"
                     if hyper_page else None
+                ),
+                "source_c_locator": (
+                    f"Equipment list > {source_name} > compatible characters"
+                    if source_c_characters is not None else None
                 ),
                 "mapping_locator": f"All {kind} equipment > corresponding English row",
                 "confidence": "verified" if status == "agree" else "high" if status == "conflict" else "medium",
@@ -280,9 +301,35 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 }[status],
                 "notes": (
                     "Japanese-to-English identity is bridged by matching Game8 regional row order and stats; "
-                    "compatibility is accepted only when the independent hyperWiki row matches."
+                    "compatibility is accepted only when at least two independent publishers match."
                 ),
             })
+            for suffix, characters, source_id, locator in (
+                ("game8jp", source_a_characters, "game8_jp_equipment_matrix",
+                 f"Equipment list > {source_name} > compatible characters"),
+                ("hyperwiki", source_b_characters,
+                 f"hyperwiki_equipment_{hyper_page}" if hyper_page else None,
+                 f"Equipment list > {source_name} > equipment characters"),
+                ("gamershigh", source_c_characters,
+                 f"gamers_high_equipment_{kind}" if source_c_characters is not None else None,
+                 f"Equipment list > {source_name} > compatible characters"),
+            ):
+                if characters is None or source_id is None:
+                    continue
+                equipment_compatibility_claims.append({
+                    "id": f"claim_equipcompat_{item_id.removeprefix('item_')}_{suffix}",
+                    "subject_key": f"item:{item_id.removeprefix('item_')}",
+                    "predicate": "equipment_compatible_characters",
+                    "value": {"characters": characters},
+                    "claim_kind": "fact",
+                    "scope": {"game": "DQ7 Reimagined", "platform": "unknown",
+                              "patch": "patch_unknown"},
+                    "source_id": source_id,
+                    "locator": locator,
+                    "confidence": "high",
+                    "verification_status": "source_checked_row_level_compatibility",
+                    "notes": "Source-specific character list retained for automatic conflict detection.",
+                })
         connection.executemany(
             """INSERT INTO sources(
                 source_id, title, publisher, url, source_class, role,
@@ -474,6 +521,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 })
 
         numeric_stat_claims = []
+        numeric_conflict_resolutions = []
         stat_keys = vocation_numeric_audit["stat_keys"]
         for vocation_id, page, costs, dqst_values, dqorg_values, reported_total in vocation_numeric_audit["rows"]:
             slug = vocation_id.removeprefix("vocation_")
@@ -495,21 +543,33 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         "confidence": "high",
                         "verification_status": "source_checked_cell_level_numeric_audit",
                     })
-                if dqst_value == dqorg_value:
-                    vocation_stat_modifiers.append({
-                        "vocation_stat_modifier_id": f"vstatnum_{slug}_{stat_key}",
-                        "vocation_id": vocation_id,
-                        "proficiency_rank": None,
-                        "stat_key": stat_key,
-                        "modifier_direction": None,
-                        "modifier_value": dqst_value,
-                        "modifier_unit": "percent",
-                        "source_id": "dqst_vocation_tables",
-                        "corroborating_source_id": "dragonquestorg_vocation_pages",
-                        "locator": f"{page} > Stat modifiers > {stat_key}",
-                        "corroborating_locator": f"{page} > Dragon Quest VII Reimagined > Stat Changes > {stat_key}",
-                        "confidence": "verified",
-                        "verification_status": "two_independent_current_version_cells_match",
+                vocation_stat_modifiers.append({
+                    "vocation_stat_modifier_id": f"vstatnum_{slug}_{stat_key}",
+                    "vocation_id": vocation_id,
+                    "proficiency_rank": None,
+                    "stat_key": stat_key,
+                    "modifier_direction": None,
+                    "modifier_value": dqst_value,
+                    "modifier_unit": "percent",
+                    "source_id": "dqst_vocation_tables",
+                    "corroborating_source_id": "hyperwiki_vocation_stats",
+                    "locator": f"{page} > Stat modifiers > {stat_key}",
+                    "corroborating_locator": f"Stat modifiers table > {page} > {stat_key}",
+                    "confidence": "verified",
+                    "verification_status": "two_independent_current_version_cells_match_dqst_hyperwiki",
+                })
+                if dqst_value != dqorg_value:
+                    dqst_claim = f"claim_{slug}_{predicate}_dqst"
+                    dqorg_claim = f"claim_{slug}_{predicate}_dqorg"
+                    numeric_conflict_resolutions.append({
+                        "claim_a_id": dqst_claim,
+                        "claim_b_id": dqorg_claim,
+                        "resolution_claim_id": dqst_claim,
+                        "rationale": (
+                            "hyperWiki's independent current-version stat table matches "
+                            "the dq_st cell exactly; Dragon Quest Wiki's differing value is retained."
+                        ),
+                        "detection_method": "third_source_cell_level_adjudication",
                     })
             if costs is not None and sum(costs) != reported_total:
                 for publisher, value, source_id, locator in (
@@ -528,6 +588,30 @@ def _build_database(db_path: Path) -> dict[str, int]:
                         "confidence": "high",
                         "verification_status": "source_checked_conflicting_total",
                     })
+                dqst_claim = f"claim_{slug}_numeric_mastery_total_dqst"
+                numeric_conflict_resolutions.append({
+                    "claim_a_id": dqst_claim,
+                    "claim_b_id": f"claim_{slug}_numeric_mastery_total_dqorg",
+                    "resolution_claim_id": dqst_claim,
+                    "rationale": (
+                        "hyperWiki independently publishes the same seven rank increments; "
+                        "their arithmetic sum is 400, matching dq_st and contradicting the "
+                        "Dragon Quest Wiki headline total of 405."
+                    ),
+                    "detection_method": "third_source_rank_cells_and_arithmetic",
+                })
+
+        numeric_conflict_resolutions.append({
+            "claim_a_id": "claim_luminary_numeric_modifiers_dqst",
+            "claim_b_id": "claim_luminary_numeric_modifiers_dqorg",
+            "resolution_claim_id": "claim_luminary_numeric_modifiers_dqst",
+            "rationale": (
+                "hyperWiki's independent current-version Luminary row matches all nine "
+                "dq_st values exactly; the Dragon Quest Wiki aggregate remains retained."
+            ),
+            "detection_method": "third_source_complete_row_adjudication",
+        })
+
 
         connection.executemany(
             """INSERT INTO vocation_stat_modifiers(
@@ -813,15 +897,17 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 audit_id, item_id, source_display_name, mapping_status,
                 agreement_status, allowed_characters_json,
                 source_a_characters_json, source_b_characters_json,
-                source_a_id, source_b_id, mapping_source_id,
-                source_a_locator, source_b_locator, mapping_locator,
+                source_c_characters_json, source_a_id, source_b_id, source_c_id,
+                mapping_source_id, source_a_locator, source_b_locator,
+                source_c_locator, mapping_locator,
                 confidence, verification_status, notes
             ) VALUES (
                 :audit_id, :item_id, :source_display_name, :mapping_status,
                 :agreement_status, :allowed_characters_json,
                 :source_a_characters_json, :source_b_characters_json,
-                :source_a_id, :source_b_id, :mapping_source_id,
-                :source_a_locator, :source_b_locator, :mapping_locator,
+                :source_c_characters_json, :source_a_id, :source_b_id, :source_c_id,
+                :mapping_source_id, :source_a_locator, :source_b_locator,
+                :source_c_locator, :mapping_locator,
                 :confidence, :verification_status, :notes
             )""",
             [
@@ -837,6 +923,10 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "source_b_characters_json": (
                         json.dumps(row["source_b_characters"], ensure_ascii=False, sort_keys=True)
                         if row.get("source_b_characters") is not None else None
+                    ),
+                    "source_c_characters_json": (
+                        json.dumps(row["source_c_characters"], ensure_ascii=False, sort_keys=True)
+                        if row.get("source_c_characters") is not None else None
                     ),
                 }
                 for row in equipment_compatibility_audits
@@ -1108,7 +1198,8 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )):
             raise ValueError("Typed acquisition detail does not match its parent method")
 
-        for claim in [*seed["claims"], *numeric_stat_claims]:
+        for claim in [*seed["claims"], *numeric_stat_claims,
+                      *equipment_compatibility_claims]:
             connection.execute(
                 """INSERT INTO claims(
                     claim_id, subject_key, predicate, value_json, claim_kind,
@@ -1131,7 +1222,38 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )
 
         detect_conflicts(connection)
-        for resolution in seed.get("conflict_resolutions", []):
+        for audit in equipment_compatibility_audits:
+            if audit["agreement_status"] != "two_source_agreement":
+                continue
+            subject_key = f"item:{audit['item_id'].removeprefix('item_')}"
+            consensus_value = json.dumps(
+                {"characters": audit["allowed_characters"]},
+                ensure_ascii=False, sort_keys=True,
+            )
+            conflict_rows = connection.execute(
+                """SELECT f.conflict_id, f.claim_a_id, f.claim_b_id,
+                    a.value_json AS value_a, b.value_json AS value_b
+                FROM conflicts f
+                JOIN claims a ON a.claim_id=f.claim_a_id
+                JOIN claims b ON b.claim_id=f.claim_b_id
+                WHERE a.subject_key=? AND a.predicate='equipment_compatible_characters'""",
+                (subject_key,),
+            ).fetchall()
+            for conflict in conflict_rows:
+                winner = (conflict["claim_a_id"] if conflict["value_a"] == consensus_value
+                          else conflict["claim_b_id"] if conflict["value_b"] == consensus_value
+                          else None)
+                if winner:
+                    connection.execute(
+                        """UPDATE conflicts SET status='resolved', resolution_claim_id=?,
+                            rationale=?, detection_method='two_independent_source_consensus'
+                        WHERE conflict_id=?""",
+                        (winner,
+                         "Two independent current-version publishers agree on the complete character list; the outlying claim is retained.",
+                         conflict["conflict_id"]),
+                    )
+        for resolution in [*seed.get("conflict_resolutions", []),
+                           *numeric_conflict_resolutions]:
             claim_a, claim_b = sorted((resolution["claim_a_id"], resolution["claim_b_id"]))
             if resolution["resolution_claim_id"] not in (claim_a, claim_b):
                 raise ValueError(

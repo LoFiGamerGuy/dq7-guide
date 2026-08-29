@@ -59,10 +59,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 515)
+        self.assertEqual(self.counts["sources"], 523)
         self.assertEqual(self.counts["equipment_rules"], 2)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 237)
-        self.assertEqual(self.counts["equipment_compatibility"], 714)
+        self.assertEqual(self.counts["equipment_compatibility"], 1380)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -77,19 +77,38 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["monster_hearts"], 46)
 
     def test_equipment_compatibility_requires_two_source_row_agreement(self):
-        cypress = self.connection.execute(
+        disputed = self.connection.execute(
             """SELECT agreement_status, allowed_characters_json,
                 source_a_characters_json, source_b_characters_json
             FROM equipment_compatibility_audits
+            WHERE item_id='item_liquid_metal_sword'"""
+        ).fetchone()
+        self.assertEqual(disputed["agreement_status"], "source_disagreement")
+        self.assertIsNone(disputed["allowed_characters_json"])
+        self.assertNotEqual(disputed["source_a_characters_json"],
+                            disputed["source_b_characters_json"])
+        self.assertEqual(self.connection.execute(
+            "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_liquid_metal_sword'"
+        ).fetchone()[0], 0)
+        open_conflict = self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE conflict_key LIKE 'item:liquid_metal_sword|equipment_compatible_characters|%'
+              AND status='unresolved'"""
+        ).fetchone()
+        self.assertIsNotNone(open_conflict)
+
+        cypress = self.connection.execute(
+            """SELECT agreement_status FROM equipment_compatibility_audits
             WHERE item_id='item_cypress_stick'"""
         ).fetchone()
-        self.assertEqual(cypress["agreement_status"], "source_disagreement")
-        self.assertIsNone(cypress["allowed_characters_json"])
-        self.assertNotEqual(cypress["source_a_characters_json"],
-                            cypress["source_b_characters_json"])
+        self.assertEqual(cypress["agreement_status"], "two_source_agreement")
         self.assertEqual(self.connection.execute(
             "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_cypress_stick'"
-        ).fetchone()[0], 0)
+        ).fetchone()[0], 6)
+        self.assertTrue(all(row["status"] == "resolved" for row in self.connection.execute(
+            """SELECT status FROM conflicts
+            WHERE conflict_key LIKE 'item:cypress_stick|equipment_compatible_characters|%'"""
+        )))
 
         cautery = self.connection.execute(
             """SELECT a.agreement_status, e.character_name, e.can_equip
@@ -103,14 +122,19 @@ class KnowledgeBaseTests(unittest.TestCase):
                             for row in cautery))
         allowed = {row["character_name"] for row in cautery if row["can_equip"]}
         self.assertEqual(allowed, {"Hero", "Aishe", "Sir Mervyn"})
+        self.assertIsNone(self.connection.execute(
+            """SELECT conflict_id FROM conflicts
+            WHERE conflict_key LIKE 'item:cautery_sword|equipment_compatible_characters|%'"""
+        ).fetchone())
 
         singles = self.connection.execute(
-            """SELECT item_id, source_b_id FROM equipment_compatibility_audits
+            """SELECT item_id, source_b_id, source_c_id FROM equipment_compatibility_audits
             WHERE agreement_status='single_source' ORDER BY item_id"""
         ).fetchall()
         self.assertEqual([row["item_id"] for row in singles],
                          ["item_metal_king_armour", "item_party_dress"])
         self.assertTrue(all(row["source_b_id"] is None for row in singles))
+        self.assertTrue(all(row["source_c_id"] is None for row in singles))
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
@@ -126,7 +150,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["achievements"], 61)
         self.assertEqual(self.counts["achievement_aliases"], 1)
         self.assertEqual(self.counts["achievement_requirements"], 29)
-        self.assertEqual(self.counts["vocation_rank_costs"], 161)
+        self.assertEqual(self.counts["vocation_rank_costs"], 163)
 
     def test_achievement_registry_is_complete_and_checkpoint_scoped(self):
         counts = dict(
@@ -1249,7 +1273,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         ])
         conflict = self.connection.execute(
             """SELECT 1 FROM conflicts c JOIN claims a ON a.claim_id=c.claim_a_id
-            WHERE a.subject_key='item:tempest_shield'"""
+            WHERE a.subject_key='item:tempest_shield'
+              AND a.predicate IN ('acquisition_location', 'precise_location_description')
+              AND c.status='unresolved'"""
         ).fetchone()
         self.assertIsNone(conflict)
         predicates = self.connection.execute(
@@ -1794,8 +1820,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         _, costume, costume_verdict = load_purchase_advice(
             self.db_path, "Cottontail Costume", "cp_001_prologue"
         )
-        self.assertTrue(all(row["cost_status"] == "unknown" for row in costume))
-        self.assertTrue(costume_verdict.startswith("UNRESOLVED"))
+        self.assertTrue(all(row["cost_status"] == "free" for row in costume))
+        self.assertTrue(costume_verdict.startswith("CAN WAIT"))
         _, cautery, cautery_verdict = load_purchase_advice(
             self.db_path, "Cautery Sword", "cp_009_alltrades"
         )
@@ -1817,7 +1843,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         drops = [row for row in armour_routes if row["method"] == "drop"]
         self.assertTrue(drops)
         self.assertTrue(all(row["timing_status"] == "unknown_gate" for row in drops))
-        self.assertTrue(armour_verdict.startswith("UNRESOLVED"))
+        self.assertTrue(armour_verdict.startswith("DON'T BUY FOR COMPLETION"))
         _, platinum_routes, platinum_verdict = load_purchase_advice(
             self.db_path, "Platinum Shield", "cp_022_almighty"
         )
@@ -2690,17 +2716,17 @@ class KnowledgeBaseTests(unittest.TestCase):
                 locator, corroborating_locator, verification_status
             FROM vocation_rank_costs ORDER BY vocation_id, proficiency_rank"""
         ).fetchall()
-        self.assertEqual(len(rows), 161)
-        self.assertEqual(len({row[0] for row in rows}), 23)
+        self.assertEqual(len(rows), 163)
+        self.assertEqual(len({row[0] for row in rows}), 24)
         self.assertTrue(all(row[1] in range(2, 9) and row[2] > 0 for row in rows))
         self.assertTrue(all(row[4] != row[5] for row in rows))
         self.assertTrue(all(row[6].strip() and row[7].strip() for row in rows))
-        self.assertTrue(all(
-            row[8] == "two_independent_current_version_tables_match" for row in rows
-        ))
+        self.assertTrue(all(row[8].startswith(
+            "two_independent_current_version_tables_match") for row in rows))
         for vocation_id in {row[0] for row in rows}:
             ladder = [row for row in rows if row[0] == vocation_id]
-            self.assertEqual([row[1] for row in ladder], list(range(2, 9)))
+            expected_ranks = [7, 8] if vocation_id == "vocation_wolf_boy" else list(range(2, 9))
+            self.assertEqual([row[1] for row in ladder], expected_ranks)
             cumulative = 0
             for row in ladder:
                 cumulative += row[2]
@@ -2713,37 +2739,67 @@ class KnowledgeBaseTests(unittest.TestCase):
                 confidence, verification_status
             FROM vocation_stat_modifiers WHERE modifier_value IS NOT NULL"""
         ).fetchall()
-        self.assertEqual(len(verified), 162)
+        self.assertEqual(len(verified), 234)
         self.assertTrue(all(row[1] == "percent" for row in verified))
-        self.assertTrue(all(row[2] != row[3] for row in verified))
+        self.assertTrue(all(row[2] == "dqst_vocation_tables" for row in verified))
+        self.assertTrue(all(row[3] == "hyperwiki_vocation_stats" for row in verified))
         self.assertTrue(all(row[4].strip() and row[5].strip() for row in verified))
         self.assertTrue(all(row[6] == "verified" for row in verified))
         self.assertTrue(all(
-            row[7] == "two_independent_current_version_cells_match" for row in verified
+            row[7] == "two_independent_current_version_cells_match_dqst_hyperwiki"
+            for row in verified
         ))
         stat_conflicts = self.connection.execute(
             """SELECT COUNT(*) FROM conflicts
-            WHERE conflict_key LIKE '%|numeric_stat_modifier_%' AND status='unresolved'"""
+            WHERE conflict_key LIKE '%|numeric_stat_modifier_%' AND status='resolved'
+              AND detection_method='third_source_cell_level_adjudication'"""
         ).fetchone()[0]
         self.assertEqual(stat_conflicts, 72)
+        unresolved_stats = self.connection.execute(
+            """SELECT COUNT(*) FROM conflicts
+            WHERE conflict_key LIKE '%|numeric_stat_modifier_%' AND status='unresolved'"""
+        ).fetchone()[0]
+        self.assertEqual(unresolved_stats, 0)
         jester_total = self.connection.execute(
             """SELECT COUNT(*) FROM conflicts
             WHERE conflict_key LIKE 'vocation:jester|numeric_mastery_total|%'
-              AND status='unresolved'"""
+              AND status='resolved'
+              AND detection_method='third_source_rank_cells_and_arithmetic'"""
         ).fetchone()[0]
         self.assertEqual(jester_total, 1)
+        luminary_aggregate = self.connection.execute(
+            """SELECT status, detection_method FROM conflicts
+            WHERE (claim_a_id='claim_luminary_numeric_modifiers_dqst'
+                   AND claim_b_id='claim_luminary_numeric_modifiers_dqorg')
+               OR (claim_a_id='claim_luminary_numeric_modifiers_dqorg'
+                   AND claim_b_id='claim_luminary_numeric_modifiers_dqst')"""
+        ).fetchone()
+        self.assertEqual(tuple(luminary_aggregate),
+                         ("resolved", "third_source_complete_row_adjudication"))
 
-    def test_lucky_panel_attempt_rule_preserves_unknown_cost(self):
+    def test_lucky_panel_attempt_rule_has_two_source_free_entry(self):
         row = self.connection.execute(
             """SELECT max_attempts_per_day, reset_action, entry_cost, currency,
                 source_id, corroborating_source_id, verification_status
             FROM lucky_panel_rules WHERE rule_id='lprule_daily_attempts'"""
         ).fetchone()
         self.assertEqual((row[0], row[1]), (3, "Stay at an inn"))
-        self.assertIsNone(row[2])
+        self.assertEqual(row[2], 0)
         self.assertIsNone(row[3])
         self.assertNotEqual(row[4], row[5])
-        self.assertIn("cost_unknown", row[6])
+        self.assertIn("match_free_entry", row[6])
+
+    def test_lucky_panel_numeric_cells_are_not_probabilities(self):
+        row = self.connection.execute(
+            """SELECT value_json, claim_kind, confidence, verification_status
+            FROM claims WHERE claim_id='claim_lucky_panel_numeric_cells'"""
+        ).fetchone()
+        value = json.loads(row[0])
+        self.assertEqual(row[1], "unknown")
+        self.assertEqual(row[2], "medium")
+        self.assertIsNone(value["probability_formula"])
+        self.assertIsNone(value["normalized_probabilities"])
+        self.assertIn("not standalone item probabilities", value["safe_interpretation"])
 
     def test_moonlighting_sequence_and_skill_scope_are_resolved(self):
         conflict = self.connection.execute(

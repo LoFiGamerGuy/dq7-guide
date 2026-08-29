@@ -70,8 +70,8 @@ class GuideServerTests(unittest.TestCase):
         coverage = report["compatibility_coverage"]
         self.assertEqual(coverage["status"], "partial_two_source_matrix")
         self.assertEqual(coverage["audited_item_rows"], 237)
-        self.assertEqual(coverage["verified_item_rows"], 119)
-        self.assertEqual(coverage["conflicted_item_rows"], 116)
+        self.assertEqual(coverage["verified_item_rows"], 230)
+        self.assertEqual(coverage["conflicted_item_rows"], 5)
         self.assertEqual(coverage["single_source_item_rows"], 2)
         cautery = next(row for row in report["recommendations"]
                        if row["item_name"] == "Cautery Sword")

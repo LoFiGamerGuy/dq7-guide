@@ -36,6 +36,24 @@ def load_item_routes(db_path: Path, item_query: str) -> tuple[dict, list[dict]]:
                 lp.venue AS panel_venue, lp.game_version AS panel_version,
                 lp.panel_rank, lp.entry_cost AS panel_entry_cost,
                 lp.currency AS panel_currency,
+                (SELECT entry_cost FROM lucky_panel_rules
+                 WHERE entry_cost IS NOT NULL ORDER BY rule_id LIMIT 1)
+                    AS panel_system_entry_cost,
+                (SELECT source_id FROM lucky_panel_rules
+                 WHERE entry_cost IS NOT NULL ORDER BY rule_id LIMIT 1)
+                    AS panel_cost_source_id,
+                (SELECT corroborating_source_id FROM lucky_panel_rules
+                 WHERE entry_cost IS NOT NULL ORDER BY rule_id LIMIT 1)
+                    AS panel_cost_corroborating_source_id,
+                (SELECT s.title FROM lucky_panel_rules r JOIN sources s
+                 ON s.source_id=r.source_id WHERE r.entry_cost IS NOT NULL
+                 ORDER BY r.rule_id LIMIT 1) AS panel_cost_source_title,
+                (SELECT s.url FROM lucky_panel_rules r JOIN sources s
+                 ON s.source_id=r.source_id WHERE r.entry_cost IS NOT NULL
+                 ORDER BY r.rule_id LIMIT 1) AS panel_cost_source_url,
+                (SELECT locator FROM lucky_panel_rules
+                 WHERE entry_cost IS NOT NULL ORDER BY rule_id LIMIT 1)
+                    AS panel_cost_locator,
                 cp.sequence_no AS available_sequence,
                 expiry.name AS unavailable_checkpoint,
                 expiry.sequence_no AS unavailable_sequence,
@@ -108,10 +126,16 @@ def load_purchase_advice(
             route["cost_status"] = "paid"
         elif route["method"] == "shop" and route["price"] is not None:
             route["cost_status"] = "free" if route["price"] == 0 else "paid"
-        elif route["method"] == "lucky_panel" and route["panel_entry_cost"] is not None:
+        elif route["method"] == "lucky_panel" and (
+            route["panel_entry_cost"] is not None
+            or route["panel_system_entry_cost"] is not None
+        ):
+            cost = (route["panel_entry_cost"] if route["panel_entry_cost"] is not None
+                    else route["panel_system_entry_cost"])
             route["cost_status"] = (
-                "free" if route["panel_entry_cost"] == 0 else "paid"
+                "free" if cost == 0 else "paid"
             )
+            route["cost_evidence_scope"] = "system_rule"
         else:
             route["cost_status"] = "unknown"
 

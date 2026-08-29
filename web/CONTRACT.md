@@ -78,6 +78,12 @@ Renewable shops, Lucky Panel pools, and drops are not duplicated in this finite
 opportunity list. Monster checkboxes likewise reuse the Monster registry ledger;
 completed encounters disappear from the checkpoint's remaining-monster list.
 
+Lucky Panel item routes inherit the independently corroborated system-wide zero
+entry cost when their pool row has no narrower cost. This proves free entry, not a
+free guaranteed item. Published 0/1/50/100 selection cells remain single-source raw
+weights; no percentage or expected-value calculation is exposed without a denominator
+and draw algorithm.
+
 `checkpoint_achievements` distinguishes `due_here` from `tracking_starts`.
 `due_here` means the normalized completion checkpoint matches the viewed checkpoint
 and renders a checkbox backed by the same validated Achievements-registry ledger.
@@ -193,9 +199,9 @@ List, Vicious encounters, tablets, vocations, and medals.
 `GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
-reports a 237-row weapon/shield/head/torso audit separately. Only rows where
-Game8 Japan and the independent hyperWiki catalog agree are expanded into six
-explicit character decisions. `compatibility_audits` retains every agreeing,
+reports a 237-row weapon/shield/head/torso audit separately. Only rows where at
+least two independent publishers agree are expanded into six explicit character
+decisions. `compatibility_audits` retains every agreeing,
 disputed, and single-source row with both character lists and exact source
 locators. Verified slot mechanics and partial matrix coverage must not be
 mistaken for accessory compatibility or duplicate-effect rules.

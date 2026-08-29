@@ -10,6 +10,7 @@
   "unlocks_when": {"comparison": "single"},
   "version_count": {"comparison": "single"},
   "numeric_mastery_total": {"comparison": "single"},
+  "numeric_stat_modifiers": {"comparison": "single"},
   "numeric_stat_modifier_max_hp": {"comparison": "single"},
   "numeric_stat_modifier_max_mp": {"comparison": "single"},
   "numeric_stat_modifier_strength": {"comparison": "single"},
@@ -18,5 +19,6 @@
   "numeric_stat_modifier_magical_mending": {"comparison": "single"},
   "numeric_stat_modifier_agility": {"comparison": "single"},
   "numeric_stat_modifier_deftness": {"comparison": "single"},
-  "numeric_stat_modifier_charm": {"comparison": "single"}
+  "numeric_stat_modifier_charm": {"comparison": "single"},
+  "equipment_compatible_characters": {"comparison": "single"}
 }
