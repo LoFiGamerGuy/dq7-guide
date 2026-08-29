@@ -153,7 +153,7 @@ the guide does not claim offline installation in that mode.
 The Dashboard and Phone Setup screens both expose one-tap progress backup; restore
 stays under Progress to prevent an accidental replacement during play.
 
-The Sources view also provides a dated ten-item audit of the maintained
+The Sources view also provides a dated nine-item audit of the maintained
 single-source, unsupported, and corroborated-but-unresolved evidence queue.
 
 ```powershell

@@ -1605,6 +1605,19 @@ class KnowledgeBaseTests(unittest.TestCase):
             tuple(requirement), ("stone_tablet_registry", "all", 20)
         )
 
+    def test_final_gold_pedestal_unlock_has_two_independent_walkthroughs(self):
+        rows = self.connection.execute(
+            """SELECT c.value_json, c.locator, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='tablet:gold_pedestal_final_unlock'
+              AND c.predicate='tablet_unlock_behavior'"""
+        ).fetchall()
+        self.assertEqual({row["publisher"] for row in rows},
+                         {"Game8", "RPG Site"})
+        self.assertTrue(all("Yet Another World" in row["value_json"]
+                            for row in rows))
+        self.assertTrue(all(row["locator"] for row in rows))
+
     def test_monster_and_vicious_registries_resolve_achievement_targets(self):
         monster_stats = self.connection.execute(
             """SELECT COUNT(*), MIN(source_ordinal), MAX(source_ordinal),

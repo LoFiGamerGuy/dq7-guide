@@ -38,7 +38,7 @@ Expected after `python scripts/build_kb.py`:
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,795
+- claims: 1,797
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -74,7 +74,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The stale Version 1 Rank 2 Slime Earring route is removed from active normalization and preserved as a contradicted historical claim: RPG Site's current table, AppMedia, and GameWith independently place it in Version 1 Rank 1. Because RPG Site warns its tables may be non-exhaustive, the resolution does not assert Rank 2 impossibility. Entry is independently verified as free. hyperWiki's numeric selection cells remain weights, not probabilities. All 302 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
-- **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
+- **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** one automatically detected claim-pair remains unresolved: the `Stella Fan` / `Stellar Fan` display name. Fourteen pairwise conflicts across ten equipment identities are now explicitly resolved to the already-normalized two-independent-publisher consensus claims. When the supported complete character list is neither losing pair value, the conflict links and displays that third claim separately; both original claims remain auditable. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
@@ -85,11 +85,11 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
 2. Verify the six individual finite-container members without inferring positions within a published container group.
 3. Seek explicit rematch/respawn evidence for repeatable Hearts.
-4. Verify the Super Seed reward pool, final tablet unlock behavior, remaining achievement counters, and duplicate/stacking mechanics from direct evidence.
+4. Verify the Super Seed reward pool, remaining achievement counters, and duplicate/stacking mechanics from direct evidence.
 5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
-The phone Sources view now mirrors this complete ten-item evidence-blocked
-queue: 3 single-source, 2 unsupported, and 5 corroborated-but-unresolved rows.
+The phone Sources view now mirrors this complete nine-item evidence-blocked
+queue: 2 single-source, 2 unsupported, and 5 corroborated-but-unresolved rows.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
