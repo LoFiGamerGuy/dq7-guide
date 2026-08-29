@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 651)
+        self.assertEqual(self.counts["sources"], 655)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1513,11 +1513,36 @@ class KnowledgeBaseTests(unittest.TestCase):
              steel["available_from_checkpoint_id"]),
             ("Rucker Castle 2F east room", "Past", "cp_027_deja_vous_rucker"),
         )
-        self.assertIn("pair_member_unknown", steel["verification_status"])
+        self.assertEqual(steel["verification_status"],
+                         "direct_pc_english_video_exact_container")
+        self.assertIn("east/right chest", steel["locator"])
         self.assertTrue(all(row["supply_type"] == "finite" for row in rows))
         self.assertTrue(all(row["finite_total"] == 1 for row in rows))
         self.assertTrue(all(row["is_free"] == 1 for row in rows))
         self.assertTrue(all(row["source_id"] and row["locator"] for row in rows))
+
+    def test_video_observations_resolve_four_exact_container_members(self):
+        expected = {
+            "acq_dragon_shield_treasure_la_bravoure_present": "northmost/top chest",
+            "acq_pirates_hat_buccanham_palace_closet": "west/left wardrobe",
+            "acq_silk_robe_temple_palace_present": "east/right wardrobe",
+            "acq_steel_helmet_rucker_castle_past": "east/right chest",
+        }
+        placeholders = ",".join("?" for _ in expected)
+        rows = self.connection.execute(
+            f"""SELECT acquisition_id, prerequisite_json, source_id, locator,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id IN ({placeholders})""",
+            tuple(expected),
+        ).fetchall()
+        self.assertEqual(len(rows), 4)
+        for row in rows:
+            self.assertTrue(row["source_id"].startswith("lordfenton_"))
+            self.assertEqual(row["verification_status"],
+                             "direct_pc_english_video_exact_container")
+            container = json.loads(row["prerequisite_json"])["container"]
+            self.assertIn(expected[row["acquisition_id"]], container)
+            self.assertRegex(row["locator"], r"\d\d:\d\d")
 
     def test_garter_and_slime_earring_have_non_panel_alternatives(self):
         garter = self.connection.execute(
@@ -2506,7 +2531,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 6)
+        self.assertEqual(residual, 2)
         corroborating = self.connection.execute(
             """SELECT c.subject_key, c.value_json, s.publisher
             FROM claims c JOIN sources s USING(source_id)

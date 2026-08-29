@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 651 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 655 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 651
+- sources: 655
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,812
+- claims: 1,816
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -70,7 +70,7 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
-- **Items:** 6 finite acquisition rows retain an unknown exact container member of a published pair/group. These are route refinements, not Heroic Hoarder route gaps. Every grouped route now has an independent current-version walkthrough claim confirming the room, container group, and reward set without inventing a left/right member. Present Poolside Cave Fur Cape is resolved to the lone chest in the B2 section-1 northeast terminal alcove; Coagulant is corrected from Hubble Castle to the lower-roof barrel of Hubble Past's western Inquisitory. The three formerly untyped shop-like rows have direct prices and typed shop inventory records.
+- **Items:** 2 finite acquisition rows retain an unknown exact container member of a published pair/group: Knuckledusters in Strom's Mansion 2F and Faraday Strength Ring east of the throne room. These are route refinements, not Heroic Hoarder route gaps. Direct PC/English item-result footage now resolves Dragon Shield, Pirate's Hat, Silk Robe, and Steel Helmet to individual containers. Present Poolside Cave Fur Cape is resolved to the lone chest in the B2 section-1 northeast terminal alcove; Coagulant is corrected from Hubble Castle to the lower-roof barrel of Hubble Past's western Inquisitory. The three formerly untyped shop-like rows have direct prices and typed shop inventory records.
 - **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The stale Version 1 Rank 2 Slime Earring route is removed from active normalization and preserved as a contradicted historical claim: RPG Site's current table, AppMedia, and GameWith independently place it in Version 1 Rank 1. Because RPG Site warns its tables may be non-exhaustive, the resolution does not assert Rank 2 impossibility. Entry is independently verified as free. hyperWiki's numeric selection cells remain weights, not probabilities. All 302 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
@@ -78,12 +78,12 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** two automatically detected claim-pairs remain unresolved: the `Stella Fan` / `Stellar Fan` display name and whether Massively Minted requires holding 300,000 gold simultaneously or tracks lifetime gross acquisition. Fourteen pairwise conflicts across ten equipment identities are explicitly resolved to two-publisher consensus claims. Fishnet Stockings is resolved to Present Frobisher, Marshal Lourgh to Past Exposure Enclosure, and Pirate's Hat to Past with all losing claims preserved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 651 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 655 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
 1. Resolve the Stella/Stellar Fan display name only from legible current-version English UI evidence.
-2. Verify the six individual finite-container members without inferring positions within a published container group.
+2. Verify the Knuckledusters and Faraday Strength Ring individual finite-container members without inferring positions within their published pairs.
 3. Seek explicit rematch/respawn evidence for repeatable Hearts.
 4. Resolve the six exact remaining achievement-counter questions, non-Rabbit-Tail accessory duplicates, Monster Heart duplicate/stacking mechanics, and Rabbit Tail's numeric formula/cap from direct evidence.
 5. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
@@ -94,6 +94,14 @@ queue: 1 single-source, 1 unsupported, and 6 corroborated-but-unresolved rows.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The exact-container video batch resolves four of the six remaining grouped
+members from continuous current-version English PC footage: Dragon Shield is the
+north chest in the west Treasure House row; Pirate's Hat is the west wardrobe of
+the Buccanham bedroom pair; Silk Robe is the east wardrobe of the Temple Palace
+B1 north-wall trio; and Steel Helmet is the east chest of the Rucker 2F pair.
+Knuckledusters and Faraday Strength Ring remain grouped unknowns after checked
+footage failed to show a legible item-result/member association.
 
 The Rabbit Tail mechanics batch narrows the duplicate-equipment gap without
 generalizing it. Masakun's PS5 guide recommends two Rabbit Tails on every party
@@ -444,7 +452,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 651 source records currently have retrieval dates within 180
+- **Freshness:** all 655 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

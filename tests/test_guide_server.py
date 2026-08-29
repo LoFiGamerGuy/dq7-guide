@@ -407,7 +407,11 @@ class GuideServerTests(unittest.TestCase):
         )
         self.assertIn("end of cp022 before cp023", blue_button["summary"])
         self.assertIn("immediately before", blue_button["acceptance_condition"])
-        self.assertEqual(by_id["gap_finite_container_members"]["source_count"], 8)
+        containers = by_id["gap_finite_container_members"]
+        self.assertEqual(containers["source_count"], 7)
+        self.assertEqual(len(containers["supporting_claims"]), 4)
+        self.assertIn("Knuckledusters", containers["summary"])
+        self.assertIn("Faraday", containers["acceptance_condition"])
         duplicates = by_id["gap_duplicate_equipment_stacking"]
         self.assertEqual(duplicates["verification_tier"],
                          "corroborated_but_unresolved")
