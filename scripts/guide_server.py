@@ -1442,6 +1442,9 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
         def _paired(self):
             if pairing_token is None or (trust_loopback and self._is_loopback()):
                 return True
+            header_token = self.headers.get("X-DQ7-Pair", "")
+            if header_token and hmac.compare_digest(header_token, pairing_token):
+                return True
             cookies = {}
             for field in self.headers.get_all("Cookie", []):
                 for pair in field.split(";"):
@@ -1454,11 +1457,13 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
         def _accept_pairing(self, parsed):
             if pairing_token is None or parsed.path != "/":
                 return False
+            if parse_qs(parsed.query).get("paired", [""])[0] == "1":
+                return False
             supplied = parse_qs(parsed.query).get("pair", [""])[0]
             if not supplied or not hmac.compare_digest(supplied, pairing_token):
                 return False
             self.send_response(HTTPStatus.SEE_OTHER)
-            self.send_header("Location", "/#walkthrough")
+            self.send_header("Location", f"/?pair={pairing_token}&paired=1#walkthrough")
             self.send_header(
                 "Set-Cookie",
                 f"dq7_pair={pairing_token}; Path=/; Max-Age=315360000; HttpOnly; SameSite=Strict",
@@ -1480,7 +1485,11 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
             parsed = urlparse(self.path)
             if self._accept_pairing(parsed):
                 return
-            if not self._require_pairing():
+            supplied_query = parse_qs(parsed.query).get("pair", [""])[0]
+            query_is_paired = bool(supplied_query) and hmac.compare_digest(
+                supplied_query, pairing_token or "")
+            public_asset = parsed.path != "/" and not parsed.path.startswith("/api/")
+            if not public_asset and not query_is_paired and not self._require_pairing():
                 return
             try:
                 if parsed.path == "/api/health":

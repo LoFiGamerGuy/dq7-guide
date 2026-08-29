@@ -124,6 +124,10 @@ class MobileUiContractTests(unittest.TestCase):
         server = (ROOT / "scripts" / "guide_server.py").read_text(encoding="utf-8")
         self.assertIn("--lan --open-browser", launcher)
         self.assertIn("--lan --open-browser", windows_launcher)
+        self.assertIn("sys.version_info.minor in range(10, 100)", windows_launcher)
+        self.assertNotIn("sys.version_info ^<", windows_launcher)
+        app = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('"X-DQ7-Pair": pairingToken', app)
         self.assertIn('parser.add_argument("--lan"', server)
         self.assertIn('args.host = "0.0.0.0"', server)
 

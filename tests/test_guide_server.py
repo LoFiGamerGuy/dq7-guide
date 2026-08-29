@@ -128,6 +128,8 @@ class GuideServerTests(unittest.TestCase):
         unix_launcher = (ROOT / "start-guide.sh").read_text(encoding="utf-8")
         self.assertIn("Python 3.10 or newer is required", launcher)
         self.assertIn("sys.version_info", launcher)
+        self.assertIn("sys.version_info.minor in range(10, 100)", launcher)
+        self.assertNotIn("sys.version_info ^<", launcher)
         self.assertIn("The guide could not start", launcher)
         self.assertIn("python3 scripts/guide_server.py --open-browser", unix_launcher)
         self.assertIn("sys.version_info", unix_launcher)
@@ -242,8 +244,15 @@ class GuideServerTests(unittest.TestCase):
             opener = build_opener(HTTPCookieProcessor(CookieJar()))
             with opener.open(base + "/?pair=one-launch-token") as response:
                 self.assertEqual(response.status, 200)
-                self.assertEqual(response.geturl(), base + "/#walkthrough")
+                self.assertEqual(
+                    response.geturl(),
+                    base + "/?pair=one-launch-token&paired=1#walkthrough",
+                )
             with opener.open(base + "/api/health") as response:
+                self.assertEqual(json.load(response), {"status": "ok"})
+
+            request = Request(base + "/api/health", headers={"X-DQ7-Pair": "one-launch-token"})
+            with urlopen(request) as response:
                 self.assertEqual(json.load(response), {"status": "ok"})
 
             with self.assertRaises(HTTPError) as context:

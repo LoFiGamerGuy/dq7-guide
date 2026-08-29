@@ -20,6 +20,9 @@ const empty = () => document.importNode($("#emptyTemplate").content, true);
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 const mobileLayout = () => matchMedia("(max-width: 900px) and (pointer: coarse), (max-width: 520px)").matches;
+const urlPairingToken = new URLSearchParams(window.location.search).get("pair") || "";
+if (urlPairingToken) sessionStorage.setItem("dq7_pair", urlPairingToken);
+const pairingToken = urlPairingToken || sessionStorage.getItem("dq7_pair") || "";
 function focusMainAtTop() { scrollToTop(); $("#main").focus({ preventScroll: true }); }
 function syncSecondaryLedgers() {
   document.querySelectorAll(".secondary-ledger:not([data-density-ready])").forEach(ledger => {
@@ -54,7 +57,14 @@ async function api(path, options = {}) {
   if (method !== "GET" && !navigator.onLine) throw new Error("Offline: progress changes are not queued");
   state.requests += 1; $("#main").setAttribute("aria-busy", "true");
   try {
-    const response = await fetch(`/api${path}`, { headers: { "Content-Type": "application/json" }, ...options });
+    const response = await fetch(`/api${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(pairingToken ? { "X-DQ7-Pair": pairingToken } : {}),
+        ...(options.headers || {})
+      }
+    });
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     if (response.headers.get("X-DQ7-Offline-Cache") === "true") { state.usingCachedData = true; renderConnectionState(false); }
     return response.status === 204 ? null : response.json();

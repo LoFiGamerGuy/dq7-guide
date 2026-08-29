@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 where py >nul 2>nul
 if not errorlevel 1 (
-  py -3 -c "import sys; raise SystemExit(sys.version_info ^< (3, 10))" >nul 2>nul
+  py -3 -c "import sys; raise SystemExit(not (sys.version_info.major == 3 and sys.version_info.minor in range(10, 100)))" >nul 2>nul
   if not errorlevel 1 (
     py -3 scripts\guide_server.py --open-browser
     goto :finished
@@ -11,7 +11,7 @@ if not errorlevel 1 (
 
 where python >nul 2>nul
 if not errorlevel 1 (
-  python -c "import sys; raise SystemExit(sys.version_info ^< (3, 10))" >nul 2>nul
+  python -c "import sys; raise SystemExit(not (sys.version_info.major == 3 and sys.version_info.minor in range(10, 100)))" >nul 2>nul
   if not errorlevel 1 (
     python scripts\guide_server.py --open-browser
     goto :finished
