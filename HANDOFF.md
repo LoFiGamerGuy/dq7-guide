@@ -71,6 +71,10 @@ Paired API responses are network-only and never enter the service-worker cache, 
 rotating the private pairing identity cannot leave an authorized player snapshot
 available offline. Troll Heart detail separately labels its cp019 route as a finite
 one-copy pickup with no proven repeatable route and two-source acquisition evidence.
+The CLI Heart report mirrors the browser's earliest-route fallback: 39 Hearts derive
+their gate from normalized item routes and five retain explicit Heart gates. Only
+Metal Slime and Gold Golem Hearts keep unknown checkpoint availability because their
+DLC notes do not establish a normalized access gate.
 
 The final three unpublished purchase prices are now typed shop inventory:
 Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle

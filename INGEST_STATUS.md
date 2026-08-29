@@ -100,6 +100,12 @@ sparkle at cp019 with separate effect and availability provenance. Phone detail 
 the one-copy finite supply, the absence of a proven repeatable route, and the
 two-source route strength instead of the raw method label `other`.
 
+The CLI Heart report now applies the same earliest normalized acquisition-route
+fallback as the browser/API. Thirty-nine Hearts derive their gate from shared-item
+routes and five retain explicit Heart gates. Only Metal Slime and Gold Golem Hearts
+keep unknown checkpoint availability because their DLC notes do not establish a
+normalized access gate.
+
 The Troll Heart conflict pass prevents a dangerous false farm route from entering
 active guidance. Game8 Japan and GAME攻略BOX independently place the Heart at the
 Aeolus Vale Past field sparkle exposed after defeating the seated Troll. XboxPlay's

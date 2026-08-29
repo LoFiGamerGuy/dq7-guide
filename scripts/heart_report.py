@@ -41,6 +41,43 @@ def load_heart_report(db_path: Path, query: str | None = None,
             LEFT JOIN sources avs ON avs.source_id=h.availability_source_id
             ORDER BY h.name"""
         )]
+        route_rows = connection.execute(
+            """SELECT lower(i.name) AS heart_name,
+                a.available_from_checkpoint_id, cp.name AS available_checkpoint,
+                cp.sequence_no AS available_sequence, a.route_label,
+                a.locator AS availability_locator,
+                s.title AS availability_source_title,
+                s.url AS availability_source_url
+            FROM item_acquisition_paths a
+            JOIN items i USING(item_id)
+            JOIN sources s USING(source_id)
+            LEFT JOIN checkpoints cp
+              ON cp.checkpoint_id=a.available_from_checkpoint_id
+            WHERE lower(i.name) LIKE '% heart'
+            ORDER BY lower(i.name), COALESCE(cp.sequence_no, 999999),
+                a.acquisition_id"""
+        ).fetchall()
+        earliest_routes = {}
+        for route in route_rows:
+            earliest_routes.setdefault(route["heart_name"], dict(route))
+        for row in rows:
+            route = earliest_routes.get(row["name"].casefold())
+            if row["available_from_checkpoint_id"]:
+                row["availability_status"] = "heart_gate"
+            elif route and route["available_from_checkpoint_id"]:
+                row["available_from_checkpoint_id"] = route["available_from_checkpoint_id"]
+                row["available_checkpoint"] = route["available_checkpoint"]
+                row["available_sequence"] = route["available_sequence"]
+                row["availability_source_title"] = route["availability_source_title"]
+                row["availability_source_url"] = route["availability_source_url"]
+                row["availability_locator"] = route["availability_locator"]
+                row["availability_notes"] = (
+                    row["availability_notes"]
+                    or f"Earliest normalized item route: {route['route_label']}."
+                )
+                row["availability_status"] = "route_normalized"
+            else:
+                row["availability_status"] = "unknown"
         if query:
             needle = query.casefold()
             rows = [row for row in rows if needle in row["name"].casefold()
