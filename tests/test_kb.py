@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 704)
+        self.assertEqual(self.counts["sources"], 706)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1540,6 +1540,33 @@ class KnowledgeBaseTests(unittest.TestCase):
                 'arena:simmering_road_round_3|starting_roster|%'"""
         ).fetchone()
         self.assertEqual(conflict["status"], "unresolved")
+
+    def test_early_slime_and_golem_hearts_have_two_source_exact_chests(self):
+        expected = {
+            "acq_slime_heart_rainbow_mines": ("B5", "northeast"),
+            "acq_golem_heart_the_tower": ("5F", "Red Fragment"),
+        }
+        for acquisition_id, fragments in expected.items():
+            route = self.connection.execute(
+                """SELECT route_label, location_text, prerequisite_json,
+                    source_id, verification_status
+                FROM item_acquisition_paths WHERE acquisition_id=?""",
+                (acquisition_id,),
+            ).fetchone()
+            combined = " ".join((route["route_label"], route["location_text"],
+                                 route["prerequisite_json"]))
+            self.assertTrue(all(fragment in combined for fragment in fragments))
+            self.assertEqual(route["source_id"], "rpgsite_walkthrough")
+            self.assertIn("two_independent", route["verification_status"])
+            publishers = self.connection.execute(
+                """SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.subject_key=?
+                  AND c.predicate='precise_location_description'""",
+                (f"acquisition:{acquisition_id}",),
+            ).fetchall()
+            self.assertEqual({row["publisher"] for row in publishers},
+                             {"RPG Site", "Neoseeker"})
 
     def test_direct_item_pages_resolve_verified_panel_name_variants(self):
         aliases = dict(self.connection.execute(
