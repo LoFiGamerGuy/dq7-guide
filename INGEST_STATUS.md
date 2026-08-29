@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 619 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 621 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -26,19 +26,19 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; current-version source checked | Add independent evidence for final placement unlock behavior |
 | Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; 15 Vicious Monster List entries routed; dedicated tracker remains 10 targets / 11 target encounters | High for normalized rows; only Scarewell remains explicitly single-independent-source | Seek independent confirmation for Scarewell's exact fixed route |
 | Player state | Schema and empty Ryan state | Ready, no user data | Fill only from Ryan's reports |
-| Conflicts | Automatic exact-scope detection active; 16 unresolved claim-pairs represent 12 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, Stella/Stellar Fan, and the Pirate's Hat Buccanham Palace period | High for normalized compatibility where independent publishers agree; conservative for losing source claims, English display spelling, and the period dispute | Resolve equipment/name conflicts with legible current-version UI evidence and the Pirate's Hat period with continuous chronology or save-tested evidence |
+| Conflicts | Automatic exact-scope detection active; 16 unresolved claim-pairs represent 12 disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, Stella/Stellar Fan, and the Fishnet Stockings Frobisher period | High for normalized compatibility where independent publishers agree; Pirate's Hat is resolved to Past with both losing Present pairs retained | Resolve equipment/name conflicts with legible current-version UI evidence and Fishnet Stockings with stronger current UI or continuous chronology |
 
 ## Database seed counts
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 619
+- sources: 621
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,746
+- claims: 1,749
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -60,7 +60,7 @@ Expected after `python scripts/build_kb.py`:
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 402 total / 16 unresolved claim-pairs / 12 unresolved fact scopes
+- conflicts: 404 total / 16 unresolved claim-pairs / 12 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -70,15 +70,15 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
-- **Items:** 13 finite acquisition rows retain an unknown exact container or exact member of a published container pair. These are route refinements, not Heroic Hoarder route gaps. The three formerly untyped shop-like rows now have direct prices and typed shop inventory records.
+- **Items:** 12 finite acquisition rows retain an unknown exact container or exact member of a published container pair. These are route refinements, not Heroic Hoarder route gaps. The three formerly untyped shop-like rows now have direct prices and typed shop inventory records.
 - **Lucky Panel:** `Shell Shield` is the sole published standard-matrix name not linked to a current canonical item identity. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. Entry is independently verified as free. hyperWiki publishes source-native numeric selection cells (including 100, 50, 1, and 0), but no denominator or selection algorithm; they are retained as single-source weights and never displayed as item probabilities. All 302 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
-- **Conflicts:** 16 automatically detected claim-pairs remain unresolved, representing 12 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, one `Stella Fan` / `Stellar Fan` display-name fact, and the Pirate's Hat Buccanham Palace Past/Present route. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 619 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Conflicts:** 16 automatically detected claim-pairs remain unresolved, representing 12 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities, one `Stella Fan` / `Stellar Fan` display-name fact, and the Fishnet Stockings Frobisher Past/Present route. Pirate's Hat is resolved to Past while both losing Present conflict pairs remain auditable. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 621 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -90,12 +90,14 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The Pirate's Hat audit preserves a newly exposed Buccanham Palace period
-conflict. Existing item evidence places the closet route in Present, while
-Neoseeker's continuous palace walkthrough places the upstairs dresser pair in
-Past. Both atomic claims and locators remain visible; the normalized route is
-not silently changed until stronger chronology or save-tested evidence resolves
-the disagreement.
+The container-conflict follow-up resolves Pirate's Hat to Buccanham Palace Past.
+Neoseeker's continuous palace route and Eliteguias's independent screenshot-rich
+Past chapter agree on the 2F bedroom wardrobe pair; both losing Present conflict
+pairs remain visible. GuíasPSN narrows Poolside Cave Fur Cape to the northeast
+double chest and separates Silver Platter into the west chest, reducing the
+finite-container residual to 12. Its Present Frobisher inn-wardrobe Fishnet
+Stockings claim conflicts with Game8's Past Frobisher route and remains unresolved
+with a translation/derivation caveat.
 
 The fixed-gear corroboration pass gives four more checkpoint cards explicit
 two-publisher cores: Hardlypool Tunnel's Ice Shield; Tallest Tower's Dragon
@@ -358,7 +360,8 @@ pairs.
   registered evidence.
 - **Automatic conflicts:** 16 unresolved claim-pairs represent 12 distinct fact
   scopes. Ten are equipment-compatible-character lists (14 pairwise conflicts);
-  one is the Stella/Stellar Fan display name. Resolving these requires a legible
+  one is the Stella/Stellar Fan display name; one is the Fishnet Stockings
+  Frobisher period. Resolving the first eleven requires a legible
   current-version English equipment/inventory UI capture that shows the relevant
   character list or full item name. Additional guide consensus is not treated as
   equivalent to direct UI evidence.
@@ -380,7 +383,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 619 source records currently have retrieval dates within 180
+- **Freshness:** all 621 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

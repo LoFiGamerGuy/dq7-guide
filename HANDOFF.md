@@ -59,10 +59,11 @@ Claws and Staff of Sentencing; Duplic Hat and Staff of Antimagic; and Silver
 Mail, Lightning Staff, and Falcon Blade. Collection advice does not imply a
 universal best wearer.
 
-Pirate's Hat now has an explicit unresolved Buccanham Palace period conflict:
-existing item evidence says Present, while Neoseeker's continuous palace route
-places the upstairs dresser pair in Past. Keep both claims visible and do not
-change the normalized period until chronology or save-tested evidence resolves it.
+Pirate's Hat is resolved to Buccanham Palace Past: Neoseeker and Eliteguias
+independently agree on the 2F bedroom wardrobe pair. Both losing Present conflict
+pairs remain visible. Fishnet Stockings now carries the unresolved period conflict:
+Game8 says Frobisher Past, while GuíasPSN says the Present inn wardrobe; keep the
+translation/derivation caveat and do not normalize the new route yet.
 
 ## Source methodology
 

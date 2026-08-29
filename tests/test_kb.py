@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 619)
+        self.assertEqual(self.counts["sources"], 621)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1401,9 +1401,9 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(
             (pirate["location_text"], pirate["time_period"],
              pirate["available_from_checkpoint_id"]),
-            ("Buccanham Palace", "Present", "cp_020_buccanham"),
+            ("Buccanham Palace 2F bedroom", "Past", "cp_020_buccanham"),
         )
-        self.assertIn("closet", pirate["locator"].lower())
+        self.assertIn("wardrobe", pirate["locator"].lower())
         steel = by_item["item_steel_helmet"]
         self.assertEqual(
             (steel["location_text"], steel["time_period"],
@@ -2319,9 +2319,9 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 13)
+        self.assertEqual(residual, 12)
 
-    def test_pirates_hat_period_conflict_is_visible(self):
+    def test_pirates_hat_period_conflict_is_resolved_but_visible(self):
         rows = self.connection.execute(
             """SELECT c.status, a.value_json AS value_a, b.value_json AS value_b
             FROM conflicts c
@@ -2329,13 +2329,27 @@ class KnowledgeBaseTests(unittest.TestCase):
             JOIN claims b ON b.claim_id=c.claim_b_id
             WHERE a.subject_key='item:pirates_hat_buccanham_palace'"""
         ).fetchall()
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(row['status'] == 'resolved' for row in rows))
+        self.assertTrue(all({
+            json.loads(row['value_a'])['time_period'],
+            json.loads(row['value_b'])['time_period'],
+        } == {'Past', 'Present'} for row in rows))
+
+    def test_fishnet_stockings_period_conflict_is_visible(self):
+        rows = self.connection.execute(
+            """SELECT c.status, a.value_json AS value_a, b.value_json AS value_b
+            FROM conflicts c
+            JOIN claims a ON a.claim_id=c.claim_a_id
+            JOIN claims b ON b.claim_id=c.claim_b_id
+            WHERE a.subject_key='item:fishnet_stockings_frobisher'"""
+        ).fetchall()
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['status'], 'unresolved')
-        periods = {
+        self.assertEqual({
             json.loads(rows[0]['value_a'])['time_period'],
             json.loads(rows[0]['value_b'])['time_period'],
-        }
-        self.assertEqual(periods, {'Past', 'Present'})
+        }, {'Past', 'Present'})
 
     def test_new_power_cores_have_two_publishers_and_keep_extras_scoped(self):
         advice_ids = {
