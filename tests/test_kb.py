@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 675)
+        self.assertEqual(self.counts["sources"], 677)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3964,6 +3964,8 @@ class KnowledgeBaseTests(unittest.TestCase):
             "claim_sunken_spirits_group_plan_game8",
             "claim_sunken_spirits_group_plan_noobfeed",
             "claim_sunken_spirits_recovery_timing_game8",
+            "claim_sunken_spirits_recovery_gamerzenith",
+            "claim_sunken_spirits_recovery_kotanespinosa",
             "claim_gracos_element_accuracy_plan_game8",
             "claim_gracos_element_accuracy_plan_noobfeed",
             "claim_gracos_dazzle_game8",
@@ -3981,7 +3983,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             f"""SELECT claim_id, confidence, verification_status
                 FROM claims WHERE claim_id IN ({placeholders})""", claim_ids
         ).fetchall()
-        self.assertEqual(len(claims), 14)
+        self.assertEqual(len(claims), 16)
         self.assertEqual(len([row for row in claims if row["verification_status"] ==
                              "two_independent_current_version_sources"]), 10)
         provisional = [row for row in claims if
@@ -4001,7 +4003,20 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["confidence"] == "verified" for row in advice))
         self.assertTrue(all("two_source_verified" in row["verification_status"]
                             for row in advice))
-        self.assertTrue(all("alone" in row["advice_text"] for row in advice))
+        sunken = next(row for row in advice
+                      if "inter_battle_heal" in row["verification_status"])
+        self.assertNotIn("Conserve HP/MP", sunken["advice_text"])
+        self.assertNotIn("leaving one Spirit alive", sunken["advice_text"])
+        self.assertIn("MP-specific detail remains single-source", sunken["advice_text"])
+        self.assertTrue(all("alone" in row["advice_text"] for row in advice
+                            if row is not sunken))
+        recovery_publishers = self.connection.execute(
+            """SELECT COUNT(DISTINCT s.publisher) FROM claims c
+            JOIN sources s USING(source_id)
+            WHERE c.subject_key='encounter:sunken_spirits_to_gracos'
+              AND c.predicate='inter_battle_recovery'"""
+        ).fetchone()[0]
+        self.assertEqual(recovery_publishers, 2)
 
     def test_fire_spirit_and_smothers_core_plans_separate_single_source_tools(self):
         claims = self.connection.execute(
@@ -4139,8 +4154,12 @@ class KnowledgeBaseTests(unittest.TestCase):
                 ORDER BY display_order, advice_id""", (checkpoint_id,)
             ).fetchall()
             self.assertEqual([row["subject"] for row in rows], subjects)
-            self.assertTrue(all(row["source_id"].startswith("game8_boss_")
-                                for row in rows))
+            self.assertTrue(all(
+                row["source_id"].startswith("game8_boss_")
+                or (row["subject"] == "Sunken Spirits"
+                    and row["source_id"] == "gamerzenith_green_pillar")
+                for row in rows
+            ))
             self.assertTrue(all(row["locator"] for row in rows))
 
     def test_late_game_missing_boss_sequences_are_normalized(self):
