@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 600)
+        self.assertEqual(self.counts["sources"], 604)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -598,6 +598,45 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(sailor["requires"]["checkpoint_at_least"],
                          "cp_009_alltrades_abbey")
         self.assertIn("no prerequisite mastery", sailor["availability_note"])
+
+    def test_miracle_sword_midgame_spike_is_fully_linked_without_ranking(self):
+        row = self.connection.execute(
+            """SELECT applicability_json, confidence, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id='advice_cp015_miracle_sword_55'"""
+        ).fetchone()
+        applicability = json.loads(row["applicability_json"])
+        self.assertEqual(row["confidence"], "verified")
+        self.assertEqual(applicability["requires"]["mini_medals"], 55)
+        self.assertEqual(applicability["verified_core"]["stats"],
+                         {"attack": 100, "charm": 28})
+        self.assertEqual(applicability["verified_core"]["legal_users"],
+                         ["Hero", "Aishe", "Sir Mervyn"])
+        self.assertIn("not a complete ranking",
+                      applicability["strongest_now_scope"])
+        claim_ids = applicability["evidence_claim_ids"]
+        self.assertEqual(len(claim_ids), 8)
+        claims = self.connection.execute(
+            f"""SELECT predicate, value_json, source_id FROM claims
+            WHERE claim_id IN ({','.join('?' for _ in claim_ids)})""",
+            claim_ids,
+        ).fetchall()
+        self.assertEqual(len(claims), 8)
+        for predicate in ("attack_and_charm", "attack_healing_effect",
+                          "medal_reward_threshold", "equip_legal_characters"):
+            matched = [claim for claim in claims
+                       if claim["predicate"] == predicate]
+            self.assertEqual(len(matched), 2, predicate)
+            self.assertEqual(len({claim["source_id"] for claim in matched}), 2)
+            self.assertEqual(len({claim["value_json"] for claim in matched}), 1)
+
+        legality = self.connection.execute(
+            """SELECT character_name, can_equip FROM equipment_compatibility
+            WHERE item_id='item_miracle_sword'"""
+        ).fetchall()
+        allowed = {record["character_name"] for record in legality
+                   if record["can_equip"]}
+        self.assertEqual(allowed, {"Hero", "Aishe", "Sir Mervyn"})
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -3091,7 +3130,10 @@ class KnowledgeBaseTests(unittest.TestCase):
             "advice_cp007_windcheater_spike", "advice_cp008_florin",
             "advice_cp008_guardians_roamers",
             "advice_cp009_hero_practical_gear",
-            "advice_cp009_ruff_practical_gear", "advice_cp009_cardinal_sin",
+            "advice_cp009_ruff_practical_gear",
+            "advice_cp009_maribel_practical_gear",
+            "advice_cp009_snooze_stick_sealed_use",
+            "advice_cp009_cardinal_sin",
             "advice_cp009_arena_numpton", "advice_cp009_arena_bronson",
             "advice_cp009_arena_hans", "advice_cp009_arena_nava",
             "advice_cp009_vocations_arena_power",

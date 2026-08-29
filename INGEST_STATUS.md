@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 600 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 604 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 600
+- sources: 604
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,690
+- claims: 1,708
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -78,7 +78,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence. Luminary numeric cells have since been adjudicated and are no longer unresolved.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 600 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 604 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -336,7 +336,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 600 source records currently have retrieval dates within 180
+- **Freshness:** all 604 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -549,6 +549,13 @@ mastery gates (or Alltrades story access for Sailor), and each row states the
 cost of choosing that role over burst, recovery, or another specialist. Exact
 Sailor stat buffs and Paladin mitigation mechanics remain Game8-specific detail.
 
+The cp015 Miracle Sword pass verifies its +100 Attack, +28 Charm, 25%-of-attack-
+damage self-heal, and 55-Mini-Medal route across direct Game8 and GameWith item
+pages. The existing independent equipment matrices agree that Hero, Aishe, and
+Sir Mervyn can equip it. Phone advice now says to equip it immediately on the
+active physical sword user once the saved medal count reaches 55, while clearly
+avoiding a claim that it outranks every available elemental or utility weapon.
+
 The late single-source boss audit promotes Macho Picchu's party-Defence setup
 and post-Let-Loose burst window after direct current-version agreement between
 Game8 and Korosenai. Great Leveller, attack reduction, exact stack counts,
@@ -568,3 +575,18 @@ No independent direct page was found that corroborates the existing exact
 Showtime!, Positive Reinforcement, or four-turn That Special Summon usage advice,
 so Luminary, Monster Wrangler, and Druid remain single-source rather than being
 upgraded from general tier/build opinions.
+
+The late-gear usability audit promotes the 90-medal Uber Gringham Whip as a
+compact Hero power spike after Game8 and GameWith independently recommend that
+assignment; RPG Site and GameWith agree on the acquisition gate, while Game8
+and GameWith agree on +162 Attack, +40 Charm, and equal normal-attack damage to
+all enemies. The phone row explicitly prefers comparison with a compatible
+single-target weapon for bosses and makes no universal best-in-slot claim.
+
+The early gear usability pass makes Maribel's optional Alltrades setup and the
+Present Steel Helmet opportunity phone-ready without claiming a complete
+ranking. Snooze Stick's stats and battle-use sleep attempt link to matching
+Game8/GameWith facts; its assignment and Maribel's other slots stay attributed
+or optional. Steel Helmet's +41 Defence and Present Pilgrim's Rest rank-3 route
+are independently matched, while assigning it to Hero is conditional on
+legality and an actual improvement. The random-panel tradeoff remains explicit.

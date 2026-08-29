@@ -467,7 +467,7 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(panel["tradeoff"], panel["applicability"]["tradeoff"])
         self.assertTrue(panel["source"]["url"])
         self.assertTrue(panel["source"]["locator"])
-        self.assertEqual(panel["verification_status"], "source_checked")
+        self.assertIn("two_source_verified", panel["verification_status"])
         _, conflicts = self.get_json("/api/conflicts")
         self.assertGreater(len(conflicts), 0)
         self.assertEqual(conflicts[0]["status"], "unresolved")
@@ -1058,6 +1058,18 @@ class GuideServerTests(unittest.TestCase):
             {"game8_vocation_hero", "game8_vocations_advanced",
              "gamewith_vocation_hero"},
         )
+
+        whip = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_026_elemental_cleanup_nottagen",
+        )["advice"] if row["id"] == "advice_cp026_uber_gringham_90")
+        self.assertEqual(whip["evidence"]["tier"], "two_source")
+        self.assertGreaterEqual(whip["evidence"]["source_count"], 3)
+        self.assertEqual(whip["applicability"]["requires"]["mini_medals"], 90)
+        self.assertEqual(whip["applicability"]["stats"], {
+            "attack": 162, "charm": 40,
+        })
+        self.assertIn("no universal boss best-in-slot",
+                      whip["applicability"]["tradeoff"])
 
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"

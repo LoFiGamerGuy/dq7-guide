@@ -736,6 +736,9 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         for stated_slot, stated_name in candidates:
             if not isinstance(stated_name, str):
                 continue
+            condition = applicability.get("item_conditions", {}).get(stated_name, "")
+            if isinstance(condition, str) and "unavailable until" in condition.casefold():
+                continue
             item = by_name.get(stated_name.casefold())
             if item is None:
                 continue

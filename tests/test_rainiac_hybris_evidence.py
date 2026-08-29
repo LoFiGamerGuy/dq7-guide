@@ -51,6 +51,15 @@ class RainiacHybrisEvidenceTests(unittest.TestCase):
         self.assertEqual(moonlighting["trigger_location"], "Shrine of Mysteries")
         self.assertEqual(moonlighting["activation_location"], "Alltrades Abbey")
 
+    def test_early_gear_advice_links_verified_item_facts(self):
+        for advice_id in ("advice_cp009_maribel_practical_gear", "advice_cp009_snooze_stick_sealed_use", "advice_cp010_steel_helmet_panel"):
+            row = self.advice[advice_id]
+            linked = [self.claims[claim_id] for claim_id in row["applicability"]["evidence_claim_ids"]]
+            self.assertGreaterEqual(len({self.sources[claim["source_id"]]["publisher"] for claim in linked}), 2)
+            self.assertTrue(all(claim["claim_kind"] == "fact" and claim["confidence"] == "verified" for claim in linked))
+        self.assertFalse(self.advice["advice_cp009_maribel_practical_gear"]["applicability"]["full_build_available"])
+        self.assertIn("conditional", self.advice["advice_cp010_steel_helmet_panel"]["verification_status"])
+
 
 if __name__ == "__main__":
     unittest.main()
