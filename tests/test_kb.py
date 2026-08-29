@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 669)
+        self.assertEqual(self.counts["sources"], 672)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1002,6 +1002,32 @@ class KnowledgeBaseTests(unittest.TestCase):
         })
         self.assertIn("lines 117-134", detailed["locator"])
         self.assertTrue(detailed["url"].startswith("https://"))
+
+    def test_troll_heart_false_repeatable_drop_is_visible_and_resolved(self):
+        claims = self.connection.execute(
+            """SELECT c.claim_id, c.value_json, c.confidence, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.subject_key='item:troll_heart'
+              AND c.predicate='acquisition_method'"""
+        ).fetchall()
+        self.assertEqual(len(claims), 3)
+        self.assertEqual(sum("field sparkle" in json.loads(row["value_json"])
+                             for row in claims), 2)
+        losing = next(row for row in claims if row["publisher"] == "XboxPlay")
+        self.assertEqual(losing["confidence"], "low")
+        self.assertIn("respawning", json.loads(losing["value_json"]))
+
+        conflicts = self.connection.execute(
+            """SELECT status, resolution_claim_id, rationale
+            FROM conflicts
+            WHERE conflict_key LIKE 'item:troll_heart|acquisition_method|%'"""
+        ).fetchall()
+        self.assertEqual(len(conflicts), 2)
+        self.assertTrue(all(row["status"] == "resolved" for row in conflicts))
+        self.assertTrue(all("field_sparkle" in row["resolution_claim_id"]
+                            for row in conflicts))
+        self.assertTrue(all("second copy" in row["rationale"]
+                            for row in conflicts))
 
     def test_achievement_report_uses_only_explicit_player_progress(self):
         report = load_achievement_report(

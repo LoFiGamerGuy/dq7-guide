@@ -475,7 +475,11 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])
         hearts = by_id["gap_repeatable_monster_hearts"]
-        self.assertEqual(len(hearts["supporting_claims"]), 2)
+        self.assertEqual(hearts["source_count"], 8)
+        self.assertEqual(len(hearts["supporting_claims"]), 5)
+        self.assertIn("field sparkle", hearts["summary"])
+        self.assertIn("does not establish a second copy",
+                      hearts["acceptance_condition"])
         self.assertIn("verified finite", hearts["acceptance_condition"])
         counters = by_id["gap_achievement_counter_semantics"]
         self.assertEqual(counters["source_count"], 5)
