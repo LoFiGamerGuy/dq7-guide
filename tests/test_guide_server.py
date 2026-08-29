@@ -600,6 +600,33 @@ class GuideServerTests(unittest.TestCase):
             server.server_close()
             thread.join(timeout=2)
 
+    def test_evidence_tier_requires_independent_publishers_not_page_count(self):
+        audit_path = Path(self.temp.name) / "same-publisher-gap.json"
+        audit_path.write_text(json.dumps([{
+            "gap_id": "gap_same_publisher_fixture",
+            "subject": "Synthetic independence boundary",
+            "status": "corroborated_inexact",
+            "summary": "Two pages from one publisher are not independent.",
+            "source_ids": [
+                "game8_jp_missables",
+                "game8_jp_post_temple_walkthrough",
+            ],
+            "claim_ids": [
+                "claim_blue_button_cutoff_game8_jp",
+                "claim_cataclysm_trigger_game8_jp_cp022",
+            ],
+            "acceptance_condition": "A second independent publisher.",
+            "last_audited": "2026-08-29",
+        }]), encoding="utf-8")
+        gap = _evidence_gaps(
+            ROOT / "data" / "dq7_reimagined.sqlite", audit_path
+        )["gaps"][0]
+        self.assertEqual(gap["source_count"], 2)
+        self.assertEqual(gap["supporting_claim_source_count"], 2)
+        self.assertEqual(gap["publisher_count"], 1)
+        self.assertEqual(gap["supporting_claim_publisher_count"], 1)
+        self.assertEqual(gap["verification_tier"], "single_source")
+
     def test_progress_audits_every_completion_ledger_without_false_zeroes(self):
         state_path = Path(self.temp.name) / "ledger-state.json"
         shutil.copy(ROOT / "player" / "ryan-save-state.json", state_path)

@@ -94,6 +94,15 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
+The evidence-independence regression uses two separately registered pages and two
+atomic claims from the same publisher and requires the phone/API tier to remain
+`single_source`. Page count and source-ID count therefore cannot accidentally
+inflate an evidence badge. Fresh Rabbit Tail, achievement-persistence, and
+repeatable-Heart searches found no stronger admissible fact: the existing 3/100
+versus 19/100 Rabbit Tail observation still does not isolate a per-copy formula or
+cap; official demo/log documentation does not establish Detailed Records counter
+persistence; and named strong-monster Heart drops remain explicitly finite.
+
 The runtime/contract audit restores two evidence boundaries that had become stale.
 Heart-native checkpoint gates now retain their dedicated availability source and
 locator through the API and phone detail, not only their separate effect source or
