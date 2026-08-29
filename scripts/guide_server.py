@@ -146,6 +146,7 @@ def _state(state_path: Path) -> dict:
 
 def _advice_applicability(db_path: Path, state: dict, applicability: dict) -> dict:
     checks = []
+    mastery_gate_satisfied = False
     requires = applicability.get("requires") if isinstance(applicability.get("requires"), dict) else {}
     required_medals = requires.get("mini_medals")
     if isinstance(required_medals, int) and not isinstance(required_medals, bool):
@@ -162,10 +163,64 @@ def _advice_applicability(db_path: Path, state: dict, applicability: dict) -> di
             checks.append(("satisfied", f"Mini Medals: {numbered}/{required_medals} numbered medals recorded"))
         else:
             checks.append(("unknown", f"Mini Medal count unknown ({numbered} numbered recorded; {required_medals} needed)"))
-    unsupported_requires = sorted(key for key in requires if key != "mini_medals")
+    required_checkpoint = requires.get("checkpoint_at_least")
+    if isinstance(required_checkpoint, str):
+        saved_checkpoint = state.get("story", {}).get("checkpoint_id")
+        with sqlite3.connect(db_path) as connection:
+            sequences = dict(connection.execute(
+                "SELECT checkpoint_id, sequence_no FROM checkpoints WHERE checkpoint_id IN (?, ?)",
+                (required_checkpoint, saved_checkpoint),
+            ).fetchall()) if isinstance(saved_checkpoint, str) else {}
+        if required_checkpoint not in sequences:
+            checks.append(("unknown", f"Unknown checkpoint gate: {required_checkpoint}"))
+        elif saved_checkpoint not in sequences:
+            checks.append(("unknown", f"Saved checkpoint is unknown; {required_checkpoint} required"))
+        elif sequences[saved_checkpoint] >= sequences[required_checkpoint]:
+            checks.append(("satisfied", f"Story checkpoint {saved_checkpoint} reaches {required_checkpoint}"))
+        else:
+            checks.append(("unmet", f"Story checkpoint {saved_checkpoint}; {required_checkpoint} required"))
+    required_masteries = requires.get("mastered")
+    if (isinstance(required_masteries, list) and required_masteries
+            and all(isinstance(name, str) and name.strip()
+                    for name in required_masteries)):
+        placeholders = ",".join("?" for _ in required_masteries)
+        with sqlite3.connect(db_path) as connection:
+            rows = connection.execute(
+                f"""SELECT lower(e.name), v.vocation_id FROM vocations v
+                JOIN entities e ON e.entity_id=v.vocation_id
+                WHERE lower(e.name) IN ({placeholders})""",
+                tuple(name.casefold() for name in required_masteries),
+            ).fetchall()
+        vocation_ids = {name: vocation_id for name, vocation_id in rows}
+        missing_names = [name for name in required_masteries
+                         if name.casefold() not in vocation_ids]
+        if missing_names:
+            checks.append(("unknown", "Unnormalized mastery gate: "
+                           + ", ".join(missing_names)))
+        else:
+            qualifying_members = []
+            for member_name, member in state.get("party", {}).get("members", {}).items():
+                mastery = member.get("vocation_mastery", {})
+                if all(mastery.get(vocation_ids[name.casefold()]) is True
+                       for name in required_masteries):
+                    qualifying_members.append(member_name)
+            gate = " + ".join(required_masteries)
+            mastery_gate_satisfied = bool(qualifying_members)
+            checks.append(
+                ("satisfied", f"{gate}: mastered by {', '.join(qualifying_members)}")
+                if qualifying_members else
+                ("unknown", f"No party member has explicit {gate} mastery recorded")
+            )
+    unsupported_requires = sorted(key for key in requires
+                                  if key not in ("mini_medals", "mastered", "checkpoint_at_least"))
     if unsupported_requires:
         checks.append(("unknown", "Saved state does not track " + ", ".join(key.replace("_", " ") for key in unsupported_requires)))
     vocation_name = applicability.get("vocation")
+    if isinstance(vocation_name, str):
+        if mastery_gate_satisfied:
+            checks.append(("satisfied",
+                           f"{vocation_name}: unlock prerequisites explicitly recorded"))
+            vocation_name = None
     if isinstance(vocation_name, str):
         with sqlite3.connect(db_path) as connection:
             row = connection.execute(

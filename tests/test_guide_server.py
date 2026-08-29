@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from guide_server import (_access_urls, _checkpoint_view, _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
                           _vocation_unlock_progress, create_server, make_handler)
+from build_kb import build_database
 from player_progress import update_progress
 
 
@@ -882,6 +883,64 @@ class GuideServerTests(unittest.TestCase):
         miracle = next(row for row in unknown["safe_power"]
                        if row["subject"] == "Miracle Sword at 55 medals")
         self.assertEqual(miracle["saved_state_applicability"]["status"], "unknown")
+
+    def test_power_advice_mastery_gate_needs_one_explicitly_qualified_member(self):
+        state_path = Path(self.temp.name) / "mastery-gated-power.json"
+        shutil.copy(self.state, state_path)
+        unknown = _checkpoint_view(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "cp_017_hubble_present",
+        )["power_plan"]
+        gladiator = next(row for row in unknown["strongest_now"]
+                         if row["id"] == "advice_cp017_gladiator_burst")
+        self.assertEqual(gladiator["saved_state_applicability"]["status"], "unknown")
+        self.assertIn("No party member has explicit Warrior + Martial Artist mastery",
+                      gladiator["saved_state_applicability"]["reason"])
+
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["party"]["members"]["Hero"]["vocation_mastery"] = {
+            "vocation_warrior": True,
+            "vocation_martial_artist": True,
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        qualified = _checkpoint_view(
+            ROOT / "data" / "dq7_reimagined.sqlite", state_path,
+            "cp_017_hubble_present",
+        )["power_plan"]
+        gladiator = next(row for row in qualified["strongest_now"]
+                         if row["id"] == "advice_cp017_gladiator_burst")
+        self.assertEqual(gladiator["saved_state_applicability"]["status"],
+                         "satisfied")
+        self.assertIn("mastered by Hero",
+                      gladiator["saved_state_applicability"]["reason"])
+
+    def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
+        state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
+        db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"
+        build_database(db_path)
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["story"]["checkpoint_id"] = "cp_011_la_bravoure"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        early = _checkpoint_view(
+            db_path, state_path,
+            "cp_016_hubble",
+        )["power_plan"]
+        self.assertNotIn("Power route: Champion + Druid",
+                         {row["subject"] for row in early["strongest_now"]})
+
+        state["story"]["checkpoint_id"] = "cp_016_hubble"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        legal = _checkpoint_view(
+            db_path, state_path,
+            "cp_016_hubble",
+        )["power_plan"]
+        route = next(row for row in legal["strongest_now"]
+                     if row["id"] == "advice_cp016_advanced_path_routing")
+        self.assertEqual(route["saved_state_applicability"]["status"], "satisfied")
+        self.assertIn("reaches cp_012_roamer_return",
+                      route["saved_state_applicability"]["reason"])
+        self.assertEqual(route["applicability"]["party_assignments"],
+                         {"Hero": "Champion", "Maribel": "Druid"})
 
     def test_monster_heart_api_starts_explicit_ledger_and_reverses(self):
         state = json.loads(self.state.read_text(encoding="utf-8"))
