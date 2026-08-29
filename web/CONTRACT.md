@@ -119,6 +119,11 @@ Each counter may be a string, `{ "display": "x / y" }`, or `null`. `open_work` i
 
 The conflict view presents both claims symmetrically with their independent scopes, confidence, verification status, source, locator, and freshness dates. `updated_at: null` is displayed as unknown. An unresolved badge, `required_evidence`, and “No resolution is implied” remain visible; value order does not indicate preference. With `include_resolved=1`, resolved rows expose `resolution_claim_id`; it must identify one of that conflict's two claims, the matching claim has `is_resolution: true`, and the recorded adjudication rationale remains visible. The browser requests this full conflict record so resolved decisions remain auditable.
 
+The server validates the knowledge database before binding its listening socket.
+Missing, unreadable, corrupt, empty, or wrong-schema databases fail startup with a
+rebuild instruction, so `GET /api/health` cannot report ready while domain APIs are
+unable to query the required schema.
+
 The Stella/Stellar Fan spelling remains unresolved because the current direct evidence consists of conflicting guide text, not a legible English in-game name capture. Both spellings resolve to the same item detail/search result through the sourced alias, while the canonical display remains `Stellar Fan` without claiming that this adjudicates the conflict. Resolution requires a current-version English Item List, inventory, shop, or acquisition-result capture with the complete name visible.
 
 Tempest Shield is intentionally absent from the conflict registry. Its Present Sanctum of the Cirrus treasure and later Ventus Tower 2F chest are independent finite acquisition rows, not competing values: Game8's dedicated item/map tables support the Sanctum route, and both Game8's Wind Spirit walkthrough and RPG Site support Ventus Tower. Item detail therefore returns both chest routes with their separate checkpoint gates.

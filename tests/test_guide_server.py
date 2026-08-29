@@ -21,7 +21,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from guide_server import (_access_urls, _advice_evidence, _checkpoint_view,
                           _equipment_readiness, _evidence_gaps,
                           _load_or_create_pairing_token, _progress,
-                          _vocation_unlock_progress, create_server, make_handler)
+                          _validate_database, _vocation_unlock_progress,
+                          create_server, make_handler)
 from build_kb import build_database
 from player_progress import update_progress
 
@@ -50,6 +51,25 @@ class GuideServerTests(unittest.TestCase):
     def get_json(self, path):
         with urlopen(self.base + path) as response:
             return response.status, json.load(response)
+
+    def test_server_rejects_missing_empty_and_wrong_schema_database(self):
+        missing = Path(self.temp.name) / "missing.sqlite"
+        with self.assertRaisesRegex(ValueError, "does not exist"):
+            _validate_database(missing)
+        self.assertFalse(missing.exists())
+
+        empty = Path(self.temp.name) / "empty.sqlite"
+        empty.touch()
+        with self.assertRaisesRegex(ValueError, "missing required tables"):
+            create_server("127.0.0.1", 0, empty, self.state, ROOT / "web")
+
+        wrong = Path(self.temp.name) / "wrong.sqlite"
+        with sqlite3.connect(wrong) as connection:
+            connection.execute("CREATE TABLE unrelated (id INTEGER PRIMARY KEY)")
+        with self.assertRaisesRegex(ValueError, "not a built DQ7 guide database"):
+            create_server("127.0.0.1", 0, wrong, self.state, ROOT / "web")
+
+        _validate_database(ROOT / "data" / "dq7_reimagined.sqlite")
 
     def patch_json(self, path, payload):
         request = Request(self.base + path, data=json.dumps(payload).encode(),
@@ -332,8 +352,8 @@ class GuideServerTests(unittest.TestCase):
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
-        self.assertEqual(audit["total"], 5)
-        self.assertEqual(audit["single_source"], 2)
+        self.assertEqual(audit["total"], 4)
+        self.assertEqual(audit["single_source"], 1)
         self.assertEqual(audit["unsupported"], 1)
         self.assertEqual(audit["corroborated_but_unresolved"], 2)
         self.assertEqual(audit["unresolved_conflicts"], sum(
@@ -346,11 +366,7 @@ class GuideServerTests(unittest.TestCase):
         ))
         by_id = {row["gap_id"]: row for row in audit["gaps"]}
         self.assertEqual(by_id["gap_reproducible_farm_rates"]["sources"], [])
-        self.assertEqual(by_id["gap_shell_shield_identity"]["source_count"], 1)
-        self.assertIn(by_id["gap_shell_shield_identity"]["freshness_status"],
-                      ("current_retrieval", "stale", "unknown"))
-        self.assertIn("retrieval_age_days",
-                      by_id["gap_shell_shield_identity"]["sources"][0])
+        self.assertNotIn("gap_shell_shield_identity", by_id)
         stellar = by_id["gap_stellar_fan_ui_name"]
         self.assertEqual(stellar["verification_tier"], "corroborated_but_unresolved")
         self.assertIn("English", stellar["acceptance_condition"])

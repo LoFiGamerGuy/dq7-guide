@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 632 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 633 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -16,8 +16,8 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Mini Medal rewards | 19/19 reward thresholds with per-row table locators | High | Cross-check reward stats/effects and exchange availability |
 | Mini Medal locations | 100/100 normalized rows with earliest-availability checkpoint gates; #78 resolved to The Beacon Past 3F south-balcony chest | 100/100 cross-source verified; #74 is directly corroborated by RPG Site's Custodians' Camp well-closet route | Preserve source-specific container aliases and refresh only if new evidence changes a route |
 | Missables / choices | 7/7 direct-source records with precise locators and exact choice/window cutoffs; Little Blue Button closes at the late-game Cataclysm | High; the Cataclysm boundary has two independent current-version sources, while its cp022 placement is derived from the normalized chronology | Preserve player-unknown state; never infer that the Button sidequest was completed |
-| Heroic Hoarder items | 353/353 required identities / 747 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
-| Lucky Panel | 14 normalized pools / 302 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` remains the sole exact-name gap. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify Shell Shield, the legacy row, and numerical probabilities only if directly published |
+| Heroic Hoarder items | 353/353 required identities / 748 acquisition paths across 355 shared items; all required items have routes; direct finite pickups now provide free alternatives for panel-listed equipment throughout the early and midgame in addition to normalized monster-drop alternatives | High for identities and explicit routes; exact containers remain unknown where the direct source publishes only an item list; Stella/Stellar spelling conflict remains visible | Expand remaining alternate free routes and exact finite-container evidence |
+| Lucky Panel | 14 normalized pools / 303 reward paths; all standard matrices are normalized; free entry, three attempts per in-game day, and the inn reset are independently corroborated | High for normalized rows and entry/attempt/reset rules; `Shell Shield` is resolved as RPG Site's source-error alias for Scale Shield. Version 1 Rank 2 retains one legacy Slime Earring row absent from the current table; one source publishes raw numeric selection cells but no probability formula | Verify the legacy row and numerical probabilities only if directly published |
 | Equipment | 39 checkpoint gear-advice rows; all 311 canonical compatibility rows have two-publisher agreement; all 74 accessories/Hearts verified; all six slot-use/count mechanics corroborated; Magic Shield and selected early power items have independently corroborated numeric cells | High for normalized compatibility and slot layout; Cautery Sword, White Shield, and Windcheater now expose two-source combat payoffs; Windcheater's exact drop-rate increase remains single-source and unpublished here | Expand checkpoint-recommended item stats only where two current-version pages agree; keep single-source effects out of verified power comparisons |
 | Farming | 10/10 routes have direct-source locators and checkpoint gates, including cp009 Lucky Panel gold and cp013 Moonlighting proficiency routes; factual locations and attributed tactics are separated | High for routes/gates; numeric encounter, gold-per-time, and proficiency-per-time rates remain unpublished. No Heart route is labeled repeatable: direct pages establish one-time Vicious rewards, while Grody Gumdrops sources establish a Heart reward/drop but not repeatability. | Resolve a repeatable Heart route from explicit respawn/rematch evidence before adding a Heart farm/filter |
 | Stat Seeds | 18/18 standard and Super Seed effects normalized; one repeatable postgame random-Super-Seed reward rule | High for fixed effects and one-per-victory reward; eligible random pool remains unknown | Verify the postgame random reward membership without inference |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 Expected after `python scripts/build_kb.py`:
 
-- sources: 632
+- sources: 633
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,776
+- claims: 1,779
 - medal rewards: 19
 - missables: 7
 - farming spots: 10
@@ -56,9 +56,9 @@ Expected after `python scripts/build_kb.py`:
 - ready-for-play checkpoint advice: 112
 - Mini Medal corroborating evidence rows: 100
 - Heroic Hoarder items: 353
-- item aliases / acquisition paths: 4 / 747
+- item aliases / acquisition paths: 5 / 748
 - shops / inventory rows: 47 / 118
-- Lucky Panel pools / reward rows: 14 / 302
+- Lucky Panel pools / reward rows: 14 / 303
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
 - conflicts: 406 total / 15 unresolved claim-pairs / 11 unresolved fact scopes
 
@@ -71,18 +71,18 @@ Completion-critical registries are closed at the identity/route level: 353/353 H
 The remaining evidence-blocked inventory is exact and intentionally conservative:
 
 - **Items:** 9 finite acquisition rows retain an unknown exact container or exact member of a published container pair. These are route refinements, not Heroic Hoarder route gaps. The three formerly untyped shop-like rows now have direct prices and typed shop inventory records.
-- **Lucky Panel:** `Shell Shield` is the sole published standard-matrix name not linked to a current canonical item identity. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. Entry is independently verified as free. hyperWiki publishes source-native numeric selection cells (including 100, 50, 1, and 0), but no denominator or selection algorithm; they are retained as single-source weights and never displayed as item probabilities. All 302 normalized reward probabilities remain unknown.
+- **Lucky Panel:** all published standard-matrix names now link to canonical items. GameWith and hyperWiki independently place canonical Scale Shield in Present Rank 1, adjudicating RPG Site's isolated `Shell Shield` wording as a retained source-error alias. The Version 1 Rank 2 singular `Slime Earring` legacy row remains stored despite being absent from the current direct table. Entry is independently verified as free. hyperWiki publishes source-native numeric selection cells (including 100, 50, 1, and 0), but no denominator or selection algorithm; they are retained as single-source weights and never displayed as item probabilities. All 303 normalized reward probabilities remain unknown.
 - **Monster Hearts:** Dragonlord, Malroth, and Zoma have independently corroborated DLC Battle Arena turn thresholds and a cp020 gate after the Buccanham Past storyline. No source proves a repeatable Heart rematch/drop route, and no numeric Heart drop rate is stored. Metal Slime and Gold Golem retain explicit DLC acquisition notes without asserting DLC exclusivity where a non-DLC route is unverified.
 - **Mini Medals:** no identity, location, locator, or independent-evidence gap remains. Source-specific closet/wardrobe and route wording differences remain visible.
 - **Tablets:** no identity, fragment-location, or locator gap remains. Independent corroboration of the final placement/unlock behavior is still desirable but is not a registry gap.
 - **Achievements:** no identity or structured non-story requirement gap remains. Remaining work is counter-semantics/in-game confirmation, not a missing achievement.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. Its cp022 final STOP placement is derived from the walkthrough's Almighty-to-Fire-Spirit chronology, not directly stated by the two cutoff pages; player completion is never inferred.
 - **Conflicts:** 15 automatically detected claim-pairs remain unresolved, representing 11 distinct disputed source-level facts: 14 pairs across 10 equipment-compatibility identities and one `Stella Fan` / `Stellar Fan` display-name fact. Fishnet Stockings is resolved to Present Frobisher and Marshal Lourgh to the Past Exposure Enclosure route; every losing isolated-page claim remains auditable. Pirate's Hat likewise remains resolved to Past with both losing Present pairs visible. All 311 compatibility rows nevertheless have normalized two-publisher agreement; losing claims remain visible pending direct UI evidence.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 632 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 633 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
-1. Verify Shell Shield, the legacy Version 1 Rank 2 Slime Earring row, and Lucky Panel probabilities only from direct current-version evidence.
+1. Verify the legacy Version 1 Rank 2 Slime Earring row and Lucky Panel probabilities only from direct current-version evidence.
 2. Seek explicit rematch or respawn evidence before adding any repeatable Heart route.
 3. Preserve the complete 100/100 cross-source Mini Medal evidence set unless a direct source publishes a correction.
 
@@ -310,7 +310,9 @@ The next first-half route batch registers Knuckledusters as a sourced non-Heroic
 
 The latest exact-name audit uses dedicated current-version item pages to adjudicate eight additional published matrix spellings without changing canonical IDs: plural `Magic Vestments`, misspelled `Ledgerdemantle` (two rows), reordered `Shard of Lucida`, omitted possessive `Angel Robe`, and singular `Falcon Knife Earring`, `Steel Fang`, and `Ferocious Fang`. `Iron Claw`, `Shell Shield`, `Scholar’s Glasses`, and `Scake Armour` remain unresolved rather than silently merged. The same batch adds the finite free Lucida Shard at Past Alltrades Abbey (`cp_009_alltrades`), while preserving the unpublished exact container.
 
-The final residual-name audit resolves `Iron Claw` to the current UI's plural `Iron Claws`, `Scholar’s Glasses` to the dedicated page/UI identity `Scholar's Specs`, and the source typo `Scake Armour` to `Scale Armour`; each matrix route retains an explicit adjudication marker. `Shell Shield` remains unresolved because no dedicated current-version identity or UI entry was found. RPG Site directly publishes the legacy singular Slime Earring row but describes its lists as potentially non-exhaustive; Game8 corroborates generic Lucky Panel availability without a version/rank. Neither direct source publishes entry costs or numerical reward probabilities, so those fields remain unknown.
+The prior residual-name audit resolved `Iron Claw` to the current UI's plural `Iron Claws`, `Scholar’s Glasses` to the dedicated page/UI identity `Scholar's Specs`, and the source typo `Scake Armour` to `Scale Armour`; each matrix route retains an explicit adjudication marker. At that stage `Shell Shield` remained unresolved because no dedicated current-version identity or UI entry had been found. RPG Site directly publishes the legacy singular Slime Earring row but describes its lists as potentially non-exhaustive; Game8 corroborates generic Lucky Panel availability without a version/rank. Neither direct source publishes entry costs or numerical reward probabilities, so those fields remain unknown.
+
+The Scale Shield adjudication closes the last standard-matrix identity gap without inventing a new item. GameWith and hyperWiki independently place うろこの盾 (canonical English Scale Shield on Game8's dedicated item page) at Present Pilgrim's Rest Rank 1, exactly where RPG Site alone prints `Shell Shield`. The published wording remains searchable as an alias and in an atomic claim, while the normalized Version 2 Rank 1 reward targets Scale Shield. Its probability remains `null` because none of the sources publishes a draw denominator or algorithm.
 
 Dedicated current-version helmet pages add four early finite/free routes: Leather Hat in Pilchard Bay and Estard from `cp_001_prologue`, plus Pointy Hat in Past Rainbow Mines and Hardwood Headwear in Present Ballymolloy from `cp_003_ballymolloy`. The pages publish areas but not exact containers, which remains explicit.
 
@@ -409,7 +411,6 @@ pairs.
   current-version English equipment/inventory UI capture that shows the relevant
   character list or full item name. Additional guide consensus is not treated as
   equivalent to direct UI evidence.
-- **Shell Shield:** requires a second independent current-version item identity
   or English Item List capture. The single Lucky Panel table is insufficient to
   decide whether this is a distinct item or an alias.
 - **Little Blue Button:** Game8 Japan and GameWith independently name the
@@ -427,7 +428,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 632 source records currently have retrieval dates within 180
+- **Freshness:** all 633 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

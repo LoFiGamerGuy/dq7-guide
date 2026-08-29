@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 632)
+        self.assertEqual(self.counts["sources"], 633)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -74,8 +74,8 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
         self.assertEqual(self.counts["items"], 355)
-        self.assertEqual(self.counts["item_aliases"], 4)
-        self.assertEqual(self.counts["item_acquisition_paths"], 747)
+        self.assertEqual(self.counts["item_aliases"], 5)
+        self.assertEqual(self.counts["item_acquisition_paths"], 748)
         self.assertEqual(self.counts["monster_hearts"], 46)
 
     def test_cp017_gladiator_burst_is_conditional_and_two_source_attributed(self):
@@ -849,7 +849,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["shop_inventory"], 118)
         self.assertEqual(self.counts["lucky_panel_pools"], 14)
         self.assertEqual(self.counts["lucky_panel_rules"], 1)
-        self.assertEqual(self.counts["lucky_panel_rewards"], 302)
+        self.assertEqual(self.counts["lucky_panel_rewards"], 303)
         self.assertEqual(self.counts["stone_tablets"], 20)
         self.assertEqual(self.counts["tablet_fragments"], 71)
         self.assertEqual(self.counts["monsters"], 333)
@@ -2020,7 +2020,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual([row[0] for row in predicates], ["acquisition_location"])
 
-    def test_iron_shield_conflict_and_scale_shield_gap_are_visible(self):
+    def test_iron_shield_conflict_and_shell_shield_identity_are_resolved(self):
         conflict = self.connection.execute(
             """SELECT status FROM conflicts
             WHERE claim_a_id LIKE 'claim_iron_shield_%'
@@ -2045,10 +2045,30 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertIsNotNone(scale_claim)
         self.assertEqual(json.loads(scale_claim["value_json"])["rank"], "unknown")
         typed_route = self.connection.execute(
-            """SELECT 1 FROM item_acquisition_paths
-            WHERE item_id = 'item_scale_shield' AND method = 'lucky_panel'"""
+            """SELECT p.*, r.pool_id, r.probability_text
+            FROM item_acquisition_paths p
+            JOIN lucky_panel_rewards r USING (acquisition_id)
+            WHERE p.acquisition_id='acq_scale_shield_lucky_panel_v2_rank1'"""
         ).fetchone()
-        self.assertIsNone(typed_route)
+        self.assertIsNotNone(typed_route)
+        self.assertEqual(typed_route["item_id"], "item_scale_shield")
+        self.assertEqual(typed_route["time_period"], "Present")
+        self.assertEqual(typed_route["pool_id"],
+                         "lp_pilgrims_rest_v2_rank_1_standard")
+        self.assertIsNone(typed_route["probability_text"])
+        alias = self.connection.execute(
+            """SELECT alias, verification_status FROM item_aliases
+            WHERE alias_id='item_alias_shell_shield_rpgsite'"""
+        ).fetchone()
+        self.assertEqual(alias["alias"], "Shell Shield")
+        self.assertIn("source_error", alias["verification_status"])
+        publishers = self.connection.execute(
+            """SELECT DISTINCT s.publisher FROM claims c
+            JOIN sources s ON s.source_id=c.source_id
+            WHERE c.subject_key='item:scale_shield'
+              AND c.predicate='lucky_panel_rank_route'"""
+        ).fetchall()
+        self.assertEqual({row[0] for row in publishers}, {"GameWith", "hyperWiki"})
 
     def test_ice_shield_treasure_conflict_is_visible(self):
         conflicts = self.connection.execute(
@@ -2628,7 +2648,8 @@ class KnowledgeBaseTests(unittest.TestCase):
             WHERE lp.pool_id = 'lp_pilgrims_rest_v2_rank_1_standard'
             ORDER BY i.name"""
         ).fetchall()
-        self.assertEqual(len(rows), 31)
+        self.assertEqual(len(rows), 32)
+        self.assertIn("Scale Shield", {row["name"] for row in rows})
         self.assertIn("Wizard's Staff", {row["name"] for row in rows})
         self.assertTrue(all(
             "Version 2" in row["locator"] and "Rank 1" in row["locator"]

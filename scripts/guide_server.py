@@ -1824,6 +1824,48 @@ def _record_equipment_progress(db_path: Path, state_path: Path, path: str, paylo
                            [parts[0], parts[1], item_id or "unknown"])
 
 
+REQUIRED_KB_TABLES = frozenset({
+    "sources",
+    "claims",
+    "conflicts",
+    "checkpoints",
+    "checkpoint_obligations",
+    "checkpoint_advice",
+    "items",
+    "vocations",
+})
+
+
+def _validate_database(db_path: Path) -> None:
+    """Reject a missing, corrupt, or non-KB database before binding a server."""
+    db_path = Path(db_path)
+    if not db_path.is_file():
+        raise ValueError(
+            f"Knowledge database does not exist: {db_path}. "
+            "Run `python scripts/build_kb.py` first."
+        )
+    try:
+        uri = f"{db_path.resolve().as_uri()}?mode=ro"
+        with sqlite3.connect(uri, uri=True) as connection:
+            integrity = connection.execute("PRAGMA quick_check").fetchone()[0]
+            tables = {
+                row[0] for row in connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )
+            }
+    except sqlite3.Error as error:
+        raise ValueError(f"Knowledge database is unreadable: {db_path}: {error}") from error
+    if integrity != "ok":
+        raise ValueError(f"Knowledge database failed integrity check: {db_path}: {integrity}")
+    missing = sorted(REQUIRED_KB_TABLES - tables)
+    if missing:
+        raise ValueError(
+            f"Knowledge database is not a built DQ7 guide database: {db_path}; "
+            f"missing required tables: {', '.join(missing)}. "
+            "Run `python scripts/build_kb.py` first."
+        )
+
+
 def make_handler(db_path: Path, state_path: Path, static_dir: Path,
                  pairing_token: str | None = None, trust_loopback: bool = True):
     db_path, state_path, static_dir = map(Path, (db_path, state_path, static_dir))
@@ -2215,6 +2257,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path,
 def create_server(host="127.0.0.1", port=8765, db_path=DEFAULT_DB,
                   state_path=DEFAULT_STATE, static_dir=DEFAULT_STATIC,
                   pairing_token: str | None = None, trust_loopback: bool = True):
+    _validate_database(db_path)
     return ThreadingHTTPServer(
         (host, port), make_handler(db_path, state_path, static_dir, pairing_token,
                                   trust_loopback)
@@ -2245,10 +2288,17 @@ def main():
         args.host = "0.0.0.0"
     elif args.rotate_pairing:
         parser.error("--rotate-pairing requires --lan")
+    try:
+        _validate_database(args.db)
+    except ValueError as error:
+        parser.error(str(error))
     pairing_token = (_load_or_create_pairing_token(args.pairing_file, args.rotate_pairing)
                      if args.lan else None)
-    server = create_server(args.host, args.port, args.db, args.state, args.static,
-                           pairing_token, not args.require_pairing_everywhere)
+    try:
+        server = create_server(args.host, args.port, args.db, args.state, args.static,
+                               pairing_token, not args.require_pairing_everywhere)
+    except ValueError as error:
+        parser.error(str(error))
     local_url, phone_urls = _access_urls(args.host, server.server_port, pairing_token)
     print(f"DQ7 guide (this device): {local_url}", flush=True)
     if args.lan:
