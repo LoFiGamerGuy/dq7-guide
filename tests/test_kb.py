@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 659)
+        self.assertEqual(self.counts["sources"], 660)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2536,7 +2536,19 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT COUNT(*) FROM item_acquisition_paths
             WHERE supply_type='finite' AND verification_status LIKE '%unknown%'"""
         ).fetchone()[0]
-        self.assertEqual(residual, 1)
+        self.assertEqual(residual, 0)
+        strength_ring = self.connection.execute(
+            """SELECT source_id, route_label, prerequisite_json, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_strength_ring_faraday_castle_past'"""
+        ).fetchone()
+        self.assertEqual(strength_ring["source_id"],
+                         "hyunasae_faraday_castle_video")
+        self.assertIn("lower drawer", strength_ring["route_label"])
+        self.assertIn("lower/southern drawer",
+                      json.loads(strength_ring["prerequisite_json"])["container"])
+        self.assertEqual(strength_ring["verification_status"],
+                         "direct_video_exact_container_two_source_route")
         corroborating = self.connection.execute(
             """SELECT c.subject_key, c.value_json, s.publisher
             FROM claims c JOIN sources s USING(source_id)

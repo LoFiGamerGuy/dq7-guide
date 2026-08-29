@@ -68,12 +68,12 @@ Dragon Robe (19,000 gold) and Enchanted Armour (21,000 gold) at Rucker Castle
 Past, and Pilchard Pie (10 gold) at Pilchard Bay. Exact finite-container
 refinements remain separate evidence gaps.
 
-The current-version walkthrough and video audits reduce the exact-container
-residual from 31 to 1. Direct English item-result footage resolves Dragon Shield,
-Pirate's Hat, Silk Robe, Steel Helmet, and Knuckledusters to individual containers
-in addition to the earlier exact routes. Do not collapse the sole remaining
-grouped unknown—Faraday Strength Ring east of the throne room—into an invented
-drawer direction. Fishnet Stockings is separately resolved to the Present inn
+The current-version walkthrough and video audits close all 31 exact-container
+residuals. Direct English item-result footage resolves Dragon Shield, Pirate's Hat,
+Silk Robe, Steel Helmet, and Knuckledusters to individual containers. A separately
+scoped current-version PS5 video with Italian UI resolves Faraday Strength Ring to
+the lower/southern drawer of the east-wall bedroom pair; it does not establish an
+English item name. Fishnet Stockings is separately resolved to the Present inn
 wardrobe.
 
 Six additional power cards now carry two-publisher atomic evidence: Tribulators

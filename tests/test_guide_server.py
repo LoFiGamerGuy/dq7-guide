@@ -384,10 +384,10 @@ class GuideServerTests(unittest.TestCase):
 
     def test_evidence_gap_audit_flags_single_and_no_source_rows(self):
         audit = _evidence_gaps(ROOT / "data" / "dq7_reimagined.sqlite")
-        self.assertEqual(audit["total"], 7)
+        self.assertEqual(audit["total"], 6)
         self.assertEqual(audit["single_source"], 1)
         self.assertEqual(audit["unsupported"], 1)
-        self.assertEqual(audit["corroborated_but_unresolved"], 5)
+        self.assertEqual(audit["corroborated_but_unresolved"], 4)
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))
@@ -420,11 +420,7 @@ class GuideServerTests(unittest.TestCase):
         )
         self.assertIn("end of cp022 before cp023", blue_button["summary"])
         self.assertIn("immediately before", blue_button["acceptance_condition"])
-        containers = by_id["gap_finite_container_members"]
-        self.assertEqual(containers["source_count"], 7)
-        self.assertEqual(len(containers["supporting_claims"]), 5)
-        self.assertIn("Knuckledusters", containers["summary"])
-        self.assertIn("Faraday", containers["acceptance_condition"])
+        self.assertNotIn("gap_finite_container_members", by_id)
         duplicates = by_id["gap_duplicate_equipment_stacking"]
         self.assertEqual(duplicates["verification_tier"],
                          "corroborated_but_unresolved")
