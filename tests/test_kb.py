@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 575)
+        self.assertEqual(self.counts["sources"], 578)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -114,6 +114,38 @@ class KnowledgeBaseTests(unittest.TestCase):
             claim["verification_status"] ==
             "two_independent_current_version_editorial_sources"
             for claim in claims
+        ))
+
+    def test_cp027_champion_divide_is_conditional_and_two_source_attributed(self):
+        advice = self.connection.execute(
+            """SELECT subject, applicability_json, confidence, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id = 'advice_cp027_champion_burst'"""
+        ).fetchone()
+        applicability = json.loads(advice["applicability_json"])
+        self.assertEqual(advice["subject"], "Champion: Divide burst")
+        self.assertEqual(applicability["requires"]["mastered"],
+                         ["Gladiator", "Paladin"])
+        self.assertIn("does not unlock", applicability["availability_note"])
+        self.assertIn("optional power", applicability["safe_advancement"])
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertEqual(advice["verification_status"],
+                         "two_independent_current_version_editorial_sources")
+
+        claims = self.connection.execute(
+            """SELECT source_id, value_json, claim_kind, verification_status
+            FROM claims WHERE subject_key='vocation:champion'
+            AND predicate='recommended_power_role' ORDER BY source_id"""
+        ).fetchall()
+        self.assertEqual({row["source_id"] for row in claims},
+                         {"game8_vocation_champion", "gamewith_vocation_route"})
+        self.assertEqual(len({row["value_json"] for row in claims}), 1)
+        self.assertTrue(all(row["claim_kind"] == "recommendation"
+                            for row in claims))
+        self.assertTrue(all(
+            row["verification_status"] ==
+            "two_independent_current_version_editorial_sources"
+            for row in claims
         ))
 
     def test_cp016_power_route_is_two_source_and_keeps_the_grind_optional(self):
@@ -201,6 +233,52 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row["source_id"] == "game8_boss_cumulus_vex"
                             and row["verification_status"] == "single_source"
                             for row in extras))
+
+    def test_cp028_orgodemir_separates_verified_core_from_single_publisher_extra(self):
+        advice = self.connection.execute(
+            """SELECT applicability_json, confidence, verification_status
+            FROM checkpoint_advice
+            WHERE advice_id = 'advice_cp028_orgodemir_final'"""
+        ).fetchone()
+        applicability = json.loads(advice["applicability_json"])
+        self.assertEqual(advice["confidence"], "verified")
+        self.assertEqual(
+            advice["verification_status"],
+            "two_source_verified_magic_barrier_and_phase_four_group_damage_single_source_benediction",
+        )
+        self.assertIn("Magic Barrier", applicability["verified_core"]["defence"])
+        self.assertIn("multi-target", applicability["verified_core"]["phase_four"])
+        self.assertEqual(applicability["single_source_extras"]["source_id"],
+                         "game8_boss_orgodemir")
+        self.assertIn("No exact level", applicability["unknowns"])
+
+        for predicate in ("recommended_spell_defence",
+                          "recommended_phase_four_add_response"):
+            rows = self.connection.execute(
+                """SELECT source_id, value_json, verification_status
+                FROM claims
+                WHERE subject_key = 'boss:orgodemir_final'
+                  AND predicate = ?""", (predicate,)
+            ).fetchall()
+            self.assertEqual(
+                {row["source_id"] for row in rows},
+                {"game8_cathedral_blight_walkthrough",
+                 "korosenai_orgodemir_final"},
+            )
+            self.assertEqual(len({row["value_json"] for row in rows}), 1)
+            self.assertTrue(all(
+                row["verification_status"] ==
+                "two_independent_current_version_guides"
+                for row in rows
+            ))
+
+        benediction = self.connection.execute(
+            """SELECT source_id, verification_status FROM claims
+            WHERE claim_id = 'claim_orgodemir_final_benediction_game8'"""
+        ).fetchone()
+        self.assertEqual(benediction["source_id"], "game8_boss_orgodemir")
+        self.assertEqual(benediction["verification_status"],
+                         "single_independent_publisher")
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -2767,6 +2845,32 @@ class KnowledgeBaseTests(unittest.TestCase):
                                    'advice_cp014_gracos_v')"""
         ).fetchall()
         self.assertEqual(len(advice), 5)
+        self.assertTrue(all(row["confidence"] == "verified" for row in advice))
+        self.assertTrue(all("two_source_verified" in row["verification_status"]
+                            for row in advice))
+        self.assertTrue(all("alone" in row["advice_text"] for row in advice))
+
+    def test_fire_spirit_and_smothers_core_plans_separate_single_source_tools(self):
+        claims = self.connection.execute(
+            """SELECT claim_id, confidence, verification_status FROM claims
+               WHERE claim_id LIKE 'claim_fire_spirit_%'
+                  OR claim_id LIKE 'claim_smothers_%'"""
+        ).fetchall()
+        self.assertEqual(len(claims), 8)
+        self.assertEqual(len([row for row in claims if row["verification_status"] ==
+                             "two_independent_current_version_sources"]), 4)
+        provisional = [row for row in claims if
+                       row["verification_status"].startswith("single_")]
+        self.assertEqual(len(provisional), 4)
+        self.assertTrue(all(row["confidence"] == "high" for row in provisional))
+        advice = self.connection.execute(
+            """SELECT advice_id, advice_text, confidence, verification_status
+               FROM checkpoint_advice
+               WHERE advice_id IN ('advice_cp023_fire_spirit',
+                                   'advice_cp023_smothers')
+               ORDER BY advice_id"""
+        ).fetchall()
+        self.assertEqual(len(advice), 2)
         self.assertTrue(all(row["confidence"] == "verified" for row in advice))
         self.assertTrue(all("two_source_verified" in row["verification_status"]
                             for row in advice))

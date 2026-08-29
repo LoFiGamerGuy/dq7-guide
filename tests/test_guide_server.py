@@ -914,6 +914,37 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("mastered by Hero",
                       gladiator["saved_state_applicability"]["reason"])
 
+    def test_champion_power_card_requires_one_explicitly_qualified_member(self):
+        db_path = Path(self.temp.name) / "champion-gated-power.sqlite"
+        build_database(db_path)
+        state_path = Path(self.temp.name) / "champion-gated-power.json"
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["story"]["checkpoint_id"] = "cp_027_deja_vous_rucker"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        unknown = _checkpoint_view(
+            db_path, state_path, "cp_027_deja_vous_rucker",
+        )["power_plan"]
+        champion = next(row for row in unknown["strongest_now"]
+                        if row["id"] == "advice_cp027_champion_burst")
+        self.assertEqual(champion["saved_state_applicability"]["status"], "unknown")
+        self.assertIn("No party member has explicit Gladiator + Paladin mastery",
+                      champion["saved_state_applicability"]["reason"])
+
+        state["party"]["members"]["Hero"]["vocation_mastery"] = {
+            "vocation_gladiator": True,
+            "vocation_paladin": True,
+        }
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        legal = _checkpoint_view(
+            db_path, state_path, "cp_027_deja_vous_rucker",
+        )["power_plan"]
+        champion = next(row for row in legal["strongest_now"]
+                        if row["id"] == "advice_cp027_champion_burst")
+        self.assertEqual(champion["saved_state_applicability"]["status"],
+                         "satisfied")
+        self.assertIn("mastered by Hero",
+                      champion["saved_state_applicability"]["reason"])
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"
