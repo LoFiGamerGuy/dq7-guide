@@ -71,6 +71,42 @@ CREATE TABLE equipment_rules (
     notes TEXT
 );
 
+CREATE TABLE equipment_compatibility_audits (
+    audit_id TEXT PRIMARY KEY,
+    item_id TEXT REFERENCES items(item_id),
+    source_display_name TEXT NOT NULL,
+    mapping_status TEXT NOT NULL CHECK(mapping_status IN ('mapped', 'unmapped')),
+    agreement_status TEXT NOT NULL CHECK(agreement_status IN (
+        'two_source_agreement', 'source_disagreement', 'single_source', 'no_source'
+    )),
+    allowed_characters_json TEXT,
+    source_a_characters_json TEXT NOT NULL,
+    source_b_characters_json TEXT,
+    source_a_id TEXT NOT NULL REFERENCES sources(source_id),
+    source_b_id TEXT REFERENCES sources(source_id),
+    mapping_source_id TEXT REFERENCES sources(source_id),
+    source_a_locator TEXT NOT NULL,
+    source_b_locator TEXT,
+    mapping_locator TEXT,
+    confidence TEXT NOT NULL,
+    verification_status TEXT NOT NULL,
+    notes TEXT,
+    CHECK((mapping_status = 'mapped' AND item_id IS NOT NULL)
+       OR (mapping_status = 'unmapped' AND item_id IS NULL)),
+    CHECK((agreement_status = 'two_source_agreement' AND allowed_characters_json IS NOT NULL)
+       OR (agreement_status <> 'two_source_agreement' AND allowed_characters_json IS NULL))
+);
+
+CREATE TABLE equipment_compatibility (
+    item_id TEXT NOT NULL REFERENCES items(item_id),
+    character_name TEXT NOT NULL CHECK(character_name IN (
+        'Hero', 'Kiefer', 'Maribel', 'Ruff', 'Aishe', 'Sir Mervyn'
+    )),
+    can_equip INTEGER NOT NULL CHECK(can_equip IN (0, 1)),
+    audit_id TEXT NOT NULL REFERENCES equipment_compatibility_audits(audit_id),
+    PRIMARY KEY(item_id, character_name)
+);
+
 CREATE TABLE conflicts (
     conflict_id TEXT PRIMARY KEY,
     conflict_key TEXT NOT NULL,
@@ -222,10 +258,14 @@ CREATE TABLE vocation_stat_modifiers (
     modifier_value REAL,
     modifier_unit TEXT,
     source_id TEXT NOT NULL REFERENCES sources(source_id),
+    corroborating_source_id TEXT REFERENCES sources(source_id),
     locator TEXT NOT NULL CHECK(length(trim(locator)) > 0),
+    corroborating_locator TEXT,
     confidence TEXT NOT NULL,
     verification_status TEXT NOT NULL,
     CHECK(modifier_direction IS NOT NULL OR modifier_value IS NOT NULL),
+    CHECK((corroborating_source_id IS NULL) = (corroborating_locator IS NULL)),
+    CHECK(corroborating_locator IS NULL OR length(trim(corroborating_locator)) > 0),
     UNIQUE(vocation_id, proficiency_rank, stat_key, source_id)
 );
 

@@ -61,19 +61,25 @@ class GuideServerTests(unittest.TestCase):
         report = _equipment_readiness(ROOT / "data" / "dq7_reimagined.sqlite",
                                       state_path)
         self.assertFalse(report["editor_supported"])
-        self.assertTrue(any("equipability matrix" in gap for gap in report["gaps"]))
+        self.assertTrue(any("two-source-agreeing" in gap for gap in report["gaps"]))
         self.assertEqual(len(report["mechanics"]), 2)
         accessory = next(row for row in report["mechanics"]
                          if row["rule_type"] == "slot_count")
         self.assertEqual(accessory["numeric_value"], 2)
         self.assertEqual(accessory["confidence"], "verified")
-        self.assertEqual(report["compatibility_coverage"]["status"], "not_normalized")
+        coverage = report["compatibility_coverage"]
+        self.assertEqual(coverage["status"], "partial_two_source_matrix")
+        self.assertEqual(coverage["audited_item_rows"], 237)
+        self.assertEqual(coverage["verified_item_rows"], 119)
+        self.assertEqual(coverage["conflicted_item_rows"], 116)
+        self.assertEqual(coverage["single_source_item_rows"], 2)
         cautery = next(row for row in report["recommendations"]
                        if row["item_name"] == "Cautery Sword")
         self.assertEqual(cautery["character"], "Hero")
         self.assertEqual(cautery["slot"], "weapon")
         self.assertEqual(cautery["comparison_status"], "matches_recommendation")
         self.assertEqual(cautery["ownership_status"], "unknown")
+        self.assertEqual(cautery["compatibility_status"], "verified_can_equip")
 
         status, endpoint = self.get_json("/api/equipment")
         self.assertEqual(status, 200)
@@ -280,12 +286,16 @@ class GuideServerTests(unittest.TestCase):
         _, hearts = self.get_json("/api/monster-hearts?q=critical&limit=2")
         self.assertGreater(hearts["total"], 0)
         self.assertLessEqual(len(hearts["hearts"]), 2)
+        self.assertEqual(hearts["ownership_tracking"], "unknown")
+        self.assertIsNone(hearts["owned_count"])
         heart_id = hearts["hearts"][0]["heart_id"]
         _, heart = self.get_json("/api/monster-hearts/" + heart_id)
         self.assertEqual(heart["heart_id"], heart_id)
         self.assertTrue(heart["effect_text"])
         self.assertTrue(heart["source_url"])
         self.assertTrue(heart["locator"])
+        self.assertIsNone(heart["owned"])
+        self.assertEqual(heart["ownership_status"], "unknown")
         _, slime_heart = self.get_json("/api/monster-hearts/heart_slime")
         self.assertEqual(slime_heart["available_from_checkpoint_id"], "cp_003_ballymolloy")
         self.assertEqual(slime_heart["availability_status"], "route_normalized")
@@ -296,6 +306,32 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(drop["drop_rate_status"], "unknown")
         self.assertIsNone(drop["drop_rate"])
         self.assertEqual(drop["dlc_scope_status"], "unknown")
+
+    def test_monster_heart_api_starts_explicit_ledger_and_reverses(self):
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["completion"].pop("monster_hearts_owned", None)
+        self.state.write_text(json.dumps(state), encoding="utf-8")
+        status, result = self.patch_json(
+            "/api/monster-hearts/heart_slime", {"completed": True}
+        )
+        self.assertEqual(status, 200)
+        self.assertIn("Recorded Monster Heart", result["message"])
+        _, heart = self.get_json("/api/monster-hearts/heart_slime")
+        self.assertTrue(heart["owned"])
+        self.assertEqual(heart["ownership_status"], "owned")
+        _, registry = self.get_json("/api/monster-hearts")
+        self.assertEqual(registry["ownership_tracking"], "explicit")
+        self.assertEqual(registry["owned_count"], 1)
+        self.patch_json("/api/monster-hearts/heart_slime", {"completed": False})
+        _, heart = self.get_json("/api/monster-hearts/heart_slime")
+        self.assertFalse(heart["owned"])
+        self.assertEqual(heart["ownership_status"], "not_owned")
+        with self.assertRaises(HTTPError) as error:
+            self.patch_json("/api/monster-hearts/heart_fake", {"completed": True})
+        self.assertEqual(error.exception.code, 404)
+        state = json.loads(self.state.read_text(encoding="utf-8"))
+        state["completion"].pop("monster_hearts_owned", None)
+        self.state.write_text(json.dumps(state), encoding="utf-8")
         _, missables = self.get_json("/api/missables?q=window&limit=3")
         self.assertGreater(missables["total"], 0)
         missable_id = missables["missables"][0]["missable_id"]

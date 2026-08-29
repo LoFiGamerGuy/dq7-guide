@@ -124,6 +124,7 @@ python scripts/player_progress.py item-obtained item_pilchard_crackers
 python scripts/player_progress.py tablet-found tablet_fragment_001
 python scripts/player_progress.py vocation-mastered Hero vocation_warrior
 python scripts/player_progress.py monster-defeated 9
+python scripts/player_progress.py heart-obtained heart_slime
 ```
 
 ## Key documents

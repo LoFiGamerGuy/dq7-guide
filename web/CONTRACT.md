@@ -139,7 +139,9 @@ unknown.
 
 Each returns an object containing `items`, `vocations`, `monsters`, `medals`, `fragments`, or `achievements`. Paginated registries also return `total`, `limit`, and `offset` (achievement paging metadata is under `page`). The browser normalizes persisted IDs and progress fields for display.
 
-Monster Hearts return `{total, limit, offset, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, and locator. Hearts are read-only because player state has no dedicated Heart inventory field.
+Monster Hearts return `{total, limit, offset, ownership_tracking, owned_count, unknown_state_ids, hearts}` and support `GET /api/monster-hearts/{heart_id}`. Detail includes effect, normalized availability where known, confidence, verification status, source URL, locator, `owned`, and `ownership_status`. `owned: null` / `ownership_tracking: "unknown"` means Ryan has never reported Heart inventory; it is not false or zero. Only canonical registry IDs contribute to `owned_count`; stale or foreign saved IDs remain visible in `unknown_state_ids`.
+
+Heart checkboxes use `PATCH /api/monster-hearts/{heart_id}` with `{ "completed": true|false }`. The first explicit change creates `completion.monster_hearts_owned`; subsequent changes are reversible and accept only canonical IDs from the 46-Heart registry. Checkpoint or route availability never implies ownership.
 
 Heart detail also returns `routes`, reusing current-version item acquisition rows with their checkpoint, time period, method, supply, source, and locator. When the Heart row has no native gate, the earliest linked route supplies the displayed gate and `availability_status: "route_normalized"`; it does not overwrite the underlying effect claim. Drop routes return `drop_rate: null` and `drop_rate_status: "unknown"` because no numeric rate is stored. Acquisition DLC scope is likewise null/unknown unless directly sourced. Name mismatches or unlinked Hearts remain route-free rather than being guessed.
 
@@ -191,16 +193,19 @@ List, Vicious encounters, tablets, vocations, and medals.
 `GET /api/equipment` is a read-only equipment-readiness and comparison endpoint.
 It includes independently corroborated `mechanics` rows for the two accessory
 slots and the one-slot cost of each equipped Monster Heart. `compatibility_coverage`
-reports the normalized character/item matrix separately; verified slot mechanics
-must not be mistaken for complete equipability or duplicate-effect rules.
+reports a 237-row weapon/shield/head/torso audit separately. Only rows where
+Game8 Japan and the independent hyperWiki catalog agree are expanded into six
+explicit character decisions. `compatibility_audits` retains every agreeing,
+disputed, and single-source row with both character lists and exact source
+locators. Verified slot mechanics and partial matrix coverage must not be
+mistaken for accessory compatibility or duplicate-effect rules.
 It returns `editor_supported: false`, the exact normalization `gaps`, each party
 member's raw explicitly recorded equipment with an `unvalidated_record` warning,
 and gear recommendations for the saved checkpoint. Recommendation rows resolve
 canonical item IDs and nominal category slots, route availability, explicit
 ownership, the recorded-value comparison, provenance, and an attributed
-compatibility basis. They do not form a universal equipability matrix. Clients
-must not offer equipment writes until character-by-item compatibility, accessory
-slot count, and duplicate-equip rules are normalized and validated.
+compatibility status and basis. Clients must not offer equipment writes until
+the disputed rows, accessories, and duplicate-equip rules are resolved.
 
 The Python server derives these endpoints from the generated database and explicitly selected state file. Vocation mastery and whole-tablet status need dedicated workflows and remain read-only in the generic catalog.
 

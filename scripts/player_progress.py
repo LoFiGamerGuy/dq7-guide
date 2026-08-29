@@ -39,6 +39,12 @@ def _load_state(state_path: Path) -> dict:
         not isinstance(value, str) for value in monsters
     ):
         raise ValueError("completion.monster_entries must be a list of strings")
+    hearts = state.get("completion", {}).get("monster_hearts_owned")
+    if hearts is not None and (
+        not isinstance(hearts, list)
+        or any(not isinstance(value, str) for value in hearts)
+    ):
+        raise ValueError("completion.monster_hearts_owned must be a list of strings when present")
     for field in ("missables_completed", "missables_missed"):
         values = state.get("completion", {}).get(field)
         if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
@@ -334,6 +340,25 @@ def update_progress(
                 entries.difference_update(monster_ids)
                 message = f"Reopened monster(s): {', '.join(monster_ids)}."
             state["completion"]["monster_entries"] = sorted(entries)
+        elif command in ("heart-obtained", "heart-undo"):
+            known = {
+                row[0] for row in connection.execute(
+                    "SELECT heart_id FROM monster_hearts"
+                )
+            }
+            invalid = sorted(set(values) - known)
+            if invalid:
+                raise ValueError(f"Unknown Monster Heart ID(s): {invalid}")
+            # Absence means ownership has never been reported. The first explicit
+            # mutation starts the dedicated ledger; story progress never does.
+            owned = set(state["completion"].get("monster_hearts_owned", []))
+            if command == "heart-obtained":
+                owned.update(values)
+                message = f"Recorded Monster Heart(s): {', '.join(values)}."
+            else:
+                owned.difference_update(values)
+                message = f"Reopened Monster Heart(s): {', '.join(values)}."
+            state["completion"]["monster_hearts_owned"] = sorted(owned)
         else:
             raise ValueError(f"Unknown progress command: {command}")
     _save_state(state_path, state)
@@ -374,6 +399,9 @@ def main() -> None:
     for name in ("monster-defeated", "monster-undo"):
         progress = subparsers.add_parser(name)
         progress.add_argument("values", nargs="+", metavar="MONSTER")
+    for name in ("heart-obtained", "heart-undo"):
+        progress = subparsers.add_parser(name)
+        progress.add_argument("values", nargs="+", metavar="HEART_ID")
     args = parser.parse_args()
     try:
         print(update_progress(args.state, args.db, args.command, args.values))

@@ -22,8 +22,9 @@ is the only runtime dependency.
 
 ## Intentional limits
 
-- Equipment is read-only until canonical character/slot compatibility exists.
-- Monster Heart ownership is read-only because player state has no Heart field.
+- Equipment remains read-only. The canonical non-accessory audit verifies only
+  two-source-agreeing rows and exposes every disputed or single-source row.
+- Monster Heart ownership is editable through a dedicated reversible ledger. An absent ledger remains unknown; route or checkpoint availability never implies ownership.
 - Unknown rates, mastery costs, and unresolved evidence remain unknown.
 - First use does not infer an existing save; enter only known state.
 

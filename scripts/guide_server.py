@@ -35,6 +35,7 @@ ALLOWED_PROGRESS_COMMANDS = {
     "checkpoint", "medal-found", "medal-undo", "medal-count", "done", "undo",
     "achievement-unlocked", "achievement-undo", "item-obtained", "item-undo",
     "tablet-found", "tablet-undo", "monster-defeated", "monster-undo",
+    "heart-obtained", "heart-undo",
     "vocation-mastered", "vocation-undo",
     "party-level", "party-vocations",
     "missable-completed", "missable-undo",
@@ -316,17 +317,17 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
         "comparison_scope": "current_checkpoint_attributed_recommendations",
         "checkpoint_id": checkpoint_id,
         "gaps": [
-            "No current-version character-by-item equipability matrix is normalized.",
+            "Only two-source-agreeing compatibility rows are normalized; disputed and single-source rows remain read-only.",
             "Duplicate accessory equip and effect-stacking rules are not verified.",
-            "Non-accessory slot counts are not independently verified.",
-            "Item categories identify nominal slots, but do not prove a character can equip an item.",
+            "Accessory compatibility is not covered by the audited weapon, shield, head, and torso catalogs.",
         ],
         "mechanics": [],
         "compatibility_coverage": {
             "verified_item_character_pairs": 0,
             "conflicted_item_rows": 0,
-            "status": "not_normalized",
+            "status": "partial_two_source_matrix",
         },
+        "compatibility_audits": [],
         "members": [],
         "recommendations": [],
     }
@@ -354,6 +355,44 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             JOIN sources cs ON cs.source_id=r.corroborating_source_id
             ORDER BY r.rule_id"""
         )]
+        audit_rows = [dict(row) for row in connection.execute(
+            """SELECT a.audit_id, a.item_id, i.name AS item_name,
+                c.name AS category, a.source_display_name, a.mapping_status,
+                a.agreement_status, a.allowed_characters_json,
+                a.source_a_characters_json, a.source_b_characters_json,
+                a.confidence, a.verification_status, a.notes,
+                a.source_a_locator, a.source_b_locator, a.mapping_locator,
+                sa.title AS source_a_title, sa.url AS source_a_url,
+                sb.title AS source_b_title, sb.url AS source_b_url,
+                sm.title AS mapping_source_title, sm.url AS mapping_source_url
+            FROM equipment_compatibility_audits a
+            LEFT JOIN items i ON i.item_id=a.item_id
+            LEFT JOIN item_categories c ON c.category_id=i.category_id
+            JOIN sources sa ON sa.source_id=a.source_a_id
+            LEFT JOIN sources sb ON sb.source_id=a.source_b_id
+            LEFT JOIN sources sm ON sm.source_id=a.mapping_source_id
+            ORDER BY c.heroic_hoarder_order, i.heroic_hoarder_ordinal, i.name"""
+        )]
+        for row in audit_rows:
+            for field in ("allowed_characters_json", "source_a_characters_json",
+                          "source_b_characters_json"):
+                row[field.removesuffix("_json")] = (
+                    json.loads(row.pop(field)) if row[field] is not None else None
+                )
+        result["compatibility_audits"] = audit_rows
+        states = {status: sum(row["agreement_status"] == status for row in audit_rows)
+                  for status in ("two_source_agreement", "source_disagreement", "single_source")}
+        result["compatibility_coverage"] = {
+            "audited_item_rows": len(audit_rows),
+            "verified_item_rows": states["two_source_agreement"],
+            "verified_item_character_pairs": states["two_source_agreement"] * 6,
+            "verified_can_equip_pairs": connection.execute(
+                "SELECT COUNT(*) FROM equipment_compatibility WHERE can_equip=1"
+            ).fetchone()[0],
+            "conflicted_item_rows": states["source_disagreement"],
+            "single_source_item_rows": states["single_source"],
+            "status": "partial_two_source_matrix",
+        }
     if not checkpoint_id:
         result["status"] = "unknown_checkpoint"
         return result
@@ -383,6 +422,18 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             JOIN checkpoints c ON c.checkpoint_id=a.available_from_checkpoint_id
             WHERE c.sequence_no <= ?""", (checkpoint["sequence_no"],)
         )}
+        compatibility_by_pair = {
+            (row["item_id"], row["character_name"]): bool(row["can_equip"])
+            for row in connection.execute(
+                "SELECT item_id, character_name, can_equip FROM equipment_compatibility"
+            )
+        }
+        compatibility_status_by_item = {
+            row["item_id"]: row["agreement_status"]
+            for row in connection.execute(
+                "SELECT item_id, agreement_status FROM equipment_compatibility_audits"
+            )
+        }
     by_name = {row["name"].casefold(): dict(row) for row in item_rows}
     by_id = {row["item_id"]: dict(row) for row in item_rows}
     for alias, item_id in aliases:
@@ -409,6 +460,8 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
             recorded = members.get(character, {}).get("equipment", {}) if character else {}
             recorded_value = recorded.get(slot) if isinstance(recorded, dict) and slot else None
             matches = recorded_value in (item["item_id"], item["name"])
+            compatibility = compatibility_by_pair.get((item["item_id"], character))
+            audit_status = compatibility_status_by_item.get(item["item_id"], "not_audited")
             result["recommendations"].append({
                 "advice_id": advice["advice_id"], "character": character,
                 "slot": slot, "item_id": item["item_id"], "item_name": item["name"],
@@ -423,13 +476,21 @@ def _equipment_readiness(db_path: Path, state_path: Path) -> dict:
                            "url": advice["source_url"], "locator": advice["locator"]},
                 "confidence": advice["confidence"],
                 "verification_status": advice["verification_status"],
-                "compatibility_basis": "Attributed recommendation for this character and item; not a universal equipability rule.",
+                "compatibility_status": (
+                    "verified_can_equip" if compatibility is True else
+                    "verified_cannot_equip" if compatibility is False else audit_status
+                ),
+                "compatibility_basis": (
+                    "Two independent current-version equipment rows agree for this character and item."
+                    if compatibility is not None else
+                    "Compatibility remains disputed or single-source; the attributed recommendation is not universal proof."
+                ),
             })
     result["status"] = "recommendations_available" if result["recommendations"] else "no_checkpoint_gear_recommendations"
     return result
 
 
-def _monster_hearts(db_path: Path, query: dict) -> dict:
+def _monster_hearts(db_path: Path, query: dict, state_path: Path | None = None) -> dict:
     rows = _rows(db_path, """SELECT h.heart_id, h.name, h.effect_text,
         h.available_from_checkpoint_id, c.name AS available_checkpoint,
         h.availability_notes, h.confidence, h.verification_status,
@@ -438,6 +499,21 @@ def _monster_hearts(db_path: Path, query: dict) -> dict:
         LEFT JOIN checkpoints c ON c.checkpoint_id=h.available_from_checkpoint_id
         JOIN sources s USING(source_id)
         ORDER BY COALESCE(c.sequence_no, 999), h.name""")
+    player_state = _state(state_path) if state_path else {}
+    completion = player_state.get("completion", {})
+    tracking_known = "monster_hearts_owned" in completion
+    recorded_owned = set(completion.get("monster_hearts_owned", [])) if tracking_known else set()
+    canonical_ids = {row["heart_id"] for row in rows}
+    owned = recorded_owned & canonical_ids
+    checkpoint_id = player_state.get("story", {}).get("checkpoint_id")
+    checkpoint_sequence = None
+    if checkpoint_id:
+        with sqlite3.connect(db_path) as connection:
+            checkpoint = connection.execute(
+                "SELECT sequence_no FROM checkpoints WHERE checkpoint_id = ?",
+                (checkpoint_id,),
+            ).fetchone()
+        checkpoint_sequence = checkpoint[0] if checkpoint else None
     for row in rows:
         routes = _heart_routes(db_path, row["name"])
         row["route_count"] = len(routes)
@@ -448,9 +524,24 @@ def _monster_hearts(db_path: Path, query: dict) -> dict:
         else:
             row["availability_status"] = ("heart_gate" if row["available_from_checkpoint_id"]
                                           else "unknown")
+        row["owned"] = (row["heart_id"] in owned) if tracking_known else None
+        row["ownership_status"] = ("owned" if row["owned"] is True else
+                                   "not_owned" if row["owned"] is False else "unknown")
+        if checkpoint_sequence is None or not row["available_from_checkpoint_id"]:
+            row["available_now"] = None
+        else:
+            with sqlite3.connect(db_path) as connection:
+                gate = connection.execute(
+                    "SELECT sequence_no FROM checkpoints WHERE checkpoint_id = ?",
+                    (row["available_from_checkpoint_id"],),
+                ).fetchone()
+            row["available_now"] = bool(gate and gate[0] <= checkpoint_sequence)
     page = _page(rows, query, ("heart_id", "name", "effect_text",
         "available_checkpoint", "availability_notes"))
     page["hearts"] = page.pop("results")
+    page["ownership_tracking"] = "explicit" if tracking_known else "unknown"
+    page["owned_count"] = len(owned) if tracking_known else None
+    page["unknown_state_ids"] = sorted(recorded_owned - canonical_ids)
     return page
 
 
@@ -1002,6 +1093,7 @@ def _record_resource_progress(db_path: Path, state_path: Path, path: str, payloa
         "/api/items/": ("item-obtained", "item-undo"),
         "/api/tablets/": ("tablet-found", "tablet-undo"),
         "/api/achievements/": ("achievement-unlocked", "achievement-undo"),
+        "/api/monster-hearts/": ("heart-obtained", "heart-undo"),
     }
     for prefix, commands in mappings.items():
         if path.startswith(prefix):
@@ -1094,10 +1186,10 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                         _state(state_path).get("completion", {}).get("monster_entries", []))
                     return self._json(report)
                 if parsed.path == "/api/monster-hearts":
-                    return self._json(_monster_hearts(db_path, parse_qs(parsed.query)))
+                    return self._json(_monster_hearts(db_path, parse_qs(parsed.query), state_path))
                 if parsed.path.startswith("/api/monster-hearts/"):
                     heart_id = unquote(parsed.path.removeprefix("/api/monster-hearts/"))
-                    row = next((row for row in _monster_hearts(db_path, {})["hearts"]
+                    row = next((row for row in _monster_hearts(db_path, {}, state_path)["hearts"]
                                 if row["heart_id"] == heart_id), None)
                     if row is None:
                         raise ValueError("Unknown Monster Heart")
@@ -1260,7 +1352,7 @@ def make_handler(db_path: Path, state_path: Path, static_dir: Path):
                     elif any(path.startswith(prefix) for prefix in (
                         "/api/items/", "/api/tablets/", "/api/achievements/",
                         "/api/vocations/", "/api/checkpoints/",
-                        "/api/missables/",
+                        "/api/missables/", "/api/monster-hearts/",
                     )):
                         message = _record_resource_progress(db_path, state_path, path, payload)
                     else:

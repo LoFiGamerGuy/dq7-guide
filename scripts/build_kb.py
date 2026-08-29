@@ -107,6 +107,12 @@ def _build_database(db_path: Path) -> dict[str, int]:
     schema = (ROOT / "data" / "schema.sql").read_text(encoding="utf-8")
     sources = load_json(ROOT / "data" / "seed" / "sources.json")
     seed = load_json(ROOT / "data" / "seed" / "seed_data.json")
+    vocation_numeric_audit = load_json(
+        ROOT / "data" / "seed" / "vocation_numeric_audit.json"
+    )
+    equipment_matrix = load_json(
+        ROOT / "data" / "seed" / "equipment_compatibility.json"
+    )
 
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
@@ -206,6 +212,77 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 "probability_text": None,
             })
 
+        vocation_rank_costs = list(seed.get("vocation_rank_costs", []))
+        cost_vocations = {row["vocation_id"] for row in vocation_rank_costs}
+        for vocation_id, page, costs, _dqst, _dqorg, _reported_total in vocation_numeric_audit["rows"]:
+            if costs is None or vocation_id in cost_vocations:
+                continue
+            cumulative = 0
+            slug = vocation_id.removeprefix("vocation_")
+            for rank, points in enumerate(costs, start=2):
+                cumulative += points
+                vocation_rank_costs.append({
+                    "vocation_rank_cost_id": f"vrank_{slug}_{rank:02d}",
+                    "vocation_id": vocation_id,
+                    "proficiency_rank": rank,
+                    "proficiency_points": points,
+                    "cumulative_points": cumulative,
+                    "source_id": "dqst_vocation_tables",
+                    "corroborating_source_id": "dragonquestorg_vocation_pages",
+                    "locator": f"{page} > Proficiency > rank {rank}",
+                    "corroborating_locator": (
+                        f"{page} > Dragon Quest VII Reimagined > Abilities > rank {rank}"
+                    ),
+                    "confidence": "verified",
+                    "verification_status": "two_independent_current_version_tables_match",
+                })
+        character_codes = dict(zip("HKMRAS", (
+            "Hero", "Kiefer", "Maribel", "Ruff", "Aishe", "Sir Mervyn"
+        )))
+        mapping_sources = {
+            "weapon": "game8_en_weapon_matrix", "shield": "game8_en_shield_matrix",
+            "helm": "game8_en_helm_matrix", "armor": "game8_en_armour_matrix",
+        }
+        equipment_compatibility_audits = []
+        for item_id, source_name, kind, hyper_page, game8_chars, hyper_chars, status in equipment_matrix:
+            source_a_characters = [character_codes[code] for code in game8_chars]
+            source_b_characters = (
+                [character_codes[code] for code in hyper_chars]
+                if hyper_chars is not None else None
+            )
+            equipment_compatibility_audits.append({
+                "audit_id": f"equipcompat_{item_id.removeprefix('item_')}",
+                "item_id": item_id,
+                "source_display_name": source_name,
+                "mapping_status": "mapped",
+                "agreement_status": {
+                    "agree": "two_source_agreement",
+                    "conflict": "source_disagreement",
+                    "single": "single_source",
+                }[status],
+                "allowed_characters": source_a_characters if status == "agree" else None,
+                "source_a_characters": source_a_characters,
+                "source_b_characters": source_b_characters,
+                "source_a_id": "game8_jp_equipment_matrix",
+                "source_b_id": f"hyperwiki_equipment_{hyper_page}" if hyper_page else None,
+                "mapping_source_id": mapping_sources[kind],
+                "source_a_locator": f"Equipment list > {source_name} > compatible characters",
+                "source_b_locator": (
+                    f"Equipment list > {source_name} > equipment characters"
+                    if hyper_page else None
+                ),
+                "mapping_locator": f"All {kind} equipment > corresponding English row",
+                "confidence": "verified" if status == "agree" else "high" if status == "conflict" else "medium",
+                "verification_status": {
+                    "agree": "two_independent_current_version_rows_match",
+                    "conflict": "two_current_version_rows_disagree_not_normalized",
+                    "single": "one_current_version_source_only_not_normalized",
+                }[status],
+                "notes": (
+                    "Japanese-to-English identity is bridged by matching Game8 regional row order and stats; "
+                    "compatibility is accepted only when the independent hyperWiki row matches."
+                ),
+            })
         connection.executemany(
             """INSERT INTO sources(
                 source_id, title, publisher, url, source_class, role,
@@ -368,7 +445,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
                 :corroborating_source_id,:locator,:corroborating_locator,
                 :confidence,:verification_status
             )""",
-            seed.get("vocation_rank_costs", []),
+            vocation_rank_costs,
         )
         vocation_stat_modifiers = list(seed.get("vocation_stat_modifiers", []))
         stat_labels = {
@@ -389,19 +466,79 @@ def _build_database(db_path: Path) -> dict[str, int]:
                     "modifier_value": None,
                     "modifier_unit": None,
                     "source_id": table["source_id"],
+                    "corroborating_source_id": None,
                     "locator": f"{table['name']} Overview > Stat Bonuses > {stat_labels[stat_key]}",
+                    "corroborating_locator": None,
                     "confidence": "high",
                     "verification_status": "source_checked",
                 })
 
+        numeric_stat_claims = []
+        stat_keys = vocation_numeric_audit["stat_keys"]
+        for vocation_id, page, costs, dqst_values, dqorg_values, reported_total in vocation_numeric_audit["rows"]:
+            slug = vocation_id.removeprefix("vocation_")
+            for stat_key, dqst_value, dqorg_value in zip(stat_keys, dqst_values, dqorg_values):
+                predicate = f"numeric_stat_modifier_{stat_key}"
+                for publisher, value, source_id, locator in (
+                    ("dqst", dqst_value, "dqst_vocation_tables", f"{page} > Stat modifiers > {stat_key}"),
+                    ("dqorg", dqorg_value, "dragonquestorg_vocation_pages", f"{page} > Dragon Quest VII Reimagined > Stat Changes > {stat_key}"),
+                ):
+                    numeric_stat_claims.append({
+                        "id": f"claim_{slug}_{predicate}_{publisher}",
+                        "subject_key": f"vocation:{slug}",
+                        "predicate": predicate,
+                        "value": {"percent": value},
+                        "claim_kind": "fact",
+                        "scope": {"game": "DQ7 Reimagined", "platform": "unknown", "patch": "patch_unknown"},
+                        "source_id": source_id,
+                        "locator": locator,
+                        "confidence": "high",
+                        "verification_status": "source_checked_cell_level_numeric_audit",
+                    })
+                if dqst_value == dqorg_value:
+                    vocation_stat_modifiers.append({
+                        "vocation_stat_modifier_id": f"vstatnum_{slug}_{stat_key}",
+                        "vocation_id": vocation_id,
+                        "proficiency_rank": None,
+                        "stat_key": stat_key,
+                        "modifier_direction": None,
+                        "modifier_value": dqst_value,
+                        "modifier_unit": "percent",
+                        "source_id": "dqst_vocation_tables",
+                        "corroborating_source_id": "dragonquestorg_vocation_pages",
+                        "locator": f"{page} > Stat modifiers > {stat_key}",
+                        "corroborating_locator": f"{page} > Dragon Quest VII Reimagined > Stat Changes > {stat_key}",
+                        "confidence": "verified",
+                        "verification_status": "two_independent_current_version_cells_match",
+                    })
+            if costs is not None and sum(costs) != reported_total:
+                for publisher, value, source_id, locator in (
+                    ("dqst", sum(costs), "dqst_vocation_tables", f"{page} > Proficiency > rank 8 cumulative"),
+                    ("dqorg", reported_total, "dragonquestorg_vocation_pages", f"{page} > Dragon Quest VII Reimagined > Stat Changes > Total proficiency points"),
+                ):
+                    numeric_stat_claims.append({
+                        "id": f"claim_{slug}_numeric_mastery_total_{publisher}",
+                        "subject_key": f"vocation:{slug}",
+                        "predicate": "numeric_mastery_total",
+                        "value": {"points": value},
+                        "claim_kind": "fact",
+                        "scope": {"game": "DQ7 Reimagined", "platform": "unknown", "patch": "patch_unknown"},
+                        "source_id": source_id,
+                        "locator": locator,
+                        "confidence": "high",
+                        "verification_status": "source_checked_conflicting_total",
+                    })
+
         connection.executemany(
             """INSERT INTO vocation_stat_modifiers(
                 vocation_stat_modifier_id,vocation_id,proficiency_rank,stat_key,
-                modifier_direction,modifier_value,modifier_unit,source_id,locator,
+                modifier_direction,modifier_value,modifier_unit,source_id,
+                corroborating_source_id,locator,corroborating_locator,
                 confidence,verification_status
             ) VALUES (
                 :vocation_stat_modifier_id,:vocation_id,:proficiency_rank,:stat_key,
-                :modifier_direction,:modifier_value,:modifier_unit,:source_id,:locator,
+                :modifier_direction,:modifier_value,:modifier_unit,:source_id,
+                :corroborating_source_id,:locator,:corroborating_locator,
                 :confidence,:verification_status
             )""",
             vocation_stat_modifiers,
@@ -671,6 +808,55 @@ def _build_database(db_path: Path) -> dict[str, int]:
             )""",
             seed.get("item_aliases", []),
         )
+        connection.executemany(
+            """INSERT INTO equipment_compatibility_audits(
+                audit_id, item_id, source_display_name, mapping_status,
+                agreement_status, allowed_characters_json,
+                source_a_characters_json, source_b_characters_json,
+                source_a_id, source_b_id, mapping_source_id,
+                source_a_locator, source_b_locator, mapping_locator,
+                confidence, verification_status, notes
+            ) VALUES (
+                :audit_id, :item_id, :source_display_name, :mapping_status,
+                :agreement_status, :allowed_characters_json,
+                :source_a_characters_json, :source_b_characters_json,
+                :source_a_id, :source_b_id, :mapping_source_id,
+                :source_a_locator, :source_b_locator, :mapping_locator,
+                :confidence, :verification_status, :notes
+            )""",
+            [
+                {
+                    **row,
+                    "allowed_characters_json": (
+                        json.dumps(row["allowed_characters"], ensure_ascii=False, sort_keys=True)
+                        if row.get("allowed_characters") is not None else None
+                    ),
+                    "source_a_characters_json": json.dumps(
+                        row.get("source_a_characters", []), ensure_ascii=False, sort_keys=True
+                    ),
+                    "source_b_characters_json": (
+                        json.dumps(row["source_b_characters"], ensure_ascii=False, sort_keys=True)
+                        if row.get("source_b_characters") is not None else None
+                    ),
+                }
+                for row in equipment_compatibility_audits
+            ],
+        )
+        compatibility_rows = []
+        for row in equipment_compatibility_audits:
+            if row["agreement_status"] != "two_source_agreement":
+                continue
+            allowed = set(row["allowed_characters"])
+            compatibility_rows.extend(
+                (row["item_id"], character, int(character in allowed), row["audit_id"])
+                for character in ("Hero", "Kiefer", "Maribel", "Ruff", "Aishe", "Sir Mervyn")
+            )
+        connection.executemany(
+            """INSERT INTO equipment_compatibility(
+                item_id, character_name, can_equip, audit_id
+            ) VALUES (?, ?, ?, ?)""",
+            compatibility_rows,
+        )
 
         connection.executemany(
             """INSERT INTO achievement_requirements(
@@ -922,7 +1108,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
         )):
             raise ValueError("Typed acquisition detail does not match its parent method")
 
-        for claim in seed["claims"]:
+        for claim in [*seed["claims"], *numeric_stat_claims]:
             connection.execute(
                 """INSERT INTO claims(
                     claim_id, subject_key, predicate, value_json, claim_kind,
@@ -1040,6 +1226,7 @@ def _build_database(db_path: Path) -> dict[str, int]:
         counts = {}
         for table in (
             "sources", "entities", "relationships", "claims", "documents", "equipment_rules",
+            "equipment_compatibility_audits", "equipment_compatibility",
             "vocations", "vocation_requirements", "vocation_rank_skills", "vocation_perks",
             "vocation_progression_rules", "vocation_rank_costs", "vocation_stat_modifiers", "medal_rewards", "missables",
             "farming_spots", "seed_effects", "seed_reward_rules",

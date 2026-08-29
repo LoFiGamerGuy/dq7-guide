@@ -59,8 +59,10 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 494)
+        self.assertEqual(self.counts["sources"], 515)
         self.assertEqual(self.counts["equipment_rules"], 2)
+        self.assertEqual(self.counts["equipment_compatibility_audits"], 237)
+        self.assertEqual(self.counts["equipment_compatibility"], 714)
         self.assertEqual(self.counts["vocations"], 26)
         self.assertEqual(self.counts["medal_rewards"], 19)
         self.assertEqual(self.counts["missables"], 7)
@@ -73,6 +75,42 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["item_aliases"], 4)
         self.assertEqual(self.counts["item_acquisition_paths"], 747)
         self.assertEqual(self.counts["monster_hearts"], 46)
+
+    def test_equipment_compatibility_requires_two_source_row_agreement(self):
+        cypress = self.connection.execute(
+            """SELECT agreement_status, allowed_characters_json,
+                source_a_characters_json, source_b_characters_json
+            FROM equipment_compatibility_audits
+            WHERE item_id='item_cypress_stick'"""
+        ).fetchone()
+        self.assertEqual(cypress["agreement_status"], "source_disagreement")
+        self.assertIsNone(cypress["allowed_characters_json"])
+        self.assertNotEqual(cypress["source_a_characters_json"],
+                            cypress["source_b_characters_json"])
+        self.assertEqual(self.connection.execute(
+            "SELECT COUNT(*) FROM equipment_compatibility WHERE item_id='item_cypress_stick'"
+        ).fetchone()[0], 0)
+
+        cautery = self.connection.execute(
+            """SELECT a.agreement_status, e.character_name, e.can_equip
+            FROM equipment_compatibility_audits a
+            JOIN equipment_compatibility e USING(item_id)
+            WHERE a.item_id='item_cautery_sword'
+            ORDER BY e.character_name"""
+        ).fetchall()
+        self.assertEqual(len(cautery), 6)
+        self.assertTrue(all(row["agreement_status"] == "two_source_agreement"
+                            for row in cautery))
+        allowed = {row["character_name"] for row in cautery if row["can_equip"]}
+        self.assertEqual(allowed, {"Hero", "Aishe", "Sir Mervyn"})
+
+        singles = self.connection.execute(
+            """SELECT item_id, source_b_id FROM equipment_compatibility_audits
+            WHERE agreement_status='single_source' ORDER BY item_id"""
+        ).fetchall()
+        self.assertEqual([row["item_id"] for row in singles],
+                         ["item_metal_king_armour", "item_party_dress"])
+        self.assertTrue(all(row["source_b_id"] is None for row in singles))
         self.assertEqual(self.counts["seed_effects"], 18)
         self.assertEqual(self.counts["seed_reward_rules"], 1)
         self.assertEqual(self.counts["shops"], 47)
@@ -88,7 +126,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["achievements"], 61)
         self.assertEqual(self.counts["achievement_aliases"], 1)
         self.assertEqual(self.counts["achievement_requirements"], 29)
-        self.assertEqual(self.counts["vocation_rank_costs"], 7)
+        self.assertEqual(self.counts["vocation_rank_costs"], 161)
 
     def test_achievement_registry_is_complete_and_checkpoint_scoped(self):
         counts = dict(
@@ -1028,6 +1066,23 @@ class KnowledgeBaseTests(unittest.TestCase):
         )
         state = json.loads(state_path.read_text(encoding="utf-8"))
         self.assertEqual(state["completion"]["tablet_fragments"], [])
+
+    def test_player_progress_tracks_canonical_monster_hearts_reversibly(self):
+        state_path = Path(self.tempdir.name) / "heart-progress.json"
+        state_path.write_text(
+            (ROOT / "player" / "ryan-save-state.json").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        original = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertNotIn("monster_hearts_owned", original["completion"])
+        update_progress(state_path, self.db_path, "heart-obtained", ["heart_slime"])
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["monster_hearts_owned"], ["heart_slime"])
+        update_progress(state_path, self.db_path, "heart-undo", ["heart_slime"])
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["completion"]["monster_hearts_owned"], [])
+        with self.assertRaisesRegex(ValueError, "Unknown Monster Heart"):
+            update_progress(state_path, self.db_path, "heart-obtained", ["heart_fake"])
 
     def test_player_progress_tracks_party_wide_vocation_mastery(self):
         state_path = Path(self.tempdir.name) / "vocation-progress.json"
@@ -2628,6 +2683,56 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertTrue(all(row[3] != row[4] for row in rows))
         self.assertTrue(all(row[5] == "two_independent_current_version_tables_match" for row in rows))
 
+    def test_numeric_vocation_rank_costs_are_cell_level_corroborated(self):
+        rows = self.connection.execute(
+            """SELECT vocation_id, proficiency_rank, proficiency_points,
+                cumulative_points, source_id, corroborating_source_id,
+                locator, corroborating_locator, verification_status
+            FROM vocation_rank_costs ORDER BY vocation_id, proficiency_rank"""
+        ).fetchall()
+        self.assertEqual(len(rows), 161)
+        self.assertEqual(len({row[0] for row in rows}), 23)
+        self.assertTrue(all(row[1] in range(2, 9) and row[2] > 0 for row in rows))
+        self.assertTrue(all(row[4] != row[5] for row in rows))
+        self.assertTrue(all(row[6].strip() and row[7].strip() for row in rows))
+        self.assertTrue(all(
+            row[8] == "two_independent_current_version_tables_match" for row in rows
+        ))
+        for vocation_id in {row[0] for row in rows}:
+            ladder = [row for row in rows if row[0] == vocation_id]
+            self.assertEqual([row[1] for row in ladder], list(range(2, 9)))
+            cumulative = 0
+            for row in ladder:
+                cumulative += row[2]
+                self.assertEqual(row[3], cumulative)
+
+    def test_numeric_stat_cells_separate_matches_from_conflicts(self):
+        verified = self.connection.execute(
+            """SELECT modifier_value, modifier_unit, source_id,
+                corroborating_source_id, locator, corroborating_locator,
+                confidence, verification_status
+            FROM vocation_stat_modifiers WHERE modifier_value IS NOT NULL"""
+        ).fetchall()
+        self.assertEqual(len(verified), 162)
+        self.assertTrue(all(row[1] == "percent" for row in verified))
+        self.assertTrue(all(row[2] != row[3] for row in verified))
+        self.assertTrue(all(row[4].strip() and row[5].strip() for row in verified))
+        self.assertTrue(all(row[6] == "verified" for row in verified))
+        self.assertTrue(all(
+            row[7] == "two_independent_current_version_cells_match" for row in verified
+        ))
+        stat_conflicts = self.connection.execute(
+            """SELECT COUNT(*) FROM conflicts
+            WHERE conflict_key LIKE '%|numeric_stat_modifier_%' AND status='unresolved'"""
+        ).fetchone()[0]
+        self.assertEqual(stat_conflicts, 72)
+        jester_total = self.connection.execute(
+            """SELECT COUNT(*) FROM conflicts
+            WHERE conflict_key LIKE 'vocation:jester|numeric_mastery_total|%'
+              AND status='unresolved'"""
+        ).fetchone()[0]
+        self.assertEqual(jester_total, 1)
+
     def test_lucky_panel_attempt_rule_preserves_unknown_cost(self):
         row = self.connection.execute(
             """SELECT max_attempts_per_day, reset_action, entry_cost, currency,
@@ -2666,7 +2771,8 @@ class KnowledgeBaseTests(unittest.TestCase):
             rows = self.connection.execute(
                 """SELECT stat_key, modifier_direction, modifier_value,
                     proficiency_rank, locator, source_id
-                FROM vocation_stat_modifiers WHERE vocation_id=?""",
+                FROM vocation_stat_modifiers
+                WHERE vocation_id=? AND modifier_value IS NULL""",
                 (vocation_id,),
             ).fetchall()
             self.assertEqual(len(rows), 11)
@@ -2678,7 +2784,8 @@ class KnowledgeBaseTests(unittest.TestCase):
 
         champion_resilience = self.connection.execute(
             """SELECT modifier_direction FROM vocation_stat_modifiers
-            WHERE vocation_id='vocation_champion' AND stat_key='resilience'"""
+            WHERE vocation_id='vocation_champion' AND stat_key='resilience'
+              AND modifier_value IS NULL"""
         ).fetchone()[0]
         self.assertEqual(champion_resilience, "normal")
 
@@ -2694,7 +2801,8 @@ class KnowledgeBaseTests(unittest.TestCase):
             rows = self.connection.execute(
                 """SELECT stat_key, modifier_direction, modifier_value,
                     proficiency_rank, locator, source_id
-                FROM vocation_stat_modifiers WHERE vocation_id=?""",
+                FROM vocation_stat_modifiers
+                WHERE vocation_id=? AND modifier_value IS NULL""",
                 (vocation_id,),
             ).fetchall()
             self.assertEqual(len(rows), 11)
@@ -2707,7 +2815,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         shepherd = dict(
             self.connection.execute(
                 """SELECT stat_key, modifier_direction FROM vocation_stat_modifiers
-                WHERE vocation_id='vocation_shepherd'"""
+                WHERE vocation_id='vocation_shepherd' AND modifier_value IS NULL"""
             ).fetchall()
         )
         self.assertEqual(shepherd["max_hp"], "increased")
