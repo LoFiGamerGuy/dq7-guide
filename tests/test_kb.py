@@ -60,7 +60,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 681)
+        self.assertEqual(self.counts["sources"], 682)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -2620,13 +2620,13 @@ class KnowledgeBaseTests(unittest.TestCase):
             GROUP BY method ORDER BY method"""
         ).fetchall()
         self.assertEqual({row["method"]: row["row_count"] for row in rows},
-                         {"chest": 5, "other": 17})
+                         {"chest": 3, "other": 18})
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
-        self.assertIn("22 acquisition rows", status)
-        self.assertIn("17 broad area/reward-style `other` routes and five chest routes",
+        self.assertIn("21 acquisition rows", status)
+        self.assertIn("18 broad or grouped-container `other` routes and three chest routes",
                       status)
-        self.assertIn("22 broader acquisition rows", handoff)
+        self.assertIn("21 broader acquisition rows", handoff)
 
     def test_walkthrough_refines_four_broad_routes_without_inventing_containers(self):
         expected = {
@@ -2710,6 +2710,31 @@ class KnowledgeBaseTests(unittest.TestCase):
                 'claim_drakulard_heart_exact_chest_ngb')"""
         ).fetchone()[0]
         self.assertEqual(claim_count, 4)
+
+    def test_hubble_container_semantics_keep_group_member_unknown(self):
+        princess = self.connection.execute(
+            """SELECT method, source_id, locator, prerequisite_json,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id='acq_princesss_robe_hubble_castle_past'"""
+        ).fetchone()
+        self.assertEqual(princess["method"], "chest")
+        self.assertEqual(princess["source_id"], "ngb_magic_key_chests")
+        self.assertIn("Chest #7", princess["locator"])
+        self.assertEqual(json.loads(princess["prerequisite_json"])["key"],
+                         "Magic Key")
+        self.assertNotIn("container_unspecified",
+                         princess["verification_status"])
+        tuxedo = self.connection.execute(
+            """SELECT method, source_id, prerequisite_json, verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id='acq_silk_tuxedo_hubble_castle_past'"""
+        ).fetchone()
+        self.assertEqual(tuxedo["method"], "other")
+        self.assertEqual(tuxedo["source_id"], "neoseeker_hubble_castle")
+        details = json.loads(tuxedo["prerequisite_json"])
+        self.assertEqual(details["container_group"], "dressers")
+        self.assertEqual(details["individual_member"], "unknown")
+        self.assertIn("container_unspecified", tuxedo["verification_status"])
 
     def test_walkthrough_refines_postgame_routes_without_inventing_containers(self):
         expected = {
@@ -2812,8 +2837,8 @@ class KnowledgeBaseTests(unittest.TestCase):
                          "direct_video_exact_container_two_source_route")
         handoff = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
         status = (ROOT / "INGEST_STATUS.md").read_text(encoding="utf-8")
-        self.assertIn("22 broader acquisition rows", handoff)
-        self.assertIn("22 acquisition rows still deliberately carry",
+        self.assertIn("21 broader acquisition rows", handoff)
+        self.assertIn("21 acquisition rows still deliberately carry",
                       status)
         self.assertNotIn("browser's seven-item", status)
         corroborating = self.connection.execute(
