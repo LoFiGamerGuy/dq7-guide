@@ -2,6 +2,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+node_modules/
+test-results/
+playwright-report/
 data/*.sqlite-wal
 data/*.sqlite-shm
 sources/raw/

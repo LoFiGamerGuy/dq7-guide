@@ -93,9 +93,10 @@ The browser scopes farms to the checkpoint currently being viewed and classifies
 Hearts as available, later, or unknown from that checkpoint rather than treating
 every future-gated Heart as available now.
 
-Rendered mobile screenshots are not part of the current automated evidence: the
-workspace has no Chrome, Chromium, Edge, Firefox, Playwright, Puppeteer, Selenium,
-or equivalent browser runtime installed. Phone behavior is covered by HTTP tests,
-JavaScript syntax validation, and DOM/CSS contracts at the 360px portrait and
-coarse-pointer landscape breakpoints. A real-device visual pass remains useful;
-the repository does not claim pixel-level rendered verification.
+Playwright Chromium now runs paired-host rendering smoke tests at 360x800 portrait
+and 844x390 landscape. The checks exercise live API health and pairing rejection,
+STOP-before-power ordering, the prominent Next power move, horizontal overflow,
+the fixed play bar, and 44px play-bar targets. CI installs the pinned browser and
+its Linux dependencies. This is automated Chromium viewport coverage, not a claim
+of physical-phone, mobile Safari, or pixel-identical device verification; a
+real-device visual pass remains useful.

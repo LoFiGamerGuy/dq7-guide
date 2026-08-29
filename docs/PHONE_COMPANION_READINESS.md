@@ -8,6 +8,7 @@
 | Live play | Responsive walkthrough, thumb controls, direct validated writes, visible save failures and undo | Ready |
 | Backup | Download link on Dashboard, Phone Setup, and Progress | Ready while host is reachable |
 | Restore/recovery | File validation, explicit confirmation, atomic replacement, timestamped pre-restore copy | Ready; recovery files stay on host |
+| Rendered phone layout | Playwright Chromium at 360x800 and 844x390 against a paired live server and disposable state copy | Automated smoke ready; physical phone/mobile Safari pass remains manual |
 | Diagnostics | Startup readiness timeout plus `status`, `logs`, and `doctor`; in-app connection/security/write status requires actual host reachability before reporting direct writes | Ready |
 | Cleanup | `stop`, removable shortcut, ignored repo-local runtime files, no root/service/autostart | Ready |
 | Offline/PWA | Service worker only on secure origins; paired player data is always network-only, while the cached shell contains no authorized API snapshot; LAN HTTP is explicitly online-only | Intentional privacy/browser limitation |

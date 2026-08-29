@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test:phone-render": "playwright test tests/rendered_phone.spec.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}
