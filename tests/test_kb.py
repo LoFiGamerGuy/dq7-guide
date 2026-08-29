@@ -59,7 +59,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 604)
+        self.assertEqual(self.counts["sources"], 606)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -69,7 +69,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual(self.counts["missables"], 7)
         self.assertEqual(self.counts["mini_medal_locations"], 100)
         self.assertEqual(self.counts["checkpoint_obligations"], 223)
-        self.assertEqual(self.counts["checkpoint_advice"], 111)
+        self.assertEqual(self.counts["checkpoint_advice"], 112)
         self.assertEqual(self.counts["boss_skill_recommendations"], 9)
         self.assertEqual(self.counts["mini_medal_evidence"], 100)
         self.assertEqual(self.counts["item_categories"], 6)
@@ -637,6 +637,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         allowed = {record["character_name"] for record in legality
                    if record["can_equip"]}
         self.assertEqual(allowed, {"Hero", "Aishe", "Sir Mervyn"})
+
+    def test_cp020_liquid_metal_grind_is_two_source_and_optional(self):
+        row = self.connection.execute(
+            "SELECT applicability_json, confidence FROM checkpoint_advice "
+            "WHERE advice_id='advice_cp020_liquid_metal_grind'"
+        ).fetchone()
+        applicability = json.loads(row["applicability_json"])
+        self.assertEqual(row["confidence"], "verified")
+        self.assertTrue(applicability["optional"])
+        self.assertIn("no published numeric ceiling", applicability["ceiling"])
+        ids = applicability["evidence_claim_ids"]
+        claims = self.connection.execute(
+            f"SELECT predicate, value_json, source_id FROM claims WHERE claim_id IN ({','.join('?' for _ in ids)})",
+            ids,
+        ).fetchall()
+        self.assertEqual(len(claims), 4)
+        for predicate in ("recommended_midgame_farm_locations",
+                          "recommended_farm_tactics"):
+            rows = [claim for claim in claims if claim["predicate"] == predicate]
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(len({claim["source_id"] for claim in rows}), 2)
+            self.assertEqual(len({claim["value_json"] for claim in rows}), 1)
 
     def test_boss_skill_recommendations_keep_tactic_evidence_distinct(self):
         rows = self.connection.execute(
@@ -3128,6 +3150,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             "advice_cp005_fixed_weapon_sweep",
             "advice_cp007_tinpot_dictator", "advice_cp007_slaughtomaton",
             "advice_cp007_windcheater_spike", "advice_cp008_florin",
+            "advice_cp008_magic_shield_spike",
             "advice_cp008_guardians_roamers",
             "advice_cp009_hero_practical_gear",
             "advice_cp009_ruff_practical_gear",

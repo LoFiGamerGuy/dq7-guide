@@ -1071,6 +1071,18 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("no universal boss best-in-slot",
                       whip["applicability"]["tradeoff"])
 
+        platinum = next(row for row in _checkpoint_view(
+            db_path, self.state, "cp_032_yet_another_world",
+        )["advice"] if row["id"] == "advice_cp032_platinum_king_grind")
+        self.assertEqual(platinum["evidence"]["tier"],
+                         "two_source_core_single_source_extras")
+        self.assertEqual(
+            {claim["source_id"] for claim in platinum["evidence"]["claims"]},
+            {"game8_exp_farming", "gamewith_exp_farming"},
+        )
+        self.assertEqual(platinum["applicability"]["rate"], "unknown")
+        self.assertEqual(platinum["applicability"]["time_to_level"], "unknown")
+
     def test_cp016_power_route_waits_for_explicit_moonlighting_checkpoint(self):
         state_path = Path(self.temp.name) / "checkpoint-gated-power.json"
         db_path = Path(self.temp.name) / "checkpoint-gated-power.sqlite"

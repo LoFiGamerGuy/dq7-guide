@@ -60,6 +60,15 @@ class RainiacHybrisEvidenceTests(unittest.TestCase):
         self.assertFalse(self.advice["advice_cp009_maribel_practical_gear"]["applicability"]["full_build_available"])
         self.assertIn("conditional", self.advice["advice_cp010_steel_helmet_panel"]["verification_status"])
 
+    def test_magic_shield_phone_row_uses_verified_equipped_effects(self):
+        row = self.advice["advice_cp008_magic_shield_spike"]
+        linked = [self.claims[claim_id] for claim_id in row["applicability"]["evidence_claim_ids"]]
+        self.assertGreaterEqual(len({self.sources[claim["source_id"]]["publisher"] for claim in linked}), 4)
+        self.assertTrue(all(claim["confidence"] == "verified" for claim in linked))
+        self.assertIn("5% less elemental damage", row["advice_text"])
+        self.assertNotIn("use it in battle", row["advice_text"].lower())
+        self.assertIn("no_battle_use_claim", row["verification_status"])
+
 
 if __name__ == "__main__":
     unittest.main()
