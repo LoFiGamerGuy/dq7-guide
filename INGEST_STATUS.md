@@ -895,3 +895,12 @@ for that character and slot has the same verified dimension. Expired routes are
 excluded, route prerequisites remain visible but are not inferred from player
 state, publisher count—not page count—controls stat corroboration, and no
 weighted score is invented for elemental, utility, cost, or finite-copy tradeoffs.
+
+The first residual route-refinement batch narrows six broad acquisitions using
+the registered current-version RPG Site walkthrough: Gold Bracer to Temple
+Palace's hidden throne room, Fishnet Stockings to the Allblades Arena north room,
+Mermaid Moon to Wetlock's west treasure room, Healslime Heart to Grotta del
+Sigillo 2F, and Day Off Dress plus Drakulard Heart to Another World's northeast
+cave/Bandits' Base branch. Each row now carries the exact walkthrough locator.
+All six deliberately retain `container_unspecified`; room or branch evidence is
+not promoted to an individual chest, drawer, wardrobe, or pickup claim.

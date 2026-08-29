@@ -2628,6 +2628,38 @@ class KnowledgeBaseTests(unittest.TestCase):
                       status)
         self.assertIn("28 broader acquisition rows", handoff)
 
+    def test_walkthrough_refines_six_broad_routes_without_inventing_containers(self):
+        expected = {
+            "acq_gold_bracer_temple_palace_past": (
+                "Temple Palace hidden room behind Queen Fertiti's throne",
+                "hidden room behind throne"),
+            "acq_fishnet_stockings_allblades_arena": (
+                "Allblades Arena north room", "Allblades Arena (Past) > Items"),
+            "acq_mermaid_moon_wetlock_treasure": (
+                "Wetlock west treasure room", "west treasure room"),
+            "acq_healslime_heart_grotto_del_silgillo": (
+                "Grotta del Sigillo 2F", "Grotta del Sigillo (Present)"),
+            "acq_day_off_dress_another_world": (
+                "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
+            "acq_drakulard_heart_another_world": (
+                "Another World northeast cave (Bandits' Base)", "NE Cave (Bandit's Base)"),
+        }
+        placeholders = ",".join("?" for _ in expected)
+        rows = self.connection.execute(
+            f"""SELECT acquisition_id, location_text, source_id, locator,
+                verification_status
+            FROM item_acquisition_paths
+            WHERE acquisition_id IN ({placeholders})""",
+            tuple(expected),
+        ).fetchall()
+        self.assertEqual(len(rows), len(expected))
+        for row in rows:
+            location, locator_fragment = expected[row["acquisition_id"]]
+            self.assertEqual(row["location_text"], location)
+            self.assertEqual(row["source_id"], "rpgsite_walkthrough")
+            self.assertIn(locator_fragment, row["locator"])
+            self.assertIn("container_unspecified", row["verification_status"])
+
     def test_previously_unknown_shop_prices_are_typed_and_sourced(self):
         rows = self.connection.execute(
             """SELECT a.acquisition_id, a.method, a.source_id, si.price
