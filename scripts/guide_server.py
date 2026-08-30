@@ -1241,6 +1241,14 @@ def _sources(db_path: Path, query: dict) -> dict:
 
 def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> dict:
     gaps = json.loads(audit_path.read_text(encoding="utf-8"))
+    priority = {
+        "gap_repeatable_monster_hearts": 1,
+        "gap_achievement_counter_semantics": 2,
+        "gap_duplicate_equipment_stacking": 3,
+        "gap_lucky_panel_probabilities": 4,
+        "gap_reproducible_farm_rates": 5,
+        "gap_blue_button_cutoff": 6,
+    }
     source_rows = {row["source_id"]: row for row in _rows(db_path, """SELECT
         source_id, title, publisher, url, source_class, updated_at, retrieved_at
         FROM sources""")}
@@ -1258,6 +1266,7 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
                                     "over_180_days" if age > 180 else
                                     "within_180_days")
     for gap in gaps:
+        gap["priority"] = priority.get(gap["gap_id"], len(priority) + 1)
         missing = [source_id for source_id in gap["source_ids"]
                    if source_id not in source_rows]
         if missing:
@@ -1297,6 +1306,7 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
                            for source in gap["sources"]) else
             "current_retrieval"
         )
+    gaps.sort(key=lambda gap: (gap["priority"], gap["gap_id"]))
     conflict_rows = _rows(db_path, """SELECT ca.predicate, COUNT(*) AS count
         FROM conflicts c JOIN claims ca ON ca.claim_id=c.claim_a_id
         WHERE c.status='unresolved'
@@ -1310,6 +1320,9 @@ def _evidence_gaps(db_path: Path, audit_path: Path = DEFAULT_EVIDENCE_GAPS) -> d
         "single_source": sum(gap["verification_tier"] == "single_source" for gap in gaps),
         "unsupported": sum(gap["verification_tier"] == "unsupported" for gap in gaps),
         "corroborated_but_unresolved": sum(
+            gap["verification_tier"] == "corroborated_but_unresolved" for gap in gaps
+        ),
+        "multi_publisher_partial_evidence": sum(
             gap["verification_tier"] == "corroborated_but_unresolved" for gap in gaps
         ),
         "unresolved_conflicts": sum(row["count"] for row in conflict_rows),

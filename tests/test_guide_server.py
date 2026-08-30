@@ -503,6 +503,18 @@ class GuideServerTests(unittest.TestCase):
         self.assertEqual(audit["single_source"], 1)
         self.assertEqual(audit["unsupported"], 0)
         self.assertEqual(audit["corroborated_but_unresolved"], 5)
+        self.assertEqual(audit["multi_publisher_partial_evidence"], 5)
+        self.assertEqual(
+            [gap["gap_id"] for gap in audit["gaps"]],
+            ["gap_repeatable_monster_hearts",
+             "gap_achievement_counter_semantics",
+             "gap_duplicate_equipment_stacking",
+             "gap_lucky_panel_probabilities",
+             "gap_reproducible_farm_rates",
+             "gap_blue_button_cutoff"],
+        )
+        self.assertEqual([gap["priority"] for gap in audit["gaps"]],
+                         [1, 2, 3, 4, 5, 6])
         self.assertEqual(audit["unresolved_conflicts"], sum(
             row["count"] for row in audit["unresolved_conflicts_by_predicate"]
         ))

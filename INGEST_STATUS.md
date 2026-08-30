@@ -88,7 +88,9 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 3. Normalize Lucky Panel probabilities and numeric farming/drop/encounter rates only from a published algorithm or reproducible, patch-scoped measurements.
 
 The phone Sources view now mirrors the remaining six-item evidence-blocked
-queue: 1 single-source, 0 unsupported, and 5 corroborated-but-unresolved rows.
+queue: 1 row with one publisher on partial evidence, 0 unsupported, and 5 rows
+with multi-publisher partial or negative evidence. Every card remains explicitly
+unresolved, and API priority order now matches the maintained residual order.
 
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 

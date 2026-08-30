@@ -148,9 +148,11 @@ save-tested evidence. `source_count` and `publisher_count` report all audited pa
 locator-linked atomic claims. The latter publisher count exclusively determines
 single- versus multi-publisher tiering.
 
-The phone view renders `verification_tier` as evidence strength (`1 claim publisher`, `No
-publishable source`, or `N claim publishers · still unresolved`) separately from the
-row's residual `status`. Cards start collapsed; the open-question label remains in
+The phone view renders `verification_tier` as partial-evidence strength (`1 publisher
+on partial evidence`, `No publishable source`, or `N publishers on partial/negative
+evidence`) separately from the row's residual `status`; these labels never imply
+that the missing proposition itself is corroborated. Cards are sorted by the API's
+explicit `priority` and start collapsed; the open-question label remains in
 the summary, while expansion shows the acceptance condition, supporting-claim URLs
 and locators, separately labelled additional audited pages, freshness, and audit
 date. Corroboration is never presented as resolution.
