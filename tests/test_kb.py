@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 706)
+        self.assertEqual(self.counts["sources"], 708)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1541,10 +1541,14 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(conflict["status"], "unresolved")
 
-    def test_early_slime_and_golem_hearts_have_two_source_exact_chests(self):
+    def test_fixed_monster_hearts_have_two_source_exact_chests(self):
         expected = {
             "acq_slime_heart_rainbow_mines": ("B5", "northeast"),
             "acq_golem_heart_the_tower": ("5F", "Red Fragment"),
+            "acq_goon_heart_cave_leading_to_the_dungeon":
+                ("B2", "south branch"),
+            "acq_very_devil_heart_falls_hollow":
+                ("1F", "second room", "north"),
         }
         for acquisition_id, fragments in expected.items():
             route = self.connection.execute(
