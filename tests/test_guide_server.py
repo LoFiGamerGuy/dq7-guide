@@ -576,14 +576,15 @@ class GuideServerTests(unittest.TestCase):
         self.assertIn("rematch", by_id["gap_repeatable_monster_hearts"]
                       ["acceptance_condition"])
         hearts = by_id["gap_repeatable_monster_hearts"]
-        self.assertEqual(hearts["source_count"], 8)
-        self.assertEqual(len(hearts["supporting_claims"]), 5)
-        self.assertEqual(hearts["supporting_claim_source_count"], 5)
-        self.assertEqual(hearts["supporting_claim_publisher_count"], 5)
+        self.assertEqual(hearts["source_count"], 11)
+        self.assertEqual(len(hearts["supporting_claims"]), 8)
+        self.assertEqual(hearts["supporting_claim_source_count"], 8)
+        self.assertEqual(hearts["supporting_claim_publisher_count"], 6)
         self.assertIn("field sparkle", hearts["summary"])
-        self.assertIn("does not establish a second copy",
+        self.assertIn("after the first clear",
                       hearts["acceptance_condition"])
-        self.assertIn("verified finite", hearts["acceptance_condition"])
+        self.assertIn("Almighty rematch", hearts["acceptance_condition"])
+        self.assertIn("arena rewards", hearts["acceptance_condition"])
         _, troll = self.get_json("/api/monster-hearts/heart_troll")
         self.assertEqual(troll["available_from_checkpoint_id"], "cp_019_aeolus")
 

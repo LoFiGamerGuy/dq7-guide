@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 717)
+        self.assertEqual(self.counts["sources"], 720)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3606,6 +3606,23 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual({row["publisher"] for row in publishers},
                          {"Game8", "Neoseeker"})
+
+    def test_repeatable_heart_gap_preserves_direct_negative_boundaries(self):
+        rows = self.connection.execute(
+            """SELECT c.claim_id, c.value_json, c.locator, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.claim_id IN (?,?,?) ORDER BY c.claim_id""",
+            ("claim_numen_heart_initial_only_gamewith",
+             "claim_arena_rewards_one_time_gamershigh",
+             "claim_strong_monsters_finite_appmedia"),
+        ).fetchall()
+        self.assertEqual(len(rows), 3)
+        self.assertEqual({row["publisher"] for row in rows},
+                         {"GameWith", "Gamers-High", "AppMedia"})
+        combined = " ".join(row["value_json"] + " " + row["locator"]
+                            for row in rows).lower()
+        for fragment in ("numen heart", "subsequent", "one time", "disappear"):
+            self.assertIn(fragment, combined)
 
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
