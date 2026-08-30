@@ -3585,6 +3585,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual({row["publisher"] for row in publishers},
                          {"RPG Site", "Neoseeker"})
 
+    def test_heavens_talon_is_post_xenlon_orange_sparkle(self):
+        acquisition_id = "acq_heavens_talon_yet_another_world"
+        route = self.connection.execute(
+            """SELECT method, route_label, location_text, prerequisite_json,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id=?""", (acquisition_id,)
+        ).fetchone()
+        combined = " ".join((route["route_label"], route["location_text"],
+                             route["prerequisite_json"])).lower()
+        self.assertEqual(route["method"], "other")
+        for fragment in ("xenlon", "church", "orange sparkle", "where xenlon stood"):
+            self.assertIn(fragment, combined)
+        self.assertIn("two_independent", route["verification_status"])
+        publishers = self.connection.execute(
+            """SELECT DISTINCT s.publisher FROM claims c
+            JOIN sources s USING(source_id)
+            WHERE c.subject_key=? AND c.predicate='precise_location_description'""",
+            (f"acquisition:{acquisition_id}",),
+        ).fetchall()
+        self.assertEqual({row["publisher"] for row in publishers},
+                         {"Game8", "Neoseeker"})
+
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
             """SELECT i.name, a.locator, a.available_from_checkpoint_id,

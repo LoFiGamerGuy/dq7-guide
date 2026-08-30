@@ -38,7 +38,7 @@ No grouped-container acquisition residual remains. AppMedia's item table and Alt
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,928
+- claims: 1,930
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -93,6 +93,12 @@ queue: 1 single-source, 0 unsupported, and 5 corroborated-but-unresolved rows.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+Heaven's Talon now resolves from a generic Yet Another World entry to the
+orange sparkle where Xenlon stood after the church battle in Familiar Town.
+Game8 and Neoseeker independently instruct the player to collect the ground
+pickup after defeating Xenlon. This establishes the finite post-battle pickup,
+not current ownership or repeatability.
 
 Falcon Knife Earrings now resolve to the isolated Falls Hollow Past 1F west
 chest reached by taking the west path and first/central staircase from B1 before
