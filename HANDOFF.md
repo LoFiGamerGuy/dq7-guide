@@ -40,9 +40,9 @@ Combat/optimization handoff: 116 checkpoint advice rows cover every checkpoint e
 
 All 34 formerly broad Rampaging encounter rows now identify an exact Arena road
 and round. Miry Hand and Miry Mudraker are summon-only members of Furious Road
-round 1. Rampaging Sunken Spirit remains single-source in Simmering Road round 3:
-Gamers-High includes it while RPG Site omits it, and that unresolved roster
-conflict is deliberately visible rather than adjudicated without stronger evidence.
+round 1. Rampaging Sunken Spirit is verified in Simmering Road round 3 by the
+complete Gamers-High and AppMedia rosters plus direct launch-period gameplay.
+RPG Site's two-member list remains visible as an incomplete losing claim.
 
 Heart CLI handoff: an unscoped `heart_report.py` lookup now describes a normalized gate as “route established from …” rather than “availability not yet established.” Checkpoint-scoped lookups retain available/later comparison, DLC entitlement remains explicit, and route existence never implies ownership or repeatability.
 The API and CLI are regression-checked across all 46 Hearts for identical checkpoint gates, current/later/unknown state, and DLC entitlement handling. API list rows carry the exact source and locator for both Heart-native and item-route-derived gates, and the phone links that provenance beside the earliest verified gate; this does not promote the route to repeatable.

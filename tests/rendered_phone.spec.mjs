@@ -138,7 +138,7 @@ for (const viewport of [
     await expect(gapCards).toHaveCount(6);
     await expect(page.locator(".evidence-gap-card[open]")).toHaveCount(0);
     await expect(page.locator("#evidenceGaps")).toContainText("5 corroborated but unresolved");
-    await expect(page.locator("#evidenceGaps")).toContainText("Separate conflict ledger: 1 unresolved");
+    await expect(page.locator("#evidenceGaps")).toContainText("Separate conflict ledger: 0 unresolved");
     await expect(page.locator("#evidenceGaps")).toContainText("Comparable benchmark still missing");
     await expect(page.locator("#evidenceGaps")).toContainText("1 single-source");
     await expect(page.locator("#evidenceGaps")).toContainText("0 unsupported");

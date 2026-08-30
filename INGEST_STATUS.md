@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 711 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 713 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -24,21 +24,21 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 | Monster Hearts | 46/46 normalized Hearts with sourced effects; 41/46 surface shared-item acquisition routes; Dragonlord, Malroth, and Zoma have independently corroborated DLC Arena thresholds and cp020 gates; dedicated reversible Heart and three-state DLC-entitlement ledgers in CLI/API/browser | High for effects and published routes; unreported entitlement/Heart ownership remains unknown; numeric drop rates and repeatable Heart routes remain unknown | Resolve a genuinely repeatable Heart route only from explicit rematch/respawn evidence |
 | Achievements | 61/61 identities; 29/29 non-story requirements; explicit player tracking; successful quick-win event units, individual-monster units, in-battle wins, lifetime-gold semantics, and the four-member metal-family roster normalized | High for identities, thresholds, and verified units; cross-counter overlap and persistence remain unknown | Resolve quick-win overlap and save/reset scope through controlled deltas or direct documentation |
 | Tablets / fragments | 20/20 tablets and 71/71 numbered fragments; explicit progress tracking | High; final Gold-pedestal unlock has two independent current-version walkthroughs | Preserve exact fragment locators and final-unlock evidence |
-| Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; all 34 Rampaging forms have exact road/round routes; 15 Vicious Monster List entries routed | High except Rampaging Sunken Spirit's Simmering Round 3 placement, which is single-source against an English roster omission; Scarewell's fixed Past route remains corroborated | Keep the Sunken Spirit roster conflict visible; preserve PS5-only reset scope and do not infer numeric rates |
+| Monster List / Vicious | 333/333 ordinals and English names; 476 gated locations cover 333/333 monsters and 227 drops across 196 monsters; all 34 Rampaging forms have exact road/round routes; 15 Vicious Monster List entries routed | High; Rampaging Sunken Spirit's Simmering Round 3 placement now has two complete rosters plus direct gameplay; Scarewell's fixed Past route remains corroborated | Preserve PS5-only reset scope and do not infer numeric rates |
 | Player state | Schema and empty Ryan state; optional exact item-copy totals with quantity-safe global equipment allocation | Ready, no user data; missing totals remain unknown and duplicate legality is item-specific | Fill only from Ryan's reports; never infer quantities |
-| Conflicts | Automatic exact-scope detection active; 416 claim-pairs total, 415 resolved and 1 unresolved. The open Simmering Round 3 roster conflict preserves Gamers-High's Rampaging Sunken Spirit row against RPG Site's omission | High; every losing or unresolved claim remains visible | Resolve Sunken Spirit only with direct current-version encounter UI/video or another complete roster |
+| Conflicts | Automatic exact-scope detection active; 417 claim-pairs total, all resolved. The Simmering Round 3 roster conflict preserves RPG Site's incomplete two-member list beside the complete rosters and direct gameplay | High; every losing claim remains visible | Preserve conflict visibility and reopen only when genuinely incompatible current evidence appears |
 
 ## Database seed counts
 
 No grouped-container acquisition residual remains. AppMedia's item table and Altema's independently labelled Present throne-room map resolve Ruby of Protection to the bedroom left drawer and 200 gold to the adjacent right drawer.
 
-- sources: 711
+- sources: 713
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,919
+- claims: 1,921
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -60,7 +60,7 @@ No grouped-container acquisition residual remains. AppMedia's item table and Alt
 - shops / inventory rows: 47 / 118
 - Lucky Panel pools / reward rows: 14 / 302
 - searchable documents: 29 (10 curated summaries + 19 reward rows)
-- conflicts: 416 total / 1 unresolved claim-pair / 1 unresolved fact scope
+- conflicts: 417 total / 0 unresolved claim-pairs / 0 unresolved fact scopes
 
 Treat these as build assertions, not completion percentages.
 
@@ -77,9 +77,9 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Tablets:** no identity, fragment-location, locator, or final-unlock gap remains. Game8 and RPG Site independently establish that assembling all eight Gold Fragments at the Shrine of Mysteries Gold Pedestal opens Yet Another World.
 - **Achievements:** no identity or structured non-story requirement gap remains. Massively Minted's lifetime-total semantics, the exact four-member metal-family roster, and one count per successful no-battle quick-win event are independently corroborated. Three questions remain: quick-win overlap with Field Day, quick-win inclusion in Monster Masher/Metal Mangler, and save/reset scope.
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
-- **Conflicts:** 415 of 416 claim-pairs are resolved. The open Simmering Round 3 roster pair preserves Gamers-High's explicit Rampaging Sunken Spirit listing against RPG Site's omission. Fire Blade, Massively Minted, Troll Heart, `Stellar Fan`, fourteen compatibility pairs, Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all prior losing claims beside their resolutions.
+- **Conflicts:** all 417 claim-pairs are resolved. The Simmering Round 3 roster pairs preserve RPG Site's incomplete two-member list beside Gamers-High, AppMedia, and direct gameplay showing Rampaging Sunken Spirit. Fire Blade, Massively Minted, Troll Heart, `Stellar Fan`, fourteen compatibility pairs, Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all prior losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 711 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 713 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -93,6 +93,12 @@ queue: 1 single-source, 0 unsupported, and 5 corroborated-but-unresolved rows.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The Rampaging Sunken Spirit adjudication closes the last unresolved fact scope.
+AppMedia's complete, explicitly multi-platform Simmering Road roster and direct
+launch-period gameplay independently match Gamers-High: round 3 starts with both
+Gracos forms and Rampaging Sunken Spirit. RPG Site's two-member roster remains
+preserved as incomplete losing evidence rather than being deleted.
 
 The Hidden Pyramid cluster replaces three area-only routes with independently
 corroborated exact chests: Double-Edged Sword at B1 northwest, Skeleton Swordsman
@@ -618,9 +624,10 @@ pairs.
   corroborated-but-unresolved. None can be safely closed from the currently
   registered evidence. The Blue Button row now isolates only immediate pre-trigger
   presence; its cp022-to-cp023 event mapping is directly evidenced.
-- **Automatic conflicts:** one unresolved claim-pair/fact scope remains: the
-  Simmering Round 3 starting roster includes Rampaging Sunken Spirit in
-  Gamers-High, while RPG Site omits it. No resolution is inferred.
+- **Automatic conflicts:** no unresolved claim-pair/fact scope remains. AppMedia's
+  complete multi-platform roster and direct gameplay resolve Simmering Round 3
+  to include Rampaging Sunken Spirit; RPG Site's omission remains visible as the
+  losing incomplete claim.
   Massively Minted is resolved to lifetime total gold acquired by four independent
   current-version publishers; its isolated simultaneous-balance claim remains visible.
   Stellar Fan is resolved from direct
@@ -651,7 +658,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 711 source records currently have retrieval dates within 180
+- **Freshness:** all 713 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 

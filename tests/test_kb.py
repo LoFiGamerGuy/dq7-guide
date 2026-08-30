@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 711)
+        self.assertEqual(self.counts["sources"], 713)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -1508,11 +1508,9 @@ class KnowledgeBaseTests(unittest.TestCase):
             """SELECT conflict_key FROM conflicts
             WHERE status='unresolved'"""
         ).fetchall()
-        self.assertEqual(len(unresolved), 1)
-        self.assertIn("arena:simmering_road_round_3",
-                      unresolved[0]["conflict_key"])
+        self.assertEqual(len(unresolved), 0)
 
-    def test_rampaging_encounters_have_exact_road_round_with_one_visible_omission(self):
+    def test_rampaging_encounters_have_exact_verified_road_rounds(self):
         rows = self.connection.execute(
             """SELECT e.encounter_id, m.english_name, e.location_text,
                 e.source_id, e.verification_status
@@ -1527,19 +1525,20 @@ class KnowledgeBaseTests(unittest.TestCase):
                       if row["english_name"] == "Rampaging Sunken Spirit")
         self.assertEqual(sunken["location_text"],
                          "Simmering Road Round 3 (Buccanham Arena)")
-        self.assertIn("single_source", sunken["verification_status"])
+        self.assertIn("three_independent", sunken["verification_status"])
         summons = [row for row in rows if row["english_name"] in {
             "Rampaging Miry Hand", "Rampaging Miry Mudraker"
         }]
         self.assertEqual(len(summons), 2)
         self.assertTrue(all("summoned by" in row["location_text"]
                             for row in summons))
-        conflict = self.connection.execute(
+        conflicts = self.connection.execute(
             """SELECT status FROM conflicts
             WHERE conflict_key LIKE
                 'arena:simmering_road_round_3|starting_roster|%'"""
-        ).fetchone()
-        self.assertEqual(conflict["status"], "unresolved")
+        ).fetchall()
+        self.assertEqual(len(conflicts), 2)
+        self.assertTrue(all(row["status"] == "resolved" for row in conflicts))
 
     def test_fixed_monster_hearts_have_two_source_exact_chests(self):
         expected = {
