@@ -176,7 +176,7 @@ for (const viewport of [
         }))).flat().map(request => new URL(request.url).pathname);
         return { keys, apiRequests: requests.filter(pathname => pathname.startsWith("/api/")) };
       });
-      expect(cacheState.keys).toContain("dq7-guide-shell-v21");
+      expect(cacheState.keys).toContain("dq7-guide-shell-v22");
       expect(cacheState.apiRequests).toEqual([]);
     }
   });

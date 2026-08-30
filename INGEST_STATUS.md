@@ -8,7 +8,7 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 | Domain | Seed coverage | Confidence | Next target |
 |---|---:|---|---|
-| Source registry | 720 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
+| Source registry | 722 registered pages; all retrieval dates are currently within 180 days | High metadata / page publication freshness is still mixed | Add official and in-game evidence sources only where they close an explicit gap; refresh retrievals before the 180-day audit threshold |
 | Vocations | 26/26 names; 250 sourced rank skills, 26 Let Loose perks, 9 progression rules, and 454 stat modifiers | High for normalized rows | Add directly published numeric modifiers if found; do not infer values from arrows |
 | Vocation prerequisites | 10 rule groups / 27 prerequisite edges with per-edge locators; vocation detail exposes sourced unlock rules, explicit-state party progress, 163 verified rank-cost cells, and two-source progression profiles for all 26 vocations | High; 23 complete point ladders, Wolf Boy's story-then-points profile, and two story-granted personal vocations are normalized | Replace guide-table adjudications only if stronger direct current-patch evidence disagrees |
 | Moonlighting | cp012-after-Aishe gate, Shrine trigger, Alltrades activation, Career Sphere flow, simultaneous learning, current-vocation-only skills, dual skill/stat access, and any-two-distinct-available-vocations pairing normalized | High; pairing scope and distinctness are independently established by two official current-version pages | Preserve character-exclusive availability and unlock prerequisites when deriving legal pairs |
@@ -32,13 +32,13 @@ Build type: reconstructed seed (see `RECOVERY_MANIFEST.md`)
 
 No grouped-container acquisition residual remains. AppMedia's item table and Altema's independently labelled Present throne-room map resolve Ruby of Protection to the bedroom left drawer and 200 gold to the adjacent right drawer.
 
-- sources: 720
+- sources: 722
 - vocations/entities: 26
 - prerequisite relationships: 27
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,933
+- claims: 1,935
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -79,7 +79,7 @@ The remaining evidence-blocked inventory is exact and intentionally conservative
 - **Missables:** all seven records have exact named action/window boundaries. Little Blue Button becomes unavailable at the late-game Cataclysm. A continuous Game8 Japan walkthrough directly places the trigger when leaving Estard Castle after the cp022 Ultimate-Key cleanup, before cp023's changed-world route. Immediate pre-trigger child presence remains unobserved; player completion is never inferred.
 - **Conflicts:** all 417 claim-pairs are resolved. The Simmering Round 3 roster pairs preserve RPG Site's incomplete two-member list beside Gamers-High, AppMedia, and direct gameplay showing Rampaging Sunken Spirit. Fire Blade, Massively Minted, Troll Heart, `Stellar Fan`, fourteen compatibility pairs, Fishnet Stockings, Marshal Lourgh, and Pirate's Hat retain all prior losing claims beside their resolutions.
 - **Phone achievement action:** Massively Minted now says lifetime total gold acquired and no longer advises unnecessarily banking 300,000 at once. The resolved conflict and losing interpretation remain visible.
-- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 720 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
+- **Provenance:** required source-bearing tables pass locator and foreign-key validation. All 722 registered sources currently have retrieval dates within 180 days, but retrieval recency does not establish publication/patch freshness; indexed/snippet evidence is not promoted to canonical fact.
 
 ## Current residual batch order
 
@@ -95,6 +95,14 @@ unresolved, and API priority order now matches the maintained residual order.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+The duplicate-Heart audit now separates ownership from mechanics. GAME Watch's
+contemporary announcement confirms retailer-bonus Healslime, Bodkin Archer, and
+Hammerhood Hearts; Dragon Quest Dictionary's current Reimagined section says
+each could reach two copies in one save alongside its normal copy. No source
+shows two identical Hearts equipped or their effects stacking, and bonus-code
+availability is unknown, so no duplicate build or currently obtainable route is
+exposed.
 
 The repeatable-Heart boundary audit rules out two tempting repeat loops without
 inventing a farm. GameWith distinguishes the initial Numen Heart from the Seeds
@@ -265,7 +273,7 @@ small explicit normalization map handles supported plurals and phrasing variants
 without fuzzy inference. The phone Sources screen keeps active STOP context above
 the collapsed queue, labels the 5 corroborated / 1 single-source / 0 unsupported
 split, and gives evidence links 44px touch targets. Portrait and landscape browser
-tests exercise these states directly; cache v21 delivers the update. The farming-rate
+tests exercise these states directly; cache v22 delivers the update. The farming-rate
 card now distinguishes incomplete benchmark methodology from a missing exact
 observation, so its collapsed phone label states the actionable evidence boundary.
 Retrieval also treats the conversational modifier `best` as non-semantic for curated
@@ -692,7 +700,7 @@ pairs.
 - **Patch/platform scope and remaining editorial assumptions:** require source- or
   UI-level version evidence. They remain answer-time qualifications rather than
   silently inferred global facts.
-- **Freshness:** all 720 source records currently have retrieval dates within 180
+- **Freshness:** all 722 source records currently have retrieval dates within 180
   days (0 stale, 0 unknown by retrieval date). This measures retrieval recency,
   not whether a publisher updated a page for the current patch.
 
@@ -1089,7 +1097,7 @@ descriptive container and route metadata likewise does not block availability.
 Purchase advice cannot say a Medal reward is free-now when the saved count is
 unknown. Equipment responses select an explicit current `actionable_route`, and
 the phone uses that route (including exact shop price) rather than blindly using
-the first route in a mixed collection. The service-worker cache is v21.
+the first route in a mixed collection. The service-worker cache is v22.
 
 Catalog item detail now annotates every acquisition route against the explicitly
 saved checkpoint and Medal count. Current, later, expired, conditional, and

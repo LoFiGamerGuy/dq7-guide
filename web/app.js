@@ -469,7 +469,7 @@ function renderSources(sources = state.checkpoint?.sources || []) {
     const linkedSources = new Set((gap.supporting_claims || []).map(claim => claim.source_id));
     const additional = gap.sources.filter(source => !linkedSources.has(source.source_id)).map(source => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.title)}</a>`).join("");
     if (!claims && !additional) return '<span class="muted">No publishable source found.</span>';
-    return `${claims ? `<span><b>Supporting claim locators:</b></span><div class="evidence-claims">${claims}</div>` : ""}${additional ? `<span><b>Additional audited pages:</b></span><div class="evidence-links">${additional}</div>` : ""}`;
+    return `${claims ? `<span><b>Partial/negative evidence locators:</b></span><div class="evidence-claims">${claims}</div>` : ""}${additional ? `<span><b>Additional audited pages:</b></span><div class="evidence-links">${additional}</div>` : ""}`;
   };
   const openStops = state.checkpoint?.stop_actions || [];
   const sourcesStop = $("#sourcesStop");

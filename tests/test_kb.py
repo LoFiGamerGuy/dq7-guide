@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 720)
+        self.assertEqual(self.counts["sources"], 722)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3623,6 +3623,22 @@ class KnowledgeBaseTests(unittest.TestCase):
                             for row in rows).lower()
         for fragment in ("numen heart", "subsequent", "one time", "disappear"):
             self.assertIn(fragment, combined)
+
+    def test_named_duplicate_hearts_preserve_ownership_mechanics_boundary(self):
+        row = self.connection.execute(
+            """SELECT c.value_json, c.verification_status, s.publisher
+            FROM claims c JOIN sources s USING(source_id)
+            WHERE c.claim_id='claim_three_hearts_two_copy_ownership_dqdictionary'"""
+        ).fetchone()
+        value = json.loads(row["value_json"])
+        self.assertEqual(row["publisher"], "Dragon Quest Dictionary Wiki")
+        self.assertEqual(set(value["items"]),
+                         {"Healslime Heart", "Bodkin Archer Heart",
+                          "Hammerhood Heart"})
+        self.assertEqual(value["maximum_observed_route_total"], 2)
+        self.assertEqual(value["duplicate_equip_legality"], "unknown")
+        self.assertEqual(value["effect_stacking"], "unknown")
+        self.assertIn("not_equipping_or_stacking", row["verification_status"])
 
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
