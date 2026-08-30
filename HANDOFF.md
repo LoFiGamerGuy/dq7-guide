@@ -60,6 +60,10 @@ gold sparkle. The Sword route is a ground pickup, correcting the older generic
 chest label; all three are independently corroborated by RPG Site and Gamers-High.
 Headsman's Axe is independently pinned by Gamers-High and Neoseeker to the B2
 small-room chest behind the left-hand door.
+Hidden Pyramid routes now identify Double-Edged Sword at the B1 northwest chest,
+Skeleton Swordsman Heart at the B3 south chest, and Divine Bustier at the B4 south
+chest. Gamers-High and AppMedia independently corroborate all three; each remains
+a finite route with player ownership unknown.
 
 Achievement-counter handoff: all thresholds remain structured, and current sources now distinguish individual monster/metal-monster units, in-battle wins, successful pre-battle field attacks, no-combat quick wins, and party-wide Let Loose aggregation at their actual evidence strengths. Torokichi and GIGA independently define each Straight to the Point count as one successful field-attack instant-kill event that avoids the battle screen. This does not prove overlap with Field Day, Monster Masher, or Metal Mangler. Two independent firsthand publishers agree that quick wins do not increment Winning Machine's battle-win counter. Massively Minted is resolved to lifetime total gold acquired: GameWith, Game8 Japan, and Altema use the same explicit cumulative condition, independently matching Maestros del Mando; the isolated hold-300,000 claim remains visible as losing evidence. GameWith and Kyokugen enumerate the exact metal-family roster as Metal Slime, Liquid Metal Slime, Metal King Slime, and Platinum King. Detailed Records exposes the five relevant counters for the remaining controlled tests. The remaining queue is cross-counter overlap and save-slot/New Game/demo-transfer/reset scope.
 
