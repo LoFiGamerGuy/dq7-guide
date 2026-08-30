@@ -3563,6 +3563,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         self.assertEqual({row["publisher"] for row in publishers},
                          {"RPG Site", "Game8 Japan", "Neoseeker"})
 
+    def test_falcon_knife_earrings_have_exact_isolated_falls_hollow_chest(self):
+        acquisition_id = "acq_falcon_knife_earrings_falls_hollow"
+        route = self.connection.execute(
+            """SELECT method, route_label, location_text, prerequisite_json,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id=?""", (acquisition_id,)
+        ).fetchone()
+        combined = " ".join((route["route_label"], route["location_text"],
+                             route["prerequisite_json"])).lower()
+        self.assertEqual(route["method"], "chest")
+        for fragment in ("isolated", "1f", "west", "b1", "staircase"):
+            self.assertIn(fragment, combined)
+        self.assertIn("two_independent", route["verification_status"])
+        publishers = self.connection.execute(
+            """SELECT DISTINCT s.publisher FROM claims c
+            JOIN sources s USING(source_id)
+            WHERE c.subject_key=? AND c.predicate='precise_location_description'""",
+            (f"acquisition:{acquisition_id}",),
+        ).fetchall()
+        self.assertEqual({row["publisher"] for row in publishers},
+                         {"RPG Site", "Neoseeker"})
+
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
             """SELECT i.name, a.locator, a.available_from_checkpoint_id,

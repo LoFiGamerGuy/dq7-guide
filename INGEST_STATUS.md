@@ -38,7 +38,7 @@ No grouped-container acquisition residual remains. AppMedia's item table and Alt
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,926
+- claims: 1,928
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -93,6 +93,12 @@ queue: 1 single-source, 0 unsupported, and 5 corroborated-but-unresolved rows.
 The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`, not physical location order, so later key-gated chests are excluded from early availability reports.
 
 ## Latest completed batch
+
+Falcon Knife Earrings now resolve to the isolated Falls Hollow Past 1F west
+chest reached by taking the west path and first/central staircase from B1 before
+using the northeast staircase to continue. RPG Site and Neoseeker independently
+publish the same route; their B1-versus-1F wording describes the approach and
+container floors, not conflicting locations. This does not establish ownership.
 
 The Demon Spear route now corrects a reconstructed chest inference: it is the
 gold/orange sparkle at the back-left of Nottagen Cavern Past B1 screen 2, in the
