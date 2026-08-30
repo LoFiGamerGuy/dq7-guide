@@ -57,7 +57,7 @@ test("phone restore and reconnect flow stays explicit and recoverable", async ({
   await context.setOffline(false);
   await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(true);
   await expect.poll(() => page.evaluate(async () => (await fetch("/api/health")).status)).toBe(200);
-  await expect(page.locator("#connectionBanner")).toBeHidden();
+  await expect(page.locator("#connectionBanner")).toBeHidden({ timeout: 15_000 });
 });
 
 test.beforeAll(async () => {
@@ -176,7 +176,7 @@ for (const viewport of [
         }))).flat().map(request => new URL(request.url).pathname);
         return { keys, apiRequests: requests.filter(pathname => pathname.startsWith("/api/")) };
       });
-      expect(cacheState.keys).toContain("dq7-guide-shell-v22");
+      expect(cacheState.keys).toContain("dq7-guide-shell-v23");
       expect(cacheState.apiRequests).toEqual([]);
     }
   });

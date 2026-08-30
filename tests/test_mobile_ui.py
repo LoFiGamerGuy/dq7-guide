@@ -136,6 +136,8 @@ class MobileUiContractTests(unittest.TestCase):
         self.assertIn("Show all ${openStops.length} STOP actions", js)
         self.assertIn('class="sources-stop-action"', js)
         self.assertIn("Every question remains unresolved", js)
+        self.assertIn("connectionBannerTimer", js)
+        self.assertIn("state.hostReachable !== false && !state.usingCachedData", js)
         self.assertIn("multi_publisher_partial_evidence", js)
         self.assertIn("Return to Now", js)
         self.assertIn(".sources-stop", css)

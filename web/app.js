@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false, hostReachable: null, mutations: new Set(), undoAction: null, undoTimer: null };
+const state = { dashboard: null, checkpoints: [], checkpoint: null, progress: null, equipment: null, conflicts: [], evidenceGaps: null, vocations: [], catalogs: {}, domain: null, selectedEntry: null, filter: "all", sourcePublisher: "all", sourceFreshness: "all", requests: 0, pendingRestore: null, usingCachedData: false, hostReachable: null, mutations: new Set(), undoAction: null, undoTimer: null, connectionBannerTimer: null };
 const domains = {
   items: { title: "Items", singular: "item", progressKind: "item", filters: ["all","weapons","armour","accessories","shields","head","usable items"] },
   vocations: { title: "Vocations", singular: "vocation", progressKind: null, filters: ["all","beginner","intermediate","advanced","character-exclusive"] },
@@ -90,6 +90,8 @@ async function api(path, options = {}) {
 
 function renderConnectionState(reconnected = false) {
   const banner = $("#connectionBanner");
+  window.clearTimeout(state.connectionBannerTimer);
+  state.connectionBannerTimer = null;
   if (!navigator.onLine || state.usingCachedData || state.hostReachable === false) {
     banner.hidden = false;
     banner.className = "connection-banner";
@@ -98,7 +100,10 @@ function renderConnectionState(reconnected = false) {
     banner.hidden = false;
     banner.className = "connection-banner online";
     banner.textContent = "Reconnected · refreshed from the guide host.";
-    window.setTimeout(() => { if (navigator.onLine) banner.hidden = true; }, 3500);
+    state.connectionBannerTimer = window.setTimeout(() => {
+      if (navigator.onLine && state.hostReachable !== false && !state.usingCachedData) banner.hidden = true;
+      state.connectionBannerTimer = null;
+    }, 3500);
   } else {
     banner.hidden = true;
   }
