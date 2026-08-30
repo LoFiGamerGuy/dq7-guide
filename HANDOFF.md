@@ -68,6 +68,11 @@ Rippled Rapier now resolves to Professor Wade's underground storeroom chest besi
 the Red Fragment in Wetlock Present, reached by the west raft route after clearing
 Highendreigh Tower and reporting back. Gamers-High and AppMedia independently
 corroborate the exact container and story gate.
+Demon Spear now resolves to the gold/orange sparkle at the back-left of Nottagen
+Cavern Past B1 screen 2, beyond the east-side disappearing root. RPG Site and
+Game8 Japan directly establish the pickup method; Neoseeker independently
+corroborates the navigation. This corrects the older inferred-chest label without
+asserting ownership or repeatability.
 
 Achievement-counter handoff: all thresholds remain structured, and current sources now distinguish individual monster/metal-monster units, in-battle wins, successful pre-battle field attacks, no-combat quick wins, and party-wide Let Loose aggregation at their actual evidence strengths. Torokichi and GIGA independently define each Straight to the Point count as one successful field-attack instant-kill event that avoids the battle screen. This does not prove overlap with Field Day, Monster Masher, or Metal Mangler. Two independent firsthand publishers agree that quick wins do not increment Winning Machine's battle-win counter. Massively Minted is resolved to lifetime total gold acquired: GameWith, Game8 Japan, and Altema use the same explicit cumulative condition, independently matching Maestros del Mando; the isolated hold-300,000 claim remains visible as losing evidence. GameWith and Kyokugen enumerate the exact metal-family roster as Metal Slime, Liquid Metal Slime, Metal King Slime, and Platinum King. Detailed Records exposes the five relevant counters for the remaining controlled tests. The remaining queue is cross-counter overlap and save-slot/New Game/demo-transfer/reset scope.
 

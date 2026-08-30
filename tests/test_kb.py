@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 715)
+        self.assertEqual(self.counts["sources"], 717)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3540,6 +3540,28 @@ class KnowledgeBaseTests(unittest.TestCase):
         ).fetchall()
         self.assertEqual({row["publisher"] for row in publishers},
                          {"Gamers-High", "AppMedia"})
+
+    def test_demon_spear_corrects_inferred_chest_to_exact_gold_spot(self):
+        acquisition_id = "acq_demon_spear_nottagen_cavern_past"
+        route = self.connection.execute(
+            """SELECT method, route_label, location_text, prerequisite_json,
+                verification_status FROM item_acquisition_paths
+            WHERE acquisition_id=?""", (acquisition_id,)
+        ).fetchone()
+        combined = " ".join((route["route_label"], route["location_text"],
+                             route["prerequisite_json"])).lower()
+        self.assertEqual(route["method"], "other")
+        for fragment in ("b1", "screen-2", "back-left", "sparkle", "east-side"):
+            self.assertIn(fragment, combined)
+        self.assertIn("three_independent", route["verification_status"])
+        publishers = self.connection.execute(
+            """SELECT DISTINCT s.publisher FROM claims c
+            JOIN sources s USING(source_id)
+            WHERE c.subject_key=? AND c.predicate='precise_location_description'""",
+            (f"acquisition:{acquisition_id}",),
+        ).fetchall()
+        self.assertEqual({row["publisher"] for row in publishers},
+                         {"RPG Site", "Game8 Japan", "Neoseeker"})
 
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
