@@ -38,7 +38,7 @@ No grouped-container acquisition residual remains. AppMedia's item table and Alt
 - vocation rank skills / perks: 250 / 26
 - vocation progression rules: 9
 - vocation stat modifiers: 454
-- claims: 1,911
+- claims: 1,913
 - medal rewards: 19
 - missables: 7
 - farming spots: 11
@@ -94,11 +94,12 @@ The `medal_report.py --through CHECKPOINT` query uses `available_checkpoint_id`,
 
 ## Latest completed batch
 
-The Cathedral gear batch pins Hela's Armour to the 3F east chest and Orichalcum
-Fangs to the 4F north chest. It also corrects Sword of Ruin's method from a generic
-chest to the 1F central-throne gold sparkle. RPG Site and Gamers-High independently
-publish all three exact routes; no repeatability, ownership, or extra-copy claim is
-added.
+The Cathedral gear batch pins Hela's Armour to the 3F east chest, Orichalcum
+Fangs to the 4F north chest, and Headsman's Axe to the B2 small-room chest behind
+the left-hand door. It also corrects Sword of Ruin's method from a generic chest
+to the 1F central-throne gold sparkle. RPG Site and Gamers-High independently
+publish the first three routes; Gamers-High and Neoseeker independently publish
+the Axe container. No repeatability, ownership, or extra-copy claim is added.
 
 The next fixed-Heart container batch upgrades Goon Heart to the Dungeon of
 Descent Past B2 chest at the end of the south branch and Very Devil Heart to the

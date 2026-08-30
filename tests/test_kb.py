@@ -3461,12 +3461,18 @@ class KnowledgeBaseTests(unittest.TestCase):
 
     def test_cathedral_gear_has_exact_two_source_pickups(self):
         expected = {
-            "acq_helas_armour_chest_cathedral_blight": ("chest", "3F", "east"),
-            "acq_orichalcum_fangs_cathedral_blight": ("chest", "4F", "north"),
+            "acq_helas_armour_chest_cathedral_blight":
+                (("chest", "3F", "east"), {"RPG Site", "Gamers-High"}),
+            "acq_orichalcum_fangs_cathedral_blight":
+                (("chest", "4F", "north"), {"RPG Site", "Gamers-High"}),
             "acq_sword_of_ruin_cathedral_blight":
-                ("other", "1F", "throne", "sparkle"),
+                (("other", "1F", "throne", "sparkle"),
+                 {"RPG Site", "Gamers-High"}),
+            "acq_headsmans_axe_cathedral_blight":
+                (("chest", "B2", "left-hand door", "small room"),
+                 {"Gamers-High", "Neoseeker"}),
         }
-        for acquisition_id, fragments in expected.items():
+        for acquisition_id, (fragments, expected_publishers) in expected.items():
             route = self.connection.execute(
                 """SELECT method, route_label, location_text, prerequisite_json,
                     verification_status FROM item_acquisition_paths
@@ -3483,7 +3489,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 (f"acquisition:{acquisition_id}",),
             ).fetchall()
             self.assertEqual({row["publisher"] for row in publishers},
-                             {"RPG Site", "Gamers-High"})
+                             expected_publishers)
 
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
