@@ -61,7 +61,7 @@ class KnowledgeBaseTests(unittest.TestCase):
         cls.tempdir.cleanup()
 
     def test_expected_seed_counts(self):
-        self.assertEqual(self.counts["sources"], 708)
+        self.assertEqual(self.counts["sources"], 709)
         self.assertEqual(self.counts["equipment_rules"], 6)
         self.assertEqual(self.counts["equipment_compatibility_audits"], 311)
         self.assertEqual(self.counts["equipment_compatibility"], 1866)
@@ -3458,6 +3458,32 @@ class KnowledgeBaseTests(unittest.TestCase):
             ).fetchall()
             self.assertEqual({row["publisher"] for row in publishers},
                              {"Game8 Japan", "Neoseeker"})
+
+    def test_cathedral_gear_has_exact_two_source_pickups(self):
+        expected = {
+            "acq_helas_armour_chest_cathedral_blight": ("chest", "3F", "east"),
+            "acq_orichalcum_fangs_cathedral_blight": ("chest", "4F", "north"),
+            "acq_sword_of_ruin_cathedral_blight":
+                ("other", "1F", "throne", "sparkle"),
+        }
+        for acquisition_id, fragments in expected.items():
+            route = self.connection.execute(
+                """SELECT method, route_label, location_text, prerequisite_json,
+                    verification_status FROM item_acquisition_paths
+                WHERE acquisition_id=?""", (acquisition_id,)
+            ).fetchone()
+            combined = " ".join((route["method"], route["route_label"],
+                                 route["location_text"], route["prerequisite_json"]))
+            self.assertTrue(all(fragment in combined for fragment in fragments))
+            self.assertIn("two_independent", route["verification_status"])
+            publishers = self.connection.execute(
+                """SELECT DISTINCT s.publisher FROM claims c
+                JOIN sources s USING(source_id)
+                WHERE c.subject_key=? AND c.predicate='precise_location_description'""",
+                (f"acquisition:{acquisition_id}",),
+            ).fetchall()
+            self.assertEqual({row["publisher"] for row in publishers},
+                             {"RPG Site", "Gamers-High"})
 
     def test_lucky_panel_version_2_rank_1_preserves_published_scope(self):
         rows = self.connection.execute(
